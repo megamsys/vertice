@@ -8,7 +8,7 @@ import (
 	"github.com/tsuru/config"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/exec"
-	"github.com/megamsys/gulp/scm"
+//	"github.com/megamsys/gulp/scm"
 	"log"
 	"text/template"
 	"path"
