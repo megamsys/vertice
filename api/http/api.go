@@ -1,48 +1,44 @@
 package http
 
 import (
-	"bytes"
-	"compress/gzip"
-	"crypto/tls"
-	"encoding/base64"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"net"
 	libhttp "net/http"
-	"path/filepath"
-	"strconv"
 	"strings"
+	"strconv"
 	"time"
+	"github.com/bmizerany/pat"
 	"github.com/tsuru/config"
+	log "code.google.com/p/log4go"
+	
 )
-
+type TimePrecision int
 type HttpServer struct {
 	conn           net.Listener
-	HttpPort       string
+	HttpPort       int
 //	adminAssetsDir string
 	shutdown       chan bool
 	readTimeout    time.Duration
 	p              *pat.PatternServeMux
 }
 
+
+
 func NewHttpServer() *HttpServer {
-	apiReadTimeout, _ = config.GetString("read-timeout")
-	apiHttpPortString, _ = config.GetString("admin:port")
+	//apiReadTimeout, _ := config.GetString("read-timeout")
+	apiHttpPortString, _ := config.GetInt("admin:port")
 	self := &HttpServer{}
 	self.HttpPort = apiHttpPortString
 	//self.adminAssetsDir = config.AdminAssetsDir	
 	self.shutdown = make(chan bool, 2)
 	self.p = pat.New()
-	self.readTimeout = apiReadTimeout
+	self.readTimeout = 10 * time.Second
 	return self
 }
 
 func (self *HttpServer) ListenAndServe() {
 	var err error
-	if self.httpPort != "" {
-		self.conn, err = net.Listen("tcp", self.httpPort)
+	if self.HttpPort > 0  {
+		self.conn, err = net.Listen("tcp", ":"+strconv.Itoa(self.HttpPort))
 		if err != nil {
 			log.Error("Listen: ", err)
 		}
@@ -52,7 +48,6 @@ func (self *HttpServer) ListenAndServe() {
 
 func (self *HttpServer) registerEndpoint(method string, pattern string, f libhttp.HandlerFunc) {
 	version, _ := config.GetString("version")
-	//version := self.clusterConfig.GetLocalConfiguration().Version
 	switch method {
 	case "get":
 		self.p.Get(pattern, CompressionHeaderHandler(f, version))
@@ -82,5 +77,18 @@ func (self *HttpServer) serveListener(listener net.Listener, p *pat.PatternServe
 	if err := srv.Serve(listener); err != nil && !strings.Contains(err.Error(), "closed network") {
 		panic(err)
 	}
+}
+
+func (self *HttpServer) sendCrossOriginHeader(w libhttp.ResponseWriter, r *libhttp.Request) {
+	w.WriteHeader(libhttp.StatusOK)
+}
+
+func isPretty(r *libhttp.Request) bool {
+	return r.URL.Query().Get("pretty") == "true"
+}
+
+
+func (self *HttpServer) query(w libhttp.ResponseWriter, r *libhttp.Request) {
+	
 }
 
