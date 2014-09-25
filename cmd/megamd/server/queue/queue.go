@@ -1,93 +1,35 @@
-package server.queue
+package queue
 
 import (
-	"bytes"
-	"encoding/json"
-	"net"
-	
+	"github.com/megamsys/libgo/amqp"
+	log "code.google.com/p/log4go"
 )
 
-type Server struct {
+type QueueServer struct {
 	listenAddress string
-	conn          *net.UDPConn
+	chann          chan []byte
 	shutdown      chan bool
 }
 //interface arguments
-func NewServer(listenAddress string) *Server {
-	self := &Server{}
+func NewServer(listenAddress string) *QueueServer {
+	log.Info("Create New queue server")
+	self := &QueueServer{}
 
 	self.listenAddress = listenAddress
 	self.shutdown = make(chan bool, 1)
-
+     log.Info(self)
 	return self
 }
 
-//func (self *Server) getAuth() {
-	// just use any (the first) of the list of admins.
-//	names := self.clusterConfig.GetClusterAdmins()
-//	self.user = self.clusterConfig.GetClusterAdmin(names[0])
-//}
 
-func (self *Server) ListenAndServe() {
-	var err error
-
-	//self.getAuth()
-
-	addr, err := net.ResolveUDPAddr("udp4", self.listenAddress)
-	if err != nil {
-		log.Error("UDPServer: ResolveUDPAddr: ", err)
-		return
-	}
-
-	if self.listenAddress != "" {
-		self.conn, err = net.ListenUDP("udp", addr)
-		if err != nil {
-			log.Error("UDPServer: Listen: ", err)
-			return
-		}
-	}
-	defer self.conn.Close()
-	self.HandleSocket(self.conn)
+func (self *QueueServer) ListenAndServe() {
+	
+	log.Info("------------------------------------------")
+    log.Info("Starting Queue listen")
+	factor, _ := amqp.Factory()
+	pubsub, _ := factor.Get(self.listenAddress)
+	msgChan, _ := pubsub.Sub()
+	self.chann = msgChan
+	
 }
 
-func (self *Server) HandleSocket(socket *net.UDPConn) {
-	buffer := make([]byte, 2048)
-
-	for {
-		n, _, err := socket.ReadFromUDP(buffer)
-		if err != nil || n == 0 {
-			log.Error("UDP ReadFromUDP error: %s", err)
-			continue
-		}
-
-		serializedSeries := []*SerializedSeries{}
-		decoder := json.NewDecoder(bytes.NewBuffer(buffer[0:n]))
-		decoder.UseNumber()
-		err = decoder.Decode(&serializedSeries)
-		if err != nil {
-			log.Error("UDP json error: %s", err)
-			continue
-		}
-
-		for _, s := range serializedSeries {
-			if len(s.Points) == 0 {
-				continue
-			}
-
-			series, err := ConvertToDataStoreSeries(s, SecondPrecision)
-			if err != nil {
-				log.Error("UDP cannot convert received data: %s", err)
-				continue
-			}
-
-			serie := []*protocol.Series{series}
-			err = self.coordinator.WriteSeriesData(self.user, self.database, serie)
-			if err != nil {
-				log.Error("UDP cannot write data: %s", err)
-				continue
-			}
-		}
-
-	}
-
-}

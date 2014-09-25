@@ -2,20 +2,14 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path"
-	"path/filepath"
 	"runtime"
-	"strconv"
 	"time"
     "github.com/tsuru/config"
-	"github.com/megamsys/influxdb/configuration"
-	"github.com/megamsys/influxdb/coordinator"
-	"github.com/megamsys/influxdb/server"
+    log "code.google.com/p/log4go"
+	"github.com/megamsys/megamd/cmd/megamd/server"
 )
 
-func StartDaemon(bool dry) {
+func StartDaemon(dry bool) {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 

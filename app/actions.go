@@ -162,33 +162,9 @@ var buildApp = action.Action{
 			return nil, errors.New("First parameter must be App or *App.")
 		}
 
-		project, err := scm.Project()
-		if err != nil {
-			log.Printf("Could not find the project name in gulp.conf file: %s", err)
-			return nil, errors.New("Could not find the project name in gulp.conf file")
-		}
-
-		builder, err := scm.Builder()
-		if err != nil {
-			log.Printf("Could not find the builder in gulp.conf file: %s", err)
-			return nil, errors.New("Could not find the builder in gulp.conf file")
-
-		}
-
-		local_repo, err := scm.GetPath()
-		if err != nil {
-			log.Printf("Could not find the local repo  in gulp.conf file: %s", err)
-			return nil, errors.New("Could not find the local repo in gulp.conf file")
-		}
-
-		remote_repo, err := scm.GetRemotePath()
-		if err != nil {
-			log.Printf("Could not find the remote repo in gulp.conf file: %s", err)
-			return nil, errors.New("Could not find the remote repo in gulp.conf file")
-		}
-
-		build_parms := fmt.Sprintf("%s/%s %s %s %s", builder, app.AppReqs.LCApply, keyproject+project, keylocal_repo+local_repo, keyremote_repo+remote_repo)
-
+		
+	//	build_parms := fmt.Sprintf("%s/%s %s %s %s", builder, app.AppReqs.LCApply, keyproject+project, keylocal_repo+local_repo, keyremote_repo+remote_repo)
+        build_parms := fmt.Sprintf("%s","")
 		app.AppReqs.LCApply = build_parms
 		return CommandExecutor(&app)
 	},

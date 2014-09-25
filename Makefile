@@ -77,12 +77,12 @@ _go_test:
 	go clean $(GO_EXTRAFLAGS) ./...
 	go test $(GO_EXTRAFLAGS) ./...
 
-_cibd:
-	rm -f cibd
+_megamd:
+	rm -f megamd
 	go build $(GO_EXTRAFLAGS) -o megamd ./cmd/megamd
 	
 
-_cibdr:
+_megamdr:
 	sudo ./megamd start
 	rm -f megamd
 
