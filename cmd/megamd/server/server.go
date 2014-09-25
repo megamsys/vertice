@@ -30,7 +30,6 @@ func (self *Server) ListenAndServe() error {
 	//for _, queueInput := range self.QueueServers {
 	
 		listenQueue := "sample_queue"
-
 		queueserver := queue.NewServer(listenQueue)
 		go queueserver.ListenAndServe()
 	//}
