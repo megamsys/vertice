@@ -1,0 +1,48 @@
+#######################################################
+# Chef provisioner commands
+#######################################################
+ec2:
+ tool: knife
+ command:
+   create: ec2 server create -c
+   delete: ec2 server delete <node_name> -c -P -y
+   list: ec2 server list
+   data: ec2 instance set
+hp:
+ tool: knife
+ command:
+   create: hp server create -c
+   delete: hp server delete <node_name> -c -P -y
+   list: hp server list
+   data: hp instance set 
+profitbricks:
+ tool: knife
+ command:
+   create: profitbricks server create -c
+   delete: profitbricks server delete <node_name> -c -P -y
+   list: profitbricks server list
+   data: profitbricks instance set 
+google:
+ tool: knife
+ command:
+   create: google server create -f -c
+   delete: google server delete <node_name> -f -c -P -y
+   list: google server list
+   data: google instance set 
+gogrid:
+ tool: knife
+ command:
+   create: gogrid server create -c
+   delete: gogrid server delete <node_name> -c -P -y
+   list: gogrid server list
+   data: gogrid instance set 
+opennebula:
+ tool: knife
+ command:
+   create: opennebula server create -c
+   delete: opennebula server delete <node_name> -c -P -y
+   list: opennebula server list
+   data: opennebula instance set 
+
+
+ 
