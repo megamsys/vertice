@@ -26,7 +26,7 @@ func NewServer() (*Server, error) {
 func (self *Server) ListenAndServe() error {
 	log.Info("Starting admin interface on port")
 	var queueInput [2]string
-	queueInput[0] = "Requests"
+	queueInput[0] = "cloudstandup"
 	queueInput[1] = "Events"
 	
 	// Queue input

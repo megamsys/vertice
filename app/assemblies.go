@@ -10,13 +10,15 @@ import (
 type Request struct {
 	Env              map[string]bind.EnvVar
 	Id	             string     `json:"id"`
-	AssembliesId     string   `json:"assemblies_id"` 
-	ReqType           string     `json:"req_type"`
+	AssembliesId     string     `json:"node_id"`
+	AssembliesName   string     `json:"node_name"` 
+	ReqType          string     `json:"req_type"`
 	CreatedAt        string     `json:"created_at"`
 }
 
 type Assemblies struct {
    Id             string    `json:"id"` 
+   AccountsId     string    `json:"accounts_id"`
    JsonClaz       string   `json:"json_claz"` 
    Name           string   `json:"name"` 
    Assemblies     []string   `json:"assemblies"` 
@@ -28,8 +30,18 @@ type AssembliesInputs struct {
    Id                   string    `json:"id"` 
    AssembliesType       string    `json:"assemblies_type"` 
    Label                string    `json:"label"` 
+   CloudSettings        []*CloudSettings    `json:"cloudsettings"`
    }
 
+type CloudSettings struct {
+	Id                 string       `json:"id"`
+    CSType             string        `json:"cstype"`
+    CloudSettings      string       `json:"cloudsettings"`
+    X                  string        `json:"x"`
+    Y                  string        `json:"y"`
+    Z                  string        `json:"z"`
+    Wires              []string    `json:“wires”`
+}
 
 func (req *Request) Get(reqId string) (*Request, error) {
     log.Info("Get Request message %v", reqId)
@@ -43,7 +55,6 @@ func (req *Request) Get(reqId string) (*Request, error) {
 		return req, ferr
 	}	
 	defer conn.Close()
-	
 	
 	return req, nil
 
@@ -61,7 +72,6 @@ func (asm *Assemblies) Get(asmId string) (*Assemblies, error) {
 		return asm, ferr
 	}	
 	defer conn.Close()
-	
 	
 	return asm, nil
 

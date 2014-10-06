@@ -1,9 +1,17 @@
 package coordinator
 
 import (
-
+    "encoding/json"
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/megamd/app"
+	"github.com/megamsys/megamd/provisioner/chef"
+	"github.com/megamsys/megamd/provisioner/docker"
+	"github.com/megamsys/megamd/iaas/ec2"
+	"github.com/megamsys/megamd/iaas/google"
+	"github.com/megamsys/megamd/iaas/hp"
+	"github.com/megamsys/megamd/iaas/gogrid"
+	"github.com/megamsys/megamd/iaas/opennebula"
+	"github.com/megamsys/megamd/iaas/profitbricks"
 )
 
 type Coordinator struct {
@@ -11,11 +19,26 @@ type Coordinator struct {
 	//EventsHandler(f func(*Message), name ...string) (Handler, error)
 }
 
+type Message struct {
+	Id    string  `json:"id"`
+}
+
+func init() {
+	ec2.Init()
+	google.Init()
+	hp.Init()
+	gogrid.Init()
+	opennebula.Init()
+	profitbricks.Init()
+	chef.Init()
+	docker.Init()
+}
+
 func NewCoordinator(chann []byte, queue string) {
 	log.Info("Handling coordinator message %v", string(chann))
 	
 	switch queue {
-	case "Requests":
+	case "cloudstandup":
 	      requestHandler(chann)
 	      break;
 	case "Events":
@@ -25,14 +48,18 @@ func NewCoordinator(chann []byte, queue string) {
 }
 	
 func requestHandler(chann []byte) {
-	    request := app.Request{Id: string(chann)}
-        req, err := request.Get(string(chann))
+	    m := &Message{} 
+	    parse_err := json.Unmarshal(chann, &m)
+	    if parse_err != nil {
+	    	log.Error("Error: Message parsing error:\n%s.", parse_err)
+			return
+	    }
+        request := app.Request{Id: m.Id}
+        req, err := request.Get(m.Id)
 		if err != nil {
 			log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			return
 		}
-	   log.Info("------------return request-------------------")
-		       log.Info(req)
 	   switch req.ReqType {
 	   case "create":
 	       	   assemblies := app.Assemblies{Id: req.AssembliesId }
@@ -41,8 +68,6 @@ func requestHandler(chann []byte) {
 			         log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			         return
 		         }
-		       log.Info("------------assemblies-------------------")
-		       log.Info(asm)
 		       for i := range asm.Assemblies {
 		       	if len(asm.Assemblies[i]) > 1 {
 		             assemblyID := asm.Assemblies[i]
@@ -52,10 +77,8 @@ func requestHandler(chann []byte) {
 			            log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			            return
 		              }
-		             log.Info("------------assembly-------------------")
-		             log.Info(res)
-		             
-		             //go CreateApp(&assembly)
+		          
+		             go app.LaunchApp(res)
 	             }
 		       	}	
 		}
