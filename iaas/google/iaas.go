@@ -49,6 +49,11 @@ func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
 	   }   
 	   str = str + " -N " + assembly.Name+"."+assembly.Components[0].Inputs.Domain
 	   str = strings.Replace(str,"create -f","create "+assembly.Name+"."+assembly.Components[0].Inputs.Domain+" -f "+cre,-1) 
+	    knifePath, kerr := config.GetString("knife:path")
+	  if kerr != nil {
+	  	return "", kerr
+	  }
+	str = strings.Replace(str,"-c","-c "+knifePath,-1)  
 	return str, nil
 }
 

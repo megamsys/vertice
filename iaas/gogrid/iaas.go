@@ -4,6 +4,8 @@ import (
    "github.com/megamsys/megamd/iaas"
    "bytes"
    "fmt"
+   "github.com/tsuru/config"
+   "strings"
    "github.com/megamsys/megamd/provisioner"
 )
 
@@ -33,6 +35,11 @@ func (i *GoGridIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
 	   str = str + " -A " + keys.AccessKey
 	   str = str + " -K " + keys.SecretKey
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)  
+	 knifePath, kerr := config.GetString("knife:path")
+	  if kerr != nil {
+	  	return "", kerr
+	  }
+	str = strings.Replace(str,"-c","-c "+knifePath,-1)  
 	return str, nil
 }
 

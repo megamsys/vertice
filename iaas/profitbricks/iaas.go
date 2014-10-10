@@ -5,6 +5,7 @@ import (
    "bytes"
    "strings"
    "fmt"
+   "github.com/tsuru/config"
    "github.com/megamsys/megamd/provisioner"
 )
 
@@ -34,6 +35,11 @@ func (i *ProfitBricksIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provi
 	   str = str + " -A " + keys.AccessKey
 	   str = str + " -K " + keys.SecretKey
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)  
+	 knifePath, kerr := config.GetString("knife:path")
+	  if kerr != nil {
+	  	return "", kerr
+	  }
+	str = strings.Replace(str,"-c","-c "+knifePath,-1)  
 	return str, nil
 }
 

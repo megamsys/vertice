@@ -14,7 +14,7 @@ type Assembly struct {
    JsonClaz       string   `json:"json_claz"` 
    Name           string   `json:"name"` 
    Components     []string   `json:"components"` 
-   policies       string   `json:"policies"`
+   Policies       []*provisioner.Policy   `json:"policies"`
    inputs         string    `json:"inputs"`
    operations     string    `json:"operations"` 
    CreatedAt      string   `json:"created_at"` 
