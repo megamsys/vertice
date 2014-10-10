@@ -16,6 +16,7 @@ type Request struct {
 	CreatedAt        string     `json:"created_at"`
 }
 
+
 type Assemblies struct {
    Id             string    `json:"id"` 
    AccountsId     string    `json:"accounts_id"`

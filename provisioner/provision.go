@@ -7,12 +7,17 @@ import (
 	log "code.google.com/p/log4go"
 )
 
+type Policy struct {
+	Name      string   `json:"name"`
+	Ptype     string   `json:"ptype"`
+	Members   []string `json:"members"`
+}
 
 type AssemblyResult struct {
    Id             string    `json:"id"` 
    Name           string   `json:"name"` 
    Components     []*Component    
-   policies       string   `json:"policies"`
+   policies       []*Policy   `json:"policies"`
    inputs         string    `json:"inputs"`
    operations     string    `json:"operations"` 
    Command        string
