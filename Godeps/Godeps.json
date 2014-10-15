@@ -1,0 +1,81 @@
+{
+	"ImportPath": "github.com/megamsys/megamd",
+	"GoVersion": "go1.3.3",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/goprotobuf/proto",
+			"Comment": "go.r60-157",
+			"Rev": "725eb0907b649c438e0e8f1601648597141fb66c"
+		},
+		{
+			"ImportPath": "code.google.com/p/log4go",
+			"Comment": "go.weekly.2012-02-22-1",
+			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
+		},
+		{
+			"ImportPath": "github.com/bmizerany/pat",
+			"Rev": "b8a35001b773c267eb260a691f4e5499a3531600"
+		},
+		{
+			"ImportPath": "github.com/howeyc/fsnotify",
+			"Comment": "v0.9.0-11-g6b1ef89",
+			"Rev": "6b1ef893dc11e0447abda6da20a5203481878dda"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/action",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/amqp",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/cmd",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/db",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/exec",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/fs",
+			"Rev": "a5d91fc8e3c2854907f034080a0dba73fc12c5bd"
+		},
+		{
+			"ImportPath": "github.com/mrb/riakpbc",
+			"Rev": "b20607befda4bf864c4afd595a57b8f99754b885"
+		},
+		{
+			"ImportPath": "github.com/streadway/amqp",
+			"Rev": "6ffc9248c4b16699477e7411084c2402f2f0c351"
+		},
+		{
+			"ImportPath": "github.com/tsuru/config",
+			"Rev": "96579b79a0a66b9b6c95a8ff7c344aa512b41288"
+		},
+		{
+			"ImportPath": "gopkg.in/check.v1",
+			"Rev": "91ae5f88a67b14891cfd43895b01164f6c120420"
+		},
+		{
+			"ImportPath": "gopkg.in/v1/yaml",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		},
+		{
+			"ImportPath": "launchpad.net/gnuflag",
+			"Comment": "13",
+			"Rev": "roger.peppe@canonical.com-20140716064605-pk32dnmfust02yab"
+		}
+	]
+}

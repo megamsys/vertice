@@ -33,7 +33,7 @@ const defaultConfigPath = "conf/megamd.conf"
 
 func buildManager(name string) *cmd.Manager {
 	m := cmd.BuildBaseManager(name, version, header)
-	m.Register(&StartD{})               //sudo megamd start
+	m.Register(&StartD{}) //sudo megamd start
 	return m
 }
 

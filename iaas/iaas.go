@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/provisioner"
-	  "gopkg.in/yaml.v2"
+	  "gopkg.in/yaml.v1"
 	  "github.com/tsuru/config"
    log "code.google.com/p/log4go"
     "io/ioutil"

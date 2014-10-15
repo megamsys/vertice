@@ -1,12 +1,12 @@
 package main
 
 import (
+	log "code.google.com/p/log4go"
 	"fmt"
+	"github.com/megamsys/megamd/cmd/megamd/server"
+	"github.com/tsuru/config"
 	"runtime"
 	"time"
-    "github.com/tsuru/config"
-    log "code.google.com/p/log4go"
-	"github.com/megamsys/megamd/cmd/megamd/server"
 )
 
 func StartDaemon(dry bool) {
@@ -16,7 +16,7 @@ func StartDaemon(dry bool) {
 	version, _ := config.GetString("version")
 
 	log.Info("Starting Megamd Server %s...", version)
-	
+
 	fmt.Printf(`
 ███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗ 
 ████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
@@ -24,8 +24,7 @@ func StartDaemon(dry bool) {
 ██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██║██║╚██╔╝██║██║  ██║
 ██║ ╚═╝ ██║███████╗╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝
 ╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝ 
-`)                                                   
-	
+`)
 
 	server, err := server.NewServer()
 	if err != nil {
