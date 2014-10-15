@@ -1,10 +1,10 @@
 package iaas
 
 import (
-	"launchpad.net/gocheck"
+	"gopkg.in/check.v1"
 )
 
-func (s *S) TestRegisterIaasProvider(c *gocheck.C) {
+func (s *S) TestRegisterIaasProvider(c *check.C) {
 	provider, err := getIaasProvider("abc")
 	c.Assert(err, gocheck.ErrorMatches, "IaaS provider \"abc\" not registered")
 	c.Assert(provider, gocheck.IsNil)
@@ -14,4 +14,3 @@ func (s *S) TestRegisterIaasProvider(c *gocheck.C) {
 	c.Assert(err, gocheck.IsNil)
 	c.Assert(provider, gocheck.Equals, providerInstance)
 }
-
