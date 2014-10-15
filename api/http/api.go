@@ -1,34 +1,32 @@
 package http
 
 import (
-	"net"
-	libhttp "net/http"
-	"strings"
-	"strconv"
-	"time"
+	log "code.google.com/p/log4go"
 	"github.com/bmizerany/pat"
 	"github.com/tsuru/config"
-	log "code.google.com/p/log4go"
-	
+	"net"
+	libhttp "net/http"
+	"strconv"
+	"strings"
+	"time"
 )
+
 type TimePrecision int
 type HttpServer struct {
-	conn           net.Listener
-	HttpPort       int
-//	adminAssetsDir string
-	shutdown       chan bool
-	readTimeout    time.Duration
-	p              *pat.PatternServeMux
+	conn     net.Listener
+	HttpPort int
+	//	adminAssetsDir string
+	shutdown    chan bool
+	readTimeout time.Duration
+	p           *pat.PatternServeMux
 }
-
-
 
 func NewHttpServer() *HttpServer {
 	//apiReadTimeout, _ := config.GetString("read-timeout")
 	apiHttpPortString, _ := config.GetInt("admin:port")
 	self := &HttpServer{}
 	self.HttpPort = apiHttpPortString
-	//self.adminAssetsDir = config.AdminAssetsDir	
+	//self.adminAssetsDir = config.AdminAssetsDir
 	self.shutdown = make(chan bool, 2)
 	self.p = pat.New()
 	self.readTimeout = 10 * time.Second
@@ -37,7 +35,7 @@ func NewHttpServer() *HttpServer {
 
 func (self *HttpServer) ListenAndServe() {
 	var err error
-	if self.HttpPort > 0  {
+	if self.HttpPort > 0 {
 		self.conn, err = net.Listen("tcp", ":"+strconv.Itoa(self.HttpPort))
 		if err != nil {
 			log.Error("Listen: ", err)
@@ -68,7 +66,6 @@ func (self *HttpServer) Serve(listener net.Listener) {
 	// with each batch of points we get back
 	self.registerEndpoint("get", "/index", self.query)
 
-	
 	self.serveListener(listener, self.p)
 }
 
@@ -87,8 +84,6 @@ func isPretty(r *libhttp.Request) bool {
 	return r.URL.Query().Get("pretty") == "true"
 }
 
-
 func (self *HttpServer) query(w libhttp.ResponseWriter, r *libhttp.Request) {
-	
-}
 
+}

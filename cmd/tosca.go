@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"path/filepath"

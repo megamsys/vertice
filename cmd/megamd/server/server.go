@@ -3,15 +3,14 @@ package server
 import (
 	log "code.google.com/p/log4go"
 	"encoding/json"
+	"github.com/megamsys/libgo/amqp"
+	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/libgo/etcd"
 	"github.com/megamsys/megamd/api/http"
 	"github.com/megamsys/megamd/app"
-	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
 	"strings"
-	"github.com/megamsys/libgo/etcd"
-
 )
 
 type Server struct {
