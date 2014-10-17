@@ -26,31 +26,31 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/etcd",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/exec",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "c7f24cacec4a39a21bba0ebd98d9d01186b757a9"
+			"Rev": "9676c5a18fcf9c129485773860d86b20c7984db1"
 		},
 		{
 			"ImportPath": "github.com/mrb/riakpbc",
@@ -73,8 +73,8 @@
 			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		},
 		{
-			"ImportPath": "gopkg.in/yaml.v1",
-			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+			"ImportPath": "gopkg.in/yaml.v2",
+			"Rev": "eca94c41d994ae2215d455ce578ae6e2dc6ee516"
 		},
 		{
 			"ImportPath": "launchpad.net/gnuflag",
