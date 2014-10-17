@@ -11,13 +11,13 @@ import (
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
 	"strings"
+	"time"
 )
 
 type Server struct {
 	HttpApi      *http.HttpServer
 	QueueServers []*queue.QueueServer
-	//AdminServer  *admin.HttpServer
-	stopped bool
+	stopped      bool
 }
 
 type Status struct {
@@ -48,61 +48,85 @@ func (self *Server) ListenAndServe() error {
 		queueserver := queue.NewServer(listenQueue)
 		go queueserver.ListenAndServe()
 	}
-	self.Watcher()
+	self.EtcdWatcher()
 	self.HttpApi.ListenAndServe()
 	return nil
 }
 
-func (self *Server) Watcher() {
-	path, _ := config.GetString("etcd:path")
-	log.Info(path)
-	c := etcd.NewClient(path + "/")
+// Next returns a channel which will emit an Event as soon as one of interest occurs
+func (self *Server) EtcdWatcher() {
+	rootPrefix := "/"
+	etcdPath, _ := config.GetString("etcd:path")
 
-	ch := make(chan *etcd.Response, 1)
-	stop := make(chan bool, 1)
+	c := etcd.NewClient(etcdPath + rootPrefix)
+
+	log.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
 
 	dir, _ := config.GetString("etcd:directory")
-	c.CreateDir(dir)
+	log.Info(" [x] Etcd Directory %s", dir)
 
-	go receiver(ch, stop)
+	_, err := c.CreateDir(dir)
 
-	_, err := c.Watch("/"+dir, 0, true, ch, stop)
 	if err != nil {
 		log.Error(err)
 	}
-	if err != etcd.ErrWatchStoppedByUser {
-		log.Error("Watch returned a non-user stop error")
-	}
+
+	etreschan := make(chan *etcd.Response, 1)
+	stop := make(chan bool, 1)
+
+	go func() {
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+				log.Info(" [x] Watching %s", rootPrefix+dir)
+				_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
+				log.Info(" [x] Watched (%s)", rootPrefix+dir)
+
+				if err != nil {
+					log.Info(" [x] Watched Error (%s)", rootPrefix+dir)
+					log.Error(err)
+				//	return
+				}
+				if err != etcd.ErrWatchStoppedByUser {
+					log.Error("Watch returned a non-user stop error")
+					return
+				}
+				log.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
+
+				time.Sleep(time.Second)
+
+				log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
+			}
+		}
+
+	}()
+
+	go receiverEtcd(etreschan, stop)
 
 }
 
-func (self *Server) Stop() {
-	if self.stopped {
-		return
-	}
-	log.Info("Stopping server")
-	self.stopped = true
-
-	log.Info("Stopping api server")
-	//self.HttpApi.Close()
-	log.Info("Api server stopped")
-
-}
-
-func receiver(c chan *etcd.Response, stop chan bool) {
+func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 	for {
 		select {
 		case msg := <-c:
-			log.Info("=>receiver entry")
-			log.Info(msg.Node.Key)
-			handler(msg)
+			log.Info(" [x] Handing etcd response (%v)", msg)
+			if msg != nil {
+				handlerEtcd(msg)
+			} else {
+				log.Info(" [x] Nil - Handing etcd response (%v)", msg)
+				return
+			}
 		}
 	}
 
 	stop <- true
 }
 
-func handler(msg *etcd.Response) {
+func handlerEtcd(msg *etcd.Response) {
+	log.Info(" [x] Really Handle etcd response (%s)", msg.Node.Key)
+
 	asm := &app.Assembly{}
 
 	res := &Status{}
@@ -141,4 +165,17 @@ func publisher(key string, json string) {
 	if serr != nil {
 		log.Error("Failed to publish the queue instance: %s", serr)
 	}
+}
+
+func (self *Server) Stop() {
+	if self.stopped {
+		return
+	}
+	log.Info("Stopping servers ....")
+	self.stopped = true
+
+	log.Info("Stopping API server")
+	//self.HttpApi.Close()
+	log.Info("Stopped API server")
+
 }
