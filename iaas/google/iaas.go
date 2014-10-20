@@ -48,6 +48,24 @@ func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
 		return "", err
 	}
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
+	riak, err_riak := config.GetString("api:server")
+	if err_riak != nil {
+		return "", err_riak
+	}
+	
+	recipe, err_recipe := config.GetString("knife:recipe")
+	if err_recipe != nil {
+		return "", err_recipe
+	}
+	
+	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
+	attributes := &iaas.Attributes{RiakHost: riak, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id}
+    b, aerr := json.Marshal(attributes)
+    if aerr != nil {
+        fmt.Println(aerr)
+        return "", aerr
+    }
+	str = str + " --json-attributes '" + string(b) + "'"
 	str = strings.Replace(str, "create -f", "create "+assembly.Name+"."+assembly.Components[0].Inputs.Domain+" -f "+cre, -1)
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {

@@ -25,6 +25,12 @@ type IaaS interface {
 
 const defaultYAMLPath = "conf/commands.yaml"
 
+type Attributes struct {
+    RiakHost string    `json:"riak_host"`
+    AccountID string   `json:"accounts_id"`
+    AssemblyID string  `json:"assembly_id"` 
+ }
+
 type Plugins struct {
 	Tool    string
 	Command *Commands
