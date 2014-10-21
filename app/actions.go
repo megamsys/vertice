@@ -78,7 +78,6 @@ var launchedApp = action.Action{
 		default:
 			return nil, errors.New("First parameter must be App or *assemblies.AssemblyResult.")
 		}
-		app.Command = "knife"
 		return CommandExecutor(&app)
 	},
 	Backward: func(ctx action.BWContext) {
