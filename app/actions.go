@@ -28,6 +28,7 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
     appName := app.Name + "." + app.Components[0].Inputs.Domain
 	basePath := megam_home + "logs" 
 	dir := path.Join(basePath, appName)
+	
 	fileOutPath := path.Join(dir, appName + "_out" )
 	fileErrPath := path.Join(dir, appName + "_err" )
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -42,8 +43,6 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 			return nil, outerr
 		}
 		defer fout.Close()
-		
-		fmt.Println(fout)
 		// open Error file
 		ferr, errerr := os.OpenFile(fileErrPath, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 		if errerr != nil {
