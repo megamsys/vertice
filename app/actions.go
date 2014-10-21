@@ -32,7 +32,7 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 	fileOutPath := path.Join(dir, appName + "_out" )
 	fileErrPath := path.Join(dir, appName + "_err" )
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		fmt.Printf("no such file or directory: %s", dir)
+		fmt.Printf("Creating directory: %s\n", dir)
 		if errm := os.MkdirAll(dir, 0777); errm != nil {
 			return nil, errm
 		}
@@ -55,12 +55,12 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
     fmt.Println(commandWords, len(commandWords))
     if len(commandWords) > 0 {
        if err := e.Execute(commandWords[0], commandWords[1:], nil, foutwriter, ferrwriter); err != nil {
+           ferrwriter.Flush()
            return nil, err
         }
      }
 
    foutwriter.Flush()
-   ferrwriter.Flush()
    
   return &app, nil
 }
@@ -78,7 +78,7 @@ var launchedApp = action.Action{
 		default:
 			return nil, errors.New("First parameter must be App or *assemblies.AssemblyResult.")
 		}
-		
+		app.Command = "knife"
 		return CommandExecutor(&app)
 	},
 	Backward: func(ctx action.BWContext) {
