@@ -54,6 +54,9 @@ func (i *GoGridIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
     }
 	str = str + " --json-attributes '" + string(b) + "'"
 	
+	//--json-attributes ''{"riak_host":"api.megam.co","accounts_id":"ACT1135880650419732480","assembly_id":"ASM1138425212728115200"}''
+	
+	
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
