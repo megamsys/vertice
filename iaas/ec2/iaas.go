@@ -2,12 +2,12 @@ package ec2
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
-	"encoding/json"
 )
 
 func Init() {
@@ -25,7 +25,7 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys
-	}  
+	}
 
 	str, err := buildCommand(iaas.GetPlugins("ec2"), pdc, "create")
 	if err != nil {
@@ -34,26 +34,26 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
-	
+
 	riak, err_riak := config.GetString("api:server")
 	if err_riak != nil {
 		return "", err_riak
 	}
-	
+
 	recipe, err_recipe := config.GetString("knife:recipe")
 	if err_recipe != nil {
 		return "", err_recipe
 	}
-	
+
 	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
 	attributes := &iaas.Attributes{RiakHost: riak, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id}
-    b, aerr := json.Marshal(attributes)
-    if aerr != nil {
-        fmt.Println(aerr)
-        return "", aerr
-    }
-	str = str + " --json-attributes " + `'` +string(b) + `'`
-	
+	b, aerr := json.Marshal(attributes)
+	if aerr != nil {
+		fmt.Println(aerr)
+		return "", aerr
+	}
+	str = str + " --json-attributes " + `'` + string(b) + `'`
+
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
@@ -114,7 +114,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) 
 		if err != nil {
 			return "", fmt.Errorf("Identity file doesn't loaded")
 		}
-		buffer.WriteString(" --identity-file " + ifile+".key")
+		buffer.WriteString(" --identity-file " + ifile + ".key")
 	} else {
 		return "", fmt.Errorf("Identity file doesn't loaded")
 	}
