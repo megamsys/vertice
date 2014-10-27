@@ -52,10 +52,7 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
         fmt.Println(aerr)
         return "", aerr
     }
-	str = str + " --json-attributes \'" + string(b) + "\'"
-	
-	//--json-attributes {"riak_host":"api.megam.co","accounts_id":"ACT1135880650419732480","assembly_id":"ASM1138425212728115200"}
-	
+	str = str + " --json-attributes " + `'` +string(b) + `'`
 	
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)
 	knifePath, kerr := config.GetString("knife:path")
