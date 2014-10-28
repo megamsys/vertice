@@ -65,7 +65,7 @@ func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
         fmt.Println(aerr)
         return "", aerr
     }
-	str = str + " --json-attributes '" + string(b) + "'"
+	str = str + " --json-attributes " + string(b)
 	str = strings.Replace(str, "create -f", "create "+assembly.Name+"."+assembly.Components[0].Inputs.Domain+" -f "+cre, -1)
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
