@@ -61,6 +61,7 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
      }
 
    foutwriter.Flush()
+   ferrwriter.Flush()
    
   return &app, nil
 }

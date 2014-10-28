@@ -52,7 +52,7 @@ func (i *OpenNebulaIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisi
         fmt.Println(aerr)
         return "", aerr
     }
-	str = str + " --json-attributes '" + string(b) + "'"
+	str = str + " --json-attributes " + string(b)
 	
 	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)
 	knifePath, kerr := config.GetString("knife:path")

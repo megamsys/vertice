@@ -52,7 +52,7 @@ func (i *GoGridIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
         fmt.Println(aerr)
         return "", aerr
     }
-	str = str + " --json-attributes '" + string(b) + "'"
+	str = str + " --json-attributes " + string(b)
 	
 	//--json-attributes ''{"riak_host":"api.megam.co","accounts_id":"ACT1135880650419732480","assembly_id":"ASM1138425212728115200"}''
 	
