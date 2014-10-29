@@ -53,16 +53,17 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 	foutwriter := bufio.NewWriter(fout)
 	ferrwriter := bufio.NewWriter(ferr)
     fmt.Println(commandWords, len(commandWords))
+    
+    defer ferrwriter.Flush()
+    defer foutwriter.Flush()
+    
     if len(commandWords) > 0 {
        if err := e.Execute(commandWords[0], commandWords[1:], nil, foutwriter, ferrwriter); err != nil {
-           ferrwriter.Flush()
            return nil, err
         }
      }
 
-   foutwriter.Flush()
-   ferrwriter.Flush()
-   
+  
   return &app, nil
 }
 

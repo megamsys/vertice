@@ -26,10 +26,10 @@ type IaaS interface {
 const defaultYAMLPath = "conf/commands.yaml"
 
 type Attributes struct {
-    RiakHost string    `json:"riak_host"`
-    AccountID string   `json:"accounts_id"`
-    AssemblyID string  `json:"assembly_id"` 
- }
+	RiakHost   string `json:"riak_host"`
+	AccountID  string `json:"accounts_id"`
+	AssemblyID string `json:"assembly_id"`
+}
 
 type Plugins struct {
 	Tool    string
@@ -155,11 +155,16 @@ func GetIdentityFileLocation(file string) (string, error) {
 	s := make([]string, 2)
 	s = strings.Split(file, "_")
 	email, name := s[0], s[1]
-	cloudkeysBucket, ckberr := config.GetString("buckets:CLOUDKEYS")
-	if ckberr != nil {
-		return "", ckberr
+	cloudkeysBucket, err := config.GetString("buckets:CLOUDKEYS")
+	if err != nil {
+		return "", err
 	}
-	return cloudkeysBucket + "/" + email + "/" + name, nil
+	megam_home, err := config.GetString("MEGAM_HOME")
+	if err != nil {
+		return "", err
+	}
+
+	return megam_home + cloudkeysBucket + "/" + email + "/" + name, nil
 }
 
 type SshFile struct {
