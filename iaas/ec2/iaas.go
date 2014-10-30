@@ -45,7 +45,7 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 		return "", err_recipe
 	}
 
-	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
+	str = str + " --run-list recipe[" + recipe + "]" 
 	attributes := &iaas.Attributes{RiakHost: riak, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id}
 	b, aerr := json.Marshal(attributes)
 	if aerr != nil {
