@@ -78,7 +78,7 @@ func requestHandler(chann []byte) {
 					return
 				}
 
-				go app.LaunchApp(res)
+				go app.LaunchApp(res, m.Id)
 			}
 		}
 	}
