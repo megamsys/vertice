@@ -16,7 +16,7 @@ type StartD struct {
 }
 
 func (g *StartD) Info() *cmd.Info {
-	desc := `starts the megamd daemon, and connects to queue.
+	desc := `starts the megamd daemon.
 
 If you use the '--dry' flag megamd will do a dry run(parse conf/jsons) and exit.
 
