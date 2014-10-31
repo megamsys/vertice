@@ -2,15 +2,20 @@ package iaas
 
 import (
 	"gopkg.in/check.v1"
+
+	"testing"
 )
 
+func Test(t *testing.T) {
+	check.TestingT(t)
+}
+
+type S struct{}
+
+
+var _ = check.Suite(&S{})
+
 func (s *S) TestRegisterIaasProvider(c *check.C) {
-	provider, err := getIaasProvider("abc")
-	c.Assert(err, gocheck.ErrorMatches, "IaaS provider \"abc\" not registered")
-	c.Assert(provider, gocheck.IsNil)
-	providerInstance := TestIaaS{}
-	RegisterIaasProvider("abc", providerInstance)
-	provider, err = getIaasProvider("abc")
-	c.Assert(err, gocheck.IsNil)
-	c.Assert(provider, gocheck.Equals, providerInstance)
+	_, provider, _ := GetIaasProvider("abc")
+	c.Assert(provider, check.IsNil)
 }
