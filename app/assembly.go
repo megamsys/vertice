@@ -5,6 +5,7 @@ import (
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/megamd/provisioner"
+	"strings"
 )
 
 
@@ -57,28 +58,46 @@ func (asm *Assembly) Get(asmId string) (*provisioner.AssemblyResult, error) {
 }
 
 
-func LaunchApp(assembly *provisioner.AssemblyResult) error {
+func LaunchApp(assembly *provisioner.AssemblyResult, id string) error {
     
-	// Provisioner
-	p, err := provisioner.GetProvisioner("chef")
-	if err != nil {	
-	    return err
-	}	
-	log.Info(p)
+    for c := range asm.Components {
+	    com := &policies.Component{}
+	    mapB, _ := json.Marshal(asm.Components[c])                
+        json.Unmarshal([]byte(string(mapB)), com)
+                 
+        if com.Name != "" {
+        	s := strings.Split(com.ToscaType, ".")
+        	if s[1] == "web" {
+        		// Provisioner
+	            p, err := provisioner.GetProvisioner("chef")
+	            if err != nil {	
+	                return err
+	             }	
+	            log.Info(p)
 	
-	str, perr := p.CreateCommand(assembly)
-	if perr != nil {	
-	    return perr
-	}	
-	assembly.Command = str
-	actions := []*action.Action{&launchedApp}
+	            str, perr := p.CreateCommand(assembly)
+	            if perr != nil {	
+	               return perr
+	             }	
+	            assembly.Command = str
+	            actions := []*action.Action{&launchedApp}
 
-	pipeline := action.NewPipeline(actions...)
-	aerr := pipeline.Execute(assembly)
-	if aerr != nil {
-		return aerr
-	}
-	return nil
+	            pipeline := action.NewPipeline(actions...)
+	            aerr := pipeline.Execute(assembly)
+	            if aerr != nil {
+		           return aerr
+	             }
+	           return nil
+        	} else {
+        		// Provisioner
+	            p, err := provisioner.GetProvisioner("docker")
+	            if err != nil {	
+	                return err
+	             }	
+	            log.Info(p)
+        	}
+        }
+	
 }
 
 
