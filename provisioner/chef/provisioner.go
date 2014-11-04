@@ -13,7 +13,7 @@ func Init() {
 type Chef struct {
 }
 
-func (i *Chef) CreateCommand(assembly *provisioner.AssemblyResult) (string, error) {
+func (i *Chef) CreateCommand(assembly *provisioner.AssemblyResult, id string) (string, error) {
 	// Iaas Provider
 	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
 	if err1 != nil {

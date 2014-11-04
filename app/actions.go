@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"errors"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/exec"
@@ -20,7 +19,7 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
     var commandWords []string
 
     commandWords = strings.Fields(app.Command)
-
+    log.Debug("Command Executor entry: %s\n", app)
     megam_home, ckberr := config.GetString("MEGAM_HOME")
 	if ckberr != nil {
 		return nil, ckberr
@@ -32,7 +31,7 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 	fileOutPath := path.Join(dir, appName + "_out" )
 	fileErrPath := path.Join(dir, appName + "_err" )
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		fmt.Printf("Creating directory: %s\n", dir)
+		log.Info("Creating directory: %s\n", dir)
 		if errm := os.MkdirAll(dir, 0777); errm != nil {
 			return nil, errm
 		}
@@ -52,7 +51,8 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
   
 	foutwriter := bufio.NewWriter(fout)
 	ferrwriter := bufio.NewWriter(ferr)
-    fmt.Println(commandWords, len(commandWords))
+    log.Debug(commandWords)
+    log.Debug("Length: %s", len(commandWords))
     
     defer ferrwriter.Flush()
     defer foutwriter.Flush()
