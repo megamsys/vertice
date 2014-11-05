@@ -4,6 +4,7 @@ import (
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/provisioner"
+	"encoding/json"
 )
 
 func Init() {
@@ -36,7 +37,7 @@ func publisher(key string, json string) {
 		log.Error("Failed to get the queue instance: %s", aerr)
 	}
 	
-	pubsub, perr := factor.Get(address)
+	pubsub, perr := factor.Get(key)
 	if perr != nil {
 		log.Error("Failed to get the queue instance: %s", perr)
 	}
