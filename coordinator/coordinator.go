@@ -62,6 +62,7 @@ func requestHandler(chann []byte) {
 	}
 	switch req.ReqType {
 	case "create":
+	log.Debug("============Create entry======")
 		assemblies := app.Assemblies{Id: req.AssembliesId}
 		asm, err := assemblies.Get(req.AssembliesId)
 		if err != nil {
@@ -69,16 +70,19 @@ func requestHandler(chann []byte) {
 			return
 		}
 		for i := range asm.Assemblies {
+			log.Debug("Assemblies: [%s]", asm.Assemblies[i])
 			if len(asm.Assemblies[i]) > 1 {
 				assemblyID := asm.Assemblies[i]
+				log.Debug("Assemblies id: [%s]", assemblyID)
 				assembly := app.Assembly{Id: assemblyID}
+				log.Debug(assembly)
 				res, err := assembly.Get(assemblyID)
+				log.Debug(res)
 				if err != nil {
 					log.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
-				}
-
-				go app.LaunchApp(res)
+				}              
+				go app.LaunchApp(res, m.Id)
 			}
 		}
 		/*
