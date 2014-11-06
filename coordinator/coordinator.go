@@ -81,6 +81,29 @@ func requestHandler(chann []byte) {
 				go app.LaunchApp(res)
 			}
 		}
+		/*
+		//build delete command
+		case "delete":
+		   assemblies := app.Assemblies{Id: req.AssembliesId}
+		   asm, err := assemblies.Get(req.AssembliesId)
+		   if err != nil {
+		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		   	   return
+		   }
+		   for i := range asm.Assemblies {
+		   	   if lan(asm.Assemblies[i]) > 1 {
+		   	   	assemblyID := asm.Assemblies[i]
+		   	   	assembly := app.Assembly{Id: assemblyID}
+		   	   	res, err := assembly.Get(assemblyID)
+		   	   	if err != nil {
+		   	   		log.Error("ErrorL Riak didn't cooperate:\n%s.", err)
+		   	   		return
+		   	   	}
+		   	   }
+		   	   
+		   	   go app.DeleteApp(res)
+		   }
+		  */ 
 	}
 }
 
