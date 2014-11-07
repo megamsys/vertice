@@ -17,9 +17,9 @@ func Init() {
 
 type ProfitBricksIaaS struct{}
 
-func (i *ProfitBricksIaaS) DeleteMachine(string) error {
+func (i *ProfitBricksIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResult) (string, error) {
 	
-	return nil
+	return "", nil
 }
 
 func (i *ProfitBricksIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult)  (string, error) {

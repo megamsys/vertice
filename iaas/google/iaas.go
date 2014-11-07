@@ -33,9 +33,9 @@ type GoogleCredential struct {
 	Project            string `json:"project"`
 }
 
-func (i *GoogleIaaS) DeleteMachine(string) error {
+func (i *GoogleIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResult) (string, error) {
 
-	return nil
+	return "", nil
 }
 
 func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {

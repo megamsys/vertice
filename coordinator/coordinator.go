@@ -48,6 +48,7 @@ func NewCoordinator(chann []byte, queue string) {
 }
 
 func requestHandler(chann []byte) {
+	log.Info("Entered!-------->")
 	m := &Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
@@ -65,6 +66,9 @@ func requestHandler(chann []byte) {
 	log.Debug("============Create entry======")
 		assemblies := app.Assemblies{Id: req.AssembliesId}
 		asm, err := assemblies.Get(req.AssembliesId)
+		log.Debug("----------")
+		log.Debug(asm)
+		log.Debug("------------")
 		if err != nil {
 			log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			return
@@ -87,27 +91,31 @@ func requestHandler(chann []byte) {
 		}
 		
 		//build delete command
-		case "delete":
-		   assemblies := app.Assemblies{Id: req.AssembliesId}
-		   asm, err := assemblies.Get(req.AssembliesId)
+	    case "delete":
+		log.Debug("============Delete entry==========")
+		  assemblies := app.Assemblies{Id: req.AssembliesId}
+		  asm, err := assemblies.Get(req.AssembliesId)
+		   log.Debug("----------")
+		   log.Debug(asm)
+		   log.Debug("------------")
 		   if err != nil {
 		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   return
 		   }
 		   for i := range asm.Assemblies {
-		   	   if lan(asm.Assemblies[i]) > 1 {
+		   	   if len(asm.Assemblies[i]) > 1 {
 		   	   	assemblyID := asm.Assemblies[i]
 		   	   	assembly := app.Assembly{Id: assemblyID}
 		   	   	res, err := assembly.Get(assemblyID)
+		   	   	log.Debug(res)
 		   	   	if err != nil {
 		   	   		log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   		return
 		   	   	}
+		   	   	 go app.DeleteApp(res, m.Id)
 		   	   }
 		   	   
-		   	   go app.DeleteApp(res)
-		   }
-		  
+		   }	
 	}
 }
 
