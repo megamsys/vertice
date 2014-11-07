@@ -8,7 +8,7 @@ import (
 	"strings"
 	"encoding/json"
 	"github.com/tsuru/config"
-	"github.com/megamsys/megamd/iaas"
+	"github.com/megamsys/megamd/global"
 )
 
 
@@ -67,8 +67,8 @@ func (asm *Assembly) Get(asmId string) (*provisioner.AssemblyResult, error) {
 	return result, nil
 }
 
-func getPredefClouds(host string) (*iaas.PredefClouds, error) {
-	pdc := &iaas.PredefClouds{}
+func GetPredefClouds(host string) (*global.PredefClouds, error) {
+	pdc := &global.PredefClouds{}
 
 	predefBucket, perr := config.GetString("buckets:PREDEFCLOUDS")
 	if perr != nil {
@@ -93,7 +93,7 @@ func LaunchApp(asm *provisioner.AssemblyResult, id string) error {
 	    mapB, _ := json.Marshal(asm.Components[0])
         json.Unmarshal([]byte(string(mapB)), com)
         if com.Name != "" {
-            s1, _ := getPredefClouds(com.Requirements.Host)
+            s1, _ := GetPredefClouds(com.Requirements.Host)
            //	s := strings.Split(com.ToscaType, ".")
         	if s1.Spec.TypeName == "docker" {
         		log.Debug("Docker provisiner entry")
