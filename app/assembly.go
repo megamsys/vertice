@@ -173,6 +173,8 @@ func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
 
 	            pipeline := action.NewPipeline(actions...)
 	            aerr := pipeline.Execute(asm)
+	            log.Debug(aerr)
+	            log.Debug("---------")
 	            if aerr != nil {
 		           return aerr
 	             } 
