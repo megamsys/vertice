@@ -25,10 +25,13 @@ type Assembly struct {
    }
 
 
+
 func (asm *Assembly) Get(asmId string) (*provisioner.AssemblyResult, error) {
     log.Info("Get Assembly message %v", asmId)
     var j = -1
     asmresult := &provisioner.AssemblyResult{}
+    log.Debug(asmresult)
+	log.Debug("--------asmresult-------")
 	conn, err := db.Conn("assembly")
 	if err != nil {	
 		return asmresult, err
@@ -38,6 +41,7 @@ func (asm *Assembly) Get(asmId string) (*provisioner.AssemblyResult, error) {
 	if ferr != nil {	
 		return asmresult, ferr
 	}	
+	
 	var arraycomponent = make([]*provisioner.Component, len(asm.Components))
 	for i := range asm.Components {
 		 log.Debug(asm.Components[i])
