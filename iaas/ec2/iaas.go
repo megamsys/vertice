@@ -16,10 +16,33 @@ func Init() {
 
 type EC2IaaS struct{}
 
-func (i *EC2IaaS) DeleteMachine(string) error {
+func (i *EC2IaaS) DeleteMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+     keys, err_keys := iaas.GetAccessKeys(pdc)
+     if err_keys != nil {
+     	return "", err_keys
+     }
+     
+     str, err := buildCommand1(iaas.GetPlugins("ec2"), pdc, "delete")
+	if err != nil {
+	return "", err
+	 }
+	str = str + " -P " + " -y "
+	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
+	str = str + " -A " + keys.AccessKey
+	str = str + " -K " + keys.SecretKey
 
-	return nil
+   knifePath, kerr := config.GetString("knife:path")
+	if kerr != nil {
+		return "", kerr
+	}
+	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
+   
+
+return str, nil	
 }
+
+
 
 func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
@@ -49,6 +72,7 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 	attributes := &iaas.Attributes{RiakHost: riak, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id}
 	b, aerr := json.Marshal(attributes)
 	if aerr != nil {
+		
 		fmt.Println(aerr)
 		return "", aerr
 	}
@@ -61,7 +85,21 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 	}
 	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
 	return str, nil
+	
 }
+
+func buildCommand1(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+	var buffer bytes.Buffer
+	if command == "delete" {
+		if len(plugin.Command.Delete) > 0 {
+			buffer.WriteString(" " + plugin.Command.Delete)
+		} else {
+			return "", fmt.Errorf("Plugin commands doesn't loaded")
+		}
+	}
+	return buffer.String(), nil 
+	
+}	
 
 func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
@@ -74,6 +112,14 @@ func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) 
 	if command == "create" {
 		if len(plugin.Command.Create) > 0 {
 			buffer.WriteString(" " + plugin.Command.Create)
+		} else {
+			return "", fmt.Errorf("Plugin commands doesn't loaded")
+		}
+	}
+	
+	if command == "delete" {
+		if len(plugin.Command.Delete) > 0 {
+			buffer.WriteString(" " + plugin.Command.Delete)
 		} else {
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}

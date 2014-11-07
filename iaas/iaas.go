@@ -20,7 +20,7 @@ type IaaS interface {
 	CreateMachine(*PredefClouds, *provisioner.AssemblyResult) (string, error)
 
 	// Called when tsuru is destroying a Machine.
-	DeleteMachine(string) error
+	DeleteMachine(*PredefClouds, *provisioner.AssemblyResult) (string, error)
 }
 
 const defaultYAMLPath = "conf/commands.yaml"

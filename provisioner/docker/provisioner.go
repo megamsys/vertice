@@ -29,7 +29,10 @@ func (i *Docker) CreateCommand(assembly *provisioner.AssemblyResult, id string) 
     go publisher(address, string(mapB))
 	return "", nil
 }
-
+func (i *Docker) DeleteCommand(assembly *provisioner.AssemblyResult, id string) (string, error) {
+	
+	return "", nil
+}
 
 func publisher(key string, json string) {
 	factor, aerr := amqp.Factory()

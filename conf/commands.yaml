@@ -5,7 +5,7 @@ ec2:
  tool: knife
  command:
    create: ec2 server create -c
-   delete: ec2 server delete <node_name> -c -P -y
+   delete: ec2 server delete <node_name> -c 
    list: ec2 server list
    data: ec2 instance set
 hp:

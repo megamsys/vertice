@@ -37,8 +37,10 @@ func (self *QueueServer) ListenAndServe() {
 	msgChan, _ := pubsub.Sub()
 	for msg := range msgChan {
 		log.Info(" [x] %q", msg)
+		log.Info("I am in! ")
 		coordinator.NewCoordinator(msg, self.ListenAddress)
 	}
+	
 	log.Info("Handling message %v", msgChan)
 	self.chann = msgChan
 
