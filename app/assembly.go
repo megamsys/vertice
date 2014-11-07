@@ -132,4 +132,49 @@ func LaunchApp(asm *provisioner.AssemblyResult, id string) error {
     return nil
 }
 
+func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
+    log.Debug("Delete App entry")
+	    com := &provisioner.Component{}
+	    mapB, _ := json.Marshal(asm.Components[0])
+        json.Unmarshal([]byte(string(mapB)), com)
+        if com.Name != "" {
+            s1, _ := getPredefClouds(com.Requirements.Host)
+           //	s := strings.Split(com.ToscaType, ".")
+        	if s1.Spec.TypeName == "docker" {
+        		log.Debug("Docker provisioner entry")
+        		// Provisioner
+	            p, err := provisioner.GetProvisioner("docker")
+	            if err != nil {	
+	                return err
+	             }	
+	            log.Info("Provisioner: %v", p)
+	             _, perr := p.CreateCommand(asm, id)
+	            if perr != nil {	
+	               return perr
+	             }	       		
+        	} else {
+        		// Provisioner
+	            p, err := provisioner.GetProvisioner("chef")
+	            if err != nil {	
+	                return err
+	             }	
+	            log.Info(p)
+	
+	            str, perr := p.DeleteCommand(asm, id)
+	            if perr != nil {	
+	               return perr
+	             }	
+	            asm.Command = str
+	            actions := []*action.Action{&launchedApp}
+
+	            pipeline := action.NewPipeline(actions...)
+	            aerr := pipeline.Execute(asm)
+	            if aerr != nil {
+		           return aerr
+	             } 
+        	}
+          }
+    return nil
+}
+
 

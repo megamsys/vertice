@@ -17,9 +17,19 @@ func Init() {
 type EC2IaaS struct{}
 
 func (i *EC2IaaS) DeleteMachine(string) error {
-
-	return nil
+     keys, err_keys := iaas.GetAccessKeys(pdc)
+     if err_keys := nil {
+     	return "", err_keys
+     }
+     
+     str, err := buildCommand(iaas.GetPlugins("ec2"), pdc, "delete")
+	if err != nil {
+	return "", err
+	 }
+	
 }
+
+
 
 func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
@@ -74,6 +84,14 @@ func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) 
 	if command == "create" {
 		if len(plugin.Command.Create) > 0 {
 			buffer.WriteString(" " + plugin.Command.Create)
+		} else {
+			return "", fmt.Errorf("Plugin commands doesn't loaded")
+		}
+	}
+	
+	if command == "delete" {
+		if len(plugin.Command.Delete) > 0 {
+			buffer.WriteString(" " + plugin.Command.Delete)
 		} else {
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}

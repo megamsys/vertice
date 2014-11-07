@@ -29,3 +29,20 @@ func (i *Chef) CreateCommand(assembly *provisioner.AssemblyResult, id string) (s
 	log.Info(str)
 	return str, nil
 }
+
+func (i *Chef) DeleteCommand(assembly *provisioner.AssemblyResult, id string) (string, error) {
+	// Iaas Provider
+	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
+	if err1 != nil {
+		log.Error("Error: Iaas Provider :\n%s.", err1)
+		return "", err1
+	}
+	log.Info(iaas)
+	str, iaaserr := iaas.DeleteMachine(pdc, assembly)
+	if iaaserr != nil {
+		log.Error("Error: Iaas Provider doesn't delete machine:\n%s.", iaaserr)
+		return "", iaaserr
+	}
+	log.Info(str)
+	return str, nil
+}

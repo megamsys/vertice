@@ -85,7 +85,7 @@ func requestHandler(chann []byte) {
 				go app.LaunchApp(res, m.Id)
 			}
 		}
-		/*
+		
 		//build delete command
 		case "delete":
 		   assemblies := app.Assemblies{Id: req.AssembliesId}
@@ -100,14 +100,14 @@ func requestHandler(chann []byte) {
 		   	   	assembly := app.Assembly{Id: assemblyID}
 		   	   	res, err := assembly.Get(assemblyID)
 		   	   	if err != nil {
-		   	   		log.Error("ErrorL Riak didn't cooperate:\n%s.", err)
+		   	   		log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   		return
 		   	   	}
 		   	   }
 		   	   
 		   	   go app.DeleteApp(res)
 		   }
-		  */ 
+		  
 	}
 }
 
