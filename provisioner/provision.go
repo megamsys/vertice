@@ -101,8 +101,8 @@ type Provisioner interface {
 	//Provision(*AssemblyResult) error
 
 	// ExecuteCommand runs a command in all units of the app.
-	CreateCommand(*AssemblyResult, string) (string, error)
-
+	 CreateCommand(*AssemblyResult, string) (string, error)
+     DeleteCommand(*AssemblyResult, string) (string, error)
 	// ExecuteCommandOnce runs a command in one unit of the app.
 	//	ExecuteCommandOnce(stdout, stderr io.Writer, app app.AssemblyResult, cmd string, args ...string) error
 

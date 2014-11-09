@@ -56,7 +56,8 @@ func (req *Request) Get(reqId string) (*Request, error) {
 		return req, ferr
 	}	
 	defer conn.Close()
-	
+	log.Debug(req)
+	log.Debug("-------request-------")
 	return req, nil
 
 }
@@ -73,7 +74,8 @@ func (asm *Assemblies) Get(asmId string) (*Assemblies, error) {
 		return asm, ferr
 	}	
 	defer conn.Close()
-	
+	log.Debug(asm)
+	log.Debug("----------ASSEMBLIES--------")
 	return asm, nil
 
 }
