@@ -8,10 +8,13 @@ import (
 	"github.com/megamsys/libgo/etcd"
 	"github.com/megamsys/megamd/api/http"
 	"github.com/megamsys/megamd/app"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
-	"strings"
+//	"strings"
 	"time"
+	"os"
+	"fmt"
 )
 
 type Server struct {
@@ -41,7 +44,7 @@ func (self *Server) ListenAndServe() error {
 	var queueInput [2]string
 	queueInput[0] = "cloudstandup"
 	queueInput[1] = "Events"
-
+    self.Checker()
 	// Queue input
 	for i := range queueInput {
 		listenQueue := queueInput[i]
@@ -53,33 +56,76 @@ func (self *Server) ListenAndServe() error {
 	return nil
 }
 
+type Connection struct {
+	Dial     string `json:"dial"`
+}
+
+func (self *Server) Checker() {
+	log.Info("Dialing Rabbitmq.......")
+	factor, err := amqp.Factory()
+	if err != nil {
+		log.Error("Failed to get the queue instance: %s", err)
+	}
+	
+	conn, connerr := factor.Dial()
+    log.Debug("connection %v", conn)
+    log.Debug("connection error %v", connerr)
+    if connerr != nil {
+    	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Rabbitmq service.\n", connerr)
+         os.Exit(1)
+    }
+    log.Info("Rabbitmq connected")
+    
+    log.Info("Dialing Riak.......")
+ 
+	 rconn, rerr := db.Conn("connection")
+	 if rerr != nil {
+		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", connerr)
+         os.Exit(1)
+	 }
+
+	 data := "sampledata"
+	 ferr := rconn.StoreObject("sampleobject", data)
+	 if ferr != nil {
+	 	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
+         os.Exit(1)
+	 }
+	 defer rconn.Close()
+    log.Info("Riak connected")
+	
+}
+
 // Next returns a channel which will emit an Event as soon as one of interest occurs
 func (self *Server) EtcdWatcher() {
 	rootPrefix := "/"
 	etcdPath, _ := config.GetString("etcd:path")
 
 	c := etcd.NewClient(etcdPath + rootPrefix)
+    conn, connerr := c.Dial("tcp", "127.0.0.1:4001")
+    log.Debug("client %v", c)
+    log.Debug("connection %v", conn)
+    log.Debug("connection error %v", connerr)
+    
+    if conn != nil {
+	   log.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
 
-	log.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
+	   dir, _ := config.GetString("etcd:directory")
+	   log.Info(" [x] Etcd Directory %s", dir)
 
-	dir, _ := config.GetString("etcd:directory")
-	log.Info(" [x] Etcd Directory %s", dir)
+	   etreschan := make(chan *etcd.Response, 1)
+	   stop := make(chan bool, 1)
 
-	_, err := c.CreateDir(dir)
-
-	if err != nil {
-		log.Error(err)
-	}
-
-	etreschan := make(chan *etcd.Response, 1)
-	stop := make(chan bool, 1)
-
-	go func() {
+	   go func() {
 		for {
 			select {
 			case <-stop:
 				return
 			default:
+			   _, err1 := c.CreateDir(dir)
+
+	           if err1 != nil {
+		           log.Error(err1)
+	           }
 				log.Info(" [x] Watching %s", rootPrefix+dir)
 				_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
 				log.Info(" [x] Watched (%s)", rootPrefix+dir)
@@ -104,7 +150,10 @@ func (self *Server) EtcdWatcher() {
 	}()
 
 	go receiverEtcd(etreschan, stop)
-
+  } else {
+  	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start etcd deamon.\n", connerr)
+         os.Exit(1)
+  }
 }
 
 func receiverEtcd(c chan *etcd.Response, stop chan bool) {
@@ -120,7 +169,6 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 			}
 		}
 	}
-
 	stop <- true
 }
 
@@ -141,12 +189,25 @@ func handlerEtcd(msg *etcd.Response) {
 	if ferr != nil {
 		log.Error(ferr)
 	}
+	
+	comp := &global.Component{}
+	
+	conn1, err1 := db.Conn("components")
+	if err1 != nil {
+		log.Error(err1)
+	}
 
+	ferr1 := conn1.FetchStruct(asm.Components[0], comp)
+	if ferr1 != nil {
+		log.Error(ferr1)
+	}
+    
 	for i := range asm.Policies {
 		mapD := map[string]string{"id": res.Id, "policy_name": asm.Policies[i].Name}
 		mapB, _ := json.Marshal(mapD)
 		log.Info(string(mapB))
-		publisher(msg.Node.Key, string(mapB))
+		asmname := asm.Name+"."+comp.Inputs.Domain
+		publisher(asmname, string(mapB))
 	}
 }
 
@@ -155,8 +216,9 @@ func publisher(key string, json string) {
 	if aerr != nil {
 		log.Error("Failed to get the queue instance: %s", aerr)
 	}
-	s := strings.Split(key, "/")
-	pubsub, perr := factor.Get(s[len(s)-1])
+	//s := strings.Split(key, "/")
+	//pubsub, perr := factor.Get(s[len(s)-1])
+	pubsub, perr := factor.Get(key)
 	if perr != nil {
 		log.Error("Failed to get the queue instance: %s", perr)
 	}

@@ -26,8 +26,8 @@ type AssemblyResult struct {
 
 type Component struct {
 	Id                         string `json:"id"`
-	Name                       string `json:“name”`
-	ToscaType                  string `json:“tosca_type”`
+	Name                       string `json:"name"`
+	ToscaType                  string `json:"tosca_type"`
 	Requirements               *ComponentRequirements
 	Inputs                     *CompomentInputs
 	ExternalManagementResource string
@@ -101,7 +101,7 @@ type Provisioner interface {
 	//Provision(*AssemblyResult) error
 
 	// ExecuteCommand runs a command in all units of the app.
-	CreateCommand(*AssemblyResult) (string, error)
+	CreateCommand(*AssemblyResult, string) (string, error)
 
 	// ExecuteCommandOnce runs a command in one unit of the app.
 	//	ExecuteCommandOnce(stdout, stderr io.Writer, app app.AssemblyResult, cmd string, args ...string) error
