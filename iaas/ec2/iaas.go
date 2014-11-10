@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
@@ -22,7 +23,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
      	return "", err_keys
      }
      
-     str, err := buildCommand1(iaas.GetPlugins("ec2"), pdc, "delete")
+     str, err := buildDelCommand(iaas.GetPlugins("ec2"), pdc, "delete")
 	if err != nil {
 	return "", err
 	 }
@@ -41,8 +42,6 @@ func (i *EC2IaaS) DeleteMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 
 return str, nil	
 }
-
-
 
 func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
@@ -88,7 +87,8 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 	
 }
 
-func buildCommand1(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+
+func buildDelCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)

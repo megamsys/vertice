@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
@@ -38,7 +39,7 @@ func (i *GoogleIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResu
 	return "", nil
 }
 
-func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	cre, derr := downloadCredentials(pdc)
 	if derr != nil {
 		return "", derr
@@ -75,7 +76,7 @@ func (i *GoogleIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner
 	return str, nil
 }
 
-func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)
@@ -130,7 +131,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) 
 	return buffer.String(), nil
 }
 
-func downloadCredentials(pdc *iaas.PredefClouds) (string, error) {
+func downloadCredentials(pdc *global.PredefClouds) (string, error) {
 	s := make([]string, 2)
 	s = strings.Split(pdc.Access.VaultLocation, "_")
 	email, name := s[0], s[1]

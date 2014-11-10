@@ -8,9 +8,10 @@ import (
 	"github.com/megamsys/libgo/etcd"
 	"github.com/megamsys/megamd/api/http"
 	"github.com/megamsys/megamd/app"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
-	"strings"
+//	"strings"
 	"time"
 	"os"
 	"fmt"
@@ -188,12 +189,25 @@ func handlerEtcd(msg *etcd.Response) {
 	if ferr != nil {
 		log.Error(ferr)
 	}
+	
+	comp := &global.Component{}
+	
+	conn1, err1 := db.Conn("components")
+	if err1 != nil {
+		log.Error(err1)
+	}
 
+	ferr1 := conn1.FetchStruct(asm.Components[0], comp)
+	if ferr1 != nil {
+		log.Error(ferr1)
+	}
+    
 	for i := range asm.Policies {
 		mapD := map[string]string{"id": res.Id, "policy_name": asm.Policies[i].Name}
 		mapB, _ := json.Marshal(mapD)
 		log.Info(string(mapB))
-		publisher(msg.Node.Key, string(mapB))
+		asmname := asm.Name+"."+comp.Inputs.Domain
+		publisher(asmname, string(mapB))
 	}
 }
 
@@ -202,8 +216,9 @@ func publisher(key string, json string) {
 	if aerr != nil {
 		log.Error("Failed to get the queue instance: %s", aerr)
 	}
-	s := strings.Split(key, "/")
-	pubsub, perr := factor.Get(s[len(s)-1])
+	//s := strings.Split(key, "/")
+	//pubsub, perr := factor.Get(s[len(s)-1])
+	pubsub, perr := factor.Get(key)
 	if perr != nil {
 		log.Error("Failed to get the queue instance: %s", perr)
 	}

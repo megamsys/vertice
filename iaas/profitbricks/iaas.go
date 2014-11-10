@@ -6,6 +6,7 @@ import (
    "strings"
    "fmt"
    "github.com/tsuru/config"
+   "github.com/megamsys/megamd/global"
    "github.com/megamsys/megamd/provisioner"
    "encoding/json"
 )
@@ -22,7 +23,7 @@ func (i *ProfitBricksIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.Assemb
 	return "", nil
 }
 
-func (i *ProfitBricksIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult)  (string, error) {
+func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult)  (string, error) {
 	  keys, err_keys := iaas.GetAccessKeys(pdc)
 	  if err_keys != nil {
 	  	return "", err_keys
@@ -63,7 +64,7 @@ func (i *ProfitBricksIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provi
 	return str, nil
 }
 
-func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 { 
 	     buffer.WriteString(plugin.Tool)

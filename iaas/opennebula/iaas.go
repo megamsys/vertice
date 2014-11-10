@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
@@ -21,7 +22,7 @@ func (i *OpenNebulaIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.Assembly
 	return "", nil
 }
 
-func (i *OpenNebulaIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *OpenNebulaIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys
@@ -63,7 +64,7 @@ func (i *OpenNebulaIaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisi
 	return str, nil
 }
 
-func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)

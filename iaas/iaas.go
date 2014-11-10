@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/provisioner"
+	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -17,7 +18,7 @@ import (
 // Every Tsuru IaaS must implement this interface.
 type IaaS interface {
 	// Called when tsuru is creating a Machine.
-	CreateMachine(*PredefClouds, *provisioner.AssemblyResult) (string, error)
+	CreateMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error)
 
 	// Called when tsuru is destroying a Machine.
 	DeleteMachine(*PredefClouds, *provisioner.AssemblyResult) (string, error)
@@ -43,36 +44,6 @@ type Commands struct {
 	Data   string
 }
 
-type PredefClouds struct {
-	Id          string     `json:"id"`
-	Name        string     `json:"name"`
-	Accounts_id string     `json:"accounts_id"`
-	Jsonclaz    string     `json:"json_claz"`
-	Spec        *PDCSpec   `json:"spec"`
-	Access      *PDCAccess `json:"access"`
-	Ideal       string     `json:"ideal"`
-	CreatedAT   string     `json:"created_at"`
-	Performance string     `json:"performance"`
-}
-
-type PDCSpec struct {
-	TypeName string `json:"type_name"`
-	Groups   string `json:"groups"`
-	Image    string `json:"image"`
-	Flavor   string `json:"flavor"`
-	TenantID string `json:"tenant_id"`
-}
-
-type PDCAccess struct {
-	Sshkey         string `json:"ssh_key"`
-	IdentityFile   string `json:"identity_file"`
-	Sshuser        string `json:"ssh_user"`
-	VaultLocation  string `json:"vault_location"`
-	SshpubLocation string `json:"sshpub_location"`
-	Zone           string `json:"zone"`
-	Region         string `json:"region"`
-}
-
 //type SshObject struct{
 //	  Data string
 ///	}
@@ -83,7 +54,7 @@ func RegisterIaasProvider(name string, iaas IaaS) {
 	iaasProviders[name] = iaas
 }
 
-func GetIaasProvider(name string) (IaaS, *PredefClouds, error) {
+func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 	pdc, err := getProviderName(name)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Error: Riak didn't cooperate:\n%s.", err)
@@ -97,8 +68,8 @@ func GetIaasProvider(name string) (IaaS, *PredefClouds, error) {
 	//return nil
 }
 
-func getProviderName(host string) (*PredefClouds, error) {
-	pdc := &PredefClouds{}
+func getProviderName(host string) (*global.PredefClouds, error) {
+	pdc := &global.PredefClouds{}
 
 	predefBucket, perr := config.GetString("buckets:PREDEFCLOUDS")
 	if perr != nil {
@@ -171,7 +142,7 @@ type SshFile struct {
 	data string
 }
 
-func downloadSshFiles(pdc *PredefClouds, keyvalue string, permission os.FileMode) error {
+func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.FileMode) error {
 	sa := make([]string, 2)
 	sa = strings.Split(pdc.Access.IdentityFile, "_")
 	email, name := sa[0], sa[1]
@@ -226,7 +197,7 @@ type AccessKeys struct {
 	SecretKey string `json:"-K"`
 }
 
-func GetAccessKeys(pdc *PredefClouds) (*AccessKeys, error) {
+func GetAccessKeys(pdc *global.PredefClouds) (*AccessKeys, error) {
 	keys := &AccessKeys{}
 	cakbBucket, cakberr := config.GetString("buckets:CLOUDACCESSKEYS")
 	if cakberr != nil {
