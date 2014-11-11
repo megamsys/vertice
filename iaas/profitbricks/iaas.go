@@ -28,7 +28,7 @@ func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *pro
 	if err != nil {
 	return "", err
 	 }
-	str = str + " -P " + " -y "
+	//str = str + " -P " + " -y "
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
