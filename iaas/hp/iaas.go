@@ -17,7 +17,7 @@ func Init() {
 
 type HPIaaS struct{}
 
-func (i *HPIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *HPIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
 
 	return "", nil
 }

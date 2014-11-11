@@ -17,7 +17,7 @@ func Init() {
 
 type OpenNebulaIaaS struct{}
 
-func (i *OpenNebulaIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *OpenNebulaIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
 
 	return "", nil
 }

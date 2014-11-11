@@ -17,7 +17,7 @@ func Init() {
 
 type GoGridIaaS struct{}
 
-func (i *GoGridIaaS) DeleteMachine(*iaas.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *GoGridIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
 
 	return "", nil
 }
