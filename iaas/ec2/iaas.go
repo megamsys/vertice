@@ -90,6 +90,11 @@ func (i *EC2IaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.
 
 func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
+	if len(plugin.Tool) > 0 {
+		buffer.WriteString(plugin.Tool)
+	} else {
+		return "", fmt.Errorf("Plugin tool doesn't loaded")
+	}
 	if command == "delete" {
 		if len(plugin.Command.Delete) > 0 {
 			buffer.WriteString(" " + plugin.Command.Delete)
@@ -170,6 +175,5 @@ func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string
 	} else {
 		return "", fmt.Errorf("Zone doesn't loaded")
 	}
-
 	return buffer.String(), nil
 }
