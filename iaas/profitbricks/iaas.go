@@ -42,6 +42,7 @@ func (i *ProfitBricksIaaS) DeleteMachine(*global.PredefClouds, *provisioner.Asse
    
 
 return str, nil	
+=======
 	
 }
 
