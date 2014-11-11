@@ -142,7 +142,7 @@ func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
 	    mapB, _ := json.Marshal(asm.Components[0])
         json.Unmarshal([]byte(string(mapB)), com)
         if com.Name != "" {
-            s1, _ := getPredefClouds(com.Requirements.Host)
+            s1, _ := GetPredefClouds(com.Requirements.Host)
            //	s := strings.Split(com.ToscaType, ".")
         	if s1.Spec.TypeName == "docker" {
         		log.Debug("Docker provisioner entry")

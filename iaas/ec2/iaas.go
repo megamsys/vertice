@@ -17,13 +17,13 @@ func Init() {
 
 type EC2IaaS struct{}
 
-func (i *EC2IaaS) DeleteMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
      keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
      	return "", err_keys
      }
      
-     str, err := buildDelCommand(iaas.GetPlugins("ec2"), pdc, "delete")
+     str, err := buildDelCommand(global.GetPlugins("ec2"), pdc, "delete")
 	if err != nil {
 	return "", err
 	 }
@@ -43,7 +43,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 return str, nil	
 }
 
-func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *EC2IaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys
@@ -88,7 +88,7 @@ func (i *EC2IaaS) CreateMachine(pdc *iaas.PredefClouds, assembly *provisioner.As
 }
 
 
-func buildDelCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)
@@ -106,7 +106,7 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command strin
 	
 }	
 
-func buildCommand(plugin *iaas.Plugins, pdc *iaas.PredefClouds, command string) (string, error) {
+func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
 	var buffer bytes.Buffer
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)
