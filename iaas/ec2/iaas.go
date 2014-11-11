@@ -23,7 +23,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.
      	return "", err_keys
      }
      
-     str, err := buildDelCommand(global.GetPlugins("ec2"), pdc, "delete")
+     str, err := buildDelCommand(iaas.GetPlugins("ec2"), pdc, "delete")
 	if err != nil {
 	return "", err
 	 }

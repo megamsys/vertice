@@ -17,7 +17,7 @@ func Init() {
 
 type GoGridIaaS struct{}
 
-func (i *GoGridIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *GoGridIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {

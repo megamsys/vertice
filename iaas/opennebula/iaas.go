@@ -17,7 +17,7 @@ func Init() {
 
 type OpenNebulaIaaS struct{}
 
-func (i *OpenNebulaIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *OpenNebulaIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {

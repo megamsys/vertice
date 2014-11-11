@@ -17,7 +17,7 @@ func Init() {
 
 type HPIaaS struct{}
 
-func (i *HPIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *HPIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {

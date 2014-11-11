@@ -18,7 +18,7 @@ func Init() {
 
 type ProfitBricksIaaS struct{}
 
-func (i *ProfitBricksIaaS) DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error) {
+func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
      	return "", err_keys
@@ -42,7 +42,6 @@ func (i *ProfitBricksIaaS) DeleteMachine(*global.PredefClouds, *provisioner.Asse
    
 
 return str, nil	
-=======
 	
 }
 
