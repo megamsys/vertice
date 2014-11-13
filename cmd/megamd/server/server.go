@@ -203,10 +203,11 @@ func handlerEtcd(msg *etcd.Response) {
 	}
     
 	for i := range asm.Policies {
-		mapD := map[string]string{"id": res.Id, "policy_name": asm.Policies[i].Name}
+		mapD := map[string]string{"Id": res.Id, "Action": asm.Policies[i].Name}
 		mapB, _ := json.Marshal(mapD)
 		log.Info(string(mapB))
 		asmname := asm.Name+"."+comp.Inputs.Domain
+		//asmname := asm.Name
 		publisher(asmname, string(mapB))
 	}
 }
