@@ -137,13 +137,14 @@ func (self *Server) EtcdWatcher() {
 				}
 				if err != etcd.ErrWatchStoppedByUser {
 					log.Error("Watch returned a non-user stop error")
-					return
+					//return
 				}
 				log.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
 
 				time.Sleep(time.Second)
 
 				log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
+				//self.EtcdWatcher()
 			}
 		}
 
@@ -169,7 +170,7 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 			}
 		}
 	}
-	stop <- true
+	stop <- false
 }
 
 func handlerEtcd(msg *etcd.Response) {
