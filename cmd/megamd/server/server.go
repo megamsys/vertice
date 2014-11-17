@@ -11,10 +11,11 @@ import (
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
-//	"strings"
 	"time"
 	"os"
 	"fmt"
+	"net"
+	"net/url"
 )
 
 type Server struct {
@@ -95,25 +96,48 @@ func (self *Server) Checker() {
 	
 }
 
-// Next returns a channel which will emit an Event as soon as one of interest occurs
 func (self *Server) EtcdWatcher() {
 	rootPrefix := "/"
 	etcdPath, _ := config.GetString("etcd:path")
 
-	c := etcd.NewClient(etcdPath + rootPrefix)
-    conn, connerr := c.Dial("tcp", "127.0.0.1:4001")
+	c := etcd.NewClient([]string{etcdPath})
+	success := c.SyncCluster()
+	if !success {
+		log.Debug("cannot sync machines")
+	}
+
+	for _, m := range c.GetCluster() {
+		u, err := url.Parse(m)
+		if err != nil {
+			log.Debug(err)
+		}
+		if u.Scheme != "http" {
+			log.Debug("scheme must be http")
+		}
+
+		host, _, err := net.SplitHostPort(u.Host)
+		if err != nil {
+			log.Debug(err)
+		}
+		if host != "127.0.0.1" {
+			log.Debug("Host must be 127.0.0.1")
+		}
+	}
+	
+	etcdNetworkPath, _ := config.GetString("etcd:networkpath")
+	conn, connerr := c.Dial("tcp", etcdNetworkPath)
     log.Debug("client %v", c)
     log.Debug("connection %v", conn)
     log.Debug("connection error %v", connerr)
     
     if conn != nil {
+	
 	   log.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
 
 	   dir, _ := config.GetString("etcd:directory")
 	   log.Info(" [x] Etcd Directory %s", dir)
 
-	   etreschan := make(chan *etcd.Response, 1)
-	   stop := make(chan bool, 1)
+	   stop := make(chan bool, 0)
 
 	   go func() {
 		for {
@@ -127,7 +151,11 @@ func (self *Server) EtcdWatcher() {
 		           log.Error(err1)
 	           }
 				log.Info(" [x] Watching %s", rootPrefix+dir)
-				_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
+				etreschan := make(chan *etcd.Response, 1)
+				log.Info(" [x] Watching channel %v", etreschan)
+				log.Info(" [x] Watching channel %s", etreschan)
+			     go receiverEtcd(etreschan, stop) 
+			 	_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
 				log.Info(" [x] Watched (%s)", rootPrefix+dir)
 
 				if err != nil {
@@ -144,28 +172,31 @@ func (self *Server) EtcdWatcher() {
 				time.Sleep(time.Second)
 
 				log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
-				//self.EtcdWatcher()
 			}
 		}
 
 	}()
-
-	go receiverEtcd(etreschan, stop)
-  } else {
+	
+	} else {
   	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start etcd deamon.\n", connerr)
          os.Exit(1)
   }
 }
 
+/**
+In this goroutine received the message from channel then to export the message to handler, 
+and this goroutine is close when the message is nil. 
+**/
 func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 	for {
 		select {
 		case msg := <-c:
-			log.Info(" [x] Handing etcd response (%v)", msg)
+			log.Info(" [x] Handing etcd master response (%v)", msg)
 			if msg != nil {
 				handlerEtcd(msg)
 			} else {
-				log.Info(" [x] Nil - Handing etcd response (%v)", msg)
+				log.Info(" [x] Nil - Handing etcd master response (%v)", msg)
+				close(c)
 				return
 			}
 		}
