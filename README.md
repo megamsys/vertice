@@ -2,42 +2,48 @@
 megamd
 =================
 
-megamd is a daemon for megam cloud.  
+megamd is the core engine for Megam PaaS  
 
 
 ### Requirements
 
 > 
-[Golang 1.3 > +](http://www.golang.org)
-
-#### Tested on Ubuntu 14.04
-
+[Golang 1.4 > +](http://www.golang.org/dl)
 
 
 ## Usage
 
-megamd start 
+``megamd start`` 
  
-
-###
-
-
 
 ### Compile from source 
 
 
+```
+mkdir -p code/megam/go/src/github.com/megamsys
+
+cd code/megam/go/src/github.com/megamsys
+
+git clone https://github.com/megamsys/megamd.git
+
+cd megamd
+
 make
-   
+
+```
+  
+
+### Documentation
+
+Refer [documentation] (http://www.gomegam.com/docs)
+
 
 
 We are glad to help if you have questions, or request for new features..
 
-[twitter](http://twitter.com/indykish) [email](<rajthilak@megam.co.in>)
+[twitter @megamsys](http://twitter.com/megamsys) [email support@megam.co.in](<support@megam.co.in>)
 
-#### TO - DO
 
-* 
-* 
 
 	
 # License
@@ -46,8 +52,9 @@ We are glad to help if you have questions, or request for new features..
 |                      |                                          |
 |:---------------------|:-----------------------------------------|
 | **Author:**          | Rajthilak (<rajthilak@megam.co.in>)
-|	               | KishorekumarNeelamegam (<nkishore@megam.co.in>)
-| **Copyright:**       | Copyright (c) 2012-2013 Megam Systems.
+| 	                   | KishorekumarNeelamegam (<nkishore@megam.co.in>)
+|                      | Yeshwanth Kumar (<getyesh@megam.co.in>)
+| **Copyright:**       | Copyright (c) 2012-2014 Megam Systems.
 | **License:**         | Apache License, Version 2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
