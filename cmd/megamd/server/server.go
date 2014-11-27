@@ -173,7 +173,7 @@ func (self *Server) EtcdWatcher() {
 
 				log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
 			}
-		}
+		} 
 
 	}()
 	
@@ -196,7 +196,6 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 				handlerEtcd(msg)
 			} else {
 				log.Info(" [x] Nil - Handing etcd master response (%v)", msg)
-				close(c)
 				return
 			}
 		}

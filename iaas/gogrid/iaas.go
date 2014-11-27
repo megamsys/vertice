@@ -152,7 +152,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string
 		if err != nil {
 			return "", fmt.Errorf("Identity file doesn't loaded")
 		}
-		buffer.WriteString(" --identity-file " + ifile)
+		buffer.WriteString(" --identity-file " + ifile + ".key")
 	} else {
 		return "", fmt.Errorf("Identity file doesn't loaded")
 	}

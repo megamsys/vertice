@@ -3,6 +3,7 @@ package google
 import (
 	"bytes"
 	"encoding/json"
+	log "code.google.com/p/log4go"
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
@@ -29,7 +30,7 @@ type GoogleCredential struct {
 	ClientID           string `json:"client_id"`
 	ClientSecret       string `json:"client_secret"`
 	AccessToken        string `json:"access_token"`
-	ExpiresIN          string `json:"expires_in"`
+	ExpiresIN          int64 `json:"expires_in"`
 	RefreshToken       string `json:"refresh_token"`
 	Project            string `json:"project"`
 }
@@ -87,6 +88,7 @@ func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 	if derr != nil {
 		return "", derr
 	}
+	log.Info("================after download")
 	str, err := buildCommand(iaas.GetPlugins("google"), pdc, "create")
 	if err != nil {
 		return "", err
@@ -187,7 +189,6 @@ func downloadCredentials(pdc *global.PredefClouds) (string, error) {
 	if ckberr != nil {
 		return "", ckberr
 	}
-
 	basePath := megam_home + cloudkeysBucket
 	cloudaccesskeysBucket, cakberr := config.GetString("buckets:CLOUDACCESSKEYS")
 	if cakberr != nil {
@@ -198,12 +199,17 @@ func downloadCredentials(pdc *global.PredefClouds) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+    log.Info("+++++++++++++keys1+++++++++++++++++")
+    log.Info(conn)
+    log.Info(keys)
+    log.Info(pdc.Access.VaultLocation)
 	ferr := conn.FetchStruct(pdc.Access.VaultLocation, keys)
 	if ferr != nil {
+		log.Info(ferr)
 		return "", ferr
 	}
-
+    log.Info("+++++++++++++keys2+++++++++++++++++")
+    log.Info(keys)
 	b, errk := json.Marshal(keys)
 	if errk != nil {
 		return "", errk
