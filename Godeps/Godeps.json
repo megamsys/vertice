@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/megamsys/megamd",
-	"GoVersion": "go1.4beta1",
+	"GoVersion": "go1.4rc1",
 	"Packages": [
 		"./..."
 	],
@@ -26,35 +26,35 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/etcd",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/exec",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "f3d3a946922cbc8de0364aca546d2c1f933a30a6"
+			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
 		},
 		{
 			"ImportPath": "github.com/mrb/riakpbc",
-			"Rev": "b20607befda4bf864c4afd595a57b8f99754b885"
+			"Rev": "7e9829370c12ac1ee8917b719774bc7b73b58827"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
