@@ -91,13 +91,13 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 	if len(plugin.Tool) > 0 {
 		buffer.WriteString(plugin.Tool)
 	} else {
-		return "", fmt.Errorf("Plugin tool doesn't loaded")
+		return "", fmt.Errorf("Plugin tool doesn't get loaded")
 	}
 	if command == "delete" {
 		if len(plugin.Command.Delete) > 0 {
 			buffer.WriteString(" " + plugin.Command.Delete)
 		} else {
-			return "", fmt.Errorf("Plugin commands doesn't loaded")
+			return "", fmt.Errorf("Plugin commands doesn't get loaded")
 		}
 	}
 	return buffer.String(), nil 
@@ -109,7 +109,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string
 	if len(plugin.Tool) > 0 { 
 	     buffer.WriteString(plugin.Tool)
 	} else {
-		return "", fmt.Errorf("Plugin tool doesn't loaded")
+		return "", fmt.Errorf("Plugin tool doesn't get loaded")
 	}
 	
 	if command == "create" {

@@ -157,7 +157,7 @@ func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
 	                return err
 	             }	
 	            log.Info("Provisioner: %v", p)
-	             _, perr := p.CreateCommand(asm, id)
+	             _, perr := p.DeleteCommand(asm, id)
 	            if perr != nil {	
 	               return perr
 	             }	       		

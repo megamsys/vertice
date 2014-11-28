@@ -32,6 +32,7 @@ func (i *HPIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.A
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
+	str = str + "--floating-ip"
 
    knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {

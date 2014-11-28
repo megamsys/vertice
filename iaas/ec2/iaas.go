@@ -31,6 +31,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
+	str = str + "--region" + pdc.Access.Region
 
    knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
