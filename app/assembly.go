@@ -11,7 +11,10 @@ import (
 	"github.com/megamsys/megamd/global"
 )
 
-
+type Output struct {
+	Key     string   `json:"key"`
+	Value   string   `json:"value"`
+}
 
 type Assembly struct {
    Id             string    `json:"id"` 
@@ -19,8 +22,10 @@ type Assembly struct {
    Name           string   `json:"name"` 
    Components     []string   `json:"components"` 
    Policies       []*provisioner.Policy   `json:"policies"`
-   inputs         string    `json:"inputs"`
-   operations     string    `json:"operations"` 
+   Inputs         string    `json:"inputs"`
+   Operations     string    `json:"operations"` 
+   Outputs        []*Output  `json:"outputs"`
+   Status         string    `json:"status"`
    CreatedAt      string   `json:"created_at"` 
    }
 
@@ -169,7 +174,7 @@ func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
 	               return perr
 	             }	
 	            asm.Command = str
-	            actions := []*action.Action{&launchedApp}
+	            actions := []*action.Action{&updateStatus}
 
 	            pipeline := action.NewPipeline(actions...)
 	            aerr := pipeline.Execute(asm)

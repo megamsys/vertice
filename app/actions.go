@@ -11,6 +11,7 @@ import (
 	"path"
 	"bufio"
 	"github.com/megamsys/megamd/provisioner"
+	"github.com/megamsys/libgo/db"
 )
 
 
@@ -87,5 +88,52 @@ var launchedApp = action.Action{
 	},
 	MinParams: 1,
 }
+
+var updateStatus = action.Action{
+	Name: "updatestatus",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		var app provisioner.AssemblyResult
+		switch ctx.Params[0].(type) {
+		case provisioner.AssemblyResult:
+			app = ctx.Params[0].(provisioner.AssemblyResult)
+		case *provisioner.AssemblyResult:
+			app = *ctx.Params[0].(*provisioner.AssemblyResult)
+		default:
+			return nil, errors.New("First parameter must be App or *assemblies.AssemblyResult.")
+		}
+		asm := &Assembly{}
+	    conn, err := db.Conn("assembly")
+	     if err != nil {	
+		    return nil, err
+	      }	
+
+	    ferr := conn.FetchStruct(app.Id, asm)
+	    if ferr != nil {	
+		   return nil, ferr
+	     }	
+	
+	   update := Assembly{
+		Id:            asm.Id, 
+        JsonClaz:      asm.JsonClaz, 
+        Name:          asm.Name, 
+        Components:    asm.Components ,
+        Policies:      asm.Policies,
+        Inputs:        asm.Inputs,
+        Operations:    asm.Operations,
+        Outputs:       asm.Outputs,
+        Status:        "Terminated",
+        CreatedAt:     asm.CreatedAt,
+	   }
+	   err = conn.StoreStruct(app.Id, &update)		
+		
+		return CommandExecutor(&app)
+	},
+	Backward: func(ctx action.BWContext) {
+		log.Info("[%s] Nothing to recover")
+	},
+	MinParams: 1,
+}
+
+
 
 

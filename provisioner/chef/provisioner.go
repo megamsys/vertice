@@ -20,7 +20,9 @@ func (i *Chef) CreateCommand(assembly *provisioner.AssemblyResult, id string) (s
 		log.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
 	}
+	log.Info("======================================")
 	log.Info(iaas)
+	log.Info(pdc)
 	str, iaaserr := iaas.CreateMachine(pdc, assembly)
 	if iaaserr != nil {
 		log.Error("Error: Iaas Provider doesn't create machine:\n%s.", iaaserr)
