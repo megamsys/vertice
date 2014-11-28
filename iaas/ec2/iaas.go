@@ -31,7 +31,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.
 	str = str + " -N " + assembly.Name + "." + assembly.Components[0].Inputs.Domain
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
-	str = str + "--region" + pdc.Access.Region
+	
 
    knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
@@ -102,7 +102,16 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 		} else {
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}
+				
 	}
+	
+	
+	if len(pdc.Access.Region) > 0 {
+		buffer.WriteString(" --region " + pdc.Access.Region)
+	} else {
+		return "", fmt.Errorf("Region does not get loaded")
+	}
+	
 	return buffer.String(), nil 
 	
 }	
@@ -123,13 +132,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string
 		}
 	}
 	
-	if command == "delete" {
-		if len(plugin.Command.Delete) > 0 {
-			buffer.WriteString(" " + plugin.Command.Delete)
-		} else {
-			return "", fmt.Errorf("Plugin commands doesn't loaded")
-		}
-	}
+	
 
 	if len(pdc.Spec.Groups) > 0 {
 		buffer.WriteString(" -G " + pdc.Spec.Groups)
