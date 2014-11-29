@@ -50,8 +50,8 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 		}
 		defer ferr.Close()
   
-	foutwriter := bufio.NewWriter(fout)
-	ferrwriter := bufio.NewWriter(ferr)
+	foutwriter := bufio.NewWriterSize(fout, 1)
+	ferrwriter := bufio.NewWriterSize(ferr, 1)
     log.Debug(commandWords)
     log.Debug("Length: %s", len(commandWords))
     
