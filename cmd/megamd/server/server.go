@@ -153,7 +153,7 @@ func (self *Server) EtcdWatcher() {
 				//log.Info(" [x] Watching %s", rootPrefix+dir)
 				etreschan := make(chan *etcd.Response, 1)
 				//log.Info(" [x] Watching channel %v", etreschan)
-				l//og.Info(" [x] Watching channel %s", etreschan)
+				//log.Info(" [x] Watching channel %s", etreschan)
 			     go receiverEtcd(etreschan, stop) 
 			 	_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
 				//log.Info(" [x] Watched (%s)", rootPrefix+dir)
