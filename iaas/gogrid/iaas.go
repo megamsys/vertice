@@ -58,18 +58,39 @@ func (i *GoGridIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 	str = str + " -A " + keys.AccessKey
 	str = str + " -K " + keys.SecretKey
 	
-	riak, err_riak := config.GetString("api:server")
-	if err_riak != nil {
-		return "", err_riak
-	}
-	
 	recipe, err_recipe := config.GetString("knife:recipe")
 	if err_recipe != nil {
 		return "", err_recipe
 	}
 	
 	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
-	attributes := &iaas.Attributes{RiakHost: riak, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id}
+	
+	riakHost, err_riakHost := config.GetString("hosts:riak_host")
+	if err_riakHost != nil {
+		return "", err_riakHost
+	}
+	
+	rabbitmqHost, err_rabbitmq := config.GetString("hosts:rabbitmq_host")
+	if err_rabbitmq != nil {
+		return "", err_rabbitmq
+	}
+	
+	monitor, err_monitor := config.GetString("hosts:monitor_host")
+	if err_monitor != nil {
+		return "", err_monitor
+	}
+	
+	kibana, err_kibana := config.GetString("hosts:kibana_host")
+	if err_kibana != nil {
+		return "", err_kibana
+	}
+	
+	etcdHost, err_etcd := config.GetString("hosts:etcd_host")
+	if err_etcd != nil {
+		return "", err_etcd
+	}
+	
+	attributes := &iaas.Attributes{RiakHost: riakHost, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id, RabbitMQ: rabbitmqHost, MonitorHost: monitor, KibanaHost: kibana, EtcdHost: etcdHost}
     b, aerr := json.Marshal(attributes)
     if aerr != nil {
         fmt.Println(aerr)
