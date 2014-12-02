@@ -27,9 +27,13 @@ type IaaS interface {
 const defaultYAMLPath = "conf/commands.yaml"
 
 type Attributes struct {
-	RiakHost   string `json:"riak_host"`
-	AccountID  string `json:"accounts_id"`
-	AssemblyID string `json:"assembly_id"`
+	RiakHost    string  `json:"riak_host"`
+	AccountID   string  `json:"accounts_id"`
+	AssemblyID  string  `json:"assembly_id"`
+    RabbitMQ    string  `json:"rabbitmq_host"`
+    MonitorHost string  `json:"monitor_host"`
+    KibanaHost  string  `json:"kibana_host"`
+    EtcdHost    string  `json:"etcd_host"`
 }
 
 type Plugins struct {

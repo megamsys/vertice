@@ -148,7 +148,7 @@ func (self *Server) EtcdWatcher() {
 			   _, err1 := c.CreateDir(dir)
 
 	           if err1 != nil {
-		           log.Error(err1)
+		         //  log.Error(err1)
 	           }
 				//log.Info(" [x] Watching %s", rootPrefix+dir)
 				etreschan := make(chan *etcd.Response, 1)
@@ -160,18 +160,17 @@ func (self *Server) EtcdWatcher() {
 
 				if err != nil {
 					//log.Info(" [x] Watched Error (%s)", rootPrefix+dir)
-					log.Error(err)
+				//	log.Error(err)
 				//	return
 				}
 				if err != etcd.ErrWatchStoppedByUser {
-					log.Error("Watch returned a non-user stop error")
-					//return
+				//	log.Error("Watch returned a non-user stop error")
 				}
-				log.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
+				//log.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
 
 				time.Sleep(time.Second)
 
-				log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
+				//log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
 			}
 		} 
 
