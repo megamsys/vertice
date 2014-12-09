@@ -122,7 +122,16 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 		} else {
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}
+	
+	if len(pdc.Spec.TenantID) > 0 {
+		buffer.WriteString(" -T " + pdc.Spec.TenantID)
+	} else {
+		return "", fmt.Errorf("Tenant ID does not get loaded")
 	}
+	
+	}
+	
+	
 	return buffer.String(), nil 
 	
 }	
@@ -161,7 +170,7 @@ func buildCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string
 		return "", fmt.Errorf("Flavor doesn't loaded")
 	}
 
-	if len(pdc.Spec.Flavor) > 0 {
+	if len(pdc.Spec.TenantID) > 0 {
 		buffer.WriteString(" -T " + pdc.Spec.TenantID)
 	} else {
 		return "", fmt.Errorf("TenantID doesn't loaded")
