@@ -190,11 +190,11 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 	for {
 		select {
 		case msg := <-c:
-			log.Info(" [x] Handing etcd master response (%v)", msg)
+			//log.Info(" [x] Handing etcd master response (%v)", msg)
 			if msg != nil {
 				handlerEtcd(msg)
 			} else {
-				log.Info(" [x] Nil - Handing etcd master response (%v)", msg)
+			//	log.Info(" [x] Nil - Handing etcd master response (%v)", msg)
 				return
 			}
 		}
