@@ -37,7 +37,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
    
 
@@ -103,7 +103,7 @@ func (i *EC2IaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	return str, nil
 	
 }

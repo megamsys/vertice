@@ -37,7 +37,7 @@ func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *pro
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
    
 
@@ -90,7 +90,7 @@ func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *pro
 	}
 
 	
-	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
+	str = str + " --run-list recipe[" + recipe + "]"
 	attributes := &iaas.Attributes{RiakHost: riakHost, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id, RabbitMQ: rabbitmqHost, MonitorHost: monitor, KibanaHost: kibana, EtcdHost: etcdHost}
     b, aerr := json.Marshal(attributes)
     if aerr != nil {
@@ -103,7 +103,7 @@ func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *pro
 	  if kerr != nil {
 	  	return "", kerr
 	  }
-	str = strings.Replace(str,"-c","-c "+knifePath,-1)  
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	return str, nil
 }
 

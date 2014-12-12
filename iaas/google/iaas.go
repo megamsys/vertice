@@ -55,7 +55,7 @@ func (i *GoogleIaaS) DeleteMachine(pdc *global.PredefClouds, assembly  *provisio
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
    
 
@@ -126,7 +126,7 @@ func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 	}
 
 	
-	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
+	str = str + " --run-list recipe[" + recipe + "]"
 	attributes := &iaas.Attributes{RiakHost: riakHost, AccountID: pdc.Accounts_id, AssemblyID: assembly.Id, RabbitMQ: rabbitmqHost, MonitorHost: monitor, KibanaHost: kibana, EtcdHost: etcdHost}
     b, aerr := json.Marshal(attributes)
     if aerr != nil {
@@ -139,7 +139,7 @@ func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	return str, nil
 }
 

@@ -37,7 +37,7 @@ func (i *GoGridIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provision
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
    
 
@@ -63,7 +63,7 @@ func (i *GoGridIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 		return "", err_recipe
 	}
 	
-	str = str + " --run-list \"" + "recipe[" + recipe + "]" + "\""
+	str = str + " --run-list recipe[" + recipe + "]"
 	
 	riakHost, err_riakHost := config.GetString("hosts:riak_host")
 	if err_riakHost != nil {
@@ -106,7 +106,7 @@ func (i *GoGridIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provision
 	if kerr != nil {
 		return "", kerr
 	}
-	str = strings.Replace(str, "-c", "-c "+knifePath, -1)
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	return str, nil
 }
 
