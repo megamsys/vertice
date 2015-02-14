@@ -40,6 +40,11 @@ func (i *OpenNebulaIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provi
 	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	str = strings.Replace(str, "<node_name>", assembly.Name + "." + assembly.Components[0].Inputs.Domain, -1 )
    
+    if len(pdc.Access.Zone) > 0 {
+		   str = str + " --endpoint" + pdc.Access.Zone
+	} else {
+		return "", fmt.Errorf("Zone doesn't loaded")
+	}
 
 return str, nil	
 }
