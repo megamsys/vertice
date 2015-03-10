@@ -156,3 +156,29 @@ type CloudSettings struct {
     Z                  string        `json:"z"`
     Wires              []string    `json:“wires”`
 }
+
+type CI struct {
+	Enable				string		`json:"enable"`
+	SCM					string		`json:"scm"`
+	ComponentID			string		`json:"component_id"`
+	AssemblyID			string		`json:"assembly_id"`
+	Id					string		`json:"id"`
+	CreatedAT			string		`json:"created_at"`
+}
+
+func (req *CI) Get(reqId string) (*CI, error) {
+    log.Info("Get Continious Integration message %v", reqId)
+    conn, err := db.Conn("cig")
+	if err != nil {	
+		return req, err
+	}	
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {	
+		return req, ferr
+	}	
+	defer conn.Close()
+	
+	return req, nil
+
+}

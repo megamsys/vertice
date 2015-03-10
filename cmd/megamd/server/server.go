@@ -42,9 +42,10 @@ func NewServer() (*Server, error) {
 func (self *Server) ListenAndServe() error {
 	log.Info("Starting admin interface on port")
 	//var etcdServerList [2]string
-	var queueInput [2]string
+	var queueInput [3]string
 	queueInput[0] = "cloudstandup"
 	queueInput[1] = "Events"
+	queueInput[2] = "ci"
     self.Checker()
 	// Queue input
 	for i := range queueInput {
