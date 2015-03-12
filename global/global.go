@@ -2,6 +2,8 @@ package global
 
 import (
 	"github.com/megamsys/libgo/db"
+	"crypto/rand"
+    "math/big"
 	log "code.google.com/p/log4go"
 )
 
@@ -48,6 +50,9 @@ type Component struct {
 	CreatedAt                  string `json:"created_at"`
 }
 
+/**
+**fetch the component json from riak and parse the json to struct
+**/
 func (asm *Component) Get(asmId string) (*Component, error) {
     log.Info("Get Component message %v", asmId)
     conn, err := db.Conn("components")
@@ -113,6 +118,9 @@ type Request struct {
 	CreatedAt        string     `json:"created_at"`
 }
 
+/**
+**fetch the request json from riak and parse the json to struct
+**/
 func (req *Request) Get(reqId string) (*Request, error) {
     log.Info("Get Request message %v", reqId)
     conn, err := db.Conn("requests")
@@ -160,12 +168,17 @@ type CloudSettings struct {
 type CI struct {
 	Enable				string		`json:"enable"`
 	SCM					string		`json:"scm"`
+	Token				string		`json:"token"`
+	Owner				string		`json:"owner"`
 	ComponentID			string		`json:"component_id"`
 	AssemblyID			string		`json:"assembly_id"`
 	Id					string		`json:"id"`
 	CreatedAT			string		`json:"created_at"`
 }
 
+/**
+**fetch the continious integration data from riak and parse the json to struct
+**/
 func (req *CI) Get(reqId string) (*CI, error) {
     log.Info("Get Continious Integration message %v", reqId)
     conn, err := db.Conn("cig")
@@ -182,3 +195,27 @@ func (req *CI) Get(reqId string) (*CI, error) {
 	return req, nil
 
 }
+
+/**
+generate the rand string 
+**/
+func RandString(n int) string {
+    const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    symbols := big.NewInt(int64(len(alphanum)))
+    states := big.NewInt(0)
+    states.Exp(symbols, big.NewInt(int64(n)), nil)
+    r, err := rand.Int(rand.Reader, states)
+    if err != nil {
+        panic(err)
+    }
+    var bytes = make([]byte, n)
+    r2 := big.NewInt(0)
+    symbol := big.NewInt(0)
+    for i := range bytes {
+        r2.DivMod(r, symbols, symbol)
+        r, r2 = r2, r
+        bytes[i] = alphanum[symbol.Int64()]
+    }
+    return string(bytes)
+}
+

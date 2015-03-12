@@ -20,6 +20,9 @@ type Plugins interface {
 var plugs = make(map[string]Plugins)
 var plug_names = []string{"cmp", "github", "gogs"}
 
+/**
+**register the all plugins to "plug" array
+**/
 func RegisterPlugins(name string, plugin Plugins) {
 	plugs[name] = plugin
 }
