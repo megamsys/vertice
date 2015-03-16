@@ -6,7 +6,7 @@ import (
   log "code.google.com/p/log4go"
   //"fmt"
   //git "github.com/CodeHub-io/Go-GitHub-API"
-  git "github.com/google/go-github/github"
+  git "github.com/google/go-github/github"  
   "code.google.com/p/goauth2/oauth"
   "encoding/json"
   "strings"

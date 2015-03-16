@@ -1,14 +1,19 @@
 {
 	"ImportPath": "github.com/megamsys/megamd",
-	"GoVersion": "go1.4rc1",
+	"GoVersion": "go1.4.2",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/goauth2/oauth",
+			"Comment": "weekly-56",
+			"Rev": "afe77d958c701557ec5dc56f6936fcc194d15520"
+		},
+		{
 			"ImportPath": "code.google.com/p/goprotobuf/proto",
-			"Comment": "go.r60-159",
-			"Rev": "26b4b5c8a6ec0e0bc5a8d2807c9f42f7d1bb291a"
+			"Comment": "go.r60-163",
+			"Rev": "9352842ae63ee1d7e74e074ce7bb10370c4b6b9e"
 		},
 		{
 			"ImportPath": "code.google.com/p/log4go",
@@ -20,37 +25,45 @@
 			"Rev": "b8a35001b773c267eb260a691f4e5499a3531600"
 		},
 		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "7ea4ee6d222607c11ea86e99a6f6723beeae785d"
+		},
+		{
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "d8840cbb2baa915f4836edda4750050a2c0b7aea"
+		},
+		{
 			"ImportPath": "github.com/howeyc/fsnotify",
-			"Comment": "v0.9.0-11-g6b1ef89",
-			"Rev": "6b1ef893dc11e0447abda6da20a5203481878dda"
+			"Comment": "v0.9.0-14-g4894fe7",
+			"Rev": "4894fe7efedeeef21891033e1cce3b23b9af7ad2"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/etcd",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/exec",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "85f11486bd1c362928f4ad6d4c76614da330f3a4"
+			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
 			"ImportPath": "github.com/mrb/riakpbc",
@@ -58,28 +71,28 @@
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "6ffc9248c4b16699477e7411084c2402f2f0c351"
+			"Rev": "150b7f24d6ad507e6026c13d85ce1f1391ac7400"
 		},
 		{
 			"ImportPath": "github.com/tsuru/config",
-			"Rev": "96579b79a0a66b9b6c95a8ff7c344aa512b41288"
+			"Rev": "b7da8c34d8c1bf9b3f641c0161abbc4342422301"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
 			"Rev": "64131543e7896d5bcc6bd5a76287eb75ea96c673"
 		},
 		{
-			"ImportPath": "gopkg.in/v1/yaml",
+			"ImportPath": "gopkg.in/yaml.v1",
 			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "eca94c41d994ae2215d455ce578ae6e2dc6ee516"
+			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
 		},
 		{
 			"ImportPath": "launchpad.net/gnuflag",
-			"Comment": "13",
-			"Rev": "roger.peppe@canonical.com-20140716064605-pk32dnmfust02yab"
+			"Comment": "14",
+			"Rev": "roger.peppe@canonical.com-20150127164241-i95i710z8ju182mx"
 		}
 	]
 }
