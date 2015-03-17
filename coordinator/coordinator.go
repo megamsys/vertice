@@ -25,10 +25,6 @@ type Coordinator struct {
 	//EventsHandler(f func(*Message), name ...string) (Handler, error)
 }
 
-type Message struct {
-	Id string `json:"id"`
-}
-
 func init() {
 	ec2.Init()
 	google.Init()
@@ -50,7 +46,7 @@ func NewCoordinator(chann []byte, queue string) {
 	case "cloudstandup":
 		requestHandler(chann)
 		break
-	case "Events":
+	case "events":
 		eventsHandler(chann)
 		break
 	case "ci":
@@ -61,7 +57,7 @@ func NewCoordinator(chann []byte, queue string) {
 
 func requestHandler(chann []byte) {
 	log.Info("Entered!-------->")
-	m := &Message{}
+	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
 		log.Error("Error: Message parsing error:\n%s.", parse_err)
@@ -126,7 +122,7 @@ func requestHandler(chann []byte) {
 
 func ciHandler(chann []byte) {
 	log.Info("Entered!-------->")
-	m := &Message{}
+	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
 		log.Error("Error: Message parsing error:\n%s.", parse_err)
@@ -150,5 +146,20 @@ func ciHandler(chann []byte) {
 }
 
 func eventsHandler(chann []byte) {
-
+   log.Info("Event was entered")
+   m := &global.EventMessage{}
+	parse_err := json.Unmarshal(chann, &m)
+	if parse_err != nil {
+		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		return
+	}
+	switch m.Event {
+	case "notify":
+		perr := plugins.Notify(m)
+		if perr != nil {
+			log.Error("Error: Plugin Notify :\n%s.", perr)
+			break
+		}
+		break	
+	}
 }

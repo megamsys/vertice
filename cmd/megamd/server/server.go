@@ -44,7 +44,7 @@ func (self *Server) ListenAndServe() error {
 	//var etcdServerList [2]string
 	var queueInput [3]string
 	queueInput[0] = "cloudstandup"
-	queueInput[1] = "Events"
+	queueInput[1] = "events"
 	queueInput[2] = "ci"
     self.Checker()
 	// Queue input

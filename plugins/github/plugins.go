@@ -10,6 +10,7 @@ import (
   "code.google.com/p/goauth2/oauth"
   "encoding/json"
   "strings"
+  "github.com/megamsys/libgo/amqp"
 )
 
 /**
@@ -37,7 +38,7 @@ func (c *GithubPlugin) Watcher(ci *global.CI) error {
 		
 		client := git.NewClient(t.Client())
 		
-		trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID 
+		trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
 		
 		byt12 := []byte(`{"url": "","content_type": "json"}`)
 		var postData map[string]interface{}
@@ -72,6 +73,57 @@ func (c *GithubPlugin) Watcher(ci *global.CI) error {
 	return nil
 }
 
-func (c *GithubPlugin) Notify() error {
+/**
+**notify the messages or any other operations from github
+** now this function performs build the pushed application from github to remote 
+**/
+func (c *GithubPlugin) Notify(m *global.EventMessage) error {
+   request_asm := global.Assembly{Id: m.AssemblyId}
+	asm, asmerr := request_asm.Get(m.AssemblyId)
+	if(asmerr != nil) {
+		return asmerr
+	}
+
+	request_com := global.Component{Id: m.ComponentId}
+	com, comerr := request_com.Get(m.ComponentId)
+	if(comerr != nil) {
+		return comerr
+	}
+	
+	request_ci := global.CI{Id: com.Inputs.CIID}
+	ci, cierr := request_ci.Get(com.Inputs.CIID)
+	if(cierr != nil) {
+		return cierr
+	}
+	
+	if(ci.SCM == "github") {
+		log.Info("Github is worked")
+		mapD := map[string]string{"Id": m.ComponentId, "Action": "build"}
+		mapB, _ := json.Marshal(mapD)
+		log.Info(string(mapB))
+		asmname := asm.Name
+		//asmname := asm.Name
+		publisher(asmname, string(mapB))
+	} else {
+		log.Info("Github is skipped")
+	}
 	return nil
+}
+
+func publisher(key string, json string) {
+	factor, aerr := amqp.Factory()
+	if aerr != nil {
+		log.Error("Failed to get the queue instance: %s", aerr)
+	}
+	//s := strings.Split(key, "/")
+	//pubsub, perr := factor.Get(s[len(s)-1])
+	pubsub, perr := factor.Get(key)
+	if perr != nil {
+		log.Error("Failed to get the queue instance: %s", perr)
+	}
+
+	serr := pubsub.Pub([]byte(json))
+	if serr != nil {
+		log.Error("Failed to publish the queue instance: %s", serr)
+	}
 }

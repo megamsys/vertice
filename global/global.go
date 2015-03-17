@@ -7,6 +7,16 @@ import (
 	log "code.google.com/p/log4go"
 )
 
+type Message struct {
+	Id string `json:"id"`
+}
+
+type EventMessage struct {
+	AssemblyId string `json:"assembly_id"`
+	ComponentId string `json:"component_id"`
+	Event string `json:"event"`
+}
+
 type PredefClouds struct {
 	Id          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -85,6 +95,7 @@ type CompomentInputs struct {
 	Source        string `json:"source"`
 	DesignInputs  *DesignInputs
 	ServiceInputs *ServiceInputs
+	CIID          string  `json:"ci_id"`
 }
 
 type DesignInputs struct {
@@ -97,17 +108,17 @@ type DesignInputs struct {
 
 type ServiceInputs struct {
 	DBName     string `json:"dbname"`
-	DBPassword string `json:“dbpassword”`
+	DBPassword string `json:"dbpassword"`
 }
 
 type Artifacts struct {
 	ArtifactType string `json:"artifact_type"`
-	Content      string `json:“content”`
+	Content      string `json:"content"`
 }
 
 type ComponentOperations struct {
 	OperationType  string `json:"operation_type"`
-	TargetResource string `json:“target_resource”`
+	TargetResource string `json:"target_resource"`
 }
 
 type Request struct {
@@ -182,6 +193,43 @@ type CI struct {
 func (req *CI) Get(reqId string) (*CI, error) {
     log.Info("Get Continious Integration message %v", reqId)
     conn, err := db.Conn("cig")
+	if err != nil {	
+		return req, err
+	}	
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {	
+		return req, ferr
+	}	
+	defer conn.Close()
+	
+	return req, nil
+
+}
+
+type Policy struct {
+	Name    string   `json:"name"`
+	Ptype   string   `json:"ptype"`
+	Members []string `json:"members"`
+}
+
+type Assembly struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Components []*string
+	policies   []*Policy `json:"policies"`
+	inputs     string    `json:"inputs"`
+	operations string    `json:"operations"`
+	Command    string
+	CreatedAt  string `json:"created_at"`
+}
+
+/**
+**fetch the Assembly data from riak and parse the json to struct
+**/
+func (req *Assembly) Get(reqId string) (*Assembly, error) {
+    log.Info("Get Assembly message %v", reqId)
+    conn, err := db.Conn("assembly")
 	if err != nil {	
 		return req, err
 	}	
