@@ -28,17 +28,16 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
 		
 		trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
 		
-		client := gogs.NewClient("http://192.168.1.5:6001/", ci.Token)
+		client := gogs.NewClient("http://7.7.9.24:6001/", ci.Token)
 		
 		var postData = make(map[string]string)
 		postData["url"] = trigger_url
 		postData["content_type"] = "json"
 		
 		postHook :=  gogs.CreateHookOption{Type: "gogs", Config: postData, Active: true }
-		
-		component := global.Component{Id: ci.ComponentID }
-        com, comerr := component.Get(ci.ComponentID)
-        if comerr != nil{
+		component := global.Component{Id: ci.ComponentID }		
+        com, comerr := component.Get(ci.ComponentID)        
+        if comerr != nil{       
           return comerr
         }  
        
@@ -47,9 +46,7 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
 		s, _ := client.CreateRepoHook(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
 		
 		//s, _ := client.ListRepoHooks(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1))
-		
-		log.Info("---------------------------------------------")
-		log.Info(s)
+			
 		
 	} else {
 		log.Info("gogs is skipped")

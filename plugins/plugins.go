@@ -44,10 +44,11 @@ func Watcher(ci *global.CI) error {
 	   if err != nil {	
 	      return err
 	   }	
-	perr :=  p.Watcher(ci)
-	   if perr != nil {	
-	      return perr
-	   }	
+	//perr :=  p.Watcher(ci)
+	//   if perr != nil {	
+	///      return perr
+	//   }	
+	go p.Watcher(ci)
   }	
   return nil
 }
