@@ -46,7 +46,9 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
 		s, _ := client.CreateRepoHook(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
 		
 		//s, _ := client.ListRepoHooks(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1))
-			
+		
+		log.Info("Hook created")
+		log.Info(s)
 		
 	} else {
 		log.Info("gogs is skipped")
