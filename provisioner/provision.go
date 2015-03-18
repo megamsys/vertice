@@ -51,7 +51,9 @@ type CompomentInputs struct {
 	Source        string `json:"source"`
 	DesignInputs  *DesignInputs
 	ServiceInputs *ServiceInputs
+	CIID          string  `json:"ci_id"`
 }
+
 
 type DesignInputs struct {
 	Id    string   `json:"id"`

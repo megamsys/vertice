@@ -12,15 +12,17 @@ import (
 	"github.com/megamsys/megamd/iaas/profitbricks"
 	"github.com/megamsys/megamd/provisioner/chef"
 	"github.com/megamsys/megamd/provisioner/docker"
+	"github.com/megamsys/megamd/plugins/cmp"
+	"github.com/megamsys/megamd/plugins/github"
+	"github.com/megamsys/megamd/plugins/gogs"
+	"github.com/megamsys/megamd/plugins"
+	"github.com/megamsys/megamd/global"
+	"fmt"
 )
 
 type Coordinator struct {
 	//RequestHandler(f func(*Message), name ...string) (Handler, error)
 	//EventsHandler(f func(*Message), name ...string) (Handler, error)
-}
-
-type Message struct {
-	Id string `json:"id"`
 }
 
 func init() {
@@ -32,6 +34,9 @@ func init() {
 	profitbricks.Init()
 	chef.Init()
 	docker.Init()
+	cmp.Init()
+	github.Init()
+	gogs.Init()
 }
 
 func NewCoordinator(chann []byte, queue string) {
@@ -41,15 +46,18 @@ func NewCoordinator(chann []byte, queue string) {
 	case "cloudstandup":
 		requestHandler(chann)
 		break
-	case "Events":
+	case "events":
 		eventsHandler(chann)
 		break
+	case "ci":
+	    ciHandler(chann)
+	    break	
 	}
 }
 
 func requestHandler(chann []byte) {
 	log.Info("Entered!-------->")
-	m := &Message{}
+	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
 		log.Error("Error: Message parsing error:\n%s.", parse_err)
@@ -112,6 +120,46 @@ func requestHandler(chann []byte) {
 	}
 }
 
-func eventsHandler(chann []byte) {
+func ciHandler(chann []byte) {
+	log.Info("Entered!-------->")
+	m := &global.Message{}
+	parse_err := json.Unmarshal(chann, &m)
+	if parse_err != nil {
+		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		return
+	}
+	request := global.CI{Id: m.Id}
+	cig, err := request.Get(m.Id)
+	fmt.Println("-----====================================----")
+	fmt.Println(cig)
+	
+	perr := plugins.Watcher(cig)
+	if perr != nil {
+		log.Error("Error: Plugin Watcher :\n%s.", perr)
+		return
+	}
+	
+	if err != nil {
+		log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		return
+	}
+}
 
+func eventsHandler(chann []byte) {
+   log.Info("Event was entered")
+   m := &global.EventMessage{}
+	parse_err := json.Unmarshal(chann, &m)
+	if parse_err != nil {
+		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		return
+	}
+	switch m.Event {
+	case "notify":
+		perr := plugins.Notify(m)
+		if perr != nil {
+			log.Error("Error: Plugin Notify :\n%s.", perr)
+			break
+		}
+		break	
+	}
 }

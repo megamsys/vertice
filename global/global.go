@@ -2,8 +2,20 @@ package global
 
 import (
 	"github.com/megamsys/libgo/db"
+	"crypto/rand"
+    "math/big"
 	log "code.google.com/p/log4go"
 )
+
+type Message struct {
+	Id string `json:"id"`
+}
+
+type EventMessage struct {
+	AssemblyId string `json:"assembly_id"`
+	ComponentId string `json:"component_id"`
+	Event string `json:"event"`
+}
 
 type PredefClouds struct {
 	Id          string     `json:"id"`
@@ -48,6 +60,9 @@ type Component struct {
 	CreatedAt                  string `json:"created_at"`
 }
 
+/**
+**fetch the component json from riak and parse the json to struct
+**/
 func (asm *Component) Get(asmId string) (*Component, error) {
     log.Info("Get Component message %v", asmId)
     conn, err := db.Conn("components")
@@ -80,6 +95,7 @@ type CompomentInputs struct {
 	Source        string `json:"source"`
 	DesignInputs  *DesignInputs
 	ServiceInputs *ServiceInputs
+	CIID          string  `json:"ci_id"`
 }
 
 type DesignInputs struct {
@@ -92,17 +108,17 @@ type DesignInputs struct {
 
 type ServiceInputs struct {
 	DBName     string `json:"dbname"`
-	DBPassword string `json:“dbpassword”`
+	DBPassword string `json:"dbpassword"`
 }
 
 type Artifacts struct {
 	ArtifactType string `json:"artifact_type"`
-	Content      string `json:“content”`
+	Content      string `json:"content"`
 }
 
 type ComponentOperations struct {
 	OperationType  string `json:"operation_type"`
-	TargetResource string `json:“target_resource”`
+	TargetResource string `json:"target_resource"`
 }
 
 type Request struct {
@@ -113,6 +129,9 @@ type Request struct {
 	CreatedAt        string     `json:"created_at"`
 }
 
+/**
+**fetch the request json from riak and parse the json to struct
+**/
 func (req *Request) Get(reqId string) (*Request, error) {
     log.Info("Get Request message %v", reqId)
     conn, err := db.Conn("requests")
@@ -156,3 +175,95 @@ type CloudSettings struct {
     Z                  string        `json:"z"`
     Wires              []string    `json:“wires”`
 }
+
+type CI struct {
+	Enable				string		`json:"enable"`
+	SCM					string		`json:"scm"`
+	Token				string		`json:"token"`
+	Owner				string		`json:"owner"`
+	ComponentID			string		`json:"component_id"`
+	AssemblyID			string		`json:"assembly_id"`
+	Id					string		`json:"id"`
+	CreatedAT			string		`json:"created_at"`
+}
+
+/**
+**fetch the continious integration data from riak and parse the json to struct
+**/
+func (req *CI) Get(reqId string) (*CI, error) {
+    log.Info("Get Continious Integration message %v", reqId)
+    conn, err := db.Conn("cig")
+	if err != nil {	
+		return req, err
+	}	
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {	
+		return req, ferr
+	}	
+	defer conn.Close()
+	
+	return req, nil
+
+}
+
+type Policy struct {
+	Name    string   `json:"name"`
+	Ptype   string   `json:"ptype"`
+	Members []string `json:"members"`
+}
+
+type Assembly struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Components []*string
+	policies   []*Policy `json:"policies"`
+	inputs     string    `json:"inputs"`
+	operations string    `json:"operations"`
+	Command    string
+	CreatedAt  string `json:"created_at"`
+}
+
+/**
+**fetch the Assembly data from riak and parse the json to struct
+**/
+func (req *Assembly) Get(reqId string) (*Assembly, error) {
+    log.Info("Get Assembly message %v", reqId)
+    conn, err := db.Conn("assembly")
+	if err != nil {	
+		return req, err
+	}	
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {	
+		return req, ferr
+	}	
+	defer conn.Close()
+	
+	return req, nil
+
+}
+
+/**
+generate the rand string 
+**/
+func RandString(n int) string {
+    const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    symbols := big.NewInt(int64(len(alphanum)))
+    states := big.NewInt(0)
+    states.Exp(symbols, big.NewInt(int64(n)), nil)
+    r, err := rand.Int(rand.Reader, states)
+    if err != nil {
+        panic(err)
+    }
+    var bytes = make([]byte, n)
+    r2 := big.NewInt(0)
+    symbol := big.NewInt(0)
+    for i := range bytes {
+        r2.DivMod(r, symbols, symbol)
+        r, r2 = r2, r
+        bytes[i] = alphanum[symbol.Int64()]
+    }
+    return string(bytes)
+}
+
