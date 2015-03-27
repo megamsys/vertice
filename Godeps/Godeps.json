@@ -25,8 +25,12 @@
 			"Rev": "b8a35001b773c267eb260a691f4e5499a3531600"
 		},
 		{
+			"ImportPath": "github.com/gogits/go-gogs-client",
+			"Rev": "92e76d616a0fb851b7c8d35b673c1ebc624479b5"
+		},
+		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "7ea4ee6d222607c11ea86e99a6f6723beeae785d"
+			"Rev": "2431923100d4989611dcc339f1ff8d280bd9c84c"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -71,11 +75,11 @@
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "150b7f24d6ad507e6026c13d85ce1f1391ac7400"
+			"Rev": "6a378341a305bfbc252e8a6638f16cf443221997"
 		},
 		{
 			"ImportPath": "github.com/tsuru/config",
-			"Rev": "b7da8c34d8c1bf9b3f641c0161abbc4342422301"
+			"Rev": "cedd0ae4817d94ddda2b1320f3a8c9154c4d0d57"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",

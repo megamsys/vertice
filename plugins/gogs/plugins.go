@@ -8,6 +8,7 @@ import (
   "strings"
   "encoding/json"
   "github.com/megamsys/libgo/amqp"
+  "github.com/tsuru/config"
 )
 
 
@@ -24,11 +25,22 @@ type GogsPlugin struct{}
 **/
 func (c *GogsPlugin) Watcher(ci *global.CI) error {
 	if(ci.SCM == "gogs") {
-		log.Info("gogs is worked")
+		log.Info("gogs process started...")
 		
-		trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
+		//trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
+		trigger_url := "http://localhost:9000/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID
 		
-		client := gogs.NewClient("http://7.7.9.24:6001/", ci.Token)
+		url, herr := config.GetString("gogs:url")
+		log.Info("-------------------------------------")
+		log.Info(url)
+		if herr != nil {
+		    log.Info("+++++++++++++++++++++++++++++++")
+		    log.Info(herr)
+			return herr
+		}		
+		
+		client := gogs.NewClient(url, ci.Token)
+		log.Info("Gogs api client created")
 		
 		var postData = make(map[string]string)
 		postData["url"] = trigger_url
@@ -42,9 +54,14 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
         }  
        
 		source := strings.Split(com.Inputs.Source, "/") 
+		log.Info(strings.Replace(source[len(source)-1], ".git", "", -1))
 		
-		s, _ := client.CreateRepoHook(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
-		
+		s, hook_err := client.CreateRepoHook(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
+		if hook_err !=nil {
+		log.Info("+++++++++++++++++++++++++++++++")
+		    log.Info(hook_err)
+		   return hook_err
+		}
 		//s, _ := client.ListRepoHooks(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1))
 		
 		log.Info("Hook created")
