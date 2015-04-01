@@ -13,25 +13,26 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-package cmd
+package megam
 
 import (
-//	"gopkg.in/check.v1"
-//	"testing"
+	
+	"github.com/megamsys/megamd/iaas"
+	"github.com/megamsys/megamd/provisioner"
+	"github.com/megamsys/megamd/global"
 )
 
-/*
-func Test(t *testing.T) {
-	check.TestingT(t)
+func Init() {
+	iaas.RegisterIaasProvider("megam", &MegamIaaS{})
 }
 
-type S struct{}
+type MegamIaaS struct{}
 
-var _ = check.Suite(&S{})
-
-
-func (s *S) TestTOSCA1(c *check.C) {
-	st2 := NewTOSCA()
-	c.Assert(st2, check.IsNil)
+func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+  return "", nil
+ 
 }
-*/
+
+func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+  return "", nil
+}
