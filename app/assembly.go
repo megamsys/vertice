@@ -1,3 +1,18 @@
+/* 
+** Copyright [2013-2015] [Megam Systems]
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+** http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
 package app
 
 import (
@@ -5,76 +20,11 @@ import (
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/megamd/provisioner"
-	"strings"
 	"encoding/json"
 	"github.com/tsuru/config"
 	"github.com/megamsys/megamd/global"
 )
 
-type Output struct {
-	Key     string   `json:"key"`
-	Value   string   `json:"value"`
-}
-
-type Assembly struct {
-   Id             string    `json:"id"` 
-   JsonClaz       string   `json:"json_claz"` 
-   Name           string   `json:"name"` 
-   Components     []string   `json:"components"` 
-   Policies       []*provisioner.Policy   `json:"policies"`
-   Inputs         string    `json:"inputs"`
-   Operations     string    `json:"operations"` 
-   Outputs        []*Output  `json:"outputs"`
-   Status         string    `json:"status"`
-   CreatedAt      string   `json:"created_at"` 
-   }
-
-
-
-func (asm *Assembly) Get(asmId string) (*provisioner.AssemblyResult, error) {
-    log.Info("Get Assembly message %v", asmId)
-    var j = -1
-    asmresult := &provisioner.AssemblyResult{}
-    log.Debug(asmresult)
-	log.Debug("--------asmresult-------")
-	conn, err := db.Conn("assembly")
-	if err != nil {	
-		return asmresult, err
-	}	
-	//appout := &Requests{}
-	ferr := conn.FetchStruct(asmId, asm)
-	if ferr != nil {	
-		return asmresult, ferr
-	}	
-	
-	var arraycomponent = make([]*provisioner.Component, len(asm.Components))
-	for i := range asm.Components {
-		 log.Debug(asm.Components[i])
-		 t := strings.TrimSpace(asm.Components[i])
-		 log.Debug(t)
-		 log.Debug(len(t))
-		if len(t) > 1  {
-			log.Debug("entry")
-		  componentID := asm.Components[i]
-		  component := provisioner.Component{Id: componentID }
-          err := component.Get(componentID)
-		  if err != nil {
-		       log.Error("Error: Riak didn't cooperate:\n%s.", err)
-		       return asmresult, err
-		  }
-	      j++
-	      log.Debug(j)
-	      log.Debug(asm.Components[i])
-		  arraycomponent[j] = &component
-		  }
-	    }
-	log.Info("else entry")
-	result := &provisioner.AssemblyResult{Id: asm.Id, Name: asm.Name,  Components: arraycomponent, CreatedAt: asm.CreatedAt}
-	defer conn.Close()
-	
-	
-	return result, nil
-}
 
 func GetPredefClouds(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
@@ -96,12 +46,13 @@ func GetPredefClouds(host string) (*global.PredefClouds, error) {
 	return pdc, nil
 }
 
-func LaunchApp(asm *provisioner.AssemblyResult, id string) error {
+func LaunchApp(asm *global.AssemblyResult, id string, act_id string) error {
     log.Debug("Launch App entry")
-	    com := &provisioner.Component{}
+        if len(asm.Components) > 0 {
+	    com := &global.Component{}
 	    mapB, _ := json.Marshal(asm.Components[0])
         json.Unmarshal([]byte(string(mapB)), com)
-        if com.Name != "" {
+        if com.Name != "" && com.Requirements.Host != "" {
             s1, _ := GetPredefClouds(com.Requirements.Host)
            //	s := strings.Split(com.ToscaType, ".")
         	if s1.Spec.TypeName == "docker" {
@@ -112,38 +63,48 @@ func LaunchApp(asm *provisioner.AssemblyResult, id string) error {
 	                return err
 	             }	
 	            log.Info("Provisioner: %v", p)
-	             _, perr := p.CreateCommand(asm, id)
+	             _, perr := p.CreateCommand(asm, id, false, act_id)
 	            if perr != nil {	
 	               return perr
 	             }	       		
         	} else {
-        		// Provisioner
-	            p, err := provisioner.GetProvisioner("chef")
-	            if err != nil {	
-	                return err
-	             }	
-	            log.Info(p)
-	
-	            str, perr := p.CreateCommand(asm, id)
-	            if perr != nil {	
-	               return perr
-	             }	
-	            asm.Command = str
-	            actions := []*action.Action{&launchedApp}
-
-	            pipeline := action.NewPipeline(actions...)
-	            aerr := pipeline.Execute(asm)
-	            if aerr != nil {
-		           return aerr
-	             } 
-        	}
+        		LauncherHelper(asm, id, false, act_id)
+        	 }
+           } else {
+           	LauncherHelper(asm, id, false, act_id)
+           }
+          } else {
+             LauncherHelper(asm, id, true, act_id)
           }
     return nil
 }
 
-func DeleteApp(asm *provisioner.AssemblyResult, id string) error {
+func LauncherHelper(asm *global.AssemblyResult, id string, instance bool, act_id string) error {
+	// Provisioner
+	p, err := provisioner.GetProvisioner("chef")
+	if err != nil {	
+	    return err
+	}	
+
+	str, perr := p.CreateCommand(asm, id, instance, act_id)
+    if perr != nil {	
+	  return perr
+	}	
+	asm.Command = str
+	actions := []*action.Action{&launchedApp}
+
+	pipeline := action.NewPipeline(actions...)
+	aerr := pipeline.Execute(asm)
+	if aerr != nil {
+         return aerr
+     } 
+	 return nil
+}
+
+
+func DeleteApp(asm *global.AssemblyResult, id string) error {
     log.Debug("Delete App entry")
-	    com := &provisioner.Component{}
+	    com := &global.Component{}
 	    mapB, _ := json.Marshal(asm.Components[0])
         json.Unmarshal([]byte(string(mapB)), com)
         if com.Name != "" {

@@ -1,10 +1,24 @@
+/* 
+** Copyright [2013-2015] [Megam Systems]
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+** http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
 package iaas
 
 import (
 	log "code.google.com/p/log4go"
 	"fmt"
 	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
 	"gopkg.in/yaml.v2"
@@ -13,15 +27,16 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"errors"
 )
 
 // Every Tsuru IaaS must implement this interface.
 type IaaS interface {
 	// Called when tsuru is creating a Machine.
-	CreateMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error)
+	CreateMachine(*global.PredefClouds, *global.AssemblyResult, string) (string, error)
 
 	// Called when tsuru is destroying a Machine.
-	DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error)
+	DeleteMachine(*global.PredefClouds, *global.AssemblyResult) (string, error)
 }
 
 const defaultYAMLPath = "conf/commands.yaml"
@@ -59,12 +74,19 @@ func RegisterIaasProvider(name string, iaas IaaS) {
 }
 
 func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
-	pdc, err := getProviderName(name)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error: Riak didn't cooperate:\n%s.", err)
-	}
+	pdc := &global.PredefClouds{}
+	err := errors.New("")
+	pdc_type := ""
+    if name == "megam" {
+      pdc_type = name
+    } else {
+       pdc, err = getProviderName(name)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Error: Riak didn't cooperate:\n%s.", err)
+		}
+    }	
 
-	provider, ok := iaasProviders[pdc.Spec.TypeName]
+	provider, ok := iaasProviders[pdc_type]
 	if !ok {
 		return nil, nil, fmt.Errorf("IaaS provider not registered")
 	}

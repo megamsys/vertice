@@ -1,9 +1,25 @@
+/* 
+** Copyright [2013-2015] [Megam Systems]
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+** http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
 package global
 
 import (
 	"github.com/megamsys/libgo/db"
 	"crypto/rand"
     "math/big"
+    "strings"
 	log "code.google.com/p/log4go"
 )
 
@@ -207,6 +223,11 @@ func (req *CI) Get(reqId string) (*CI, error) {
 
 }
 
+type Output struct {
+	Key     string   `json:"key"`
+	Value   string   `json:"value"`
+}
+
 type Policy struct {
 	Name    string   `json:"name"`
 	Ptype   string   `json:"ptype"`
@@ -214,16 +235,29 @@ type Policy struct {
 }
 
 type Assembly struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	Components []*string
-	policies   []*Policy `json:"policies"`
-	inputs     string    `json:"inputs"`
-	operations string    `json:"operations"`
+   Id             string   	 	`json:"id"` 
+   JsonClaz       string   		`json:"json_claz"` 
+   Name           string   		`json:"name"` 
+   Components     []string   	`json:"components"` 
+   Policies       []*Policy  	`json:"policies"`
+   Inputs         []*Output    	`json:"inputs"`
+   Operations     string    	`json:"operations"` 
+   Outputs        []*Output  	`json:"outputs"`
+   Status         string    	`json:"status"`
+   CreatedAt      string   		`json:"created_at"` 
+   }
+   
+type AssemblyResult struct {
+	Id         string 			`json:"id"`
+	Name       string 			`json:"name"`
+	Components []*Component		
+	policies   []*Policy 		`json:"policies"`
+	inputs     string    		`json:"inputs"`
+	operations string    		`json:"operations"`
 	Command    string
-	CreatedAt  string `json:"created_at"`
+	CreatedAt  string 			`json:"created_at"`
 }
-
+   
 /**
 **fetch the Assembly data from riak and parse the json to struct
 **/
@@ -242,6 +276,51 @@ func (req *Assembly) Get(reqId string) (*Assembly, error) {
 	
 	return req, nil
 
+}
+
+func (asm *Assembly) GetResult(asmId string) (*AssemblyResult, error) {
+    log.Info("Get Assembly message %v", asmId)
+    var j = -1
+    asmresult := &AssemblyResult{}
+    log.Debug(asmresult)
+	log.Debug("--------asmresult-------")
+	conn, err := db.Conn("assembly")
+	if err != nil {	
+		return asmresult, err
+	}	
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(asmId, asm)
+	if ferr != nil {	
+		return asmresult, ferr
+	}	
+	
+	var arraycomponent = make([]*Component, len(asm.Components))
+	for i := range asm.Components {
+		 log.Debug(asm.Components[i])
+		 t := strings.TrimSpace(asm.Components[i])
+		 log.Debug(t)
+		 log.Debug(len(t))
+		if len(t) > 1  {
+			log.Debug("entry")
+		  componentID := asm.Components[i]
+		  component := Component{Id: componentID }
+          com, err := component.Get(componentID)
+		  if err != nil {
+		       log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		       return asmresult, err
+		  }
+	      j++
+	      log.Debug(j)
+	      log.Debug(asm.Components[i])
+		  arraycomponent[j] = com
+		  }
+	    }
+	log.Info("else entry")
+	result := &AssemblyResult{Id: asm.Id, Name: asm.Name,  Components: arraycomponent, CreatedAt: asm.CreatedAt}
+	defer conn.Close()
+	
+	
+	return result, nil
 }
 
 /**

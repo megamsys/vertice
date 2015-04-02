@@ -1,3 +1,18 @@
+/* 
+** Copyright [2013-2015] [Megam Systems]
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+** http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+*/
 package profitbricks
 
 import (
@@ -7,7 +22,6 @@ import (
    "fmt"
    "github.com/tsuru/config"
    "github.com/megamsys/megamd/global"
-   "github.com/megamsys/megamd/provisioner"
    "encoding/json"
 )
 
@@ -18,7 +32,7 @@ func Init() {
 
 type ProfitBricksIaaS struct{}
 
-func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
      	return "", err_keys
@@ -45,7 +59,7 @@ return str, nil
 	
 }
 
-func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult)  (string, error) {
+func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string)  (string, error) {
 	  keys, err_keys := iaas.GetAccessKeys(pdc)
 	  if err_keys != nil {
 	  	return "", err_keys
