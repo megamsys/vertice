@@ -19,6 +19,7 @@ import (
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/app"
+	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/provisioner"
 	"encoding/json"
 )
@@ -34,12 +35,12 @@ type Message struct {
 type Docker struct {
 }
 
-func (i *Docker) CreateCommand(assembly *provisioner.AssemblyResult, id string) (string, error) {
+func (i *Docker) CreateCommand(assembly *global.AssemblyResult, id string, instance bool, act_id string) (string, error) {
 	predef := assembly.Components[0].Requirements.Host
 	
 	pdc, _ := app.GetPredefClouds(predef)
-	assem := &app.Assembly{Id: pdc.Spec.Groups}
-    dockerassembly, _ := assem.Get(pdc.Spec.Groups)	
+	assem := &global.Assembly{Id: pdc.Spec.Groups}
+    dockerassembly, _ := assem.GetResult(pdc.Spec.Groups)	
 	
     address := "Docker."+dockerassembly.Name+"."+dockerassembly.Components[0].Inputs.Domain
     com := &Message{Id: id}
@@ -51,7 +52,7 @@ func (i *Docker) CreateCommand(assembly *provisioner.AssemblyResult, id string) 
     go publisher(address, string(mapB))
 	return "", nil
 }
-func (i *Docker) DeleteCommand(assembly *provisioner.AssemblyResult, id string) (string, error) {
+func (i *Docker) DeleteCommand(assembly *global.AssemblyResult, id string) (string, error) {
 	
 	return "", nil
 }

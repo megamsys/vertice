@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
 	"encoding/json"
@@ -32,7 +31,7 @@ func Init() {
 
 type OpenNebulaIaaS struct{}
 
-func (i *OpenNebulaIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *OpenNebulaIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
@@ -64,7 +63,7 @@ func (i *OpenNebulaIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provi
 return str, nil	
 }
 
-func (i *OpenNebulaIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *OpenNebulaIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys

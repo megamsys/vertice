@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
 	"encoding/json"
@@ -32,7 +31,7 @@ func Init() {
 
 type GoGridIaaS struct{}
 
-func (i *GoGridIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *GoGridIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
@@ -59,7 +58,7 @@ func (i *GoGridIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provision
 return str, nil	
 }
 
-func (i *GoGridIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *GoGridIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys

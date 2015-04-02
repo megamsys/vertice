@@ -33,7 +33,6 @@ import (
 	"github.com/megamsys/megamd/iaas/megam"
 	"github.com/megamsys/megamd/plugins"
 	"github.com/megamsys/megamd/global"
-	"fmt"
 )
 
 type Coordinator struct {
@@ -105,26 +104,23 @@ func requestHandler(chann []byte) {
 			if len(asm.Assemblies[i]) > 1 {
 				assemblyID := asm.Assemblies[i]
 				log.Debug("Assemblies id: [%s]", assemblyID)
-				assembly := app.Assembly{Id: assemblyID}
+				assembly := global.Assembly{Id: assemblyID}
 				log.Debug(assembly)
-				res, err := assembly.Get(assemblyID)
+				res, err := assembly.GetResult(assemblyID)
 				log.Debug(res)
 				if err != nil {
 					log.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
 				}              
-				go app.LaunchApp(res, m.Id)
+				go app.LaunchApp(res, m.Id, asm.AccountsId)
 			}
 		}
 		
 		//build delete command
 	    case "delete":
 		log.Debug("============Delete entry==========")
-		  assembly := app.Assembly{Id: req.AssembliesId}
-		  asm, err := assembly.Get(req.AssembliesId)
-		   log.Debug("----------")
-		   log.Debug(asm)
-		   log.Debug("------------")
+		  assembly := global.Assembly{Id: req.AssembliesId}
+		  asm, err := assembly.GetResult(req.AssembliesId)		  
 		   if err != nil {
 		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   return
@@ -138,7 +134,7 @@ func requestHandler(chann []byte) {
 }
 
 func ciHandler(chann []byte) {
-	log.Info("Entered!-------->")
+	log.Info("CI handler Entered!-------->")
 	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
@@ -147,8 +143,6 @@ func ciHandler(chann []byte) {
 	}
 	request := global.CI{Id: m.Id}
 	cig, err := request.Get(m.Id)
-	fmt.Println("-----====================================----")
-	fmt.Println(cig)
 	
 	perr := plugins.Watcher(cig)
 	if perr != nil {

@@ -23,7 +23,6 @@ import (
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/iaas"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"io/ioutil"
 	"os"
@@ -50,7 +49,7 @@ type GoogleCredential struct {
 	Project            string `json:"project"`
 }
 
-func (i *GoogleIaaS) DeleteMachine(pdc *global.PredefClouds, assembly  *provisioner.AssemblyResult) (string, error) {
+func (i *GoogleIaaS) DeleteMachine(pdc *global.PredefClouds, assembly  *global.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
@@ -98,7 +97,7 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 }	
 
 
-func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *GoogleIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
 	cre, derr := downloadCredentials(pdc)
 	if derr != nil {
 		return "", derr
@@ -236,17 +235,13 @@ func downloadCredentials(pdc *global.PredefClouds) (string, error) {
 	if err != nil {
 		return "", err
 	}
-    log.Info("+++++++++++++keys1+++++++++++++++++")
-    log.Info(conn)
-    log.Info(keys)
-    log.Info(pdc.Access.VaultLocation)
+    
 	ferr := conn.FetchStruct(pdc.Access.VaultLocation, keys)
 	if ferr != nil {
 		log.Info(ferr)
 		return "", ferr
 	}
-    log.Info("+++++++++++++keys2+++++++++++++++++")
-    log.Info(keys)
+    
 	b, errk := json.Marshal(keys)
 	if errk != nil {
 		return "", errk

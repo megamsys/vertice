@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
 	"encoding/json"
@@ -32,7 +31,7 @@ func Init() {
 
 type HPIaaS struct{}
 
-func (i *HPIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *HPIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
 
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
@@ -59,7 +58,7 @@ func (i *HPIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.A
 return str, nil	
 }
 
-func (i *HPIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *HPIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys

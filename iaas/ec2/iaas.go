@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/tsuru/config"
 	"strings"
 )
@@ -32,7 +31,7 @@ func Init() {
 
 type EC2IaaS struct{}
 
-func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
      keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
      	return "", err_keys
@@ -59,7 +58,7 @@ func (i *EC2IaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.
 return str, nil	
 }
 
-func (i *EC2IaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *EC2IaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
 	if err_keys != nil {
 		return "", err_keys

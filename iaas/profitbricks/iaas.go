@@ -22,7 +22,6 @@ import (
    "fmt"
    "github.com/tsuru/config"
    "github.com/megamsys/megamd/global"
-   "github.com/megamsys/megamd/provisioner"
    "encoding/json"
 )
 
@@ -33,7 +32,7 @@ func Init() {
 
 type ProfitBricksIaaS struct{}
 
-func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult) (string, error) {
+func (i *ProfitBricksIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
 	keys, err_keys := iaas.GetAccessKeys(pdc)
      if err_keys != nil {
      	return "", err_keys
@@ -60,7 +59,7 @@ return str, nil
 	
 }
 
-func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *provisioner.AssemblyResult)  (string, error) {
+func (i *ProfitBricksIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string)  (string, error) {
 	  keys, err_keys := iaas.GetAccessKeys(pdc)
 	  if err_keys != nil {
 	  	return "", err_keys

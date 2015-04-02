@@ -25,22 +25,30 @@ import (
 	"os"
 	"path"
 	"bufio"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/global"
 )
 
 
-func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
+func CommandExecutor(app *global.AssemblyResult) (action.Result, error) {
     var e exec.OsExecutor
     var commandWords []string
-
+    appName := ""
     commandWords = strings.Fields(app.Command)
     log.Debug("Command Executor entry: %s\n", app)
     megam_home, ckberr := config.GetString("MEGAM_HOME")
 	if ckberr != nil {
 		return nil, ckberr
 	}
-    appName := app.Name + "." + app.Components[0].Inputs.Domain
+	if len(app.Components) > 0 {
+		appName = app.Name + "." + app.Components[0].Inputs.Domain
+	} else {
+		domainkey, err_domainkey := config.GetString("DOMAIN")
+		if err_domainkey != nil {
+			return nil, err_domainkey
+		}
+		appName = app.Name + "." + domainkey
+	}    
 	basePath := megam_home + "logs" 
 	dir := path.Join(basePath, appName)
 	
@@ -87,14 +95,14 @@ func CommandExecutor(app *provisioner.AssemblyResult) (action.Result, error) {
 var launchedApp = action.Action{
 	Name: "launchedapp",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
-		var app provisioner.AssemblyResult
+		var app global.AssemblyResult
 		switch ctx.Params[0].(type) {
-		case provisioner.AssemblyResult:
-			app = ctx.Params[0].(provisioner.AssemblyResult)
-		case *provisioner.AssemblyResult:
-			app = *ctx.Params[0].(*provisioner.AssemblyResult)
+		case global.AssemblyResult:
+			app = ctx.Params[0].(global.AssemblyResult)
+		case *global.AssemblyResult:
+			app = *ctx.Params[0].(*global.AssemblyResult)
 		default:
-			return nil, errors.New("First parameter must be App or *assemblies.AssemblyResult.")
+			return nil, errors.New("First parameter must be App or *global.AssemblyResult.")
 		}
 		return CommandExecutor(&app)
 	},
@@ -107,16 +115,16 @@ var launchedApp = action.Action{
 var updateStatus = action.Action{
 	Name: "updatestatus",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
-		var app provisioner.AssemblyResult
+		var app global.AssemblyResult
 		switch ctx.Params[0].(type) {
-		case provisioner.AssemblyResult:
-			app = ctx.Params[0].(provisioner.AssemblyResult)
-		case *provisioner.AssemblyResult:
-			app = *ctx.Params[0].(*provisioner.AssemblyResult)
+		case global.AssemblyResult:
+			app = ctx.Params[0].(global.AssemblyResult)
+		case *global.AssemblyResult:
+			app = *ctx.Params[0].(*global.AssemblyResult)
 		default:
-			return nil, errors.New("First parameter must be App or *assemblies.AssemblyResult.")
+			return nil, errors.New("First parameter must be App or *global.AssemblyResult.")
 		}
-		asm := &Assembly{}
+		asm := &global.Assembly{}
 	    conn, err := db.Conn("assembly")
 	     if err != nil {	
 		    return nil, err
@@ -127,7 +135,7 @@ var updateStatus = action.Action{
 		   return nil, ferr
 	     }	
 	
-	   update := Assembly{
+	   update := global.Assembly{
 		Id:            asm.Id, 
         JsonClaz:      asm.JsonClaz, 
         Name:          asm.Name, 

@@ -22,7 +22,6 @@ import (
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/etcd"
 	"github.com/megamsys/megamd/api/http"
-	"github.com/megamsys/megamd/app"
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/tsuru/config"
@@ -221,7 +220,7 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 func handlerEtcd(msg *etcd.Response) {
 	log.Info(" [x] Really Handle etcd response (%s)", msg.Node.Key)
 
-	asm := &app.Assembly{}
+	asm := &global.Assembly{}
 
 	res := &Status{}
 	json.Unmarshal([]byte(msg.Node.Value), &res)

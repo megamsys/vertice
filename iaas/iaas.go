@@ -19,7 +19,6 @@ import (
 	log "code.google.com/p/log4go"
 	"fmt"
 	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/megamd/provisioner"
 	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
 	"gopkg.in/yaml.v2"
@@ -34,10 +33,10 @@ import (
 // Every Tsuru IaaS must implement this interface.
 type IaaS interface {
 	// Called when tsuru is creating a Machine.
-	CreateMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error)
+	CreateMachine(*global.PredefClouds, *global.AssemblyResult, string) (string, error)
 
 	// Called when tsuru is destroying a Machine.
-	DeleteMachine(*global.PredefClouds, *provisioner.AssemblyResult) (string, error)
+	DeleteMachine(*global.PredefClouds, *global.AssemblyResult) (string, error)
 }
 
 const defaultYAMLPath = "conf/commands.yaml"
@@ -78,7 +77,7 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 	err := errors.New("")
 	pdc_type := ""
-    if name == "" {
+    if name == "megam" {
       pdc_type = name
     } else {
        pdc, err = getProviderName(name)
