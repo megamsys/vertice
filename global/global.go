@@ -238,6 +238,7 @@ type Assembly struct {
    Id             string   	 	`json:"id"` 
    JsonClaz       string   		`json:"json_claz"` 
    Name           string   		`json:"name"` 
+   ToscaType      string        `json:"tosca_type"`
    Components     []string   	`json:"components"` 
    Policies       []*Policy  	`json:"policies"`
    Inputs         []*Output    	`json:"inputs"`
@@ -250,6 +251,7 @@ type Assembly struct {
 type AssemblyResult struct {
 	Id         string 			`json:"id"`
 	Name       string 			`json:"name"`
+	ToscaType  string           `json:tosca_type"`
 	Components []*Component		
 	policies   []*Policy 		`json:"policies"`
 	inputs     string    		`json:"inputs"`
@@ -293,7 +295,6 @@ func (asm *Assembly) GetResult(asmId string) (*AssemblyResult, error) {
 	if ferr != nil {	
 		return asmresult, ferr
 	}	
-	
 	var arraycomponent = make([]*Component, len(asm.Components))
 	for i := range asm.Components {
 		 log.Debug(asm.Components[i])
@@ -316,9 +317,8 @@ func (asm *Assembly) GetResult(asmId string) (*AssemblyResult, error) {
 		  }
 	    }
 	log.Info("else entry")
-	result := &AssemblyResult{Id: asm.Id, Name: asm.Name,  Components: arraycomponent, CreatedAt: asm.CreatedAt}
+	result := &AssemblyResult{Id: asm.Id, Name: asm.Name, ToscaType: asm.ToscaType,  Components: arraycomponent, CreatedAt: asm.CreatedAt}
 	defer conn.Close()
-	
 	
 	return result, nil
 }
