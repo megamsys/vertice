@@ -20,10 +20,10 @@ import (
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
-	"strings"
 	"encoding/json"
 	"bytes"
 	"fmt"
+	"strings"
 )
 
 func Init() {
@@ -44,7 +44,7 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 		return "", err_secretkey
 	}
 	
-	str, err := buildCommand()
+	str, err := buildCommand(assembly)
 	if err != nil {
 		return "", err
 	}
@@ -54,6 +54,12 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 		return "", err_domainkey
 	}
 	
+	knifePath, kerr := config.GetString("knife:path")
+	if kerr != nil {
+		return "", kerr
+	}
+	
+	str = str + " -c " + knifePath
 	str = str + " -N " + assembly.Name + "." + domainkey
 	str = str + " -A " + accesskey
 	str = str + " -K " + secretkey
@@ -97,12 +103,6 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
     }
 	str = str + " --json-attributes " + string(b)
 	
-	//strings.Replace(str,"-c","-c "+assembly.Name+"."+assembly.Components[0].Inputs.Domain,-1)
-	knifePath, kerr := config.GetString("knife:path")
-	if kerr != nil {
-		return "", kerr
-	}
-	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
 	return str, nil
  
 }
@@ -112,15 +112,24 @@ func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.Ass
 }
 
 
-func buildCommand() (string, error) {
+func buildCommand(assembly *global.AssemblyResult) (string, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString("knife ")
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
 	buffer.WriteString("create")
-	templatekey, err_templatekey := config.GetString("TEMPLATE_NAME")
-	if err_templatekey != nil {
-		return "", err_templatekey
+	//templatekey, err_templatekey := config.GetString("TEMPLATE_NAME")
+	//if err_templatekey != nil {
+	//	return "", err_templatekey
+	//}	
+	
+	templatekey := ""
+	if len(assembly.Components) > 0 {
+		templatekey = "megam_trusty"
+	} else {
+		atype := make([]string, 3)
+		atype = strings.Split(assembly.ToscaType, ".")
+    	templatekey = "megam_" + atype[2]
 	}
 	
 	if len(templatekey) > 0 {
