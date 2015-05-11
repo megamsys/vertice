@@ -32,7 +32,7 @@ func Init() {
 
 type MegamIaaS struct{}
 
-func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult, act_id string) (string, error) {
+func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents, act_id string) (string, error) {
   log.Info("Megam provider create entry")
   accesskey, err_accesskey := config.GetString("ACCESS_KEY")
 	if err_accesskey != nil {
@@ -49,18 +49,18 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 		return "", err
 	}
 	
-	domainkey, err_domainkey := config.GetString("DOMAIN")
-	if err_domainkey != nil {
-		return "", err_domainkey
+	pair, perr := global.ParseKeyValuePair(assembly.Inputs, "domain")
+	if perr != nil {
+		log.Error("Failed to get the domain value : %s", perr)
 	}
-	
+		
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
 		return "", kerr
-	}
+	}	
 	
 	str = str + " -c " + knifePath
-	str = str + " -N " + assembly.Name + "." + domainkey
+	str = str + " -N " + assembly.Name + "." + pair.Value
 	str = str + " -A " + accesskey
 	str = str + " -K " + secretkey
 	
@@ -107,25 +107,57 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
  
 }
 
-func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyResult) (string, error) {
-  return "", nil
+func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents) (string, error) {
+  
+	keys, err_keys := iaas.GetAccessKeys(pdc)
+     if err_keys != nil {
+     	return "", err_keys
+     }
+     
+     str, err := buildDelCommand(iaas.GetPlugins("opennebula"), pdc, "delete")
+	if err != nil {
+	return "", err
+	 }
+	//str = str + " -P " + " -y "
+	pair, perr := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
+		if perr != nil {
+			log.Error("Failed to get the domain value : %s", perr)
+		}
+	str = str + " -N " + assembly.Name + "." + pair.Value
+	str = str + " -A " + keys.AccessKey
+	str = str + " -K " + keys.SecretKey
+
+   knifePath, kerr := config.GetString("knife:path")
+	if kerr != nil {
+		return "", kerr
+	}
+	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
+	str = strings.Replace(str, "<node_name>", assembly.Name + "." + pair.Value, -1 )
+   
+    if len(pdc.Access.Zone) > 0 {
+		   str = str + " --endpoint" + pdc.Access.Zone
+	} else {
+		return "", fmt.Errorf("Zone doesn't loaded")
+	}
+
+return str, nil	
 }
 
 
-func buildCommand(assembly *global.AssemblyResult) (string, error) {
+func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString("knife ")
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
-	buffer.WriteString("create")
-	//templatekey, err_templatekey := config.GetString("TEMPLATE_NAME")
-	//if err_templatekey != nil {
-	//	return "", err_templatekey
-	//}	
+	buffer.WriteString("create")	
 	
 	templatekey := ""
 	if len(assembly.Components) > 0 {
-		templatekey = "megam_trusty"
+	   megamtemplatekey, err_templatekey := config.GetString("MEGAM_TEMPLATE_NAME")
+		if err_templatekey != nil {
+			return "", err_templatekey
+		}	
+		templatekey = megamtemplatekey
 	} else {
 		atype := make([]string, 3)
 		atype = strings.Split(assembly.ToscaType, ".")
@@ -170,3 +202,21 @@ func buildCommand(assembly *global.AssemblyResult) (string, error) {
 
 	return buffer.String(), nil
 }
+
+func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command string) (string, error) {
+	var buffer bytes.Buffer
+	if len(plugin.Tool) > 0 {
+		buffer.WriteString(plugin.Tool)
+	} else {
+		return "", fmt.Errorf("Plugin tool doesn't loaded")
+	}
+	if command == "delete" {
+		if len(plugin.Command.Delete) > 0 {
+			buffer.WriteString(" " + plugin.Command.Delete)
+		} else {
+			return "", fmt.Errorf("Plugin commands doesn't loaded")
+		}
+	}
+	return buffer.String(), nil 
+	
+}	

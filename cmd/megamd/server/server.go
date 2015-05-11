@@ -59,7 +59,6 @@ func (self *Server) ListenAndServe() error {
 	var queueInput [3]string
 	queueInput[0] = "cloudstandup"
 	queueInput[1] = "events"
-	queueInput[2] = "ci"
     self.Checker()
 	// Queue input
 	for i := range queueInput {
@@ -209,7 +208,7 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 			if msg != nil {
 				handlerEtcd(msg)
 			} else {
-			//	log.Info(" [x] Nil - Handing etcd master response (%v)", msg)
+			//	log.Info(" [x] Nil - Handling etcd master response (%v)", msg)
 				return
 			}
 		}
@@ -251,7 +250,11 @@ func handlerEtcd(msg *etcd.Response) {
 		mapD := map[string]string{"Id": res.Id, "Action": asm.Policies[i].Name}
 		mapB, _ := json.Marshal(mapD)
 		log.Info(string(mapB))
-		asmname := asm.Name+"."+comp.Inputs.Domain
+		pair, perr := global.ParseKeyValuePair(asm.Inputs, "domain")
+		if perr != nil {
+			log.Error("Failed to get the domain value : %s", perr)
+		}
+		asmname := asm.Name+"."+pair.Value
 		//asmname := asm.Name
 		publisher(asmname, string(mapB))
 	}
@@ -261,6 +264,7 @@ func publisher(key string, json string) {
 	factor, aerr := amqp.Factory()
 	if aerr != nil {
 		log.Error("Failed to get the queue instance: %s", aerr)
+		return
 	}
 	//s := strings.Split(key, "/")
 	//pubsub, perr := factor.Get(s[len(s)-1])

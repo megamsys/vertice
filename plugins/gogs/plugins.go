@@ -21,11 +21,13 @@ import (
   log "code.google.com/p/log4go"
   gogs "github.com/gogits/go-gogs-client"
   "strings"
-  "encoding/json"
-  "github.com/megamsys/libgo/amqp"
   "github.com/tsuru/config"
 )
 
+const ( 
+   GOGS = "gogs"
+   ENABLE = "true"   
+)
 
 func Init() {
 	plugins.RegisterPlugins("gogs", &GogsPlugin{})
@@ -38,23 +40,46 @@ type GogsPlugin struct{}
 **first get the ci value and parse it and to create the hook for that users repository    
 **get trigger url from config file 
 **/
-func (c *GogsPlugin) Watcher(ci *global.CI) error {
-	if(ci.SCM == "gogs") {
+func (c *GogsPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
+     switch ci.OperationType {
+		case "CI":
+			cierr := cioperation(asm, ci, com)
+			if cierr != nil {
+					return cierr
+			}
+			break
+     }     		
+	return nil
+}
+
+func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
+	 pair_scm, perrscm := global.ParseKeyValuePair(ci.OperationRequirements, "ci-scm")
+		if perrscm != nil {
+			log.Error("Failed to get the domain value : %s", perrscm)
+		}
+		
+	pair_enable, perrenable := global.ParseKeyValuePair(ci.OperationRequirements, "ci-enable")
+		if perrenable != nil {
+			log.Error("Failed to get the domain value : %s", perrenable)
+		}	
+		
+	if(pair_scm.Value == GOGS && pair_enable.Value == ENABLE) {
 		log.Info("gogs process started...")
 		
-		//trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
-		trigger_url := "http://localhost:9000/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID
+		//trigger_url := "https://api.megam.co/v2/assembly/build/"+asm.Id + "/" + com.Id
+		trigger_url := "http://localhost:9000/v2/assembly/build/"+asm.Id + "/" + com.Id
 		
-		url, herr := config.GetString("gogs:url")
-		log.Info("-------------------------------------")
-		log.Info(url)
-		if herr != nil {
-		    log.Info("+++++++++++++++++++++++++++++++")
-		    log.Info(herr)
+		url, herr := config.GetString("gogs:url")		
+		if herr != nil {		  
 			return herr
 		}		
 		
-		client := gogs.NewClient(url, ci.Token)
+		pair_token, perrtoken := global.ParseKeyValuePair(ci.OperationRequirements, "ci-token")
+		if perrtoken != nil {
+			log.Error("Failed to get the domain value : %s", perrtoken)
+		}
+		
+		client := gogs.NewClient(url, pair_token.Value)
 		log.Info("Gogs api client created")
 		
 		var postData = make(map[string]string)
@@ -62,26 +87,28 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
 		postData["content_type"] = "json"
 		
 		postHook :=  gogs.CreateHookOption{Type: "gogs", Config: postData, Active: true }
-		component := global.Component{Id: ci.ComponentID }		
-        com, comerr := component.Get(ci.ComponentID)        
-        if comerr != nil{       
-          return comerr
-        }  
-       
-		source := strings.Split(com.Inputs.Source, "/") 
+		
+		pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
+		if perrsource != nil {
+			log.Error("Failed to get the domain value : %s", perrsource)
+		}
+		       
+		source := strings.Split(pair_source.Value, "/") 
 		log.Info(strings.Replace(source[len(source)-1], ".git", "", -1))
 		
-		s, hook_err := client.CreateRepoHook(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
-		if hook_err !=nil {
-		log.Info("+++++++++++++++++++++++++++++++")
-		    log.Info(hook_err)
+		pair_owner, perrowner := global.ParseKeyValuePair(ci.OperationRequirements, "ci-owner")
+		if perrowner != nil {
+			log.Error("Failed to get the domain value : %s", perrowner)
+		}
+		
+		s, hook_err := client.CreateRepoHook(pair_owner.Value, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
+		if hook_err !=nil {		
 		   return hook_err
 		}
 		//s, _ := client.ListRepoHooks(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1))
 		
 		log.Info("Hook created")
-		log.Info(s)
-		
+		log.Info(s)		
 	} else {
 		log.Info("gogs is skipped")
 	}
@@ -94,7 +121,7 @@ func (c *GogsPlugin) Watcher(ci *global.CI) error {
 ** now this function performs build the pushed application from gogs to remote 
 **/
 func (c *GogsPlugin) Notify(m *global.EventMessage) error {
-	request_asm := global.Assembly{Id: m.AssemblyId}
+	/*request_asm := global.Assembly{Id: m.AssemblyId}
 	asm, asmerr := request_asm.Get(m.AssemblyId)
 	if(asmerr != nil) {
 		return asmerr
@@ -122,12 +149,12 @@ func (c *GogsPlugin) Notify(m *global.EventMessage) error {
 		publisher(asmname, string(mapB))
 	} else {
 		log.Info("Gogs is skipped")
-	}
+	}*/
 	return nil
 }
 
 func publisher(key string, json string) {
-	factor, aerr := amqp.Factory()
+	/*factor, aerr := amqp.Factory()
 	if aerr != nil {
 		log.Error("Failed to get the queue instance: %s", aerr)
 	}
@@ -141,6 +168,6 @@ func publisher(key string, json string) {
 	serr := pubsub.Pub([]byte(json))
 	if serr != nil {
 		log.Error("Failed to publish the queue instance: %s", serr)
-	}
+	}*/
 }
 

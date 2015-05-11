@@ -19,14 +19,7 @@ import (
 	log "code.google.com/p/log4go"
 	"encoding/json"
 	"github.com/megamsys/megamd/app"
-	"github.com/megamsys/megamd/iaas/ec2"
-	"github.com/megamsys/megamd/iaas/gogrid"
-	"github.com/megamsys/megamd/iaas/google"
-	"github.com/megamsys/megamd/iaas/hp"
-	"github.com/megamsys/megamd/iaas/opennebula"
-	"github.com/megamsys/megamd/iaas/profitbricks"
 	"github.com/megamsys/megamd/provisioner/chef"
-	"github.com/megamsys/megamd/provisioner/docker"
 	"github.com/megamsys/megamd/plugins/cmp"
 	"github.com/megamsys/megamd/plugins/github"
 	"github.com/megamsys/megamd/plugins/gogs"
@@ -41,14 +34,7 @@ type Coordinator struct {
 }
 
 func init() {
-	ec2.Init()
-	google.Init()
-	hp.Init()
-	gogrid.Init()
-	opennebula.Init()
-	profitbricks.Init()
 	chef.Init()
-	docker.Init()
 	cmp.Init()
 	github.Init()
 	gogs.Init()
@@ -64,10 +50,7 @@ func NewCoordinator(chann []byte, queue string) {
 		break
 	case "events":
 		eventsHandler(chann)
-		break
-	case "ci":
-	    ciHandler(chann)
-	    break	
+		break	
 	}
 }
 
@@ -79,7 +62,7 @@ func requestHandler(chann []byte) {
 		log.Error("Error: Message parsing error:\n%s.", parse_err)
 		return
 	}
-	request := app.Request{Id: m.Id}
+	request := global.Request{Id: m.Id}
 	req, err := request.Get(m.Id)
 	log.Debug(req)
 	log.Debug("---------")
@@ -90,7 +73,7 @@ func requestHandler(chann []byte) {
 	switch req.ReqType {
 	case "create":
 	log.Debug("============Create entry======")
-		assemblies := app.Assemblies{Id: req.AssembliesId}
+		assemblies := global.Assemblies{Id: req.AssembliesId}
 		asm, err := assemblies.Get(req.AssembliesId)
 		log.Debug("----------")
 		log.Debug(asm)
@@ -106,13 +89,14 @@ func requestHandler(chann []byte) {
 				log.Debug("Assemblies id: [%s]", assemblyID)
 				assembly := global.Assembly{Id: assemblyID}
 				log.Debug(assembly)
-				res, err := assembly.GetResult(assemblyID)
+				res, err := assembly.GetAssemblyWithComponents(assemblyID)
 				log.Debug(res)
 				if err != nil {
 					log.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
 				}              
 				go app.LaunchApp(res, m.Id, asm.AccountsId)
+				go pluginAdministrator(res, asm.AccountsId)
 			}
 		}
 		
@@ -120,40 +104,25 @@ func requestHandler(chann []byte) {
 	    case "delete":
 		log.Debug("============Delete entry==========")
 		  assembly := global.Assembly{Id: req.AssembliesId}
-		  asm, err := assembly.GetResult(req.AssembliesId)		  
+		  asm, err := assembly.GetAssemblyWithComponents(req.AssembliesId)		  
 		   if err != nil {
 		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   return
 		   }
 		   res := asm
-		   	   	 go app.DeleteApp(res, m.Id)
-		   	   
-		   	   
+		   	   	 go app.DeleteApp(res, m.Id)  
 		   
 	}
 }
 
-func ciHandler(chann []byte) {
-	log.Info("CI handler Entered!-------->")
-	m := &global.Message{}
-	parse_err := json.Unmarshal(chann, &m)
-	if parse_err != nil {
-		log.Error("Error: Message parsing error:\n%s.", parse_err)
-		return
-	}
-	request := global.CI{Id: m.Id}
-	cig, err := request.Get(m.Id)
-	
-	perr := plugins.Watcher(cig)
+func pluginAdministrator(asm *global.AssemblyWithComponents, act_id string) {
+	log.Info("Plugin Administrator Entered!-------->")
+		
+	perr := plugins.Watcher(asm)
 	if perr != nil {
 		log.Error("Error: Plugin Watcher :\n%s.", perr)
 		return
-	}
-	
-	if err != nil {
-		log.Error("Error: Riak didn't cooperate:\n%s.", err)
-		return
-	}
+	}	
 }
 
 func eventsHandler(chann []byte) {

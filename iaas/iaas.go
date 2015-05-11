@@ -33,10 +33,10 @@ import (
 // Every Tsuru IaaS must implement this interface.
 type IaaS interface {
 	// Called when tsuru is creating a Machine.
-	CreateMachine(*global.PredefClouds, *global.AssemblyResult, string) (string, error)
+	CreateMachine(*global.PredefClouds, *global.AssemblyWithComponents, string) (string, error)
 
 	// Called when tsuru is destroying a Machine.
-	DeleteMachine(*global.PredefClouds, *global.AssemblyResult) (string, error)
+	DeleteMachine(*global.PredefClouds, *global.AssemblyWithComponents) (string, error)
 }
 
 const defaultYAMLPath = "conf/commands.yaml"

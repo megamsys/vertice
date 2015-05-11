@@ -19,13 +19,11 @@ import (
   "github.com/megamsys/megamd/plugins"
   "github.com/megamsys/megamd/global"
   log "code.google.com/p/log4go"
-  //"fmt"
-  //git "github.com/CodeHub-io/Go-GitHub-API"
+ // git "github.com/CodeHub-io/Go-GitHub-API"
   git "github.com/google/go-github/github"  
   "code.google.com/p/goauth2/oauth"
   "encoding/json"
   "strings"
-  "github.com/megamsys/libgo/amqp"
 )
 
 /**
@@ -38,22 +36,53 @@ func Init() {
 
 type GithubPlugin struct{}
 
+const ( 
+   GITHUB = "github"
+   ENABLE = "true"   
+)
+
 /**
 **watcher function executes the github repository webhook creation
 **first get the ci value and parse it and to create the hook for that users repository    
 **get trigger url from config file 
 **/
-func (c *GithubPlugin) Watcher(ci *global.CI) error {
-	if(ci.SCM == "github") {
+func (c *GithubPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
+     switch ci.OperationType {
+		case "CI":
+			cierr := cioperation(asm, ci, com)
+			if cierr != nil {
+					return cierr
+			}
+			break
+     }     		
+	return nil
+}
+
+func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
+    pair_scm, perrscm := global.ParseKeyValuePair(ci.OperationRequirements, "ci-scm")
+		if perrscm != nil {
+			log.Error("Failed to get the domain value : %s", perrscm)
+		}
+		
+	pair_enable, perrenable := global.ParseKeyValuePair(ci.OperationRequirements, "ci-enable")
+		if perrenable != nil {
+			log.Error("Failed to get the domain value : %s", perrenable)
+		}	
+		
+	if(pair_scm.Value == GITHUB && pair_enable.Value == ENABLE) {
 		log.Info("Github is working")
 		
+		pair_token, perrtoken := global.ParseKeyValuePair(ci.OperationRequirements, "ci-token")
+		if perrtoken != nil {
+			log.Error("Failed to get the domain value : %s", perrtoken)
+		}
 		t := &oauth.Transport{
-			Token: &oauth.Token{AccessToken: ci.Token},
+			Token: &oauth.Token{AccessToken: pair_token.Value},
 		}
 		
 		client := git.NewClient(t.Client())
 		
-		trigger_url := "https://api.megam.co/v2/assembly/build/"+ci.AssemblyID + "/" + ci.ComponentID 
+		trigger_url := "https://api.megam.co/v2/assembly/build/"+asm.Id + "/" + com.Id
 		
 		byt12 := []byte(`{"url": "","content_type": "json"}`)
 		var postData map[string]interface{}
@@ -67,24 +96,27 @@ func (c *GithubPlugin) Watcher(ci *global.CI) error {
     	if perr := json.Unmarshal(byt1, &postHook); perr != nil {
         	log.Info(perr)
     	}		
-    	//postHook.Name = postHook.String(global.RandString(6))
-    	component := global.Component{Id: ci.ComponentID }
-        com, comerr := component.Get(ci.ComponentID)
-        if comerr != nil{
-          return comerr
-        }  
-        
-        source := strings.Split(com.Inputs.Source, "/")    			
-		_, _, err := client.Repositories.CreateHook(ci.Owner, strings.TrimRight(source[len(source)-1], ".git"), &postHook)
+    	      
+    	pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
+		if perrsource != nil {
+			log.Error("Failed to get the domain value : %s", perrsource)
+		}
+		
+		pair_owner, perrowner := global.ParseKeyValuePair(ci.OperationRequirements, "ci-owner")
+		if perrowner != nil {
+			log.Error("Failed to get the domain value : %s", perrowner)
+		}
+		        
+        source := strings.Split(pair_source.Value, "/")    			
+		_, _, err := client.Repositories.CreateHook(pair_owner.Value, strings.TrimRight(source[len(source)-1], ".git"), &postHook)
 		
     	if err != nil {
         	return err
-    	}
+    	} 
     	
 	} else {
 		log.Info("Github is skipped")
 	}
-	
 	return nil
 }
 
@@ -93,7 +125,7 @@ func (c *GithubPlugin) Watcher(ci *global.CI) error {
 ** now this function performs build the pushed application from github to remote 
 **/
 func (c *GithubPlugin) Notify(m *global.EventMessage) error {
-   request_asm := global.Assembly{Id: m.AssemblyId}
+  /* request_asm := global.Assembly{Id: m.AssemblyId}
 	asm, asmerr := request_asm.Get(m.AssemblyId)
 	if(asmerr != nil) {
 		return asmerr
@@ -121,12 +153,12 @@ func (c *GithubPlugin) Notify(m *global.EventMessage) error {
 		publisher(asmname, string(mapB))
 	} else {
 		log.Info("Github is skipped")
-	}
+	}*/
 	return nil
 }
 
 func publisher(key string, json string) {
-	factor, aerr := amqp.Factory()
+	/*factor, aerr := amqp.Factory()
 	if aerr != nil {
 		log.Error("Failed to get the queue instance: %s", aerr)
 	}
@@ -140,5 +172,5 @@ func publisher(key string, json string) {
 	serr := pubsub.Pub([]byte(json))
 	if serr != nil {
 		log.Error("Failed to publish the queue instance: %s", serr)
-	}
+	}*/
 }
