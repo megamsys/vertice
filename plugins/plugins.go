@@ -25,7 +25,7 @@ import (
 // Every Plugins must implement this interface.
 type Plugins interface {
 	// Called when watching a Machine.
-	Watcher(*global.CI) error
+	Watcher(*global.AssemblyWithComponents, *global.Operations, *global.Component) error
 
 	// Called when notifing a Machine.
 	Notify(*global.EventMessage) error
@@ -43,28 +43,30 @@ func RegisterPlugins(name string, plugin Plugins) {
 }
 
 func GetPlugin(name string) (Plugins, error) {
-
 	plugin, ok := plugs[name]
 	if !ok {
 		return nil, fmt.Errorf("plugins not registered")
 	}
 	return plugin, nil
-	//return nil
 }
 
 
-func Watcher(ci *global.CI) error {
-  for i := range plug_names {
-  	p, err := GetPlugin(plug_names[i])
-	   if err != nil {	
-	      return err
-	   }	
-	//perr :=  p.Watcher(ci)
-	//   if perr != nil {	
-	///      return perr
-	//   }	
-	go p.Watcher(ci)
-  }	
+func Watcher(asm *global.AssemblyWithComponents) error {
+  if len(asm.Components) > 0 {
+     	for i := range asm.Components {
+     	  if asm.Components[i] != nil {
+     		for j := range asm.Components[i].Operations {     			
+				for k := range plug_names {
+  					p, err := GetPlugin(plug_names[k])
+	   				if err != nil {	
+	      					return err
+	  				 }		
+					go p.Watcher(asm, asm.Components[i].Operations[j], asm.Components[i])  				
+     		    } 
+     		  }      		
+     	  }
+     }	  
+  }   
   return nil
 }
 

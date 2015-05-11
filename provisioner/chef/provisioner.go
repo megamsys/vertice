@@ -29,18 +29,15 @@ func Init() {
 type Chef struct {
 }
 
-func (i *Chef) CreateCommand(assembly *global.AssemblyResult, id string, instance bool, act_id string) (string, error) {
+func (i *Chef) CreateCommand(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	// Iaas Provider
 	provider := ""
 	log.Info("Chef provisioner entry")
 	if instance {
 		provider = "megam"
 	} else {
-		if assembly.Components[0].Requirements.Host == "" {
-			provider = "megam"
-		} else {
-			provider = assembly.Components[0].Requirements.Host
-		}
+	   // this is hack for only 0.8 release and future we implements hybrid cloud
+		provider = "megam"
 	}
 	
 	log.Info(provider)
@@ -48,21 +45,18 @@ func (i *Chef) CreateCommand(assembly *global.AssemblyResult, id string, instanc
 	if err1 != nil {
 		log.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
-	}	
-	log.Info("Iaas :")
-	log.Info(iaas)
+	}		
 	str, iaaserr := iaas.CreateMachine(pdc, assembly, act_id)
 	if iaaserr != nil {
 		log.Error("Error: Iaas Provider doesn't create machine:\n%s.", iaaserr)
 		return "", iaaserr
 	}
-	log.Info(str)
 	return str, nil
 }
 
-func (i *Chef) DeleteCommand(assembly *global.AssemblyResult, id string) (string, error) {
+func (i *Chef) DeleteCommand(assembly *global.AssemblyWithComponents, id string) (string, error) {
 	// Iaas Provider
-	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
+/*	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
 	if err1 != nil {
 		log.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
@@ -73,6 +67,6 @@ func (i *Chef) DeleteCommand(assembly *global.AssemblyResult, id string) (string
 		log.Error("Error: Iaas Provider doesn't delete machine:\n%s.", iaaserr)
 		return "", iaaserr
 	}
-	log.Info(str)
-	return str, nil
+	log.Info(str)*/
+	return "", nil
 }

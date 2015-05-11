@@ -30,7 +30,7 @@ import (
 )
 
 
-func CommandExecutor(app *global.AssemblyResult) (action.Result, error) {
+func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) {
     var e exec.OsExecutor
     var commandWords []string
     appName := ""
@@ -40,8 +40,12 @@ func CommandExecutor(app *global.AssemblyResult) (action.Result, error) {
 	if ckberr != nil {
 		return nil, ckberr
 	}
+	pair, perr := global.ParseKeyValuePair(app.Inputs, "domain")
+		if perr != nil {
+			log.Error("Failed to get the domain value : %s", perr)
+		}
 	if len(app.Components) > 0 {
-		appName = app.Name + "." + app.Components[0].Inputs.Domain
+		appName = app.Name + "." + pair.Value
 	} else {
 		domainkey, err_domainkey := config.GetString("DOMAIN")
 		if err_domainkey != nil {
@@ -95,14 +99,14 @@ func CommandExecutor(app *global.AssemblyResult) (action.Result, error) {
 var launchedApp = action.Action{
 	Name: "launchedapp",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
-		var app global.AssemblyResult
+		var app global.AssemblyWithComponents
 		switch ctx.Params[0].(type) {
-		case global.AssemblyResult:
-			app = ctx.Params[0].(global.AssemblyResult)
-		case *global.AssemblyResult:
-			app = *ctx.Params[0].(*global.AssemblyResult)
+		case global.AssemblyWithComponents:
+			app = ctx.Params[0].(global.AssemblyWithComponents)
+		case *global.AssemblyWithComponents:
+			app = *ctx.Params[0].(*global.AssemblyWithComponents)
 		default:
-			return nil, errors.New("First parameter must be App or *global.AssemblyResult.")
+			return nil, errors.New("First parameter must be App or *global.AssemblyWithComponents.")
 		}
 		return CommandExecutor(&app)
 	},
@@ -115,14 +119,14 @@ var launchedApp = action.Action{
 var updateStatus = action.Action{
 	Name: "updatestatus",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
-		var app global.AssemblyResult
+		var app global.AssemblyWithComponents
 		switch ctx.Params[0].(type) {
-		case global.AssemblyResult:
-			app = ctx.Params[0].(global.AssemblyResult)
-		case *global.AssemblyResult:
-			app = *ctx.Params[0].(*global.AssemblyResult)
+		case global.AssemblyWithComponents:
+			app = ctx.Params[0].(global.AssemblyWithComponents)
+		case *global.AssemblyWithComponents:
+			app = *ctx.Params[0].(*global.AssemblyWithComponents)
 		default:
-			return nil, errors.New("First parameter must be App or *global.AssemblyResult.")
+			return nil, errors.New("First parameter must be App or *global.AssemblyWithComponents.")
 		}
 		asm := &global.Assembly{}
 	    conn, err := db.Conn("assembly")
@@ -139,7 +143,8 @@ var updateStatus = action.Action{
 		Id:            asm.Id, 
         JsonClaz:      asm.JsonClaz, 
         Name:          asm.Name, 
-        Components:    asm.Components ,
+        Components:    asm.Components,
+        Requirements:  asm.Requirements,
         Policies:      asm.Policies,
         Inputs:        asm.Inputs,
         Operations:    asm.Operations,

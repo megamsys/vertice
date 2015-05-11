@@ -27,13 +27,13 @@ import (
 // tsuru apps.
 type Provisioner interface {
 	// Provision is called when tsuru is creating the app.
-	//Provision(*global.AssemblyResult) error
+	//Provision(*global.AssemblyWithComponents) error
 
 	// ExecuteCommand runs a command in all units of the app.
-	 CreateCommand(*global.AssemblyResult, string, bool, string) (string, error)
-     DeleteCommand(*global.AssemblyResult, string) (string, error)
+	 CreateCommand(*global.AssemblyWithComponents, string, bool, string) (string, error)
+     DeleteCommand(*global.AssemblyWithComponents, string) (string, error)
 	// ExecuteCommandOnce runs a command in one unit of the app.
-	//	ExecuteCommandOnce(stdout, stderr io.Writer, app global.AssemblyResult, cmd string, args ...string) error
+	//	ExecuteCommandOnce(stdout, stderr io.Writer, app global.AssemblyWithComponents, cmd string, args ...string) error
 
 }
 
