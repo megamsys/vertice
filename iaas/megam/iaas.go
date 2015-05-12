@@ -16,7 +16,6 @@
 package megam
 
 import (
-	log "code.google.com/p/log4go"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
@@ -33,7 +32,7 @@ func Init() {
 type MegamIaaS struct{}
 
 func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents, act_id string) (string, error) {
-  log.Info("Megam provider create entry")
+  global.LOG.Info("Megam provider create entry")
   accesskey, err_accesskey := config.GetString("ACCESS_KEY")
 	if err_accesskey != nil {
 		return "", err_accesskey
@@ -51,7 +50,7 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 	
 	pair, perr := global.ParseKeyValuePair(assembly.Inputs, "domain")
 	if perr != nil {
-		log.Error("Failed to get the domain value : %s", perr)
+		global.LOG.Error("Failed to get the domain value : %s", perr)
 	}
 		
 	knifePath, kerr := config.GetString("knife:path")
@@ -121,7 +120,7 @@ func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.Ass
 	//str = str + " -P " + " -y "
 	pair, perr := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 		if perr != nil {
-			log.Error("Failed to get the domain value : %s", perr)
+			global.LOG.Error("Failed to get the domain value : %s", perr)
 		}
 	str = str + " -N " + assembly.Name + "." + pair.Value
 	str = str + " -A " + keys.AccessKey

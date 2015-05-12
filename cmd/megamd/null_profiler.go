@@ -22,8 +22,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	log "code.google.com/p/log4go"
+	"github.com/megamsys/megamd/global"
 )
 
 func startProfiler(stoppable Stoppable) error {
@@ -32,11 +31,12 @@ func startProfiler(stoppable Stoppable) error {
 }
 
 func waitForSignals(stoppable Stoppable) {
+    global.LogFormatter()
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGTERM, syscall.SIGINT)
 	for {
 		sig := <-ch
-		log.Info("Received signal: %s", sig.String())
+		global.LOG.Info("Received signal: %s", sig.String())
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			stoppable.Stop()

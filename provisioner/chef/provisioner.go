@@ -16,7 +16,6 @@
 package chef
 
 import (
-	log "code.google.com/p/log4go"
 	"github.com/megamsys/megamd/iaas"
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/provisioner"
@@ -32,7 +31,7 @@ type Chef struct {
 func (i *Chef) CreateCommand(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	// Iaas Provider
 	provider := ""
-	log.Info("Chef provisioner entry")
+	global.LOG.Info("Chef provisioner entry")
 	if instance {
 		provider = "megam"
 	} else {
@@ -40,15 +39,15 @@ func (i *Chef) CreateCommand(assembly *global.AssemblyWithComponents, id string,
 		provider = "megam"
 	}
 	
-	log.Info(provider)
+	global.LOG.Info(provider)
 	iaas, pdc, err1 := iaas.GetIaasProvider(provider)
 	if err1 != nil {
-		log.Error("Error: Iaas Provider :\n%s.", err1)
+		global.LOG.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
 	}		
 	str, iaaserr := iaas.CreateMachine(pdc, assembly, act_id)
 	if iaaserr != nil {
-		log.Error("Error: Iaas Provider doesn't create machine:\n%s.", iaaserr)
+		global.LOG.Error("Error: Iaas Provider doesn't create machine:\n%s.", iaaserr)
 		return "", iaaserr
 	}
 	return str, nil
@@ -58,15 +57,15 @@ func (i *Chef) DeleteCommand(assembly *global.AssemblyWithComponents, id string)
 	// Iaas Provider
 /*	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
 	if err1 != nil {
-		log.Error("Error: Iaas Provider :\n%s.", err1)
+		global.LOG.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
 	}
-	log.Info(iaas)
+	global.LOG.Info(iaas)
 	str, iaaserr := iaas.DeleteMachine(pdc, assembly)
 	if iaaserr != nil {
-		log.Error("Error: Iaas Provider doesn't delete machine:\n%s.", iaaserr)
+		global.LOG.Error("Error: Iaas Provider doesn't delete machine:\n%s.", iaaserr)
 		return "", iaaserr
 	}
-	log.Info(str)*/
+	global.LOG.Info(str)*/
 	return "", nil
 }

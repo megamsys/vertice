@@ -48,17 +48,17 @@ func waitForSignals(stoppable Stoppable, filename string, stopped <-chan bool) {
 outer:
 	for {
 		sig := <-ch
-		log.Info("Received signal: %s", sig.String())
+		global.LOG.Info("Received signal: %s", sig.String())
 		switch sig {
 		case syscall.SIGINT, syscall.SIGTERM:
 			runtime.SetCPUProfileRate(0)
 			f, err := os.OpenFile(fmt.Sprintf("%s.mem", filename), os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0600)
 			if err != nil {
-				log.Error("Cannot open memory profile: %s", err)
+				global.LOG.Error("Cannot open memory profile: %s", err)
 				break outer
 			}
 			if err := pprof.WriteHeapProfile(f); err != nil {
-				log.Error("Cannot write memory profile: %s", err)
+				global.LOG.Error("Cannot write memory profile: %s", err)
 			}
 			f.Close()
 			stopCHeapProfiler()
@@ -76,11 +76,11 @@ outer:
 
 func startProfiler(stoppable Stoppable) error {
 	if profileFilename == nil || *profileFilename == "" {
-		log.Info("Not starting profiling since the profile prefix is not set")
+		global.LOG.Info("Not starting profiling since the profile prefix is not set")
 		return nil
 	}
 
-	log.Info("Starting profiling with prefix %s", *profileFilename)
+	global.LOG.Info("Starting profiling with prefix %s", *profileFilename)
 
 	startCHeapProfiler(*profileFilename)
 	// startCCpuProfiler(*profileFilename)
@@ -113,24 +113,24 @@ func startProfiler(stoppable Stoppable) error {
 }
 
 func startCCpuProfiler(prefix string) {
-	log.Info("Starting native cpu profiling")
+	global.LOG.Info("Starting native cpu profiling")
 	_prefix := C.CString(fmt.Sprintf("%s.native.cpu", prefix))
 	C.ProfilerStart(_prefix)
 }
 
 func stopCCpuProfiler() {
-	log.Info("Stopping native cpu profiling")
+	global.LOG.Info("Stopping native cpu profiling")
 	C.ProfilerStop()
 }
 
 func startCHeapProfiler(prefix string) {
-	log.Info("Starting tcmalloc profiling")
+	global.LOG.Info("Starting tcmalloc profiling")
 	_prefix := C.CString(prefix)
 	C.HeapProfilerStart(_prefix)
 }
 
 func stopCHeapProfiler() {
-	log.Info("Stopping tcmalloc profiling")
+	global.LOG.Info("Stopping tcmalloc profiling")
 	C.HeapProfilerDump(nil)
 	C.HeapProfilerStop()
 }

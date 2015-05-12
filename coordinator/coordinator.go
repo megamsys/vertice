@@ -16,7 +16,6 @@
 package coordinator
 
 import (
-	log "code.google.com/p/log4go"
 	"encoding/json"
 	"github.com/megamsys/megamd/app"
 	"github.com/megamsys/megamd/provisioner/chef"
@@ -42,7 +41,7 @@ func init() {
 }
 
 func NewCoordinator(chann []byte, queue string) {
-	log.Info("Handling coordinator message %v", string(chann))
+	global.LOG.Info("Handling coordinator message %v", string(chann))
 
 	switch queue {
 	case "cloudstandup":
@@ -55,44 +54,38 @@ func NewCoordinator(chann []byte, queue string) {
 }
 
 func requestHandler(chann []byte) {
-	log.Info("Entered!-------->")
+	global.LOG.Info("Entered!-------->")
 	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
-		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		global.LOG.Error("Error: Message parsing error:\n%s.", parse_err)
 		return
 	}
 	request := global.Request{Id: m.Id}
 	req, err := request.Get(m.Id)
-	log.Debug(req)
-	log.Debug("---------")
+	global.LOG.Debug("Request: %s ", req)
 	if err != nil {
-		log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		global.LOG.Error("Error: Riak didn't cooperate:\n%s.", err)
 		return
 	}
 	switch req.ReqType {
 	case "create":
-	log.Debug("============Create entry======")
+	global.LOG.Debug("============Create entry======")
 		assemblies := global.Assemblies{Id: req.AssembliesId}
 		asm, err := assemblies.Get(req.AssembliesId)
-		log.Debug("----------")
-		log.Debug(asm)
-		log.Debug("------------")
 		if err != nil {
-			log.Error("Error: Riak didn't cooperate:\n%s.", err)
+			global.LOG.Error("Error: Riak didn't cooperate:\n%s.", err)
 			return
 		}
 		for i := range asm.Assemblies {
-			log.Debug("Assemblies: [%s]", asm.Assemblies[i])
+			global.LOG.Debug("Assemblies: [%s]", asm.Assemblies[i])
 			if len(asm.Assemblies[i]) > 1 {
 				assemblyID := asm.Assemblies[i]
-				log.Debug("Assemblies id: [%s]", assemblyID)
+				global.LOG.Debug("Assemblies id: [%s]", assemblyID)
 				assembly := global.Assembly{Id: assemblyID}
-				log.Debug(assembly)
 				res, err := assembly.GetAssemblyWithComponents(assemblyID)
-				log.Debug(res)
 				if err != nil {
-					log.Error("Error: Riak didn't cooperate:\n%s.", err)
+					global.LOG.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
 				}              
 				go app.LaunchApp(res, m.Id, asm.AccountsId)
@@ -102,11 +95,11 @@ func requestHandler(chann []byte) {
 		
 		//build delete command
 	    case "delete":
-		log.Debug("============Delete entry==========")
+		global.LOG.Debug("============Delete entry==========")
 		  assembly := global.Assembly{Id: req.AssembliesId}
 		  asm, err := assembly.GetAssemblyWithComponents(req.AssembliesId)		  
 		   if err != nil {
-		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		   	   global.LOG.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   return
 		   }
 		   res := asm
@@ -116,28 +109,28 @@ func requestHandler(chann []byte) {
 }
 
 func pluginAdministrator(asm *global.AssemblyWithComponents, act_id string) {
-	log.Info("Plugin Administrator Entered!-------->")
+	global.LOG.Info("Plugin Administrator Entered!-------->")
 		
 	perr := plugins.Watcher(asm)
 	if perr != nil {
-		log.Error("Error: Plugin Watcher :\n%s.", perr)
+		global.LOG.Error("Error: Plugin Watcher :\n%s.", perr)
 		return
 	}	
 }
 
 func eventsHandler(chann []byte) {
-   log.Info("Event was entered")
+   global.LOG.Info("Event was entered")
    m := &global.EventMessage{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
-		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		global.LOG.Error("Error: Message parsing error:\n%s.", parse_err)
 		return
 	}
 	switch m.Event {
 	case "notify":
 		perr := plugins.Notify(m)
 		if perr != nil {
-			log.Error("Error: Plugin Notify :\n%s.", perr)
+			global.LOG.Error("Error: Plugin Notify :\n%s.", perr)
 			break
 		}
 		break	

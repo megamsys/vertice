@@ -21,8 +21,36 @@ import (
     "math/big"
     "strings"
     "errors"
-	log "code.google.com/p/log4go"
+    "os"
+	"github.com/op/go-logging"
 )
+
+var LOG = logging.MustGetLogger("example")
+
+// Example format string. Everything except the message has a custom color
+// which is dependent on the log level. Many fields have a custom output
+// formatting too, eg. the time returns the hour down to the milli second.
+var FORMAT = logging.MustStringFormatter(
+    "%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}",
+)
+
+func LogFormatter() {
+	// For demo purposes, create two backend for os.Stderr.
+	backend1 := logging.NewLogBackend(os.Stderr, "", 0)
+	backend2 := logging.NewLogBackend(os.Stderr, "", 0)
+
+	// For messages written to backend2 we want to add some additional
+	// information to the output, including the used log level and the name of
+	// the function.
+	backend2Formatter := logging.NewBackendFormatter(backend2, FORMAT)
+
+	// Only errors and more severe messages should be sent to backend1
+	backend1Leveled := logging.AddModuleLevel(backend1)
+	backend1Leveled.SetLevel(logging.ERROR, "")
+
+	// Set the backends to be used.
+	logging.SetBackend(backend1Leveled, backend2Formatter)
+}
 
 type Message struct {
 	Id string `json:"id"`
@@ -76,7 +104,7 @@ type Request struct {
 **fetch the request json from riak and parse the json to struct
 **/
 func (req *Request) Get(reqId string) (*Request, error) {
-    log.Info("Get Request message %v", reqId)
+    LOG.Info("Get Request message %v", reqId)
     conn, err := db.Conn("requests")
 	if err != nil {	
 		return req, err
@@ -132,7 +160,7 @@ type Component struct {
 **fetch the component json from riak and parse the json to struct
 **/
 func (asm *Component) Get(asmId string) (*Component, error) {
-    log.Info("Get Component message %v", asmId)
+    LOG.Info("Get Component message %v", asmId)
     conn, err := db.Conn("components")
 	if err != nil {	
 		return asm, err
@@ -159,7 +187,7 @@ type Assemblies struct {
    }
    
  func (asm *Assemblies) Get(asmId string) (*Assemblies, error) {
-    log.Info("Get Assemblies message %v", asmId)
+    LOG.Info("Get Assemblies message %v", asmId)
     conn, err := db.Conn("assemblies")
 	if err != nil {	
 		return asm, err
@@ -170,8 +198,6 @@ type Assemblies struct {
 		return asm, ferr
 	}	
 	defer conn.Close()
-	log.Debug(asm)
-	log.Debug("----------ASSEMBLIES--------")
 	return asm, nil
 
 }
@@ -211,7 +237,7 @@ type AssemblyWithComponents struct {
 **fetch the Assembly data from riak and parse the json to struct
 **/
 func (req *Assembly) Get(reqId string) (*Assembly, error) {
-    log.Info("Get Assembly message %v", reqId)
+    LOG.Info("Get Assembly message %v", reqId)
     conn, err := db.Conn("assembly")
 	if err != nil {	
 		return req, err
@@ -228,7 +254,7 @@ func (req *Assembly) Get(reqId string) (*Assembly, error) {
 }
 
 func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithComponents, error) {
-    log.Info("Get Assembly message %v", asmId)
+    LOG.Info("Get Assembly message %v", asmId)
     var j = -1
     asmresult := &AssemblyWithComponents{}   
 	conn, err := db.Conn("assembly")
@@ -248,14 +274,14 @@ func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithCompo
 		  component := Component{Id: componentID }
           com, err := component.Get(componentID)
 		  if err != nil {
-		       log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		       LOG.Error("Error: Riak didn't cooperate:\n%s.", err)
 		       return asmresult, err
 		  }
 	      j++	     
 		  arraycomponent[j] = com
 		  }
 	    }
-	log.Info("else entry")
+	LOG.Info("else entry")
 	result := &AssemblyWithComponents{Id: asm.Id, Name: asm.Name, ToscaType: asm.ToscaType,  Components: arraycomponent, Requirements: asm.Requirements, Policies: asm.Policies, Inputs: asm.Inputs, Outputs: asm.Outputs, Operations: asm.Operations, Status: asm.Status, CreatedAt: asm.CreatedAt}
 	defer conn.Close()	
 	return result, nil

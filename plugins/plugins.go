@@ -16,7 +16,6 @@
 package plugins
 
 import (
-  //log "code.google.com/p/log4go"
   "github.com/megamsys/megamd/global"
 	"fmt"
 )

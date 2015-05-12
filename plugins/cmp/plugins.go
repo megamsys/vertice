@@ -18,7 +18,6 @@ package cmp
 import (
   "github.com/megamsys/megamd/plugins"
   "github.com/megamsys/megamd/global"
-  log "code.google.com/p/log4go"
 )
 
 
@@ -34,7 +33,7 @@ type CMPPlugin struct{}
 **/
 func (c *CMPPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
 	
-		log.Info("CMP is skipped")
+		global.LOG.Info("CMP is skipped")
 
 	return nil
 }
@@ -54,9 +53,9 @@ func (c *CMPPlugin) Notify(m *global.EventMessage) error {
 		return cierr
 	}
 	if(ci.SCM == "CMP") {
-		log.Info("CMP is worked")
+		global.LOG.Info("CMP is worked")
 	} else {
-		log.Info("CMP is skipped")
+		global.LOG.Info("CMP is skipped")
 	}*/
 	return nil
 }
