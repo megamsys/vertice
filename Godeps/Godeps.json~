@@ -11,6 +11,11 @@
 			"Rev": "afe77d958c701557ec5dc56f6936fcc194d15520"
 		},
 		{
+			"ImportPath": "code.google.com/p/goprotobuf/proto",
+			"Comment": "go.r60-163",
+			"Rev": "9352842ae63ee1d7e74e074ce7bb10370c4b6b9e"
+		},
+		{
 			"ImportPath": "code.google.com/p/log4go",
 			"Comment": "go.weekly.2012-02-22-1",
 			"Rev": "c3294304d93f48a37d3bed1d382882a9c2989f99"
@@ -22,10 +27,6 @@
 		{
 			"ImportPath": "github.com/gogits/go-gogs-client",
 			"Rev": "92e76d616a0fb851b7c8d35b673c1ebc624479b5"
-		},
-		{
-			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "efd7476481382c195beb33acd8ec2f1527167fb4"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -69,8 +70,8 @@
 			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
 		},
 		{
-			"ImportPath": "github.com/megamsys/riakpbc",
-			"Rev": "930958dc06ef2f84b93c81cc1c9f09459731e288"
+			"ImportPath": "github.com/mrb/riakpbc",
+			"Rev": "7e9829370c12ac1ee8917b719774bc7b73b58827"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
