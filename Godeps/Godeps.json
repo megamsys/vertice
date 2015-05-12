@@ -29,11 +29,11 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "2431923100d4989611dcc339f1ff8d280bd9c84c"
+			"Rev": "9eb187bac4eba6fff5a54f80550b2df73b651523"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
-			"Rev": "d8840cbb2baa915f4836edda4750050a2c0b7aea"
+			"Rev": "547ef5ac979778feb2f760cdb5f4eae1a2207b86"
 		},
 		{
 			"ImportPath": "github.com/howeyc/fsnotify",
@@ -42,31 +42,31 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/etcd",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/exec",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "8b53d904e89f2626f955424a72fd77eda2740b86"
+			"Rev": "689c623e24066909dfe928712c41fb66a5496d8b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -78,7 +78,7 @@
 		},
 		{
 			"ImportPath": "github.com/tsuru/config",
-			"Rev": "cedd0ae4817d94ddda2b1320f3a8c9154c4d0d57"
+			"Rev": "1fb3132fcee97c39e8894cb8aa8e90abdeaf98c7"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
