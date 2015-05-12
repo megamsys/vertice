@@ -16,7 +16,6 @@
 package server
 
 import (
-	log "code.google.com/p/log4go"
 	"encoding/json"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/libgo/db"
@@ -44,8 +43,7 @@ type Status struct {
 }
 
 func NewServer() (*Server, error) {
-
-	log.Info("Starting New server")
+	global.LOG.Info("Starting New server")
 	httpApi := http.NewHttpServer()
 
 	return &Server{
@@ -54,7 +52,7 @@ func NewServer() (*Server, error) {
 }
 
 func (self *Server) ListenAndServe() error {
-	log.Info("Starting admin interface on port")
+	global.LOG.Info("Starting admin interface on port")
 	//var etcdServerList [2]string
 	var queueInput [3]string
 	queueInput[0] = "cloudstandup"
@@ -76,22 +74,22 @@ type Connection struct {
 }
 
 func (self *Server) Checker() {
-	log.Info("Dialing Rabbitmq.......")
+	global.LOG.Info("Dialing Rabbitmq.......")
 	factor, err := amqp.Factory()
 	if err != nil {
-		log.Error("Failed to get the queue instance: %s", err)
+		global.LOG.Error("Failed to get the queue instance: %s", err)
 	}
 	
 	conn, connerr := factor.Dial()
-    log.Debug("connection %v", conn)
-    log.Debug("connection error %v", connerr)
+    global.LOG.Debug("connection %v", conn)
+    global.LOG.Debug("connection error %v", connerr)
     if connerr != nil {
     	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Rabbitmq service.\n", connerr)
          os.Exit(1)
     }
-    log.Info("Rabbitmq connected")
+    global.LOG.Info("Rabbitmq connected")
     
-    log.Info("Dialing Riak.......")
+    global.LOG.Info("Dialing Riak.......")
  
 	 rconn, rerr := db.Conn("connection")
 	 if rerr != nil {
@@ -106,7 +104,7 @@ func (self *Server) Checker() {
          os.Exit(1)
 	 }
 	 defer rconn.Close()
-    log.Info("Riak connected")
+    global.LOG.Info("Riak connected")
 	
 }
 
@@ -117,39 +115,39 @@ func (self *Server) EtcdWatcher() {
 	c := etcd.NewClient([]string{etcdPath})
 	success := c.SyncCluster()
 	if !success {
-		log.Debug("cannot sync machines")
+		global.LOG.Debug("cannot sync machines")
 	}
 
 	for _, m := range c.GetCluster() {
 		u, err := url.Parse(m)
 		if err != nil {
-			log.Debug(err)
+			global.LOG.Debug("Cluster parse error: %s", err)
 		}
 		if u.Scheme != "http" {
-			log.Debug("scheme must be http")
+			global.LOG.Debug("scheme must be http")
 		}
 
 		host, _, err := net.SplitHostPort(u.Host)
 		if err != nil {
-			log.Debug(err)
+			global.LOG.Debug("Host split error: %s", err)
 		}
 		if host != "127.0.0.1" {
-			log.Debug("Host must be 127.0.0.1")
+			global.LOG.Debug("Host must be 127.0.0.1")
 		}
 	}
 	
 	etcdNetworkPath, _ := config.GetString("etcd:networkpath")
 	conn, connerr := c.Dial("tcp", etcdNetworkPath)
-    log.Debug("client %v", c)
-    log.Debug("connection %v", conn)
-    log.Debug("connection error %v", connerr)
+    global.LOG.Debug("client %v", c)
+    global.LOG.Debug("connection %v", conn)
+    global.LOG.Debug("connection error %v", connerr)
     
     if conn != nil {
 	
-	   log.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
+	   global.LOG.Info(" [x] Etcd client %s", etcdPath, rootPrefix)
 
 	   dir, _ := config.GetString("etcd:directory")
-	   log.Info(" [x] Etcd Directory %s", dir)
+	   global.LOG.Info(" [x] Etcd Directory %s", dir)
 
 	   stop := make(chan bool, 0)
 
@@ -162,29 +160,29 @@ func (self *Server) EtcdWatcher() {
 			   _, err1 := c.CreateDir(dir)
 
 	           if err1 != nil {
-		         //  log.Error(err1)
+		         //  global.LOG.Error(err1)
 	           }
-				//log.Info(" [x] Watching %s", rootPrefix+dir)
+				//global.LOG.Info(" [x] Watching %s", rootPrefix+dir)
 				etreschan := make(chan *etcd.Response, 1)
-				//log.Info(" [x] Watching channel %v", etreschan)
-				//log.Info(" [x] Watching channel %s", etreschan)
+				//global.LOG.Info(" [x] Watching channel %v", etreschan)
+				//global.LOG.Info(" [x] Watching channel %s", etreschan)
 			     go receiverEtcd(etreschan, stop) 
 			 	_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
-				//log.Info(" [x] Watched (%s)", rootPrefix+dir)
+				//global.LOG.Info(" [x] Watched (%s)", rootPrefix+dir)
 
 				if err != nil {
-					//log.Info(" [x] Watched Error (%s)", rootPrefix+dir)
-				//	log.Error(err)
+					//global.LOG.Info(" [x] Watched Error (%s)", rootPrefix+dir)
+				//	global.LOG.Error(err)
 				//	return
 				}
 				if err != etcd.ErrWatchStoppedByUser {
-				//	log.Error("Watch returned a non-user stop error")
+				//	global.LOG.Error("Watch returned a non-user stop error")
 				}
-				//log.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
+				//global.LOG.Info(" [x] Sleep-Watch (%s)", rootPrefix+dir)
 
 				time.Sleep(time.Second)
 
-				//log.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
+				//global.LOG.Info(" [x] Slept-Watch (%s)", rootPrefix+dir)
 			}
 		} 
 
@@ -204,11 +202,11 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 	for {
 		select {
 		case msg := <-c:
-			//log.Info(" [x] Handing etcd master response (%v)", msg)
+			//global.LOG.Info(" [x] Handing etcd master response (%v)", msg)
 			if msg != nil {
 				handlerEtcd(msg)
 			} else {
-			//	log.Info(" [x] Nil - Handling etcd master response (%v)", msg)
+			//	global.LOG.Info(" [x] Nil - Handling etcd master response (%v)", msg)
 				return
 			}
 		}
@@ -217,7 +215,7 @@ func receiverEtcd(c chan *etcd.Response, stop chan bool) {
 }
 
 func handlerEtcd(msg *etcd.Response) {
-	log.Info(" [x] Really Handle etcd response (%s)", msg.Node.Key)
+	global.LOG.Info(" [x] Really Handle etcd response (%s)", msg.Node.Key)
 
 	asm := &global.Assembly{}
 
@@ -226,33 +224,32 @@ func handlerEtcd(msg *etcd.Response) {
 
 	conn, err := db.Conn("assembly")
 	if err != nil {
-		log.Error(err)
+		global.LOG.Error("Riak connection error: %s ", err)
 	}
 
 	ferr := conn.FetchStruct(res.Id, asm)
 	if ferr != nil {
-		log.Error(ferr)
+		global.LOG.Error("Riak fetch error: %s ",ferr)
 	}
 	
 	comp := &global.Component{}
 	
 	conn1, err1 := db.Conn("components")
 	if err1 != nil {
-		log.Error(err1)
+		global.LOG.Error("Riak connection error: %s ", err1)
 	}
 
 	ferr1 := conn1.FetchStruct(asm.Components[0], comp)
 	if ferr1 != nil {
-		log.Error(ferr1)
+		global.LOG.Error("Riak connection error: %s ", ferr1)
 	}
     
 	for i := range asm.Policies {
 		mapD := map[string]string{"Id": res.Id, "Action": asm.Policies[i].Name}
 		mapB, _ := json.Marshal(mapD)
-		log.Info(string(mapB))
 		pair, perr := global.ParseKeyValuePair(asm.Inputs, "domain")
 		if perr != nil {
-			log.Error("Failed to get the domain value : %s", perr)
+			global.LOG.Error("Failed to get the domain value : %s", perr)
 		}
 		asmname := asm.Name+"."+pair.Value
 		//asmname := asm.Name
@@ -263,19 +260,19 @@ func handlerEtcd(msg *etcd.Response) {
 func publisher(key string, json string) {
 	factor, aerr := amqp.Factory()
 	if aerr != nil {
-		log.Error("Failed to get the queue instance: %s", aerr)
+		global.LOG.Error("Failed to get the queue instance: %s", aerr)
 		return
 	}
 	//s := strings.Split(key, "/")
 	//pubsub, perr := factor.Get(s[len(s)-1])
 	pubsub, perr := factor.Get(key)
 	if perr != nil {
-		log.Error("Failed to get the queue instance: %s", perr)
+		global.LOG.Error("Failed to get the queue instance: %s", perr)
 	}
 
 	serr := pubsub.Pub([]byte(json))
 	if serr != nil {
-		log.Error("Failed to publish the queue instance: %s", serr)
+		global.LOG.Error("Failed to publish the queue instance: %s", serr)
 	}
 }
 
@@ -283,11 +280,11 @@ func (self *Server) Stop() {
 	if self.stopped {
 		return
 	}
-	log.Info("Stopping servers ....")
+	global.LOG.Info("Stopping servers ....")
 	self.stopped = true
 
-	log.Info("Stopping API server")
+	global.LOG.Info("Stopping API server")
 	//self.HttpApi.Close()
-	log.Info("Stopped API server")
+	global.LOG.Info("Stopped API server")
 
 }

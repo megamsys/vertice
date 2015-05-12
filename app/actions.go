@@ -19,7 +19,6 @@ import (
 	"errors"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/exec"
-	log "code.google.com/p/log4go"
 	"strings"
 	"github.com/tsuru/config"
 	"os"
@@ -35,14 +34,14 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
     var commandWords []string
     appName := ""
     commandWords = strings.Fields(app.Command)
-    log.Debug("Command Executor entry: %s\n", app)
+    global.LOG.Debug("Command Executor entry: %s\n", app)
     megam_home, ckberr := config.GetString("MEGAM_HOME")
 	if ckberr != nil {
 		return nil, ckberr
 	}
 	pair, perr := global.ParseKeyValuePair(app.Inputs, "domain")
 		if perr != nil {
-			log.Error("Failed to get the domain value : %s", perr)
+			global.LOG.Error("Failed to get the domain value : %s", perr)
 		}
 	if len(app.Components) > 0 {
 		appName = app.Name + "." + pair.Value
@@ -59,7 +58,7 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
 	fileOutPath := path.Join(dir, appName + "_out" )
 	fileErrPath := path.Join(dir, appName + "_err" )
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		log.Info("Creating directory: %s\n", dir)
+		global.LOG.Info("Creating directory: %s\n", dir)
 		if errm := os.MkdirAll(dir, 0777); errm != nil {
 			return nil, errm
 		}
@@ -79,8 +78,8 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
   
 	foutwriter := bufio.NewWriterSize(fout, 1)
 	ferrwriter := bufio.NewWriterSize(ferr, 1)
-    log.Debug(commandWords)
-    log.Debug("Length: %s", len(commandWords))
+    global.LOG.Debug("command words: %s", commandWords)
+    global.LOG.Debug("Length: %s", len(commandWords))
     
     defer ferrwriter.Flush()
     defer foutwriter.Flush()
@@ -111,7 +110,7 @@ var launchedApp = action.Action{
 		return CommandExecutor(&app)
 	},
 	Backward: func(ctx action.BWContext) {
-		log.Info("[%s] Nothing to recover")
+		global.LOG.Info("[%s] Nothing to recover")
 	},
 	MinParams: 1,
 }
@@ -157,7 +156,7 @@ var updateStatus = action.Action{
 		return CommandExecutor(&app)
 	},
 	Backward: func(ctx action.BWContext) {
-		log.Info("[%s] Nothing to recover")
+		global.LOG.Info("[%s] Nothing to recover")
 	},
 	MinParams: 1,
 }

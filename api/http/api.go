@@ -16,7 +16,6 @@
 package http
 
 import (
-	log "code.google.com/p/log4go"
 	"github.com/bmizerany/pat"
 	"github.com/tsuru/config"
 	"net"
@@ -24,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/megamsys/megamd/global"
 )
 
 type TimePrecision int
@@ -53,7 +53,7 @@ func (self *HttpServer) ListenAndServe() {
 	if self.HttpPort > 0 {
 		self.conn, err = net.Listen("tcp", ":"+strconv.Itoa(self.HttpPort))
 		if err != nil {
-			log.Error("Listen: ", err)
+			global.LOG.Error("Listen: ", err)
 		}
 	}
 	self.Serve(self.conn)

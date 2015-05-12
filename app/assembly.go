@@ -17,7 +17,6 @@ package app
 
 import (
 	"github.com/megamsys/libgo/db"
-	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/megamd/provisioner"
 	"encoding/json"
@@ -47,7 +46,7 @@ func GetPredefClouds(host string) (*global.PredefClouds, error) {
 }
 
 func LaunchApp(asm *global.AssemblyWithComponents, id string, act_id string) error {
-	log.Debug("Launch App entry")
+	global.LOG.Debug("Launch App entry")
 	if len(asm.Components) > 0 {		
 		LauncherHelper(asm, id, false, act_id)
 	} else {
@@ -80,7 +79,7 @@ func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool
 
 
 func DeleteApp(asm *global.AssemblyWithComponents, id string) error {
-       log.Debug("Delete App entry")
+       global.LOG.Debug("Delete App entry")
 	    com := &global.Component{}
 	    mapB, _ := json.Marshal(asm.Components[0])
         json.Unmarshal([]byte(string(mapB)), com)

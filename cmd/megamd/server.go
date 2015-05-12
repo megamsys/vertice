@@ -16,9 +16,8 @@
 package main
 
 import (
-	log "code.google.com/p/log4go"
-	"fmt"
 	"github.com/megamsys/megamd/cmd/megamd/server"
+	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
 	"runtime"
 	"time"
@@ -29,10 +28,10 @@ func StartDaemon(dry bool) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	version, _ := config.GetString("version")
+    global.LogFormatter()
+	global.LOG.Info("Starting Megamd Server %s...", version)		
 
-	log.Info("Starting Megamd Server %s...", version)
-
-	fmt.Printf(`
+	global.LOG.Notice(`
 ███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗ 
 ████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
 ██╔████╔██║█████╗  ██║  ███╗███████║██╔████╔██║██║  ██║
@@ -54,6 +53,6 @@ func StartDaemon(dry bool) {
 
 	err = server.ListenAndServe()
 	if err != nil {
-		log.Error("ListenAndServe failed: ", err)
+		global.LOG.Error("ListenAndServe failed: ", err)
 	}
 }

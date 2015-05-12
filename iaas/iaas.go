@@ -16,7 +16,6 @@
 package iaas
 
 import (
-	log "code.google.com/p/log4go"
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
@@ -126,19 +125,19 @@ func getProviderName(host string) (*global.PredefClouds, error) {
 
 func GetPlugins(cloud string) *Plugins {
 	p, _ := filepath.Abs(defaultYAMLPath)
-	log.Info(fmt.Errorf("Conf: %s", p))
+	global.LOG.Info("Conf: %s", p)
 
 	data, err := ioutil.ReadFile(p)
 
 	if err != nil {
-		log.Info("error: %v", err)
+		global.LOG.Info("error: %v", err)
 	}
 
 	m := make(map[interface{}]Plugins)
 
 	err = yaml.Unmarshal([]byte(data), &m)
 	if err != nil {
-		log.Info("error: %v", err)
+		global.LOG.Info("error: %v", err)
 	}
 	for key, value := range m {
 		if key == cloud {
