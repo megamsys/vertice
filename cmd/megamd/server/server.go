@@ -164,13 +164,9 @@ func (self *Server) EtcdWatcher() {
 	           if err1 != nil {
 		         //  log.Error(err1)
 	           }
-				//log.Info(" [x] Watching %s", rootPrefix+dir)
 				etreschan := make(chan *etcd.Response, 1)
-				//log.Info(" [x] Watching channel %v", etreschan)
-				//log.Info(" [x] Watching channel %s", etreschan)
 			     go receiverEtcd(etreschan, stop) 
 			 	_, err := c.Watch(rootPrefix+dir, 0, true, etreschan, stop)
-				//log.Info(" [x] Watched (%s)", rootPrefix+dir)
 
 				if err != nil {
 					//log.Info(" [x] Watched Error (%s)", rootPrefix+dir)
@@ -223,7 +219,6 @@ func handlerEtcd(msg *etcd.Response) {
 
 	res := &Status{}
 	json.Unmarshal([]byte(msg.Node.Value), &res)
-
 	conn, err := db.Conn("assembly")
 	if err != nil {
 		log.Error(err)
