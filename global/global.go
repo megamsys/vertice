@@ -66,9 +66,9 @@ type PDCAccess struct {
 
 type Request struct {
 	Id	             string     `json:"id"`
-	AssembliesId     string     `json:"node_id"`
-	AssembliesName   string     `json:"node_name"` 
-	ReqType          string     `json:"req_type"`
+	AssembliesId     string     `json:"cat_id"`
+	AssembliesName   string     `json:"name"` 
+	ReqType          string     `json:"cattype"`
 	CreatedAt        string     `json:"created_at"`
 }
 
