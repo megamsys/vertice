@@ -24,6 +24,7 @@ import (
   "code.google.com/p/goauth2/oauth"
   "encoding/json"
   "strings"
+  "github.com/tsuru/config"
 )
 
 /**
@@ -82,7 +83,16 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		
 		client := git.NewClient(t.Client())
 		
-		trigger_url := "https://api.megam.co/v2/assembly/build/"+asm.Id + "/" + com.Id
+		api_host, apierr := config.GetString("api:host")
+		if apierr != nil {
+			return apierr
+		}
+		
+		api_version, apiverr := config.GetString("api:version")
+		if apiverr != nil {
+			return apiverr
+		}
+		trigger_url := "http://"+api_host+"/"+api_version+"/assembly/build/"+asm.Id + "/" + com.Id
 		
 		byt12 := []byte(`{"url": "","content_type": "json"}`)
 		var postData map[string]interface{}

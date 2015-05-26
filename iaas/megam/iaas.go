@@ -34,12 +34,12 @@ type MegamIaaS struct{}
 
 func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents, act_id string) (string, error) {
   log.Info("Megam provider create entry")
-  accesskey, err_accesskey := config.GetString("ACCESS_KEY")
+  accesskey, err_accesskey := config.GetString("opennebula:access_key")
 	if err_accesskey != nil {
 		return "", err_accesskey
 	}
 	
-	secretkey, err_secretkey := config.GetString("SECRET_KEY")
+	secretkey, err_secretkey := config.GetString("opennebula:secret_key")
 	if err_secretkey != nil {
 		return "", err_secretkey
 	}
@@ -69,27 +69,27 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 		return "", err_recipe
 	}
 	
-	riakHost, err_riakHost := config.GetString("hosts:riak_host")
+	riakHost, err_riakHost := config.GetString("launch:riak")
 	if err_riakHost != nil {
 		return "", err_riakHost
 	}
 	
-	rabbitmqHost, err_rabbitmq := config.GetString("hosts:rabbitmq_host")
+	rabbitmqHost, err_rabbitmq := config.GetString("launch:rabbitmq")
 	if err_rabbitmq != nil {
 		return "", err_rabbitmq
 	}
 	
-	monitor, err_monitor := config.GetString("hosts:monitor_host")
+	monitor, err_monitor := config.GetString("launch:monitor")
 	if err_monitor != nil {
 		return "", err_monitor
 	}
 	
-	kibana, err_kibana := config.GetString("hosts:kibana_host")
+	kibana, err_kibana := config.GetString("launch:kibana")
 	if err_kibana != nil {
 		return "", err_kibana
 	}
 	
-	etcdHost, err_etcd := config.GetString("hosts:etcd_host")
+	etcdHost, err_etcd := config.GetString("launch:etcd")
 	if err_etcd != nil {
 		return "", err_etcd
 	}
@@ -153,7 +153,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	
 	templatekey := ""
 	if len(assembly.Components) > 0 {
-	   megamtemplatekey, err_templatekey := config.GetString("MEGAM_TEMPLATE_NAME")
+	   megamtemplatekey, err_templatekey := config.GetString("opennebula:default_template_name")
 		if err_templatekey != nil {
 			return "", err_templatekey
 		}	
@@ -170,7 +170,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 		return "", fmt.Errorf("Template doesn't loaded")
 	}
 
-    sshuserkey, err_sshuserkey := config.GetString("SSH_USER")
+    sshuserkey, err_sshuserkey := config.GetString("opennebula:ssh_user")
 	if err_sshuserkey != nil {
 		return "", err_sshuserkey
 	}
@@ -180,7 +180,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 		return "", fmt.Errorf("Ssh user value doesn't loaded")
 	}
 
-	identityfilekey, err_identityfilekey := config.GetString("IDENTITY_FILE")
+	identityfilekey, err_identityfilekey := config.GetString("opennebula:identity_file")
 	if err_identityfilekey != nil {
 		return "", err_identityfilekey
 	}
@@ -190,7 +190,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 		return "", fmt.Errorf("Identity file doesn't loaded")
 	}
 
-	zonekey, err_zonekey := config.GetString("ZONE")
+	zonekey, err_zonekey := config.GetString("opennebula:zone")
 	if err_zonekey != nil {
 		return "", err_zonekey
 	}

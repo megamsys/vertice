@@ -66,10 +66,19 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 	if(pair_scm.Value == GOGS && pair_enable.Value == ENABLE) {
 		log.Info("gogs process started...")
 		
-		//trigger_url := "https://api.megam.co/v2/assembly/build/"+asm.Id + "/" + com.Id
-		trigger_url := "http://localhost:9000/v2/assembly/build/"+asm.Id + "/" + com.Id
+		api_host, apierr := config.GetString("api:host")
+		if apierr != nil {
+			return apierr
+		}
 		
-		url, herr := config.GetString("gogs:url")		
+		api_version, apiverr := config.GetString("api:version")
+		if apiverr != nil {
+			return apiverr
+		}
+		
+		trigger_url := "http://"+api_host+"/"+api_version+"/assembly/build/"+asm.Id + "/" + com.Id
+		
+		url, herr := config.GetString("scm:gogs:url")		
 		if herr != nil {		  
 			return herr
 		}		

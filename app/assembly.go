@@ -29,7 +29,7 @@ import (
 func GetPredefClouds(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	predefBucket, perr := config.GetString("buckets:PREDEFCLOUDS")
+	predefBucket, perr := config.GetString("riak:predefclouds")
 	if perr != nil {
 		return pdc, perr
 	}
