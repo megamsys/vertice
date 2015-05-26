@@ -19,18 +19,15 @@ import (
 	log "code.google.com/p/log4go"
 	"fmt"
 	"github.com/megamsys/megamd/cmd/megamd/server"
-	"github.com/tsuru/config"
 	"runtime"
 	"time"
 )
 
 func StartDaemon(dry bool) {
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())	
 
-	version, _ := config.GetString("version")
-
-	log.Info("Starting Megamd Server %s...", version)
+	log.Info("Starting Megamd Server ...")
 
 	fmt.Printf(`
 ███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗ 

@@ -97,7 +97,7 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 func getProviderName(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	predefBucket, perr := config.GetString("buckets:PREDEFCLOUDS")
+	predefBucket, perr := config.GetString("riak:predefclouds")
 	if perr != nil {
 		return pdc, perr
 	}
@@ -152,11 +152,11 @@ func GetIdentityFileLocation(file string) (string, error) {
 	s := make([]string, 2)
 	s = strings.Split(file, "_")
 	email, name := s[0], s[1]
-	cloudkeysBucket, err := config.GetString("buckets:CLOUDKEYS")
+	cloudkeysBucket, err := config.GetString("riak:cloud_keys")
 	if err != nil {
 		return "", err
 	}
-	megam_home, err := config.GetString("MEGAM_HOME")
+	megam_home, err := config.GetString("megam_home")
 	if err != nil {
 		return "", err
 	}
@@ -173,7 +173,7 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	sa = strings.Split(pdc.Access.IdentityFile, "_")
 	email, name := sa[0], sa[1]
 	ssh := &db.SshObject{}
-	sshBucket, serr := config.GetString("buckets:SSHFILES")
+	sshBucket, serr := config.GetString("riak:ssh_files")
 	if serr != nil {
 		return serr
 	}
@@ -186,12 +186,12 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	if ferr != nil {
 		return ferr
 	}
-	cloudkeysBucket, ckberr := config.GetString("buckets:CLOUDKEYS")
+	cloudkeysBucket, ckberr := config.GetString("riak:cloud_keys")
 	if ckberr != nil {
 		return ckberr
 	}
 
-	megam_home, ckberr := config.GetString("MEGAM_HOME")
+	megam_home, ckberr := config.GetString("megam_home")
 	if ckberr != nil {
 		return ckberr
 	}
@@ -225,7 +225,7 @@ type AccessKeys struct {
 
 func GetAccessKeys(pdc *global.PredefClouds) (*AccessKeys, error) {
 	keys := &AccessKeys{}
-	cakbBucket, cakberr := config.GetString("buckets:CLOUDACCESSKEYS")
+	cakbBucket, cakberr := config.GetString("riak:cloud_access_keys")
 	if cakberr != nil {
 		return keys, cakberr
 	}

@@ -36,7 +36,7 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
     appName := ""
     commandWords = strings.Fields(app.Command)
     log.Debug("Command Executor entry: %s\n", app)
-    megam_home, ckberr := config.GetString("MEGAM_HOME")
+    megam_home, ckberr := config.GetString("megam_home")
 	if ckberr != nil {
 		return nil, ckberr
 	}
@@ -44,15 +44,9 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
 		if perr != nil {
 			log.Error("Failed to get the domain value : %s", perr)
 		}
-	if len(app.Components) > 0 {
-		appName = app.Name + "." + pair.Value
-	} else {
-		domainkey, err_domainkey := config.GetString("DOMAIN")
-		if err_domainkey != nil {
-			return nil, err_domainkey
-		}
-		appName = app.Name + "." + domainkey
-	}    
+		
+	appName = app.Name + "." + pair.Value
+	
 	basePath := megam_home + "logs" 
 	dir := path.Join(basePath, appName)
 	
