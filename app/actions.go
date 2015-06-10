@@ -136,8 +136,9 @@ var updateStatus = action.Action{
 	   update := global.Assembly{
 		Id:            asm.Id, 
         JsonClaz:      asm.JsonClaz, 
-        Name:          asm.Name, 
+        Name:          asm.Name,         
         Components:    asm.Components,
+        ToscaType:     asm.ToscaType,
         Requirements:  asm.Requirements,
         Policies:      asm.Policies,
         Inputs:        asm.Inputs,

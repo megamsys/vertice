@@ -20,7 +20,7 @@ import (
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/megamd/provisioner"
-	"encoding/json"
+//	"encoding/json"
 	"github.com/tsuru/config"
 	"github.com/megamsys/megamd/global"
 )
@@ -81,9 +81,7 @@ func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool
 
 func DeleteApp(asm *global.AssemblyWithComponents, id string) error {
        log.Debug("Delete App entry")
-	    com := &global.Component{}
-	    mapB, _ := json.Marshal(asm.Components[0])
-        json.Unmarshal([]byte(string(mapB)), com)
+	   
        // Provisioner
 	    p, err := provisioner.GetProvisioner("chef")
 	   if err != nil {	
