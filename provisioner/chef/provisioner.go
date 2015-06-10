@@ -56,7 +56,10 @@ func (i *Chef) CreateCommand(assembly *global.AssemblyWithComponents, id string,
 
 func (i *Chef) DeleteCommand(assembly *global.AssemblyWithComponents, id string) (string, error) {
 	// Iaas Provider
-/*	iaas, pdc, err1 := iaas.GetIaasProvider(assembly.Components[0].Requirements.Host)
+	provider := "megam"
+		
+	log.Info(provider)
+	iaas, pdc, err1 := iaas.GetIaasProvider(provider)
 	if err1 != nil {
 		log.Error("Error: Iaas Provider :\n%s.", err1)
 		return "", err1
@@ -67,6 +70,6 @@ func (i *Chef) DeleteCommand(assembly *global.AssemblyWithComponents, id string)
 		log.Error("Error: Iaas Provider doesn't delete machine:\n%s.", iaaserr)
 		return "", iaaserr
 	}
-	log.Info(str)*/
-	return "", nil
+	log.Info(str)
+	return str, nil
 }

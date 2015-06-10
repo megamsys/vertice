@@ -109,38 +109,37 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 
 func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents) (string, error) {
   
-	keys, err_keys := iaas.GetAccessKeys(pdc)
-     if err_keys != nil {
-     	return "", err_keys
-     }
+	accesskey, err_accesskey := config.GetString("opennebula:access_key")
+	if err_accesskey != nil {
+		return "", err_accesskey
+	}
+	
+	secretkey, err_secretkey := config.GetString("opennebula:secret_key")
+	if err_secretkey != nil {
+		return "", err_secretkey
+	}
      
      str, err := buildDelCommand(iaas.GetPlugins("opennebula"), pdc, "delete")
 	if err != nil {
 	return "", err
 	 }
 	//str = str + " -P " + " -y "
-	pair, perr := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
+	pair, perr := global.ParseKeyValuePair(assembly.Inputs, "domain")
 		if perr != nil {
 			log.Error("Failed to get the domain value : %s", perr)
 		}
 	str = str + " -N " + assembly.Name + "." + pair.Value
-	str = str + " -A " + keys.AccessKey
-	str = str + " -K " + keys.SecretKey
+	str = str + " -A " + accesskey
+	str = str + " -K " + secretkey
 
    knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
 		return "", kerr
 	}
 	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
-	str = strings.Replace(str, "<node_name>", assembly.Name + "." + pair.Value, -1 )
-   
-    if len(pdc.Access.Zone) > 0 {
-		   str = str + " --endpoint" + pdc.Access.Zone
-	} else {
-		return "", fmt.Errorf("Zone doesn't loaded")
-	}
+	str = strings.Replace(str, "<node_name>", assembly.Name + "." + pair.Value, -1 )    
 
-return str, nil	
+    return str, nil	
 }
 
 
@@ -217,6 +216,17 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}
 	}
+	
+	zonekey, err_zonekey := config.GetString("opennebula:zone")
+	if err_zonekey != nil {
+		return "", err_zonekey
+	}
+	if len(zonekey) > 0 {
+		buffer.WriteString(" --endpoint " + zonekey)
+	} else {
+		return "", fmt.Errorf("Zone doesn't loaded")
+	}
+	
 	return buffer.String(), nil 
 	
 }	

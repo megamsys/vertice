@@ -55,7 +55,7 @@ func NewCoordinator(chann []byte, queue string) {
 }
 
 func requestHandler(chann []byte) {
-	log.Info("Entered!-------->")
+	log.Info("Cloud standup handler entered!-------->")
 	m := &global.Message{}
 	parse_err := json.Unmarshal(chann, &m)
 	if parse_err != nil {
@@ -74,10 +74,7 @@ func requestHandler(chann []byte) {
 	case "create":
 	log.Debug("============Create entry======")
 		assemblies := global.Assemblies{Id: req.AssembliesId}
-		asm, err := assemblies.Get(req.AssembliesId)
-		log.Debug("----------")
-		log.Debug(asm)
-		log.Debug("------------")
+		asm, err := assemblies.Get(req.AssembliesId)		
 		if err != nil {
 			log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			return
@@ -88,9 +85,7 @@ func requestHandler(chann []byte) {
 				assemblyID := asm.Assemblies[i]
 				log.Debug("Assemblies id: [%s]", assemblyID)
 				assembly := global.Assembly{Id: assemblyID}
-				log.Debug(assembly)
 				res, err := assembly.GetAssemblyWithComponents(assemblyID)
-				log.Debug(res)
 				if err != nil {
 					log.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
@@ -110,7 +105,7 @@ func requestHandler(chann []byte) {
 		   	   return
 		   }
 		   res := asm
-		   	   	 go app.DeleteApp(res, m.Id)  
+		   go app.DeleteApp(res, m.Id)  
 		   
 	}
 }
