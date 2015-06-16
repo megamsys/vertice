@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +33,7 @@ type Plugins interface {
 
 
 var plugs = make(map[string]Plugins)
-var plug_names = []string{"cmp", "github", "gogs"}
+var plug_names = []string{"cmp", "github", "gogs", "gitlab"}
 
 /**
 **register the all plugins to "plug" array
@@ -55,33 +55,31 @@ func Watcher(asm *global.AssemblyWithComponents) error {
   if len(asm.Components) > 0 {
      	for i := range asm.Components {
      	  if asm.Components[i] != nil {
-     		for j := range asm.Components[i].Operations {     			
+     		for j := range asm.Components[i].Operations {
 				for k := range plug_names {
   					p, err := GetPlugin(plug_names[k])
-	   				if err != nil {	
+	   				if err != nil {
 	      					return err
-	  				 }		
-					go p.Watcher(asm, asm.Components[i].Operations[j], asm.Components[i])  				
-     		    } 
-     		  }      		
+	  				 }
+					go p.Watcher(asm, asm.Components[i].Operations[j], asm.Components[i])
+     		    }
+     		  }
      	  }
-     }	  
-  }   
+     }
+  }
   return nil
 }
 
 func Notify(m *global.EventMessage) error {
 	for i := range plug_names {
   	p, err := GetPlugin(plug_names[i])
-	   if err != nil {	
+	   if err != nil {
 	      return err
-	   }	
+	   }
 	perr :=  p.Notify(m)
-	   if perr != nil {	
+	   if perr != nil {
 	      return perr
-	   }	
+	   }
   }
-  return nil	
+  return nil
 }
-
-
