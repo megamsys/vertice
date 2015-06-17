@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"github.com/megamsys/megamd/app"
 	"github.com/megamsys/megamd/provisioner/chef"
+	"github.com/megamsys/megamd/provisioner/docker"
 	"github.com/megamsys/megamd/plugins/cmp"
 	"github.com/megamsys/megamd/plugins/github"
 	"github.com/megamsys/megamd/plugins/gitlab"
@@ -36,6 +37,7 @@ type Coordinator struct {
 
 func init() {
 	chef.Init()
+	docker.Init()
 	cmp.Init()
 	github.Init()
 	gitlab.Init()
