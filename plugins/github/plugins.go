@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import (
   "github.com/megamsys/megamd/global"
   log "code.google.com/p/log4go"
  // git "github.com/CodeHub-io/Go-GitHub-API"
-  git "github.com/google/go-github/github"  
+  git "github.com/google/go-github/github"
   "code.google.com/p/goauth2/oauth"
   "encoding/json"
   "strings"
@@ -29,7 +29,7 @@ import (
 
 /**
 **Github register function
-**This function register to plugins container   
+**This function register to plugins container
 **/
 func Init() {
 	plugins.RegisterPlugins("github", &GithubPlugin{})
@@ -37,15 +37,15 @@ func Init() {
 
 type GithubPlugin struct{}
 
-const ( 
+const (
    GITHUB = "github"
-   ENABLE = "true"   
+   ENABLE = "true"
 )
 
 /**
 **watcher function executes the github repository webhook creation
-**first get the ci value and parse it and to create the hook for that users repository    
-**get trigger url from config file 
+**first get the ci value and parse it and to create the hook for that users repository
+**get trigger url from config file
 **/
 func (c *GithubPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
      switch ci.OperationType {
@@ -55,7 +55,7 @@ func (c *GithubPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Op
 					return cierr
 			}
 			break
-     }     		
+     }
 	return nil
 }
 
@@ -64,15 +64,15 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		if perrscm != nil {
 			log.Error("Failed to get the domain value : %s", perrscm)
 		}
-		
+
 	pair_enable, perrenable := global.ParseKeyValuePair(ci.OperationRequirements, "ci-enable")
 		if perrenable != nil {
 			log.Error("Failed to get the domain value : %s", perrenable)
-		}	
-		
+		}
+
 	if(pair_scm.Value == GITHUB && pair_enable.Value == ENABLE) {
 		log.Info("Github is working")
-		
+
 		pair_token, perrtoken := global.ParseKeyValuePair(ci.OperationRequirements, "ci-token")
 		if perrtoken != nil {
 			log.Error("Failed to get the domain value : %s", perrtoken)
@@ -80,50 +80,50 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		t := &oauth.Transport{
 			Token: &oauth.Token{AccessToken: pair_token.Value},
 		}
-		
+
 		client := git.NewClient(t.Client())
-		
+
 		api_host, apierr := config.GetString("api:host")
 		if apierr != nil {
 			return apierr
 		}
-		
+
 		api_version, apiverr := config.GetString("api:version")
 		if apiverr != nil {
 			return apiverr
 		}
 		trigger_url := "http://"+api_host+"/"+api_version+"/assembly/build/"+asm.Id + "/" + com.Id
-		
+
 		byt12 := []byte(`{"url": "","content_type": "json"}`)
 		var postData map[string]interface{}
     	if perr := json.Unmarshal(byt12, &postData); perr != nil {
         	return perr
     	}
 		postData["url"] = trigger_url
-		
+
 		byt1 := []byte(`{"name": "web", "active": true, "events": [ "push" ]}`)
 		postHook :=  git.Hook{Config: postData }
     	if perr := json.Unmarshal(byt1, &postHook); perr != nil {
         	log.Info(perr)
-    	}		
-    	      
+    	}
+
     	pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
 		if perrsource != nil {
 			log.Error("Failed to get the domain value : %s", perrsource)
 		}
-		
+
 		pair_owner, perrowner := global.ParseKeyValuePair(ci.OperationRequirements, "ci-owner")
 		if perrowner != nil {
 			log.Error("Failed to get the domain value : %s", perrowner)
 		}
-		        
-        source := strings.Split(pair_source.Value, "/")    			
+
+        source := strings.Split(pair_source.Value, "/")
 		_, _, err := client.Repositories.CreateHook(pair_owner.Value, strings.TrimRight(source[len(source)-1], ".git"), &postHook)
-		
+
     	if err != nil {
         	return err
-    	} 
-    	
+    	}
+
 	} else {
 		log.Info("Github is skipped")
 	}
@@ -132,7 +132,7 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 
 /**
 **notify the messages or any other operations from github
-** now this function performs build the pushed application from github to remote 
+** now this function performs build the pushed application from github to remote
 **/
 func (c *GithubPlugin) Notify(m *global.EventMessage) error {
   /* request_asm := global.Assembly{Id: m.AssemblyId}
@@ -146,13 +146,13 @@ func (c *GithubPlugin) Notify(m *global.EventMessage) error {
 	if(comerr != nil) {
 		return comerr
 	}
-	
+
 	request_ci := global.CI{Id: com.Inputs.CIID}
 	ci, cierr := request_ci.Get(com.Inputs.CIID)
 	if(cierr != nil) {
 		return cierr
 	}
-	
+
 	if(ci.SCM == "github") {
 		log.Info("Github is worked")
 		mapD := map[string]string{"Id": m.ComponentId, "Action": "build"}

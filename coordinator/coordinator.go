@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import (
 	"github.com/megamsys/megamd/provisioner/chef"
 	"github.com/megamsys/megamd/plugins/cmp"
 	"github.com/megamsys/megamd/plugins/github"
+	"github.com/megamsys/megamd/plugins/gitlab"
 	"github.com/megamsys/megamd/plugins/gogs"
 	"github.com/megamsys/megamd/iaas/megam"
 	"github.com/megamsys/megamd/plugins"
@@ -37,6 +38,7 @@ func init() {
 	chef.Init()
 	cmp.Init()
 	github.Init()
+	gitlab.Init()
 	gogs.Init()
 	megam.Init()
 }
@@ -50,7 +52,7 @@ func NewCoordinator(chann []byte, queue string) {
 		break
 	case "events":
 		eventsHandler(chann)
-		break	
+		break
 	}
 }
 
@@ -74,7 +76,7 @@ func requestHandler(chann []byte) {
 	case "create":
 	log.Debug("============Create entry======")
 		assemblies := global.Assemblies{Id: req.AssembliesId}
-		asm, err := assemblies.Get(req.AssembliesId)		
+		asm, err := assemblies.Get(req.AssembliesId)
 		if err != nil {
 			log.Error("Error: Riak didn't cooperate:\n%s.", err)
 			return
@@ -89,35 +91,35 @@ func requestHandler(chann []byte) {
 				if err != nil {
 					log.Error("Error: Riak didn't cooperate:\n%s.", err)
 					return
-				}              
+				}
 				go app.LaunchApp(res, m.Id, asm.AccountsId)
 				go pluginAdministrator(res, asm.AccountsId)
 			}
 		}
-		
+
 		//build delete command
 	    case "delete":
 		log.Debug("============Delete entry==========")
 		  assembly := global.Assembly{Id: req.AssembliesId}
-		  asm, err := assembly.GetAssemblyWithComponents(req.AssembliesId)		  
+		  asm, err := assembly.GetAssemblyWithComponents(req.AssembliesId)
 		   if err != nil {
 		   	   log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		   	   return
 		   }
 		   res := asm
-		   go app.DeleteApp(res, m.Id)  
-		   
+		   go app.DeleteApp(res, m.Id)
+
 	}
 }
 
 func pluginAdministrator(asm *global.AssemblyWithComponents, act_id string) {
 	log.Info("Plugin Administrator Entered!-------->")
-		
+
 	perr := plugins.Watcher(asm)
 	if perr != nil {
 		log.Error("Error: Plugin Watcher :\n%s.", perr)
 		return
-	}	
+	}
 }
 
 func eventsHandler(chann []byte) {
@@ -135,6 +137,6 @@ func eventsHandler(chann []byte) {
 			log.Error("Error: Plugin Notify :\n%s.", perr)
 			break
 		}
-		break	
+		break
 	}
 }
