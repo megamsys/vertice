@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,25 +48,48 @@ func GetPredefClouds(host string) (*global.PredefClouds, error) {
 
 func LaunchApp(asm *global.AssemblyWithComponents, id string, act_id string) error {
 	log.Debug("Launch App entry")
-	if len(asm.Components) > 0 {		
+	if len(asm.Components) > 0 {
 		LauncherHelper(asm, id, false, act_id)
 	} else {
-             LauncherHelper(asm, id, true, act_id)
+    LauncherHelper(asm, id, true, act_id)
           }
-    return nil      
+    return nil
 }
 
 func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool, act_id string) error {
-	// Provisioner
+
+	pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "host")
+	if perrscm != nil {
+	  log.Error("Failed to get the host value : %s", perrscm)
+	}
+
+
+if pair_host.Value == "docker" {
+
+	log.Debug("Docker provisioner entry")
+	        		// Provisioner
+		            p, err := provisioner.GetProvisioner("docker")
+		            if err != nil {
+		                return err
+		             }
+		            log.Info("Provisioner: %v", p)
+		             _, perr := p.CreateCommand(asm, id, instance, act_id)
+		            if perr != nil {
+		               return perr
+		             }
+}
+
+if pair_host.Value == "chef" {
+
 	p, err := provisioner.GetProvisioner("chef")
-	if err != nil {	
+	if err != nil {
 	    return err
-	}	
+	}
 
 	str, perr := p.CreateCommand(asm, id, instance, act_id)
-    if perr != nil {	
+    if perr != nil {
 	  return perr
-	}	
+	}
 	asm.Command = str
 	actions := []*action.Action{&launchedApp}
 
@@ -74,31 +97,53 @@ func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool
 	aerr := pipeline.Execute(asm)
 	if aerr != nil {
          return aerr
-     } 
-	 return nil
+     }
 }
-
+return nil
+ }
 
 func DeleteApp(asm *global.AssemblyWithComponents, id string) error {
        log.Debug("Delete App entry")
-	   
-       // Provisioner
+
+				pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "host")
+				if perrscm != nil {
+				  log.Error("Failed to get the host value : %s", perrscm)
+				}
+
+				if pair_host.Value == "docker" {
+
+					log.Debug("Docker provisioner entry")
+											// Provisioner
+												p, err := provisioner.GetProvisioner("docker")
+												if err != nil {
+														return err
+												}
+												log.Info("Provisioner: %v", p)
+												_, perr := p.DeleteCommand(asm, id)
+												if perr != nil {
+													return perr
+												}
+
+
+
+				}
+        if pair_host.Value == "chef" {
+
 	    p, err := provisioner.GetProvisioner("chef")
-	   if err != nil {	
+	   if err != nil {
 	         return err
-	   }	
+	   }
 	   str, perr := p.DeleteCommand(asm, id)
-	   if perr != nil {	
+	   if perr != nil {
 	     return perr
-	    }	
+	    }
 	    asm.Command = str
 	    actions := []*action.Action{&updateStatus}
 	   pipeline := action.NewPipeline(actions...)
 	   aerr := pipeline.Execute(asm)
 	   if aerr != nil {
 		    return aerr
-	     } 
-	     return nil 
+	     }
+	  	}
+		return nil
 }
-
-

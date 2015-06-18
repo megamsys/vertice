@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +23,6 @@ import (
 
 // Provisioner is the basic interface of this package.
 //
-// Any tsuru provisioner must implement this interface in order to provision
-// tsuru apps.
 type Provisioner interface {
 	// Provision is called when tsuru is creating the app.
 	//Provision(*global.AssemblyWithComponents) error
