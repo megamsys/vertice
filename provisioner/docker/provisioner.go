@@ -11,9 +11,11 @@ import (
  //"github.com/megamsys/gulp/app"
  "github.com/fsouza/go-dockerclient"
  "github.com/megamsys/megamd/provisioner"
- "strings"
+ "github.com/tsuru/config"
+
+// "strings"
  //"fmt"
- "bytes"
+// "bytes"
 )
 
 
@@ -32,43 +34,28 @@ pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
      log.Error("Failed to get the domain value : %s", perrscm)
    }
 
-
-pair_img, perrscm := global.ParseKeyValuePair(assembly.Inputs, "source")
+pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
     if perrscm != nil {
       log.Error("Failed to get the domain value : %s", perrscm)
     }
+var endpoint string
+if pair_endpoint.Value == "baremetal" {
 
+  api_host, _:= config.GetString("swarm:host")
+//  if apierr != nil {
+//    return apierr
+//  }
+      endpoint = api_host
 
- endpoint := pair_endpoint.Value
+} else {
+   endpoint = pair_endpoint.Value
+ }
+
  client, _ := docker.NewClient(endpoint)
 
 
-
-   var buf bytes.Buffer
-   source := strings.Split(pair_img.Value, ":")
-   var tag string
-
-   if len(source) > 1 {
-        tag = source[1]
-
-    } else {
-      tag = ""
-   }
-
-
- opts := docker.PullImageOptions{
-                     Repository:   source[0],
-                     Registry:     "",
-                     Tag:          tag,
-                     OutputStream: &buf,
-                    }
- pullerr := client.PullImage(opts, docker.AuthConfiguration{})
- if pullerr != nil {
-      log.Error(pullerr)
-   }
-
-   config := docker.Config{Image: "gomegam/megamgateway:0.5.0"}
- copts := docker.CreateContainerOptions{Name: "redis", Config: &config}
+   config := docker.Config{Image: pair_img.Value}
+ copts := docker.CreateContainerOptions{Name: pair_img.Value, Config: &config}
  container, conerr := client.CreateContainer(copts)
  if conerr != nil {
       log.Error(conerr)
@@ -87,5 +74,7 @@ pair_img, perrscm := global.ParseKeyValuePair(assembly.Inputs, "source")
    //contt, _ := client.ListContainers(docker.ListContainersOptions{})
    return "",nil
 }
+
+
 
 func (i *Docker) DeleteCommand(assembly *global.AssemblyWithComponents, id string) (string, error) {return "",nil}
