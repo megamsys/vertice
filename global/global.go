@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,7 +67,7 @@ type PDCAccess struct {
 type Request struct {
 	Id	             string     `json:"id"`
 	AssembliesId     string     `json:"cat_id"`
-	AssembliesName   string     `json:"name"` 
+	AssembliesName   string     `json:"name"`
 	ReqType          string     `json:"cattype"`
 	CreatedAt        string     `json:"created_at"`
 }
@@ -78,16 +78,16 @@ type Request struct {
 func (req *Request) Get(reqId string) (*Request, error) {
     log.Info("Get Request message %v", reqId)
     conn, err := db.Conn("requests")
-	if err != nil {	
+	if err != nil {
 		return req, err
-	}	
+	}
 	//appout := &Requests{}
 	ferr := conn.FetchStruct(reqId, req)
-	if ferr != nil {	
+	if ferr != nil {
 		return req, ferr
-	}	
+	}
 	defer conn.Close()
-	
+
 	return req, nil
 
 }
@@ -123,7 +123,7 @@ type Component struct {
 	Outputs					   []*KeyValuePair		`json:"outputs"`
 	Artifacts                  *Artifacts			`json:"artifacts"`
 	RelatedComponents          []string				`json:"related_components"`
-	Operations     			   []*Operations    	`json:"operations"` 
+	Operations     			   []*Operations    	`json:"operations"`
 	Status         			   string    			`json:"status"`
 	CreatedAt                  string 				`json:"created_at"`
 }
@@ -134,41 +134,41 @@ type Component struct {
 func (asm *Component) Get(asmId string) (*Component, error) {
     log.Info("Get Component message %v", asmId)
     conn, err := db.Conn("components")
-	if err != nil {	
+	if err != nil {
 		return asm, err
-	}	
+	}
 	//appout := &Requests{}
 	ferr := conn.FetchStruct(asmId, asm)
-	if ferr != nil {	
+	if ferr != nil {
 		return asm, ferr
-	}	
+	}
 	defer conn.Close()
-	
+
 	return asm, nil
 
 }
 
 type Assemblies struct {
-   Id             string  	    	`json:"id"` 
+   Id             string  	    	`json:"id"`
    AccountsId     string    		`json:"accounts_id"`
-   JsonClaz       string   			`json:"json_claz"` 
-   Name           string   			`json:"name"` 
-   Assemblies     []string   		`json:"assemblies"` 
-   Inputs         []*KeyValuePair   `json:"inputs"` 
-   CreatedAt      string   			`json:"created_at"` 
+   JsonClaz       string   			`json:"json_claz"`
+   Name           string   			`json:"name"`
+   Assemblies     []string   		`json:"assemblies"`
+   Inputs         []*KeyValuePair   `json:"inputs"`
+   CreatedAt      string   			`json:"created_at"`
    }
-   
+
  func (asm *Assemblies) Get(asmId string) (*Assemblies, error) {
     log.Info("Get Assemblies message %v", asmId)
     conn, err := db.Conn("assemblies")
-	if err != nil {	
+	if err != nil {
 		return asm, err
-	}	
+	}
 	//appout := &Requests{}
 	ferr := conn.FetchStruct(asmId, asm)
-	if ferr != nil {	
+	if ferr != nil {
 		return asm, ferr
-	}	
+	}
 	defer conn.Close()
 	log.Debug(asm)
 	log.Debug("----------ASSEMBLIES--------")
@@ -178,51 +178,51 @@ type Assemblies struct {
 
 
 type Assembly struct {
-   Id             string   	 		`json:"id"` 
-   JsonClaz       string   			`json:"json_claz"` 
-   Name           string   			`json:"name"` 
+   Id             string   	 		`json:"id"`
+   JsonClaz       string   			`json:"json_claz"`
+   Name           string   			`json:"name"`
    ToscaType      string        	`json:"tosca_type"`
-   Components     []string   		`json:"components"` 
+   Components     []string   		`json:"components"`
    Requirements	  []*KeyValuePair	`json:"requirements"`
    Policies       []*Policy  		`json:"policies"`
    Inputs         []*KeyValuePair   `json:"inputs"`
-   Operations     []*Operations    	`json:"operations"` 
+   Operations     []*Operations    	`json:"operations"`
    Outputs        []*KeyValuePair  	`json:"outputs"`
    Status         string    		`json:"status"`
-   CreatedAt      string   			`json:"created_at"` 
+   CreatedAt      string   			`json:"created_at"`
    }
-   
+
 type AssemblyWithComponents struct {
 	Id         		string 				`json:"id"`
 	Name       		string 				`json:"name"`
 	ToscaType  		string          	`json:tosca_type"`
-	Components 		[]*Component		
+	Components 		[]*Component
 	Requirements	[]*KeyValuePair		`json:"requirements"`
     Policies        []*Policy  			`json:"policies"`
     Inputs          []*KeyValuePair   	`json:"inputs"`
-    Operations      []*Operations    	`json:"operations"` 
+    Operations      []*Operations    	`json:"operations"`
     Outputs         []*KeyValuePair  	`json:"outputs"`
     Status          string    			`json:"status"`
     Command         string
-    CreatedAt       string   			`json:"created_at"` 
+    CreatedAt       string   			`json:"created_at"`
 }
-   
+
 /**
 **fetch the Assembly data from riak and parse the json to struct
 **/
 func (req *Assembly) Get(reqId string) (*Assembly, error) {
     log.Info("Get Assembly message %v", reqId)
     conn, err := db.Conn("assembly")
-	if err != nil {	
+	if err != nil {
 		return req, err
-	}	
+	}
 	//appout := &Requests{}
 	ferr := conn.FetchStruct(reqId, req)
-	if ferr != nil {	
+	if ferr != nil {
 		return req, ferr
-	}	
+	}
 	defer conn.Close()
-	
+
 	return req, nil
 
 }
@@ -230,19 +230,19 @@ func (req *Assembly) Get(reqId string) (*Assembly, error) {
 func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithComponents, error) {
     log.Info("Get Assembly message %v", asmId)
     var j = -1
-    asmresult := &AssemblyWithComponents{}   
+    asmresult := &AssemblyWithComponents{}
 	conn, err := db.Conn("assembly")
-	if err != nil {	
+	if err != nil {
 		return asmresult, err
-	}	
+	}
 	//appout := &Requests{}
 	ferr := conn.FetchStruct(asmId, asm)
-	if ferr != nil {	
+	if ferr != nil {
 		return asmresult, ferr
-	}	
+	}
 	var arraycomponent = make([]*Component, len(asm.Components))
 	for i := range asm.Components {
-		 t := strings.TrimSpace(asm.Components[i])		
+		 t := strings.TrimSpace(asm.Components[i])
 		if len(t) > 1  {
 		  componentID := asm.Components[i]
 		  component := Component{Id: componentID }
@@ -251,13 +251,12 @@ func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithCompo
 		       log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		       return asmresult, err
 		  }
-	      j++	     
+	      j++
 		  arraycomponent[j] = com
 		  }
 	    }
-	log.Info("else entry")
 	result := &AssemblyWithComponents{Id: asm.Id, Name: asm.Name, ToscaType: asm.ToscaType,  Components: arraycomponent, Requirements: asm.Requirements, Policies: asm.Policies, Inputs: asm.Inputs, Outputs: asm.Outputs, Operations: asm.Operations, Status: asm.Status, CreatedAt: asm.CreatedAt}
-	defer conn.Close()	
+	defer conn.Close()
 	return result, nil
 }
 
@@ -271,7 +270,7 @@ func ParseKeyValuePair(keyvaluepair []*KeyValuePair, searchkey string) (*KeyValu
 }
 
 /**
-generate the rand string 
+generate the rand string
 **/
 func RandString(n int) string {
     const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -292,4 +291,3 @@ func RandString(n int) string {
     }
     return string(bytes)
 }
-

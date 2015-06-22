@@ -57,12 +57,10 @@ func LaunchApp(asm *global.AssemblyWithComponents, id string, act_id string) err
 }
 
 func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool, act_id string) error {
-
-	pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "host")
+	pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "provider")
 	if perrscm != nil {
 	  log.Error("Failed to get the host value : %s", perrscm)
 	}
-
 
 if pair_host.Value == "docker" {
 
