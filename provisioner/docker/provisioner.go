@@ -1,23 +1,15 @@
-
 package docker
 
 import (
- log "code.google.com/p/log4go"
- "encoding/json"
-//	"github.com/tsuru/config"
- //"github.com/megamsys/libgo/db"
- "github.com/megamsys/megamd/global"
- //"github.com/megamsys/gulp/policies"
- //"github.com/megamsys/gulp/app"
- "github.com/fsouza/go-dockerclient"
- "github.com/megamsys/megamd/provisioner"
- "github.com/tsuru/config"
+	"encoding/json"
 
-// "strings"
- //"fmt"
-// "bytes"
+	log "code.google.com/p/log4go"
+	"github.com/megamsys/megamd/global"
+
+	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/megamd/provisioner"
+	"github.com/tsuru/config"
 )
-
 
 func Init() {
 	provisioner.Register("docker", &Docker{})
@@ -26,55 +18,51 @@ func Init() {
 type Docker struct {
 }
 
-func (i *Docker) CreateCommand(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
-//Creates containers into the specificed  endpoint provided in the assembly.
+const baremetal = "baremetal"
 
-pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
-   if perrscm != nil {
-     log.Error("Failed to get the domain value : %s", perrscm)
-   }
+func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
+	//Creates containers into the specificed  endpoint provided in the assembly.
+	log.Info("%q", assembly)
+	pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
+	if perrscm != nil {
+		log.Error("Failed to get the endpoint value : %s", perrscm)
+	}
 
-pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
-    if perrscm != nil {
-      log.Error("Failed to get the domain value : %s", perrscm)
-    }
-var endpoint string
-if pair_endpoint.Value == "baremetal" {
+	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
+	if perrscm != nil {
+		log.Error("Failed to get the image value : %s", perrscm)
+	}
+	var endpoint string
+	if pair_endpoint.Value == baremetal {
 
-  api_host, _:= config.GetString("swarm:host")
-//  if apierr != nil {
-//    return apierr
-//  }
-      endpoint = api_host
+		api_host, _ := config.GetString("swarm:host")
+		endpoint = api_host
 
-} else {
-   endpoint = pair_endpoint.Value
- }
+	} else {
+		endpoint = pair_endpoint.Value
+	}
 
- client, _ := docker.NewClient(endpoint)
+	client, _ := docker.NewClient(endpoint)
 
+	config := docker.Config{Image: pair_img.Value}
+	copts := docker.CreateContainerOptions{Name: pair_img.Value, Config: &config}
 
-   config := docker.Config{Image: pair_img.Value}
- copts := docker.CreateContainerOptions{Name: pair_img.Value, Config: &config}
- container, conerr := client.CreateContainer(copts)
- if conerr != nil {
-      log.Error(conerr)
- }
+	container, conerr := client.CreateContainer(copts)
+	if conerr != nil {
+		log.Error(conerr)
+	}
 
-    cont := &docker.Container{}
-          mapP, _ := json.Marshal(container)
-          json.Unmarshal([]byte(string(mapP)), cont)
+	cont := &docker.Container{}
+	mapP, _ := json.Marshal(container)
+	json.Unmarshal([]byte(string(mapP)), cont)
 
-
- serr := client.StartContainer(cont.ID, &docker.HostConfig{})
- if serr != nil {
-   log.Error(serr)
- }
-
-   //contt, _ := client.ListContainers(docker.ListContainersOptions{})
-   return "",nil
+	serr := client.StartContainer(cont.ID, &docker.HostConfig{})
+	if serr != nil {
+		log.Error(serr)
+	}
+	return "", nil
 }
 
-
-
-func (i *Docker) DeleteCommand(assembly *global.AssemblyWithComponents, id string) (string, error) {return "",nil}
+func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (string, error) {
+	return "", nil
+}
