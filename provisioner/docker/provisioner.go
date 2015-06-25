@@ -4,18 +4,10 @@ package docker
 import (
  log "code.google.com/p/log4go"
  "encoding/json"
-//	"github.com/tsuru/config"
- //"github.com/megamsys/libgo/db"
  "github.com/megamsys/megamd/global"
- //"github.com/megamsys/gulp/policies"
- //"github.com/megamsys/gulp/app"
  "github.com/fsouza/go-dockerclient"
  "github.com/megamsys/megamd/provisioner"
  "github.com/tsuru/config"
-
-// "strings"
- //"fmt"
-// "bytes"
 )
 
 
