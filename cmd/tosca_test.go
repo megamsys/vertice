@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,4 +34,3 @@ func (s *S) TestTOSCA1(c *check.C) {
 	st2 := NewTOSCA()
 	c.Assert(st2, check.IsNil)
 }
-*/

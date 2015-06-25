@@ -12,12 +12,13 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package provisioner
 
 import (
 	//	"errors"
 	"fmt"
+
 	"github.com/megamsys/megamd/global"
 )
 
@@ -28,8 +29,8 @@ type Provisioner interface {
 	//Provision(*global.AssemblyWithComponents) error
 
 	// ExecuteCommand runs a command in all units of the app.
-	 CreateCommand(*global.AssemblyWithComponents, string, bool, string) (string, error)
-     DeleteCommand(*global.AssemblyWithComponents, string) (string, error)
+	Create(*global.AssemblyWithComponents, string, bool, string) (string, error)
+	Delete(*global.AssemblyWithComponents, string) (string, error)
 	// ExecuteCommandOnce runs a command in one unit of the app.
 	//	ExecuteCommandOnce(stdout, stderr io.Writer, app global.AssemblyWithComponents, cmd string, args ...string) error
 
