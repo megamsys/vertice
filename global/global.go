@@ -97,6 +97,13 @@ type KeyValuePair struct {
 	Value   string   `json:"value"`
 }
 
+func GetKeyValuePair(key string, value string) *KeyValuePair {
+	return &KeyValuePair{
+        Key:    key,
+        Value:  value,
+        }   
+}
+
 type Policy struct {
 	Name    string   `json:"name"`
 	Ptype   string   `json:"ptype"`
