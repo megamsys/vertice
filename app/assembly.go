@@ -102,7 +102,7 @@ func LauncherHelper(asm *global.AssemblyWithComponents, id string, instance bool
 func DeleteApp(asm *global.AssemblyWithComponents, id string) error {
 	log.Debug("Delete App entry")
 
-	pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "host")
+	pair_host, perrscm := global.ParseKeyValuePair(asm.Inputs, "provider")
 	if perrscm != nil {
 		log.Error("Failed to get the host value : %s", perrscm)
 	}
