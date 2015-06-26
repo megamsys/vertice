@@ -120,12 +120,12 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	}
 
-	var exposedPorts map[docker.Port]struct{}
-	exposedPorts = map[docker.Port]struct{}{
-		docker.Port(Iport + "/tcp"): {},
-	}
+	/*	var exposedPorts map[docker.Port]struct{}
+		exposedPorts = map[docker.Port]struct{}{
+			docker.Port(Iport + "/tcp"): {},
+		} */
 
-	config := docker.Config{Image: pair_img.Value, ExposedPorts: exposedPorts}
+	config := docker.Config{Image: pair_img.Value}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &config}
 
 	/*
@@ -148,10 +148,10 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	 */
 
 	hostConfig := docker.HostConfig{
-		Memory:     GetMemory(),
-		MemorySwap: GetMemory() + GetSwap(),
-		CPUQuota:   GetCpuQuota(),
-		CPUPeriod:  GetCpuPeriod(),
+	//Memory: GetMemory(),
+	//MemorySwap: GetMemory() + GetSwap(),
+	//CPUQuota:  GetCpuQuota(),
+	//CPUPeriod: GetCpuPeriod(),
 	}
 	hostConfig.PortBindings = map[docker.Port][]docker.PortBinding{
 		docker.Port(Iport + "/tcp"): {{HostIP: "", HostPort: ""}},
