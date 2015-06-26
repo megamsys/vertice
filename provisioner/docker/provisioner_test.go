@@ -33,11 +33,11 @@ type S struct{}
 
 var _ = check.Suite(&S{})
 
-var jsonC = `{"id": "COM1225063232952205312","name":"canardswrrttsse","tosca_type":"tosca.addon.containers","inputs":[{"key":"domain","value":"megambox.com"},{"key":"version","value":"0.1.0"},{"key":"source","value":"tutum/hello-world"}],"outputs":[],"artifacts":{"artifact_type":"","content":"","artifact_requirements":[]},"related_components":[],"operations":[],"status":"LAUNCHING","created_at":"2015-06-23 09:34:09 +0000"}`
+var jsonC = `{"id": "COM1225063232952205312","name":"canardswrrttsse","tosca_type":"tosca.addon.containers","inputs":[{"key":"domain","value":"megambox.com"},{"key":"version","value":"0.1.0"},{"key":"source","value":"nirmata/hello-world"}],"outputs":[],"artifacts":{"artifact_type":"","content":"","artifact_requirements":[]},"related_components":[],"operations":[],"status":"LAUNCHING","created_at":"2015-06-23 09:34:09 +0000"}`
 var res = &global.Component{}
 var components = json.Unmarshal([]byte(jsonC), &res)
 
-var jsonI = `{"key":"endpoint","value":"tcp://192.168.1.241:2375"}`
+var jsonI = `{"key":"endpoint","value":"tcp://103.56.92.2:2375"}`
 
 var resI = &global.KeyValuePair{}
 var input1 = json.Unmarshal([]byte(jsonI), &resI)

@@ -17,29 +17,42 @@ package docker
 
 import (
 	"encoding/json"
-	log "code.google.com/p/log4go"
-	"github.com/megamsys/megamd/global"
-	"github.com/fsouza/go-dockerclient"
-	"github.com/megamsys/megamd/provisioner"
-	"github.com/tsuru/config"
-	"github.com/megamsys/seru/cmd/seru"
-	"github.com/megamsys/seru/cmd"
-	"github.com/megamsys/libgo/db"
 	"fmt"
 	"strings"
+
+	log "code.google.com/p/log4go"
+	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/global"
+	"github.com/megamsys/megamd/provisioner"
+	"github.com/megamsys/seru/cmd"
+	"github.com/megamsys/seru/cmd/seru"
+	"github.com/tsuru/config"
 )
+
+/*
+*
+* Registers docker as provisioner in provisioner interface.
+*
+ */
 
 func Init() {
 	provisioner.Register("docker", &Docker{})
 }
 
-type Docker struct {
-}
+type Docker struct{}
 
 const BAREMETAL = "baremetal"
 
+/*
+* Create provisioner is called to launch docker containers by
+* talking to swarm cluster. Common provisioner for both
+* Baremetal and VM-docker launch. Specify endpoint
+* Swarm Host IP is added into the conf file.
+*
+ */
+
 func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
-	//Creates containers into the specificed  endpoint provided in the assembly.
 	log.Info("%q", assembly)
 	pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
 	if perrscm != nil {
@@ -52,103 +65,124 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		log.Error("Failed to get the image value : %s", perrscm)
 		return "", perrscm
 	}
-	
+
 	pair_domain, perrdomain := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 	if perrdomain != nil {
 		log.Error("Failed to get the image value : %s", perrdomain)
 		return "", perrdomain
 	}
-	
+
 	var endpoint string
 	if pair_endpoint.Value == BAREMETAL {
 
+		/*
+		 * swarm host is obtained from conf file. Swarm host is considered
+		 * only when the 'endpoint' is baremetal in the Component JSON
+		 */
 		api_host, _ := config.GetString("swarm:host")
 		endpoint = api_host
 
 	} else {
 		endpoint = pair_endpoint.Value
 	}
-
+	/*
+	 * Docker API client to connect to swarm. Swarm supports all docker API endpoints
+	 */
 	client, _ := docker.NewClient(endpoint)
 
 	config := docker.Config{Image: pair_img.Value}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &config}
 
+	/*
+	 * Creation of the container with the copts.
+	 */
+
 	container, conerr := client.CreateContainer(copts)
 	if conerr != nil {
-		log.Error("Container creation was failed : %s", conerr)
+		log.Error("Container creation failed : %s", conerr)
 		return "", conerr
 	}
-    
+
 	cont := &docker.Container{}
 	mapP, _ := json.Marshal(container)
-	json.Unmarshal([]byte(string(mapP)), cont)	
- 
+	json.Unmarshal([]byte(string(mapP)), cont)
+
 	serr := client.StartContainer(cont.ID, &docker.HostConfig{})
 	if serr != nil {
 		log.Error("Start container was failed : %s", serr)
 		return "", serr
-	}	
-	
+	}
+
+	/*
+	 * Inspect API is called to fetch the data about the launched container
+	 *
+	 */
 	inscontainer, _ := client.InspectContainer(cont.ID)
 	contain := &docker.Container{}
 	mapC, _ := json.Marshal(inscontainer)
 	json.Unmarshal([]byte(string(mapC)), contain)
-	
+
 	container_network := &docker.NetworkSettings{}
 	mapN, _ := json.Marshal(contain.NetworkSettings)
 	json.Unmarshal([]byte(string(mapN)), container_network)
 	fmt.Println(container_network.IPAddress)
-	
+
 	updatecomponent(assembly, container_network.IPAddress, cont.ID)
-	
+
 	herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), container_network.IPAddress)
 	if herr != nil {
 		log.Error("Failed to set the host name : %s", herr)
 		return "", herr
-	}	
-	
+	}
+
 	return "", nil
 }
 
-//Register a hostname on AWS route53 using seru 
+/*
+* Register a hostname on AWS Route53 using megam seru -
+*        www.github.com/megamsys/seru
+ */
 func setHostName(name string, ip string) error {
-	
-	 s := make([]string, 4)
-	 s = strings.Split(name, ".")
-	 
-	 accesskey, _ := config.GetString("aws:accesskey")
-	 secretkey, _ := config.GetString("aws:secretkey")
-		
+
+	s := make([]string, 4)
+	s = strings.Split(name, ".")
+
+	accesskey, _ := config.GetString("aws:accesskey")
+	secretkey, _ := config.GetString("aws:secretkey")
+
 	seru := &main.NewSubdomain{
-							Accesskey: accesskey,
-							Secretid:  secretkey,
-							Domain:    fmt.Sprint(s[1], ".", s[2], "."),
-							Subdomain: s[0], 
-							Ip:        ip,
-			}
-	
+		Accesskey: accesskey,
+		Secretid:  secretkey,
+		Domain:    fmt.Sprint(s[1], ".", s[2], "."),
+		Subdomain: s[0],
+		Ip:        ip,
+	}
+
 	seruerr := seru.ApiRun(&cmd.Context{})
 	if seruerr != nil {
 		log.Error("Failed to seru run : %s", seruerr)
-	}	
-		
+	}
+
 	return nil
 }
 
-// DeleteContainer kills a container, returning an error in case of failure.
+/*
+* Delete command kills the container by talking to swarm cluster and giving
+* the container ID.
+*
+ */
 func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (string, error) {
 
-    pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
+	pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
 	if perrscm != nil {
 		log.Error("Failed to get the endpoint value : %s", perrscm)
 	}
-	
+
 	pair_id, iderr := global.ParseKeyValuePair(assembly.Components[0].Outputs, "id")
 	if iderr != nil {
 		log.Error("Failed to get the endpoint value : %s", iderr)
 	}
-	
+
 	var endpoint string
 	if pair_endpoint.Value == BAREMETAL {
 
@@ -158,45 +192,50 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 	} else {
 		endpoint = pair_endpoint.Value
 	}
-	
+
 	client, _ := docker.NewClient(endpoint)
 	kerr := client.KillContainer(docker.KillContainerOptions{ID: pair_id.Value})
 	if kerr != nil {
 		log.Error("Failed to kill the container : %s", kerr)
 		return "", kerr
 	}
-	log.Info("Container was killed")
+	log.Info("Container is killed")
 	return "", nil
 }
 
+/*
+*
+* UpdateComponent updates the ipaddress that is bound to the container
+* It talks to riakdb and updates the respective component(s)
+ */
+
 func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, id string) {
 	log.Debug("Update process for component with ip and container id")
-    mySlice := make([]*global.KeyValuePair, 2)
-    mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
-    mySlice[1] = &global.KeyValuePair{Key: "id", Value: id}
-   			
-      
+	mySlice := make([]*global.KeyValuePair, 2)
+	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
+	mySlice[1] = &global.KeyValuePair{Key: "id", Value: id}
+
 	update := global.Component{
-		Id:						assembly.Components[0].Id,
-		Name:					assembly.Components[0].Name,
-		ToscaType:				assembly.Components[0].ToscaType,
-		Inputs:					assembly.Components[0].Inputs,
-		Outputs:    			mySlice,
-		Artifacts:				assembly.Components[0].Artifacts,
-		RelatedComponents:		assembly.Components[0].RelatedComponents,
-		Operations:				assembly.Components[0].Operations,
-		Status:					assembly.Components[0].Status,
-		CreatedAt:				assembly.Components[0].CreatedAt,
-		}
-		
+		Id:                assembly.Components[0].Id,
+		Name:              assembly.Components[0].Name,
+		ToscaType:         assembly.Components[0].ToscaType,
+		Inputs:            assembly.Components[0].Inputs,
+		Outputs:           mySlice,
+		Artifacts:         assembly.Components[0].Artifacts,
+		RelatedComponents: assembly.Components[0].RelatedComponents,
+		Operations:        assembly.Components[0].Operations,
+		Status:            assembly.Components[0].Status,
+		CreatedAt:         assembly.Components[0].CreatedAt,
+	}
+
 	conn, connerr := db.Conn("components")
-	if connerr != nil {	
-	    log.Error("Failed to riak connection : %s", connerr)
-	}	
-	      
-	err := conn.StoreStruct(assembly.Components[0].Id, &update)	
-	if err != nil {	
-	    log.Error("Failed to store the update component data : %s", err)
-	}	
+	if connerr != nil {
+		log.Error("Failed to riak connection : %s", connerr)
+	}
+
+	err := conn.StoreStruct(assembly.Components[0].Id, &update)
+	if err != nil {
+		log.Error("Failed to store the update component data : %s", err)
+	}
 	log.Info("Container component update was successfully.")
 }

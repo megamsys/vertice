@@ -16,29 +16,25 @@
 package provisioner
 
 import (
-	//	"errors"
 	"fmt"
 
 	"github.com/megamsys/megamd/global"
 )
 
-// Provisioner is the basic interface of this package.
-//
+/*
+ * Provisioner is the basic interface of this package.
+ */
 type Provisioner interface {
-	// Provision is called when tsuru is creating the app.
-	//Provision(*global.AssemblyWithComponents) error
-
-	// ExecuteCommand runs a command in all units of the app.
 	Create(*global.AssemblyWithComponents, string, bool, string) (string, error)
 	Delete(*global.AssemblyWithComponents, string) (string, error)
-	// ExecuteCommandOnce runs a command in one unit of the app.
-	//	ExecuteCommandOnce(stdout, stderr io.Writer, app global.AssemblyWithComponents, cmd string, args ...string) error
-
 }
 
 var provisioners = make(map[string]Provisioner)
 
-// Register registers a new provisioner in the Provisioner registry.
+/*
+ * Register registers a new provisioner in the Provisioner registry.
+ */
+
 func Register(name string, p Provisioner) {
 	provisioners[name] = p
 }
@@ -50,5 +46,4 @@ func GetProvisioner(name string) (Provisioner, error) {
 		return nil, fmt.Errorf("Provisioner not registered")
 	}
 	return provider, nil
-	//return nil
 }
