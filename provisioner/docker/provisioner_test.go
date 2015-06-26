@@ -16,6 +16,7 @@
 
 package docker
 
+/*
 import (
 	"encoding/json"
 	"testing"
@@ -33,7 +34,7 @@ type S struct{}
 
 var _ = check.Suite(&S{})
 
-var jsonC = `{"id": "COM1225063232952205312","name":"canardswrrttsse","tosca_type":"tosca.addon.containers","inputs":[{"key":"domain","value":"megambox.com"},{"key":"version","value":"0.1.0"},{"key":"source","value":"nirmata/hello-world"}],"outputs":[],"artifacts":{"artifact_type":"","content":"","artifact_requirements":[]},"related_components":[],"operations":[],"status":"LAUNCHING","created_at":"2015-06-23 09:34:09 +0000"}`
+var jsonC = `{"id": "COM1225063232952205312","name":"canardswrrttsse","tosca_type":"tosca.addon.containers","inputs":[{"key":"domain","value":"megambox.com"},{"key":"version","value":"0.1.0"},{"key":"source","value":"tutum/hello-world"}],"outputs":[],"artifacts":{"artifact_type":"","content":"","artifact_requirements":[]},"related_components":[],"operations":[],"status":"LAUNCHING","created_at":"2015-06-23 09:34:09 +0000"}`
 var res = &global.Component{}
 var components = json.Unmarshal([]byte(jsonC), &res)
 
@@ -60,7 +61,7 @@ func (s *S) TestDockerCreate(c *check.C) {
 
 }
 
-/*func (s *S) TestFailDockerCreate(c *check.C) {
+func (s *S) TestFailDockerCreate(c *check.C) {
 
 	var jsonI = `{"key":"endpoint","value":"tcp://103.56333.92.2:2375"}`
 

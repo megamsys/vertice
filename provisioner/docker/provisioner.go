@@ -81,7 +81,6 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		 */
 		api_host, _ := config.GetString("swarm:host")
 		endpoint = api_host
-
 	} else {
 		endpoint = pair_endpoint.Value
 	}
@@ -90,11 +89,47 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	 */
 	client, _ := docker.NewClient(endpoint)
 
-	config := docker.Config{Image: pair_img.Value}
+	opts := docker.PullImageOptions{
+		Repository: pair_img.Value,
+	}
+	pullerr := client.PullImage(opts, docker.AuthConfiguration{})
+	if pullerr != nil {
+		log.Error(pullerr)
+	}
+
+	/*
+	 * Inspect image to get the default internal port to ExposedPorts
+	 * the running internal port to external port
+	 *
+	 */
+
+	img, err := client.InspectImage(pair_img.Value)
+	if err != nil {
+		log.Error("Inspect image failed : %s", err)
+	}
+	InspectImg := &docker.Image{}
+	mapFP, _ := json.Marshal(img)
+	json.Unmarshal([]byte(string(mapFP)), InspectImg)
+	conf := InspectImg.Config
+
+	var Iport string
+
+	for k, _ := range conf.ExposedPorts {
+		port := strings.Split(string(k), "/")
+		Iport = port[0]
+
+	}
+
+	var exposedPorts map[docker.Port]struct{}
+	exposedPorts = map[docker.Port]struct{}{
+		docker.Port(Iport + "/tcp"): {},
+	}
+
+	config := docker.Config{Image: pair_img.Value, ExposedPorts: exposedPorts}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &config}
 
 	/*
-	 * Creation of the container with the copts.
+	 * Creation of the container with copts.
 	 */
 
 	container, conerr := client.CreateContainer(copts)
@@ -107,7 +142,27 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	mapP, _ := json.Marshal(container)
 	json.Unmarshal([]byte(string(mapP)), cont)
 
-	serr := client.StartContainer(cont.ID, &docker.HostConfig{})
+	/*
+	 * hostConfig{} stuct for portbindings - to expose visible ports
+	 *  Also for specfying the container configurations (memory, cpuquota etc)
+	 */
+
+	hostConfig := docker.HostConfig{
+		Memory:     GetMemory(),
+		MemorySwap: GetMemory() + GetSwap(),
+		CPUQuota:   GetCpuQuota(),
+		CPUPeriod:  GetCpuPeriod(),
+	}
+	hostConfig.PortBindings = map[docker.Port][]docker.PortBinding{
+		docker.Port(Iport + "/tcp"): {{HostIP: "", HostPort: ""}},
+	}
+
+	/*
+	 *   Starting container once the container is created - container ID &
+	 *   hostConfig is proivided to start the container.
+	 *
+	 */
+	serr := client.StartContainer(cont.ID, &hostConfig)
 	if serr != nil {
 		log.Error("Start container was failed : %s", serr)
 		return "", serr
@@ -125,9 +180,20 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	container_network := &docker.NetworkSettings{}
 	mapN, _ := json.Marshal(contain.NetworkSettings)
 	json.Unmarshal([]byte(string(mapN)), container_network)
-	fmt.Println(container_network.IPAddress)
 
-	updatecomponent(assembly, container_network.IPAddress, cont.ID)
+	configs := &docker.Config{}
+	mapPort, _ := json.Marshal(contain.Config)
+	json.Unmarshal([]byte(string(mapPort)), configs)
+
+	var port string
+
+	for k, _ := range container_network.Ports {
+		porti := strings.Split(string(k), "/")
+		port = porti[0]
+	}
+	fmt.Println(port)
+
+	updatecomponent(assembly, container_network.IPAddress, cont.ID, port)
 
 	herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), container_network.IPAddress)
 	if herr != nil {
@@ -209,11 +275,12 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 * It talks to riakdb and updates the respective component(s)
  */
 
-func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, id string) {
+func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, id string, port string) {
 	log.Debug("Update process for component with ip and container id")
-	mySlice := make([]*global.KeyValuePair, 2)
+	mySlice := make([]*global.KeyValuePair, 3)
 	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
 	mySlice[1] = &global.KeyValuePair{Key: "id", Value: id}
+	mySlice[2] = &global.KeyValuePair{Key: "port", Value: port}
 
 	update := global.Component{
 		Id:                assembly.Components[0].Id,
@@ -238,4 +305,27 @@ func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, 
 		log.Error("Failed to store the update component data : %s", err)
 	}
 	log.Info("Container component update was successfully.")
+}
+
+func GetMemory() int64 {
+	memory, _ := config.GetInt("dockerconfig:memory")
+	return int64(memory)
+}
+
+func GetSwap() int64 {
+	swap, _ := config.GetInt("dockerconfig:swap")
+	return int64(swap)
+
+}
+
+func GetCpuPeriod() int64 {
+	cpuPeriod, _ := config.GetInt("dockerconfig:cpuperiod")
+	return int64(cpuPeriod)
+
+}
+
+func GetCpuQuota() int64 {
+	cpuQuota, _ := config.GetInt("dockerconfig:cpuquota")
+	return int64(cpuQuota)
+
 }
