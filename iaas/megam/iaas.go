@@ -26,12 +26,17 @@ import (
 	"strings"
 )
 
+/*
+* Register the megam provider to iaas interface
 func Init() {
 	iaas.RegisterIaasProvider("megam", &MegamIaaS{})
 }
 
 type MegamIaaS struct{}
 
+/*
+* create the machine into megam server using knife opennebula plugin
+*/
 func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents, act_id string) (string, error) {
   log.Info("Megam provider create entry")
   accesskey, err_accesskey := config.GetString("opennebula:access_key")
@@ -107,6 +112,9 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
  
 }
 
+/*
+* delete the machine from megam server using knife opennebula plugin
+*/
 func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents) (string, error) {
   
 	accesskey, err_accesskey := config.GetString("opennebula:access_key")
@@ -142,7 +150,9 @@ func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.Ass
     return str, nil	
 }
 
-
+/*
+* Build the knife opennebula server create command
+*/
 func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	var buffer bytes.Buffer
 	buffer.WriteString("knife ")
@@ -160,7 +170,11 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	} else {
 		atype := make([]string, 3)
 		atype = strings.Split(assembly.ToscaType, ".")
-    	templatekey = "megam_" + atype[2]
+		pair, perr := global.ParseKeyValuePair(assembly.Inputs, "version")
+		if perr != nil {
+			log.Error("Failed to get the version : %s", perr)
+		}
+    	templatekey = "megam_" + atype[2] + "_" + pair.Value
 	}
 	
 	if len(templatekey) > 0 {
