@@ -34,7 +34,7 @@ import (
 *
 * Registers docker as provisioner in provisioner interface.
 *
- */
+*/
 
 func Init() {
 	provisioner.Register("docker", &Docker{})
@@ -50,7 +50,7 @@ const BAREMETAL = "baremetal"
 * Baremetal and VM-docker launch. Specify endpoint
 * Swarm Host IP is added into the conf file.
 *
- */
+*/
 
 func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	log.Info("%q", assembly)
@@ -207,7 +207,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 /*
 * Register a hostname on AWS Route53 using megam seru -
 *        www.github.com/megamsys/seru
- */
+*/
 func setHostName(name string, ip string) error {
 
 	s := make([]string, 4)
@@ -274,7 +274,6 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 * UpdateComponent updates the ipaddress that is bound to the container
 * It talks to riakdb and updates the respective component(s)
  */
-
 func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, id string, port string) {
 	log.Debug("Update process for component with ip and container id")
 	mySlice := make([]*global.KeyValuePair, 3)
