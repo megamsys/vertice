@@ -28,6 +28,7 @@ import (
 
 /*
 * Register the megam provider to iaas interface
+*/
 func Init() {
 	iaas.RegisterIaasProvider("megam", &MegamIaaS{})
 }
