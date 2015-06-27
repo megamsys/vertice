@@ -16,6 +16,7 @@
 
 package docker
 
+/*
 import (
 	"encoding/json"
 	"testing"
@@ -37,7 +38,7 @@ var jsonC = `{"id": "COM1225063232952205312","name":"canardswrrttsse","tosca_typ
 var res = &global.Component{}
 var components = json.Unmarshal([]byte(jsonC), &res)
 
-var jsonI = `{"key":"endpoint","value":"tcp://192.168.1.241:2375"}`
+var jsonI = `{"key":"endpoint","value":"tcp://103.56.92.2:2375"}`
 
 var resI = &global.KeyValuePair{}
 var input1 = json.Unmarshal([]byte(jsonI), &resI)
@@ -60,7 +61,7 @@ func (s *S) TestDockerCreate(c *check.C) {
 
 }
 
-/*func (s *S) TestFailDockerCreate(c *check.C) {
+func (s *S) TestFailDockerCreate(c *check.C) {
 
 	var jsonI = `{"key":"endpoint","value":"tcp://103.56333.92.2:2375"}`
 

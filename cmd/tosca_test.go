@@ -12,13 +12,11 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package cmd
 
-import (
 //	"gopkg.in/check.v1"
 //	"testing"
-)
 
 /*
 func Test(t *testing.T) {
@@ -34,3 +32,4 @@ func (s *S) TestTOSCA1(c *check.C) {
 	st2 := NewTOSCA()
 	c.Assert(st2, check.IsNil)
 }
+*/

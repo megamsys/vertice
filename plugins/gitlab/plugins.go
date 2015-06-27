@@ -6,11 +6,12 @@ import (
 	"github.com/megamsys/megamd/plugins"
 	"github.com/plouc/go-gitlab-client"
 	"github.com/tsuru/config"
-	//"encoding/json"
-	//"strings"
 )
 
-//to register a plugin
+/*
+ * Init to register a plugin
+ */
+
 func Init() {
 	plugins.RegisterPlugins("gitlab", &GitlabPlugin{})
 }
@@ -33,6 +34,10 @@ func (c *GitlabPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Op
 	}
 	return nil
 }
+
+/* GITLAB CE Support - Gitlab - Private git repository
+* cioperation builds the TRIGGERURL and calls gitlab client to add a webhook.
+ */
 
 func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
 
