@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -68,23 +68,21 @@ type Connection struct {
 }
 
 func (self *Server) Checker() {
-	log.Info("Dialing Rabbitmq.......")
+	log.Info("verifying rabbitmq")
 	factor, err := amqp.Factory()
 	if err != nil {
-		log.Error("Failed to get the queue instance: %s", err)
+		log.Error("Error: %v\nFailed to get the queue", err)
 	}
-	
+
 	conn, connerr := factor.Dial()
-    log.Debug("connection %v", conn)
-    log.Debug("connection error %v", connerr)
     if connerr != nil {
-    	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Rabbitmq service.\n", connerr)
+    	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start rabbitmq service.\n", connerr)
          os.Exit(1)
     }
-    log.Info("Rabbitmq connected")
-    
-    log.Info("Dialing Riak.......")
- 
+    log.Info("rabbitmq connected [ok]")
+
+    log.Info("verifying riak")
+
 	 rconn, rerr := db.Conn("connection")
 	 if rerr != nil {
 		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", connerr)
@@ -98,19 +96,16 @@ func (self *Server) Checker() {
          os.Exit(1)
 	 }
 	 defer rconn.Close()
-    log.Info("Riak connected")
-	
+    log.Info("riak connected [ok]")
+
 }
 
 func (self *Server) Stop() {
 	if self.stopped {
 		return
 	}
-	log.Info("Stopping servers ....")
+	log.Info("Bye. tata.")
 	self.stopped = true
-
-	log.Info("Stopping API server")
 	//self.HttpApi.Close()
-	log.Info("Stopped API server")
 
 }
