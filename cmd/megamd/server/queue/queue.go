@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,8 @@ type QueueServer struct {
 
 //interface arguments
 func NewServer(listenAddress string) *QueueServer {
+	log.Debug("Create queue server (%s).", listenAddress)
+
 	log.Info("Create New queue server")
 	self := &QueueServer{}
 
@@ -52,12 +54,9 @@ func (self *QueueServer) ListenAndServe() {
 	msgChan, _ := pubsub.Sub()
 	for msg := range msgChan {
 		log.Info(" [x] %q", msg)
-		log.Info("I am in! ")
 		coordinator.NewCoordinator(msg, self.ListenAddress)
 	}
-	
+
 	log.Info("Handling message %v", msgChan)
 	self.chann = msgChan
-
-	//self.Serve()
 }
