@@ -35,13 +35,13 @@ make
 
 ### Documentation
 
-Refer [documentation] (http://www.gomegam.com/docs)
+Refer [documentation] (http://docs.megam.io)
 
 
 
 We are glad to help if you have questions, or request for new features..
 
-[twitter @megamsys](http://twitter.com/megamsys) [email support@megam.co.in](<support@megam.co.in>)
+[twitter @megamsys](http://twitter.com/megamsys) [email support@megam.io](<support@megam.io>)
 
 
 
@@ -51,10 +51,10 @@ We are glad to help if you have questions, or request for new features..
 
 |                      |                                          |
 |:---------------------|:-----------------------------------------|
-| **Author:**          | Rajthilak (<rajthilak@megam.co.in>)
-| 	                   | KishorekumarNeelamegam (<nkishore@megam.co.in>)
-|                      | Yeshwanth Kumar (<getyesh@megam.co.in>)
-| **Copyright:**       | Copyright (c) 2012-2014 Megam Systems.
+| **Author:**          | Rajthilak (<rajthilak@megam.ion>)
+| 	                   | KishorekumarNeelamegam (<nkishore@megam.io>)
+|                      | Yeshwanth Kumar (<getyesh@megam.io>)
+| **Copyright:**       | Copyright (c) 2012-2015 Megam Systems.
 | **License:**         | Apache License, Version 2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
