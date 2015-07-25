@@ -276,6 +276,40 @@ func ParseKeyValuePair(keyvaluepair []*KeyValuePair, searchkey string) (*KeyValu
 	return nil, errors.New("The specific search key was not found in pair input...")
 }
 
+type DockerNetworksInfo struct {
+	Bridge 			string 		`json:"bridge"`
+	ContainerId 	string 		`json:"container_id"`
+	IpAddr 			string 		`json:"ip_addr"`
+	Gateway 		string 		`json:"gateway"`
+}
+
+const IPINDEXKEY = "ipgen"
+
+type IPIndex struct {
+   Ip             string   	 		`json:"ip"`
+   Subnet		  string			`json:"subnet"`
+   Index	      uint				`json:"index"`
+}   
+
+/**
+**fetch the ip index data from riak and parse the json to struct
+**/
+func (req *IPIndex) Get(key string) (*IPIndex, error) {
+    log.Info("Get IPIndex value %v", key)
+    conn, err := db.Conn("ipindex")
+	if err != nil {
+		return req, err
+	}
+	ferr := conn.FetchStruct(key, req)
+	if ferr != nil {
+		return req, ferr
+	}
+	defer conn.Close()
+
+	return req, nil
+
+}
+
 /**
 generate the rand string
 **/
