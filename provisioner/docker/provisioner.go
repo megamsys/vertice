@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"net"
+	//"net"
 	"net/http"
 	"io/ioutil"
 	"bytes"
@@ -31,7 +31,7 @@ import (
 	"github.com/megamsys/seru/cmd"
 	"github.com/megamsys/seru/cmd/seru"
 	"github.com/tsuru/config"
-	"github.com/megamsys/megamd/utils"
+//	"github.com/megamsys/megamd/utils"
 )
 
 /*
@@ -124,7 +124,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	}
 
-	
+
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &dconfig}
 
@@ -151,8 +151,8 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	log.Info(Iport)
 	//hostConfig.PortBindings = map[docker.Port][]docker.PortBinding{
 	//	docker.Port(Iport + "/tcp"): {{HostIP: "", HostPort: ""}},
-	//}	
-	
+	//}
+
 	/*
 	 *   Starting container once the container is created - container ID &
 	 *   hostConfig is proivided to start the container.
@@ -163,10 +163,11 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		log.Error("Start container was failed : %s", serr)
 		return "", serr
 	}
-	
+
 	/*
-	* generate the ip 
+	* generate the ip
 	*/
+	/*
 	subnetip, _ := config.GetString("swarm:subnet")
 	_, subnet, _ := net.ParseCIDR(subnetip)
 	ip, pos, iperr := utils.IPRequest(*subnet)
@@ -174,17 +175,28 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		log.Error("Ip generation was failed : %s", iperr)
 		return "", iperr
 	}
-	
+*/
 	/*
 	* configure ip to container
 	*/
+	/*
 	ipperr := postnetwork(cont.ID, ip.String())
 	log.Info(ipperr)
-	
+
 	uerr := updateIndex(ip.String(), pos)
 	if uerr != nil {
-		log.Error("Ip index update was failed : %s", uerr)
+		log.Error("Ip index update has failed : %s", uerr)
 	}
+*/
+
+	/*
+	 * Configure log stream for container
+	 */
+
+
+   logerr := postlogs(cont.ID, cont.Name)
+   log.Info(logerr)
+
 
 	/*
 	 * Inspect API is called to fetch the data about the launched container
@@ -202,7 +214,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	configs := &docker.Config{}
 	mapPort, _ := json.Marshal(contain.Config)
 	json.Unmarshal([]byte(string(mapPort)), configs)
-   
+
 	var port string
 
 	for k, _ := range container_network.Ports {
@@ -211,14 +223,14 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	}
 	fmt.Println(port)
 
-	updatecomponent(assembly, ip.String(), cont.ID, port)
+//	updatecomponent(assembly, ip.String(), cont.ID, port)
 
-	herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), ip.String())
-	if herr != nil {
-		log.Error("Failed to set the host name : %s", herr)
-		return "", herr
-	}
-	
+	//herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), ip.String())
+	//if herr != nil {
+	//	log.Error("Failed to set the host name : %s", herr)
+	//	return "", herr
+	//}
+
 
 	return "", nil
 }
@@ -347,12 +359,38 @@ func GetCpuQuota() int64 {
 	return int64(cpuQuota)
 
 }
-
+/*
 func postnetwork(containerid string, ip string) error {
 	url := "http://192.168.1.100:8084/docker/networks"
     fmt.Println("URL:>", url)
 
-    data := &global.DockerNetworksInfo{Bridge: "one", ContainerId: containerid, IpAddr: ip, Gateway: "103.56.92.1"} 
+    data := &global.DockerNetworksInfo{Bridge: "one", ContainerId: containerid, IpAddr: ip, Gateway: "103.56.92.1"}
+	res2B, _ := json.Marshal(data)
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
+    req.Header.Set("X-Custom-Header", "myvalue")
+    req.Header.Set("Content-Type", "application/json")
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+
+    fmt.Println("response Status:", resp.Status)
+    fmt.Println("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
+    fmt.Println("response Body:", string(body))
+    return nil
+}
+*/
+
+func postlogs(containerid string, containername string) error {
+	gulpUrl,_ := config.GetString("gulp:url")
+	url := gulpUrl+"docker/logs"
+    fmt.Println("URL:>", url)
+
+    data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}
 	res2B, _ := json.Marshal(data)
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
     req.Header.Set("X-Custom-Header", "myvalue")
@@ -372,6 +410,9 @@ func postnetwork(containerid string, ip string) error {
     return nil
 }
 
+
+
+
 func updateIndex(ip string, pos uint) error{
 
 	index := global.IPIndex{}
@@ -382,7 +423,7 @@ func updateIndex(ip string, pos uint) error{
 	}
 
 	update := global.IPIndex{
-		Ip:			ip, 			
+		Ip:			ip,
 		Subnet: 	res.Subnet,
 		Index:		pos,
 	}
