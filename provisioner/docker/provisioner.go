@@ -19,7 +19,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
+	"net"
+	"net/http"
+	"io/ioutil"
+	"bytes"
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/db"
@@ -28,6 +31,7 @@ import (
 	"github.com/megamsys/seru/cmd"
 	"github.com/megamsys/seru/cmd/seru"
 	"github.com/tsuru/config"
+	"github.com/megamsys/megamd/utils"
 )
 
 /*
@@ -120,13 +124,9 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	}
 
-	/*	var exposedPorts map[docker.Port]struct{}
-		exposedPorts = map[docker.Port]struct{}{
-			docker.Port(Iport + "/tcp"): {},
-		} */
-
-	config := docker.Config{Image: pair_img.Value}
-	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &config}
+	
+	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
+	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &dconfig}
 
 	/*
 	 * Creation of the container with copts.
@@ -143,20 +143,16 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	json.Unmarshal([]byte(string(mapP)), cont)
 
 	/*
-	 * hostConfig{} stuct for portbindings - to expose visible ports
+	 * hostConfig{} struct for portbindings - to expose visible ports
 	 *  Also for specfying the container configurations (memory, cpuquota etc)
 	 */
 
-	hostConfig := docker.HostConfig{
-	//Memory: GetMemory(),
-	//MemorySwap: GetMemory() + GetSwap(),
-	//CPUQuota:  GetCpuQuota(),
-	//CPUPeriod: GetCpuPeriod(),
-	}
-	hostConfig.PortBindings = map[docker.Port][]docker.PortBinding{
-		docker.Port(Iport + "/tcp"): {{HostIP: "", HostPort: ""}},
-	}
-
+	hostConfig := docker.HostConfig{}
+	log.Info(Iport)
+	//hostConfig.PortBindings = map[docker.Port][]docker.PortBinding{
+	//	docker.Port(Iport + "/tcp"): {{HostIP: "", HostPort: ""}},
+	//}	
+	
 	/*
 	 *   Starting container once the container is created - container ID &
 	 *   hostConfig is proivided to start the container.
@@ -166,6 +162,28 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	if serr != nil {
 		log.Error("Start container was failed : %s", serr)
 		return "", serr
+	}
+	
+	/*
+	* generate the ip 
+	*/
+	subnetip, _ := config.GetString("swarm:subnet")
+	_, subnet, _ := net.ParseCIDR(subnetip)
+	ip, pos, iperr := utils.IPRequest(*subnet)
+	if iperr != nil {
+		log.Error("Ip generation was failed : %s", iperr)
+		return "", iperr
+	}
+	
+	/*
+	* configure ip to container
+	*/
+	ipperr := postnetwork(cont.ID, ip.String())
+	log.Info(ipperr)
+	
+	uerr := updateIndex(ip.String(), pos)
+	if uerr != nil {
+		log.Error("Ip index update was failed : %s", uerr)
 	}
 
 	/*
@@ -184,7 +202,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	configs := &docker.Config{}
 	mapPort, _ := json.Marshal(contain.Config)
 	json.Unmarshal([]byte(string(mapPort)), configs)
-
+   
 	var port string
 
 	for k, _ := range container_network.Ports {
@@ -193,13 +211,14 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	}
 	fmt.Println(port)
 
-	updatecomponent(assembly, container_network.IPAddress, cont.ID, port)
+	updatecomponent(assembly, ip.String(), cont.ID, port)
 
-	herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), container_network.IPAddress)
+	herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), ip.String())
 	if herr != nil {
 		log.Error("Failed to set the host name : %s", herr)
 		return "", herr
 	}
+	
 
 	return "", nil
 }
@@ -327,4 +346,58 @@ func GetCpuQuota() int64 {
 	cpuQuota, _ := config.GetInt("dockerconfig:cpuquota")
 	return int64(cpuQuota)
 
+}
+
+func postnetwork(containerid string, ip string) error {
+	url := "http://192.168.1.100:8084/docker/networks"
+    fmt.Println("URL:>", url)
+
+    data := &global.DockerNetworksInfo{Bridge: "one", ContainerId: containerid, IpAddr: ip, Gateway: "103.56.92.1"} 
+	res2B, _ := json.Marshal(data)
+    req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
+    req.Header.Set("X-Custom-Header", "myvalue")
+    req.Header.Set("Content-Type", "application/json")
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        panic(err)
+    }
+    defer resp.Body.Close()
+
+    fmt.Println("response Status:", resp.Status)
+    fmt.Println("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
+    fmt.Println("response Body:", string(body))
+    return nil
+}
+
+func updateIndex(ip string, pos uint) error{
+
+	index := global.IPIndex{}
+	res, err := index.Get(global.IPINDEXKEY)
+	if err != nil {
+		log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		return err
+	}
+
+	update := global.IPIndex{
+		Ip:			ip, 			
+		Subnet: 	res.Subnet,
+		Index:		pos,
+	}
+
+	conn, connerr := db.Conn("ipindex")
+	if connerr != nil {
+		log.Error("Failed to riak connection : %s", connerr)
+		return connerr
+	}
+
+	serr := conn.StoreStruct(global.IPINDEXKEY, &update)
+	if serr != nil {
+		log.Error("Failed to store the update index value : %s", serr)
+		return serr
+	}
+	log.Info("Docker network index update was successfully.")
+	return nil
 }
