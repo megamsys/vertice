@@ -101,7 +101,7 @@ func GetKeyValuePair(key string, value string) *KeyValuePair {
 	return &KeyValuePair{
         Key:    key,
         Value:  value,
-        }   
+        }
 }
 
 type Policy struct {
@@ -283,13 +283,18 @@ type DockerNetworksInfo struct {
 	Gateway 		string 		`json:"gateway"`
 }
 
+type DockerLogsInfo struct {
+	ContainerId   string `json:"container_id"`
+	ContainerName  string `json:"container_name"`
+}
+
 const IPINDEXKEY = "ipgen"
 
 type IPIndex struct {
    Ip             string   	 		`json:"ip"`
    Subnet		  string			`json:"subnet"`
    Index	      uint				`json:"index"`
-}   
+}
 
 /**
 **fetch the ip index data from riak and parse the json to struct
