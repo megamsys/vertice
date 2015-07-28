@@ -39,7 +39,13 @@ type IaaS interface {
 	DeleteMachine(*global.PredefClouds, *global.AssemblyWithComponents) (string, error)
 }
 
-const defaultYAMLPath = "conf/commands.yaml"
+const (
+	defaultYAMLPath = "conf/commands.yaml"
+	CLOUDACCESSKEYSBUCKET= "cloudaccesskeys"
+	PREDEFCLOUDSBUCKET= "predefclouds"
+	CLOUDKEYSBUCKET= "cloudkeys"
+	SSHFILESBUCKET= "sshfiles"
+)
 
 type Attributes struct {
 	RiakHost    string  `json:"riak_host"`
@@ -96,12 +102,8 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 
 func getProviderName(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
-
-	predefBucket, perr := config.GetString("riak:predefclouds")
-	if perr != nil {
-		return pdc, perr
-	}
-	conn, err := db.Conn(predefBucket)
+	
+	conn, err := db.Conn(PREDEFCLOUDSBUCKET)
 
 	if err != nil {
 		return pdc, err
@@ -152,16 +154,13 @@ func GetIdentityFileLocation(file string) (string, error) {
 	s := make([]string, 2)
 	s = strings.Split(file, "_")
 	email, name := s[0], s[1]
-	cloudkeysBucket, err := config.GetString("riak:cloud_keys")
-	if err != nil {
-		return "", err
-	}
+	
 	megam_home, err := config.GetString("megam_home")
 	if err != nil {
 		return "", err
 	}
 
-	return megam_home + cloudkeysBucket + "/" + email + "/" + name, nil
+	return megam_home + CLOUDKEYSBUCKET + "/" + email + "/" + name, nil
 }
 
 type SshFile struct {
@@ -173,11 +172,8 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	sa = strings.Split(pdc.Access.IdentityFile, "_")
 	email, name := sa[0], sa[1]
 	ssh := &db.SshObject{}
-	sshBucket, serr := config.GetString("riak:ssh_files")
-	if serr != nil {
-		return serr
-	}
-	conn, err := db.Conn(sshBucket)
+	
+	conn, err := db.Conn(SSHFILESBUCKET)
 	if err != nil {
 		return err
 	}
@@ -186,17 +182,13 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	if ferr != nil {
 		return ferr
 	}
-	cloudkeysBucket, ckberr := config.GetString("riak:cloud_keys")
-	if ckberr != nil {
-		return ckberr
-	}
-
+	
 	megam_home, ckberr := config.GetString("megam_home")
 	if ckberr != nil {
 		return ckberr
 	}
 
-	basePath := megam_home + cloudkeysBucket
+	basePath := megam_home + CLOUDKEYSBUCKET
 	dir := path.Join(basePath, email)
 	filePath := path.Join(dir, name+"."+keyvalue)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -225,12 +217,8 @@ type AccessKeys struct {
 
 func GetAccessKeys(pdc *global.PredefClouds) (*AccessKeys, error) {
 	keys := &AccessKeys{}
-	cakbBucket, cakberr := config.GetString("riak:cloud_access_keys")
-	if cakberr != nil {
-		return keys, cakberr
-	}
-
-	conn, err := db.Conn(cakbBucket)
+	
+	conn, err := db.Conn(CLOUDACCESSKEYSBUCKET)
 	if err != nil {
 		return keys, err
 	}

@@ -62,10 +62,10 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		 * swarm host is obtained from conf file. Swarm host is considered
 		 * only when the 'endpoint' is baremetal in the Component JSON
 		 */
-		api_host, _ := config.GetString("swarm:host")
+		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
 		
-		containerID, cerr := create(assembly, endpoint)
+		containerID, containerName, cerr := create(assembly, endpoint)
 		if cerr != nil {
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
@@ -77,13 +77,18 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			return "", serr
 		}
 		
-		ipaddress, iperr := setContainerNetwork(containerID, endpoint)
+		ipaddress, iperr := setContainerNAL(containerID, containerName, endpoint)
 		if iperr != nil {
 			log.Error("set container network was failed : %s", iperr)
 			return "", iperr
 		}
 		
-		updateContainerJSON(assembly, ipaddress, containerID)
+		herr := setHostName(containerName, ipaddress)
+		if herr != nil {
+		  log.Error("set host name error : %s", herr)
+		}
+		
+		updateContainerJSON(assembly, ipaddress, containerID, endpoint)
 	} else {
 		endpoint = pair_endpoint.Value
 		create(assembly, endpoint)
@@ -112,7 +117,7 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 	var endpoint string
 	if pair_endpoint.Value == BAREMETAL {
 
-		api_host, _ := config.GetString("swarm:host")
+		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
 
 	} else {
@@ -133,18 +138,18 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 * Docker API client to connect to swarm/docker VM. 
 * Swarm supports all docker API endpoints
 */
-func create(assembly *global.AssemblyWithComponents, endpoint string) (string, error) {
+func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
 	
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
-		return "", perrscm
+		return "", "", perrscm
 	}
 
 	pair_domain, perrdomain := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 	if perrdomain != nil {
 		log.Error("Failed to get the image value : %s", perrdomain)
-		return "", perrdomain
+		return "", "", perrdomain
 	}
 	
 	client, _ := docker.NewClient(endpoint)
@@ -155,7 +160,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, e
 	pullerr := client.PullImage(opts, docker.AuthConfiguration{})
 	if pullerr != nil {
 		log.Error("Image pulled failed : %s", pullerr)
-		return "", pullerr
+		return "", "", pullerr
 	}
 	
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
@@ -168,16 +173,19 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, e
 	container, conerr := client.CreateContainer(copts)
 	if conerr != nil {
 		log.Error("Container creation failed : %s", conerr)
-		return "", conerr
+		return "", "", conerr
 	}
 	
 	cont := &docker.Container{}
 	mapP, _ := json.Marshal(container)
 	json.Unmarshal([]byte(string(mapP)), cont)
 	
-	return cont.ID, nil
+	return cont.ID, cont.Name, nil
 }
 
+/* 
+* start the container using docker endpoint
+*/
 func StartContainer(containerID string, endpoint string) error {
 	
 	client, _ := docker.NewClient(endpoint)
@@ -202,4 +210,29 @@ func StartContainer(containerID string, endpoint string) error {
  return nil	
 }
 
+/* 
+* stop the container using docker endpoint
+*/
+func StopContainer(containerID string, endpoint string) error {
 
+	client, _ := docker.NewClient(endpoint)
+	serr := client.StopContainer(containerID, 10)
+	if serr != nil {
+		log.Error("container was not stopped - Error : %s", serr)
+		return serr
+	}
+	return nil
+}
+
+/* 
+* restart the container using docker endpoint
+*/
+func RestartContainer(containerID string, endpoint string) error {
+	client, _ := docker.NewClient(endpoint)
+	rerr := client.RestartContainer(containerID, 10)
+	if rerr != nil {
+		log.Error("container was not restarted - Error : %s", rerr)
+		return rerr
+	}
+	return nil
+}
