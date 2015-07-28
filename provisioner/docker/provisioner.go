@@ -20,9 +20,10 @@ import (
 	"fmt"
 	"strings"
 	//"net"
-	"net/http"
-	"io/ioutil"
 	"bytes"
+	"io/ioutil"
+	"net/http"
+
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/db"
@@ -31,14 +32,14 @@ import (
 	"github.com/megamsys/seru/cmd"
 	"github.com/megamsys/seru/cmd/seru"
 	"github.com/tsuru/config"
-//	"github.com/megamsys/megamd/utils"
+	//	"github.com/megamsys/megamd/utils"
 )
 
 /*
 *
 * Registers docker as provisioner in provisioner interface.
 *
-*/
+ */
 
 func Init() {
 	provisioner.Register("docker", &Docker{})
@@ -54,7 +55,7 @@ const BAREMETAL = "baremetal"
 * Baremetal and VM-docker launch. Specify endpoint
 * Swarm Host IP is added into the conf file.
 *
-*/
+ */
 
 func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	log.Info("%q", assembly)
@@ -124,7 +125,6 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	}
 
-
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &dconfig}
 
@@ -166,37 +166,36 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	/*
 	* generate the ip
-	*/
+	 */
+
 	/*
-	subnetip, _ := config.GetString("swarm:subnet")
-	_, subnet, _ := net.ParseCIDR(subnetip)
-	ip, pos, iperr := utils.IPRequest(*subnet)
-	if iperr != nil {
-		log.Error("Ip generation was failed : %s", iperr)
-		return "", iperr
-	}
-*/
+		subnetip, _ := config.GetString("swarm:subnet")
+		_, subnet, _ := net.ParseCIDR(subnetip)
+		ip, pos, iperr := utils.IPRequest(*subnet)
+			log.Error("Ip generation was failed : %s", iperr)
+		if iperr != nil {
+			return "", iperr
+		}
+	*/
 	/*
 	* configure ip to container
-	*/
+	 */
 	/*
-	ipperr := postnetwork(cont.ID, ip.String())
-	log.Info(ipperr)
+		ipperr := postnetwork(cont.ID, ip.String())
+		log.Info(ipperr)
 
-	uerr := updateIndex(ip.String(), pos)
-	if uerr != nil {
-		log.Error("Ip index update has failed : %s", uerr)
-	}
-*/
+		uerr := updateIndex(ip.String(), pos)
+		if uerr != nil {
+			log.Error("Ip index update has failed : %s", uerr)
+		}
+	*/
 
 	/*
 	 * Configure log stream for container
 	 */
 
-
-   logerr := postlogs(cont.ID, cont.Name)
-   log.Info(logerr)
-
+	logerr := postlogs(cont.ID, cont.Name)
+	log.Info(logerr)
 
 	/*
 	 * Inspect API is called to fetch the data about the launched container
@@ -223,7 +222,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	}
 	fmt.Println(port)
 
-//	updatecomponent(assembly, ip.String(), cont.ID, port)
+	//	updatecomponent(assembly, ip.String(), cont.ID, port)
 
 	//herr := setHostName(fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), ip.String())
 	//if herr != nil {
@@ -231,14 +230,13 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	//	return "", herr
 	//}
 
-
 	return "", nil
 }
 
 /*
 * Register a hostname on AWS Route53 using megam seru -
 *        www.github.com/megamsys/seru
-*/
+ */
 func setHostName(name string, ip string) error {
 
 	s := make([]string, 4)
@@ -301,6 +299,34 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 }
 
 /*
+ * Lifecycle of docker container - needs to be moved out!
+ */
+
+//func startContainer(cont *global.AssemblyWithComponents) {
+//	endpoint, _ := config.GetString("swarm:host")
+//	client, _ := docker.NewClient(endpoint)
+//}
+
+func StopContainer(id string, endpoint string) error {
+
+	client, _ := docker.NewClient(endpoint)
+	serr := client.StopContainer(id, 10)
+	if serr != nil {
+		fmt.Println("Error - Is swarm master up?")
+	}
+	return nil
+}
+
+func RestartContainer(id string, endpoint string) error {
+	client, _ := docker.NewClient(endpoint)
+	rerr := client.RestartContainer(id, 10)
+	if rerr != nil {
+		fmt.Println("Error - Is swarm master up?")
+	}
+	return nil
+}
+
+/*
 *
 * UpdateComponent updates the ipaddress that is bound to the container
 * It talks to riakdb and updates the respective component(s)
@@ -359,6 +385,7 @@ func GetCpuQuota() int64 {
 	return int64(cpuQuota)
 
 }
+
 /*
 func postnetwork(containerid string, ip string) error {
 	url := "http://192.168.1.100:8084/docker/networks"
@@ -386,34 +413,31 @@ func postnetwork(containerid string, ip string) error {
 */
 
 func postlogs(containerid string, containername string) error {
-	gulpUrl,_ := config.GetString("gulp:url")
-	url := gulpUrl+"docker/logs"
-    fmt.Println("URL:>", url)
+	gulpUrl, _ := config.GetString("gulp:url")
+	url := gulpUrl + "docker/logs"
+	fmt.Println("URL:>", url)
 
-    data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}
+	data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}
 	res2B, _ := json.Marshal(data)
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
-    req.Header.Set("X-Custom-Header", "myvalue")
-    req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
 
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        panic(err)
-    }
-    defer resp.Body.Close()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
 
-    fmt.Println("response Status:", resp.Status)
-    fmt.Println("response Headers:", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-    fmt.Println("response Body:", string(body))
-    return nil
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
+	return nil
 }
 
-
-
-
-func updateIndex(ip string, pos uint) error{
+func updateIndex(ip string, pos uint) error {
 
 	index := global.IPIndex{}
 	res, err := index.Get(global.IPINDEXKEY)
@@ -423,9 +447,9 @@ func updateIndex(ip string, pos uint) error{
 	}
 
 	update := global.IPIndex{
-		Ip:			ip,
-		Subnet: 	res.Subnet,
-		Index:		pos,
+		Ip:     ip,
+		Subnet: res.Subnet,
+		Index:  pos,
 	}
 
 	conn, connerr := db.Conn("ipindex")
