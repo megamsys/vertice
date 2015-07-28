@@ -243,7 +243,10 @@ func postnetwork(containerid string, ip string) {
 	url := gulpUrl + "docker/networks"
     log.Info("URL:> %s", url)
 
-    data := &global.DockerNetworksInfo{Bridge: "one", ContainerId: containerid, IpAddr: ip, Gateway: "103.56.92.1"} 
+	bridge, _ := config.GetString("docker:bridge")
+	gateway, _ := config.GetString("docker:gateway")
+	
+    data := &global.DockerNetworksInfo{Bridge: bridge, ContainerId: containerid, IpAddr: ip, Gateway: gateway} 
 	res2B, _ := json.Marshal(data)
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
     req.Header.Set("X-Custom-Header", "myvalue")
