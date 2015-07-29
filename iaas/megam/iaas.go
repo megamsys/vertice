@@ -160,14 +160,15 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
 	buffer.WriteString("create")	
-	
+	cpu, perr := global.ParseKeyValuePair(assembly.Inputs, "cpu")
+	ram, perr := global.ParseKeyValuePair(assembly.Inputs, "ram")
 	templatekey := ""
 	if len(assembly.Components) > 0 {
 	   megamtemplatekey, err_templatekey := config.GetString("opennebula:default_template_name")
 		if err_templatekey != nil {
 			return "", err_templatekey
 		}	
-		templatekey = megamtemplatekey
+		templatekey = megamtemplatekey + "_" + cpu.Value + "_" + ram.Value
 	} else {
 		atype := make([]string, 3)
 		atype = strings.Split(assembly.ToscaType, ".")
@@ -175,7 +176,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 		if perr != nil {
 			log.Error("Failed to get the version : %s", perr)
 		}
-    	templatekey = "megam_" + atype[2] + "_" + pair.Value
+    	templatekey = "megam_" + atype[2] + "_" + pair.Value + "_" + cpu.Value + "_" + ram.Value
 	}
 	
 	if len(templatekey) > 0 {
