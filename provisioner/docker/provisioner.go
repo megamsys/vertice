@@ -138,7 +138,7 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 	}
 	out := """
 	*-------------------------------------------------*
-	| Megamswarm           /-+-fishing nodes for you. |
+	| megamswarm     ----->    fishing nodes for you. |
 	*-------------------------------------------------*\n"""
 
 	for _, node := range nodeList {
@@ -154,7 +154,6 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 * Swarm Host IP is added into the conf file.
 *
 */
-
 func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	log.Info("%q", assembly)
 	pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
@@ -247,7 +246,6 @@ func (i *dockerProvisioner) Delete(assembly *global.AssemblyWithComponents, id s
 * Swarm supports all docker API endpoints
 */
 func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
-
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
