@@ -38,7 +38,6 @@ func (c *GitlabPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Op
 /* GITLAB CE Support - Gitlab - Private git repository
 * cioperation builds the TRIGGERURL and calls gitlab client to add a webhook.
  */
-
 func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
 
 	pair_scm, perrscm := global.ParseKeyValuePair(ci.OperationRequirements, "ci-scm")
@@ -76,17 +75,12 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 			log.Error("Failed to get the ci-owner value : %s", perrowner)
 		}
 
-		api_host, apierr := config.GetString("api:host")
+		api_host, apierr := config.GetString("megam:api")
 		if apierr != nil {
 			return apierr
 		}
 
-		api_version, apiverr := config.GetString("api:version")
-		if apiverr != nil {
-			return apiverr
-		}
-
-		trigger_url := "http://" + api_host + "/" + api_version + "/assembly/build/" + asm.Id + "/" + com.Id
+		trigger_url :=  api_host +  "/assembly/build/" + asm.Id + "/" + com.Id
 
 		client := gogitlab.NewGitlab(pair_url.Value, pair_apiversion.Value, pair_token.Value)
 
@@ -94,9 +88,9 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		if err != nil {
 			return err
 		}
-
+		log.Info("[megamd] added project hook %s %s.",pair_owner.Value, trigger_url)
 	} else {
-		log.Info("GitLab is skipped")
+		log.Info("[megamd] skip gitlab.")
 	}
 	return nil
 

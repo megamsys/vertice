@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,11 +12,12 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package iaas
 
 import (
 	log "code.google.com/p/log4go"
+	"errors"
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
@@ -27,7 +28,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-	"errors"
 )
 
 // Every Tsuru IaaS must implement this interface.
@@ -39,16 +39,20 @@ type IaaS interface {
 	DeleteMachine(*global.PredefClouds, *global.AssemblyWithComponents) (string, error)
 }
 
-const defaultYAMLPath = "conf/commands.yaml"
+const (
+	defaultYAMPath = "conf/commands.yaml"
+	PREDEFCLOUDS   = "predefclouds"
+	CLOUDKEYS      = "cloudkeys"
+	SSH_FILES      = "ssh_files"
+)
 
 type Attributes struct {
-	RiakHost    string  `json:"riak_host"`
-	AccountID   string  `json:"accounts_id"`
-	AssemblyID  string  `json:"assembly_id"`
-    RabbitMQ    string  `json:"rabbitmq_host"`
-    MonitorHost string  `json:"monitor_host"`
-    KibanaHost  string  `json:"kibana_host"`
-    EtcdHost    string  `json:"etcd_host"`
+	RiakHost    string `json:"riak_host"`
+	AccountID   string `json:"accounts_id"`
+	AssemblyID  string `json:"assembly_id"`
+	RabbitMQ    string `json:"rabbitmq_host"`
+	MonitorHost string `json:"monitor_host"`
+	KibanaHost  string `json:"kibana_host"`
 }
 
 type Plugins struct {
@@ -63,10 +67,6 @@ type Commands struct {
 	Data   string
 }
 
-//type SshObject struct{
-//	  Data string
-///	}
-
 var iaasProviders = make(map[string]IaaS)
 
 func RegisterIaasProvider(name string, iaas IaaS) {
@@ -77,14 +77,14 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 	err := errors.New("")
 	pdc_type := ""
-    if name == "megam" {
-      pdc_type = name
-    } else {
-       pdc, err = getProviderName(name)
+	if name == "megam" {
+		pdc_type = name
+	} else {
+		pdc, err = getProviderName(name)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error: Riak didn't cooperate:\n%s.", err)
 		}
-    }	
+	}
 
 	provider, ok := iaasProviders[pdc_type]
 	if !ok {
@@ -97,11 +97,7 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 func getProviderName(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	predefBucket, perr := config.GetString("riak:predefclouds")
-	if perr != nil {
-		return pdc, perr
-	}
-	conn, err := db.Conn(predefBucket)
+	conn, err := db.Conn(PREDEFCLOUDS)
 
 	if err != nil {
 		return pdc, err
@@ -152,16 +148,13 @@ func GetIdentityFileLocation(file string) (string, error) {
 	s := make([]string, 2)
 	s = strings.Split(file, "_")
 	email, name := s[0], s[1]
-	cloudkeysBucket, err := config.GetString("riak:cloud_keys")
-	if err != nil {
-		return "", err
-	}
-	megam_home, err := config.GetString("megam_home")
+
+	megam_home, err := config.GetString("megam:home")
 	if err != nil {
 		return "", err
 	}
 
-	return megam_home + cloudkeysBucket + "/" + email + "/" + name, nil
+	return megam_home + CLOUDKEYS + "/" + email + "/" + name, nil
 }
 
 type SshFile struct {
@@ -173,11 +166,8 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	sa = strings.Split(pdc.Access.IdentityFile, "_")
 	email, name := sa[0], sa[1]
 	ssh := &db.SshObject{}
-	sshBucket, serr := config.GetString("riak:ssh_files")
-	if serr != nil {
-		return serr
-	}
-	conn, err := db.Conn(sshBucket)
+
+	conn, err := db.Conn(SSH_FILES)
 	if err != nil {
 		return err
 	}
@@ -186,17 +176,14 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	if ferr != nil {
 		return ferr
 	}
-	cloudkeysBucket, ckberr := config.GetString("riak:cloud_keys")
+
+	megam_home, ckberr := config.GetString("megam:home")
 	if ckberr != nil {
 		return ckberr
 	}
 
-	megam_home, ckberr := config.GetString("megam_home")
-	if ckberr != nil {
-		return ckberr
-	}
+	basePath := megam_home + CLOUDKEYS
 
-	basePath := megam_home + cloudkeysBucket
 	dir := path.Join(basePath, email)
 	filePath := path.Join(dir, name+"."+keyvalue)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -216,29 +203,4 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 		return errf
 	}
 	return nil
-}
-
-type AccessKeys struct {
-	AccessKey string `json:"-A"`
-	SecretKey string `json:"-K"`
-}
-
-func GetAccessKeys(pdc *global.PredefClouds) (*AccessKeys, error) {
-	keys := &AccessKeys{}
-	cakbBucket, cakberr := config.GetString("riak:cloud_access_keys")
-	if cakberr != nil {
-		return keys, cakberr
-	}
-
-	conn, err := db.Conn(cakbBucket)
-	if err != nil {
-		return keys, err
-	}
-
-	ferr := conn.FetchStruct(pdc.Access.VaultLocation, keys)
-	if ferr != nil {
-		return keys, ferr
-	}
-
-	return keys, nil
 }

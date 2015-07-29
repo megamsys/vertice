@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +24,9 @@ import (
   "github.com/tsuru/config"
 )
 
-const ( 
+const (
    GOGS = "gogs"
-   ENABLE = "true"   
+   ENABLE = "true"
 )
 
 func Init() {
@@ -37,8 +37,8 @@ type GogsPlugin struct{}
 
 /**
 **watcher function executes the gogs repository webhook creation
-**first get the ci value and parse it and to create the hook for that users repository    
-**get trigger url from config file 
+**first get the ci value and parse it and to create the hook for that users repository
+**get trigger url from config file
 **/
 func (c *GogsPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
      switch ci.OperationType {
@@ -48,7 +48,7 @@ func (c *GogsPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Oper
 					return cierr
 			}
 			break
-     }     		
+     }
 	return nil
 }
 
@@ -57,77 +57,73 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		if perrscm != nil {
 			log.Error("Failed to get the domain value : %s", perrscm)
 		}
-		
+
 	pair_enable, perrenable := global.ParseKeyValuePair(ci.OperationRequirements, "ci-enable")
 		if perrenable != nil {
 			log.Error("Failed to get the domain value : %s", perrenable)
-		}	
-		
+		}
+
 	if(pair_scm.Value == GOGS && pair_enable.Value == ENABLE) {
 		log.Info("gogs process started...")
-		
-		api_host, apierr := config.GetString("api:host")
+
+		api_host, apierr := config.GetString("megam:api")
 		if apierr != nil {
 			return apierr
 		}
-		
-		api_version, apiverr := config.GetString("api:version")
-		if apiverr != nil {
-			return apiverr
-		}
-		
-		trigger_url := "http://"+api_host+"/"+api_version+"/assembly/build/"+asm.Id + "/" + com.Id
-		
-		url, herr := config.GetString("scm:gogs:url")		
-		if herr != nil {		  
+
+
+		trigger_url := api_host+"/assembly/build/"+asm.Id + "/" + com.Id
+
+		url, herr := config.GetString("scm:gogs:url")
+		if herr != nil {
 			return herr
-		}		
-		
+		}
+
 		pair_token, perrtoken := global.ParseKeyValuePair(ci.OperationRequirements, "ci-token")
 		if perrtoken != nil {
 			log.Error("Failed to get the domain value : %s", perrtoken)
 		}
-		
+
 		client := gogs.NewClient(url, pair_token.Value)
 		log.Info("Gogs api client created")
-		
+
 		var postData = make(map[string]string)
 		postData["url"] = trigger_url
 		postData["content_type"] = "json"
 		
 		postHook :=  gogs.CreateHookOption{Type: "gogs", Config: postData, Active: true }
-		
+
 		pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
 		if perrsource != nil {
 			log.Error("Failed to get the domain value : %s", perrsource)
 		}
-		       
-		source := strings.Split(pair_source.Value, "/") 
+
+		source := strings.Split(pair_source.Value, "/")
 		log.Info(strings.Replace(source[len(source)-1], ".git", "", -1))
-		
+
 		pair_owner, perrowner := global.ParseKeyValuePair(ci.OperationRequirements, "ci-owner")
 		if perrowner != nil {
 			log.Error("Failed to get the domain value : %s", perrowner)
 		}
-		
+
 		s, hook_err := client.CreateRepoHook(pair_owner.Value, strings.Replace(source[len(source)-1], ".git", "", -1), postHook)
-		if hook_err !=nil {		
+		if hook_err !=nil {
 		   return hook_err
 		}
 		//s, _ := client.ListRepoHooks(ci.Owner, strings.Replace(source[len(source)-1], ".git", "", -1))
-		
+
 		log.Info("Hook created")
-		log.Info(s)		
+		log.Info(s)
 	} else {
 		log.Info("gogs is skipped")
 	}
-	
+
 	return nil
 }
 
 /**
 **notify the messages or any other operations from github
-** now this function performs build the pushed application from gogs to remote 
+** now this function performs build the pushed application from gogs to remote
 **/
 func (c *GogsPlugin) Notify(m *global.EventMessage) error {
 	/*request_asm := global.Assembly{Id: m.AssemblyId}
@@ -141,13 +137,13 @@ func (c *GogsPlugin) Notify(m *global.EventMessage) error {
 	if(comerr != nil) {
 		return comerr
 	}
-	
+
 	request_ci := global.CI{Id: com.Inputs.CIID}
 	ci, cierr := request_ci.Get(com.Inputs.CIID)
 	if(cierr != nil) {
 		return cierr
 	}
-	
+
 	if(ci.SCM == "gogs") {
 		log.Info("Gogs is working")
 		mapD := map[string]string{"Id": m.ComponentId, "Action": "build"}
@@ -179,4 +175,3 @@ func publisher(key string, json string) {
 		log.Error("Failed to publish the queue instance: %s", serr)
 	}*/
 }
-

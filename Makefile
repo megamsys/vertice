@@ -67,12 +67,12 @@ bzr:
 	$(if $(shell bzr), , $(error $(BZR_ERROR)))
 
 get-code:
-	go get $(GO_EXTRAFLAGS) -u -d  ./...
+	go get $(GO_EXTRAFLAGS) -u -d   ./...
 
 godep:
 	go get $(GO_EXTRAFLAGS) github.com/tools/godep
 	godep restore ./...
-    
+
 _go_test:
 	go clean $(GO_EXTRAFLAGS) ./...
 	go test $(GO_EXTRAFLAGS) ./...
@@ -80,7 +80,7 @@ _go_test:
 _megamd:
 	rm -f megamd
 	go build $(GO_EXTRAFLAGS) -o megamd ./cmd/megamd
-	
+
 
 _megamdr:
 	sudo ./megamd start
@@ -96,5 +96,3 @@ _install_deadcode: git
 
 deadcode: _install_deadcode
 	@go list ./... | sed -e 's;github.com/megamsys/megamd/;;' | xargs deadcode
-
-deadc0de: deadcode

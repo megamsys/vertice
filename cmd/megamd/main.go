@@ -18,14 +18,14 @@ package main
 import (
 	"fmt"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/log"
 	"github.com/tsuru/config"
-	"log"
 	"os"
 	"path/filepath"
 )
 
 const (
-	version = "0.5.0"
+	version = "0.9.0"
 	header  = "Supported-Megamd"
 )
 
@@ -43,5 +43,6 @@ func main() {
 	config.ReadConfigFile(defaultConfigPath)
 	name := cmd.ExtractProgramName(os.Args[0])
 	manager := buildManager(name)
+	log.Init()
 	manager.Run(os.Args[1:])
 }

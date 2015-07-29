@@ -1,4 +1,4 @@
-/* 
+/*
 ** copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +36,7 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
     appName := ""
     commandWords = strings.Fields(app.Command)
     log.Debug("Command Executor entry: %s\n", app)
-    megam_home, ckberr := config.GetString("megam_home")
+    megam:home, ckberr := config.GetString("megam:home")
 	if ckberr != nil {
 		return nil, ckberr
 	}
@@ -44,12 +44,12 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
 		if perr != nil {
 			log.Error("Failed to get the domain value : %s", perr)
 		}
-		
+
 	appName = app.Name + "." + pair.Value
-	
-	basePath := megam_home + "logs" 
+
+	basePath := megam:home + "logs"
 	dir := path.Join(basePath, appName)
-	
+
 	fileOutPath := path.Join(dir, appName + "_out" )
 	fileErrPath := path.Join(dir, appName + "_err" )
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -57,7 +57,7 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
 		if errm := os.MkdirAll(dir, 0777); errm != nil {
 			return nil, errm
 		}
-	} 
+	}
 		// open output file
 		fout, outerr := os.OpenFile(fileOutPath, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
 		if outerr != nil {
@@ -70,22 +70,22 @@ func CommandExecutor(app *global.AssemblyWithComponents) (action.Result, error) 
 			return nil, errerr
 		}
 		defer ferr.Close()
-  
+
 	foutwriter := bufio.NewWriterSize(fout, 1)
 	ferrwriter := bufio.NewWriterSize(ferr, 1)
     log.Debug(commandWords)
     log.Debug("Length: %s", len(commandWords))
-    
+
     defer ferrwriter.Flush()
     defer foutwriter.Flush()
-    
+
     if len(commandWords) > 0 {
        if err := e.Execute(commandWords[0], commandWords[1:], nil, foutwriter, ferrwriter); err != nil {
            return nil, err
         }
      }
 
-  
+
   return &app, nil
 }
 
@@ -124,19 +124,19 @@ var updateStatus = action.Action{
 		}
 		asm := &global.Assembly{}
 	    conn, err := db.Conn("assembly")
-	     if err != nil {	
+	     if err != nil {
 		    return nil, err
-	      }	
+	      }
 
 	    ferr := conn.FetchStruct(app.Id, asm)
-	    if ferr != nil {	
+	    if ferr != nil {
 		   return nil, ferr
-	     }	
-	
+	     }
+
 	   update := global.Assembly{
-		Id:            asm.Id, 
-        JsonClaz:      asm.JsonClaz, 
-        Name:          asm.Name,         
+		Id:            asm.Id,
+        JsonClaz:      asm.JsonClaz,
+        Name:          asm.Name,
         Components:    asm.Components,
         ToscaType:     asm.ToscaType,
         Requirements:  asm.Requirements,
@@ -147,8 +147,8 @@ var updateStatus = action.Action{
         Status:        "Terminated",
         CreatedAt:     asm.CreatedAt,
 	   }
-	   err = conn.StoreStruct(app.Id, &update)		
-		
+	   err = conn.StoreStruct(app.Id, &update)
+
 		return CommandExecutor(&app)
 	},
 	Backward: func(ctx action.BWContext) {
@@ -156,7 +156,3 @@ var updateStatus = action.Action{
 	},
 	MinParams: 1,
 }
-
-
-
-

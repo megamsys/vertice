@@ -20,29 +20,132 @@ import (
 	"fmt"
 	"strings"
 
-	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/log"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/megamd/provisioner"
+	"github.com/megamsys/megamd/swarmc"
 	"github.com/megamsys/seru/cmd"
 	"github.com/megamsys/seru/cmd/seru"
 	"github.com/tsuru/config"
 )
 
-/*
-*
-* Registers docker as provisioner in provisioner interface.
-*
-*/
 
-func Init() {
-	provisioner.Register("docker", &Docker{})
+type dockerProvisioner struct {
+	cluster        *swarmc.Cluster
+	storage        swarmc.Storage
+	isDryMode      bool
 }
 
-type Docker struct{}
+var mainDockerProvisioner *dockerProvisioner
 
-const BAREMETAL = "baremetal"
+// Registers docker as provisioner in provisioner interface.
+func Init() {
+	mainDockerProvisioner = &dockerProvisioner{}
+	provisioner.Register("docker", mainDockerProvisioner)
+}
+
+func (p *dockerProvisioner) initDockerCluster() error {
+	var err error
+	if p.storage == nil {
+		p.storage, err = buildClusterStorage()
+		if err != nil {
+			return err
+		}
+	}
+
+	var nodes []cluster.Node
+	totalMemoryMetadata, _ := config.GetString("docker:scheduler:total-memory-metadata")
+	maxUsedMemory, _ := config.GetFloat("docker:scheduler:max-used-memory")
+	p.scheduler = &segregatedScheduler{
+		maxMemoryRatio:      float32(maxUsedMemory),
+		totalMemoryMetadata: totalMemoryMetadata,
+		provisioner:         p,
+	}
+	p.cluster, err = cluster.New(p.scheduler, p.storage, nodes...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *dockerProvisioner) stopDryMode() {
+	if p.isDryMode {
+		p.cluster.StopDryMode()
+	}
+}
+
+func (p *dockerProvisioner) dryMode(ignoredContainers []container) (*dockerProvisioner, error) {
+	var err error
+	overridenProvisioner := &dockerProvisioner{
+		collectionName: "containers_dry_" + randomString(),
+		isDryMode:      true,
+	}
+	containerIds := make([]string, len(ignoredContainers))
+	for i := range ignoredContainers {
+		containerIds[i] = ignoredContainers[i].ID
+	}
+	overridenProvisioner.scheduler = &segregatedScheduler{
+		maxMemoryRatio:      p.scheduler.maxMemoryRatio,
+		totalMemoryMetadata: p.scheduler.totalMemoryMetadata,
+		provisioner:         overridenProvisioner,
+		ignoredContainers:   containerIds,
+	}
+	overridenProvisioner.cluster, err = cluster.New(overridenProvisioner.scheduler, p.storage)
+	if err != nil {
+		return nil, err
+	}
+	overridenProvisioner.cluster.DryMode()
+	containersToCopy, err := p.listAllContainers()
+	if err != nil {
+		return nil, err
+	}
+	coll := overridenProvisioner.collection()
+	defer coll.Close()
+	toInsert := make([]interface{}, len(containersToCopy))
+	for i := range containersToCopy {
+		toInsert[i] = containersToCopy[i]
+	}
+	if len(toInsert) > 0 {
+		err = coll.Insert(toInsert...)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return overridenProvisioner, nil
+}
+
+func (p *dockerProvisioner) getCluster() *cluster.Cluster {
+	if p.cluster == nil {
+		panic("nil cluster")
+	}
+	return p.cluster
+}
+
+
+
+func (p *dockerProvisioner) Initialize() error {
+	return p.initDockerCluster()
+}
+
+
+
+func (p *dockerProvisioner) StartupMessage() (string, error) {
+	nodeList, err := p.getCluster().UnfilteredNodes()
+	if err != nil {
+		return "", err
+	}
+	out := """
+	*-------------------------------------------------*
+	| Megamswarm           /-+-fishing nodes for you. |
+	*-------------------------------------------------*\n"""
+
+	for _, node := range nodeList {
+		out += fmt.Sprintf("    Docker node: %s\n", node.Address)
+	}
+	return out, nil
+}
 
 /*
 * Create provisioner is called to launch docker containers by
@@ -51,8 +154,7 @@ const BAREMETAL = "baremetal"
 * Swarm Host IP is added into the conf file.
 *
 */
-
-func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
+func (p *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	log.Info("%q", assembly)
 	pair_endpoint, perrscm := global.ParseKeyValuePair(assembly.Inputs, "endpoint")
 	if perrscm != nil {
@@ -114,18 +216,9 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 
 	var Iport string
 
-	for k, _ := range conf.ExposedPorts {
-		port := strings.Split(string(k), "/")
-		Iport = port[0]
-
-	}
-
-	/*	var exposedPorts map[docker.Port]struct{}
-		exposedPorts = map[docker.Port]struct{}{
-			docker.Port(Iport + "/tcp"): {},
-		} */
 
 	config := docker.Config{Image: pair_img.Value}
+
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &config}
 
 	/*
@@ -204,6 +297,25 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	return "", nil
 }
 
+
+func (p *dockerProvisioner) SetCName(app provision.App, cname string) error {
+	r, err := getRouterForApp(app)
+	if err != nil {
+		return err
+	}
+	return r.SetCName(cname, app.GetName())
+}
+
+func (p *dockerProvisioner) UnsetCName(app provision.App, cname string) error {
+	r, err := getRouterForApp(app)
+	if err != nil {
+		return err
+	}
+	return r.UnsetCName(cname, app.GetName())
+}
+
+
+
 /*
 * Register a hostname on AWS Route53 using megam seru -
 *        www.github.com/megamsys/seru
@@ -213,8 +325,8 @@ func setHostName(name string, ip string) error {
 	s := make([]string, 4)
 	s = strings.Split(name, ".")
 
-	accesskey, _ := config.GetString("aws:accesskey")
-	secretkey, _ := config.GetString("aws:secretkey")
+	accesskey, _ := config.GetString("dns:aws_accesskey")
+	secretkey, _ := config.GetString("dns:aws_secretkey")
 
 	seru := &main.NewSubdomain{
 		Accesskey: accesskey,
@@ -306,25 +418,226 @@ func updatecomponent(assembly *global.AssemblyWithComponents, ipaddress string, 
 	log.Info("Container component update was successfully.")
 }
 
-func GetMemory() int64 {
-	memory, _ := config.GetInt("dockerconfig:memory")
-	return int64(memory)
+
+func (p *dockerProvisioner) AddUnits(a provision.App, units uint, process string, w io.Writer) ([]provision.Unit, error) {
+	if a.GetDeploys() == 0 {
+		return nil, errors.New("New units can only be added after the first deployment")
+	}
+	if units == 0 {
+		return nil, errors.New("Cannot add 0 units")
+	}
+	if w == nil {
+		w = ioutil.Discard
+	}
+	writer := io.MultiWriter(w, &app.LogWriter{App: a})
+	imageId, err := appCurrentImageName(a.GetName())
+	if err != nil {
+		return nil, err
+	}
+	conts, err := p.runCreateUnitsPipeline(writer, a, map[string]*containersToAdd{process: {Quantity: int(units)}}, imageId)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]provision.Unit, len(conts))
+	for i, c := range conts {
+		result[i] = c.asUnit(a)
+	}
+	return result, nil
 }
 
-func GetSwap() int64 {
-	swap, _ := config.GetInt("dockerconfig:swap")
-	return int64(swap)
-
+func (p *dockerProvisioner) RemoveUnits(a provision.App, units uint, processName string, w io.Writer) error {
+	if a == nil {
+		return errors.New("remove units: app should not be nil")
+	}
+	if units == 0 {
+		return errors.New("cannot remove zero units")
+	}
+	var err error
+	if w == nil {
+		w = ioutil.Discard
+	}
+	imgId, err := appCurrentImageName(a.GetName())
+	if err != nil {
+		return err
+	}
+	_, processName, err = processCmdForImage(processName, imgId)
+	if err != nil {
+		return err
+	}
+	containers, err := p.listContainersByProcess(a.GetName(), processName)
+	if err != nil {
+		return err
+	}
+	if len(containers) < int(units) {
+		return fmt.Errorf("cannot remove %d units from process %q, only %d available", units, processName, len(containers))
+	}
+	var plural string
+	if units > 1 {
+		plural = "s"
+	}
+	fmt.Fprintf(w, "\n---- Removing %d unit%s ----\n", units, plural)
+	p, err = p.cloneProvisioner(nil)
+	if err != nil {
+		return err
+	}
+	toRemove := make([]container, 0, units)
+	for i := 0; i < int(units); i++ {
+		containerID, err := p.scheduler.GetRemovableContainer(a.GetName(), processName)
+		if err != nil {
+			return err
+		}
+		cont, err := p.getContainer(containerID)
+		if err != nil {
+			return err
+		}
+		p.scheduler.ignoredContainers = append(p.scheduler.ignoredContainers, cont.ID)
+		toRemove = append(toRemove, *cont)
+	}
+	args := changeUnitsPipelineArgs{
+		app:         a,
+		toRemove:    toRemove,
+		writer:      w,
+		provisioner: p,
+	}
+	pipeline := action.NewPipeline(
+		&removeOldRoutes,
+		&provisionRemoveOldUnits,
+		&provisionUnbindOldUnits,
+	)
+	err = pipeline.Execute(args)
+	if err != nil {
+		return fmt.Errorf("error removing routes, units weren't removed: %s", err)
+	}
+	return nil
 }
 
-func GetCpuPeriod() int64 {
-	cpuPeriod, _ := config.GetInt("dockerconfig:cpuperiod")
-	return int64(cpuPeriod)
-
+func (p *dockerProvisioner) SetUnitStatus(unit provision.Unit, status provision.Status) error {
+	container, err := p.getContainer(unit.Name)
+	if err != nil {
+		return err
+	}
+	if unit.AppName != "" && container.AppName != unit.AppName {
+		return errors.New("wrong app name")
+	}
+	err = container.setStatus(p, status.String())
+	if err != nil {
+		return err
+	}
+	return p.checkContainer(container)
 }
 
-func GetCpuQuota() int64 {
-	cpuQuota, _ := config.GetInt("dockerconfig:cpuquota")
-	return int64(cpuQuota)
 
+func (p *dockerProvisioner) ImageDeploy(app provision.App, imageId string, w io.Writer) (string, error) {
+	isValid, err := isValidAppImage(app.GetName(), imageId)
+	if err != nil {
+		return "", err
+	}
+	if !isValid {
+		return "", fmt.Errorf("invalid image for app %s: %s", app.GetName(), imageId)
+	}
+	return imageId, p.deploy(app, imageId, w)
+}
+
+func (p *dockerProvisioner) GitDeploy(app provision.App, version string, w io.Writer) (string, error) {
+	imageId, err := p.gitDeploy(app, version, w)
+	if err != nil {
+		return "", err
+	}
+	return imageId, p.deployAndClean(app, imageId, w)
+}
+
+
+func (p *dockerProvisioner) deployAndClean(a provision.App, imageId string, w io.Writer) error {
+	err := p.deploy(a, imageId, w)
+	if err != nil {
+		p.cleanImage(a.GetName(), imageId)
+	}
+	return err
+}
+
+func (p *dockerProvisioner) deploy(a provision.App, imageId string, w io.Writer) error {
+	containers, err := p.listContainersByApp(a.GetName())
+	if err != nil {
+		return err
+	}
+	imageData, err := getImageCustomData(imageId)
+	if err != nil {
+		return err
+	}
+	if len(containers) == 0 {
+		toAdd := make(map[string]*containersToAdd, len(imageData.Processes))
+		for processName := range imageData.Processes {
+			_, ok := toAdd[processName]
+			if !ok {
+				ct := containersToAdd{Quantity: 0}
+				toAdd[processName] = &ct
+			}
+			toAdd[processName].Quantity++
+		}
+		_, err = p.runCreateUnitsPipeline(w, a, toAdd, imageId)
+	} else {
+		toAdd := getContainersToAdd(imageData, containers)
+		_, err = p.runReplaceUnitsPipeline(w, a, toAdd, containers, imageId)
+	}
+	return err
+}
+
+func (p *dockerProvisioner) Nodes(app provision.App) ([]cluster.Node, error) {
+	pool := app.GetPool()
+	var (
+		pools []provision.Pool
+		err   error
+	)
+	if pool == "" {
+		pools, err = provision.ListPools(bson.M{"$or": []bson.M{{"teams": app.GetTeamOwner()}, {"teams": bson.M{"$in": app.GetTeamsName()}}}})
+	} else {
+		pools, err = provision.ListPools(bson.M{"_id": pool})
+	}
+	if err != nil {
+		return nil, err
+	}
+	if len(pools) == 0 {
+		query := bson.M{"default": true}
+		pools, err = provision.ListPools(query)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(pools) == 0 {
+		return nil, errNoDefaultPool
+	}
+	for _, pool := range pools {
+		nodes, err := p.getCluster().NodesForMetadata(map[string]string{"pool": pool.Name})
+		if err != nil {
+			return nil, errNoDefaultPool
+		}
+		if len(nodes) > 0 {
+			return nodes, nil
+		}
+	}
+	var nameList []string
+	for _, pool := range pools {
+		nameList = append(nameList, pool.Name)
+	}
+	poolsStr := strings.Join(nameList, ", pool=")
+	return nil, fmt.Errorf("No nodes found with one of the following metadata: pool=%s", poolsStr)
+}
+
+func (p *dockerProvisioner) MetricEnvs(app provision.App) map[string]string {
+	envMap := map[string]string{}
+	bsConf, err := loadBsConfig()
+	if err != nil {
+		return envMap
+	}
+	envs, err := bsConf.envListForEndpoint("", app.GetPool())
+	if err != nil {
+		return envMap
+	}
+	for _, env := range envs {
+		if strings.HasPrefix(env, "METRICS_") {
+			slice := strings.SplitN(env, "=", 2)
+			envMap[slice[0]] = slice[1]
+		}
+	}
+	return envMap
 }

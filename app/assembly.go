@@ -25,14 +25,14 @@ import (
 	"github.com/tsuru/config"
 )
 
+const (
+	PREDEFCLOUDS  = "predefclouds"
+)
+
 func GetPredefClouds(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	predefBucket, perr := config.GetString("riak:predefclouds")
-	if perr != nil {
-		return pdc, perr
-	}
-	conn, err := db.Conn(predefBucket)
+	conn, err := db.Conn(PREDEFCLOUDS)
 
 	if err != nil {
 		return pdc, err
