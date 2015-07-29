@@ -16,12 +16,13 @@
 package global
 
 import (
-	log "code.google.com/p/log4go"
 	"crypto/rand"
 	"errors"
-	"github.com/megamsys/libgo/db"
 	"math/big"
 	"strings"
+
+	log "code.google.com/p/log4go"
+	"github.com/megamsys/libgo/db"
 )
 
 type Message struct {
@@ -81,14 +82,28 @@ func (req *Request) Get(reqId string) (*Request, error) {
 	if err != nil {
 		return req, err
 	}
+	//appout := &Requests{}
 	ferr := conn.FetchStruct(reqId, req)
 	if ferr != nil {
 		return req, ferr
 	}
 	defer conn.Close()
+
 	return req, nil
+
 }
 
+type KeyValuePair struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func GetKeyValuePair(key string, value string) *KeyValuePair {
+	return &KeyValuePair{
+		Key:   key,
+		Value: value,
+	}
+}
 
 type Policy struct {
 	Name    string   `json:"name"`
@@ -125,11 +140,12 @@ type Component struct {
 **fetch the component json from riak and parse the json to struct
 **/
 func (asm *Component) Get(asmId string) (*Component, error) {
-	log.Info("Get Component  %v", asmId)
+	log.Info("Get Component message %v", asmId)
 	conn, err := db.Conn("components")
 	if err != nil {
 		return asm, err
 	}
+	//appout := &Requests{}
 	ferr := conn.FetchStruct(asmId, asm)
 	if ferr != nil {
 		return asm, ferr
@@ -162,7 +178,34 @@ func (asm *Assemblies) Get(asmId string) (*Assemblies, error) {
 		return asm, ferr
 	}
 	defer conn.Close()
+	log.Debug(asm)
+	log.Debug("----------ASSEMBLIES--------")
 	return asm, nil
+
+}
+
+type AppRequest struct {
+	Id        string `json:"id"`
+	AppId     string `json:"cat_id"`
+	AppName   string `json:"name"`
+	Action    string `json:"action"`
+	CreatedAt string `json:"created_at"`
+}
+
+func (req *AppRequest) Get(reqId string) (*AppRequest, error) {
+	log.Info("Get AppRequest message %v", reqId)
+	conn, err := db.Conn("catreqs")
+	if err != nil {
+		return req, err
+	}
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {
+		return req, ferr
+	}
+	defer conn.Close()
+
+	return req, nil
 
 }
 
@@ -181,25 +224,6 @@ type Assembly struct {
 	CreatedAt    string          `json:"created_at"`
 }
 
-
-/**
-**fetch the Assembly data from riak and parse the json to struct
-**/
-func (req *Assembly) Get(reqId string) (*Assembly, error) {
-	log.Info("Get Assembly %v", reqId)
-	conn, err := db.Conn("assembly")
-	if err != nil {
-		return req, err
-	}
-	ferr := conn.FetchStruct(reqId, req)
-	if ferr != nil {
-		return req, ferr
-	}
-	defer conn.Close()
-	return req, nil
-}
-/*TODO: Why do we have two structures */
-
 type AssemblyWithComponents struct {
 	Id           string `json:"id"`
 	Name         string `json:"name"`
@@ -215,15 +239,35 @@ type AssemblyWithComponents struct {
 	CreatedAt    string `json:"created_at"`
 }
 
+/**
+**fetch the Assembly data from riak and parse the json to struct
+**/
+func (req *Assembly) Get(reqId string) (*Assembly, error) {
+	log.Info("Get Assembly message %v", reqId)
+	conn, err := db.Conn("assembly")
+	if err != nil {
+		return req, err
+	}
+	//appout := &Requests{}
+	ferr := conn.FetchStruct(reqId, req)
+	if ferr != nil {
+		return req, ferr
+	}
+	defer conn.Close()
+
+	return req, nil
+
+}
 
 func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithComponents, error) {
-	log.Info("Get Assembly  %v", asmId)
+	log.Info("Get Assembly message %v", asmId)
 	var j = -1
 	asmresult := &AssemblyWithComponents{}
 	conn, err := db.Conn("assembly")
 	if err != nil {
 		return asmresult, err
 	}
+	//appout := &Requests{}
 	ferr := conn.FetchStruct(asmId, asm)
 	if ferr != nil {
 		return asmresult, ferr
@@ -248,25 +292,52 @@ func (asm *Assembly) GetAssemblyWithComponents(asmId string) (*AssemblyWithCompo
 	return result, nil
 }
 
-type KeyValuePair struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
-func GetKeyValuePair(key string, value string) *KeyValuePair {
-	return &KeyValuePair{
-		Key:   key,
-		Value: value,
-	}
-}
-
 func ParseKeyValuePair(keyvaluepair []*KeyValuePair, searchkey string) (*KeyValuePair, error) {
 	for i := range keyvaluepair {
 		if keyvaluepair[i].Key == searchkey {
 			return keyvaluepair[i], nil
 		}
 	}
-	return nil, errors.New("The specific search key was not found in pair input.")
+	return nil, errors.New("The specific search key was not found in pair input...")
+}
+
+type DockerNetworksInfo struct {
+	Bridge      string `json:"bridge"`
+	ContainerId string `json:"container_id"`
+	IpAddr      string `json:"ip_addr"`
+	Gateway     string `json:"gateway"`
+}
+
+type DockerLogsInfo struct {
+	ContainerId   string `json:"container_id"`
+	ContainerName string `json:"container_name"`
+}
+
+const IPINDEXKEY = "ipgen"
+
+type IPIndex struct {
+	Ip     string `json:"ip"`
+	Subnet string `json:"subnet"`
+	Index  uint   `json:"index"`
+}
+
+/**
+**fetch the ip index data from riak and parse the json to struct
+**/
+func (req *IPIndex) Get(key string) (*IPIndex, error) {
+	log.Info("Get IPIndex value %v", key)
+	conn, err := db.Conn("ipindex")
+	if err != nil {
+		return req, err
+	}
+	ferr := conn.FetchStruct(key, req)
+	if ferr != nil {
+		return req, ferr
+	}
+	defer conn.Close()
+
+	return req, nil
+
 }
 
 /**

@@ -36,6 +36,12 @@ type Coordinator struct {
 	//EventsHandler(f func(*Message), name ...string) (Handler, error)
 }
 
+type Message struct {
+	Id     string `json:"Id"`
+	Action string `json:"Action"`
+	Args   string `json:"Args"`
+}
+
 func init() {
 	chef.Init()
 	docker.Init()
@@ -55,6 +61,59 @@ func NewCoordinator(chann []byte, queue string) {
 		break
 	case "events":
 		eventsHandler(chann)
+		break
+	case "dockerState":
+		dockerStateHandler(chann)
+		break
+	}
+}
+
+func dockerStateHandler(chann []byte) {
+
+	Msg := &Message{}
+	parse_err := json.Unmarshal(chann, &Msg)
+	log.Info(parse_err)
+	if parse_err != nil {
+		log.Error("Error: Message parsing error:\n%s.", parse_err)
+		return
+	}
+
+	apprequest := global.AppRequest{Id: Msg.Id}
+	req, err := apprequest.Get(Msg.Id)
+	log.Info(req)
+	if err != nil {
+		log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		return
+	}
+
+	assembly := global.Assembly{Id: req.AppId}
+	asm, err := assembly.GetAssemblyWithComponents(req.AppId)
+	if err != nil {
+		log.Error("Error: Riak didn't cooperate:\n%s.", err)
+		return
+	}
+
+	cont_id, perrscm := global.ParseKeyValuePair(asm.Components[0].Outputs, "id")
+	if perrscm != nil {
+		log.Error("Failed to get the container id : %s", perrscm)
+	}
+	endpoint, perrscm := global.ParseKeyValuePair(asm.Components[0].Outputs, "endpoint")
+	if perrscm != nil {
+		log.Error("Failed to get the container id : %s", perrscm)
+	}
+
+	switch req.Action {
+	case "start":
+		log.Info("Starting Container")
+		//	go docker.startContainer(asm)
+		break
+	case "stop":
+		log.Info("Stopping Container")
+		go docker.StopContainer(cont_id.Value, endpoint.Value)
+		break
+	case "restart":
+		log.Info("Restarting container")
+		go docker.RestartContainer(cont_id.Value, endpoint.Value)
 		break
 	}
 }

@@ -20,7 +20,10 @@ import (
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/api/http"
-	"github.com/megamsys/megamd/cmd/megamd/server/queue"
+	"github.com/megamsys/megamd/cmd/megamd/server/queue"	
+	"github.com/megamsys/megamd/global"
+	"github.com/tsuru/config"
+	"encoding/json"
 	"os"
 	"fmt"
 )
@@ -53,13 +56,16 @@ func (self *Server) ListenAndServe() error {
 	queueInput[0] = "cloudstandup"
 	queueInput[1] = "events"
     self.Checker()
+    self.IPInit()    
+    
 	// Queue input
 	for i := range queueInput {
 		listenQueue := queueInput[i]
 		queueserver := queue.NewServer(listenQueue)
 		go queueserver.ListenAndServe()
 	}
-	self.HttpApi.ListenAndServe()
+	self.HttpApi.ListenAndServe()	
+	
 	return nil
 }
 
@@ -74,7 +80,7 @@ func (self *Server) Checker() {
 		log.Error("Error: %v\nFailed to get the queue", err)
 	}
 
-	conn, connerr := factor.Dial()
+	_, connerr := factor.Dial()
     if connerr != nil {
     	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start rabbitmq service.\n", connerr)
          os.Exit(1)
@@ -85,7 +91,7 @@ func (self *Server) Checker() {
 
 	 rconn, rerr := db.Conn("connection")
 	 if rerr != nil {
-		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", connerr)
+		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
          os.Exit(1)
 	 }
 
@@ -98,6 +104,30 @@ func (self *Server) Checker() {
 	 defer rconn.Close()
     log.Info("riak connected [ok]")
 
+}
+
+func (self *Server) IPInit() {
+    
+     rconn, rerr := db.Conn("ipindex")
+	 if rerr != nil {
+		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
+         os.Exit(1)
+	 }
+
+	index := global.IPIndex{}
+	subnet, _ := config.GetString("swarm:subnet")
+	_, err := index.Get(global.IPINDEXKEY)
+	if err != nil {
+	  	data := &global.IPIndex{Ip: subnet, Subnet: subnet, Index: 1} 
+	  	res2B, _ := json.Marshal(data)
+	  	ferr := rconn.StoreObject(global.IPINDEXKEY, string(res2B))
+	  	if ferr != nil {
+	 	 	fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
+         	os.Exit(1)
+	 	}
+	}
+	
+   defer rconn.Close()	
 }
 
 func (self *Server) Stop() {

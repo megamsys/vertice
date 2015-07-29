@@ -12,12 +12,11 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
- */
+*/
 package iaas
 
 import (
 	log "code.google.com/p/log4go"
-	"errors"
 	"fmt"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
@@ -28,6 +27,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"errors"
 )
 
 // Every Tsuru IaaS must implement this interface.
@@ -40,19 +40,21 @@ type IaaS interface {
 }
 
 const (
-	defaultYAMPath = "conf/commands.yaml"
-	PREDEFCLOUDS   = "predefclouds"
-	CLOUDKEYS      = "cloudkeys"
-	SSH_FILES      = "ssh_files"
+	defaultYAMLPath = "conf/commands.yaml"
+	CLOUDACCESSKEYSBUCKET= "cloudaccesskeys"
+	PREDEFCLOUDSBUCKET= "predefclouds"
+	CLOUDKEYSBUCKET= "cloudkeys"
+	SSHFILESBUCKET= "sshfiles"
 )
 
 type Attributes struct {
-	RiakHost    string `json:"riak_host"`
-	AccountID   string `json:"accounts_id"`
-	AssemblyID  string `json:"assembly_id"`
-	RabbitMQ    string `json:"rabbitmq_host"`
-	MonitorHost string `json:"monitor_host"`
-	KibanaHost  string `json:"kibana_host"`
+	RiakHost    string  `json:"riak_host"`
+	AccountID   string  `json:"accounts_id"`
+	AssemblyID  string  `json:"assembly_id"`
+    RabbitMQ    string  `json:"rabbitmq_host"`
+    MonitorHost string  `json:"monitor_host"`
+    KibanaHost  string  `json:"kibana_host"`
+    EtcdHost    string  `json:"etcd_host"`
 }
 
 type Plugins struct {
@@ -67,6 +69,10 @@ type Commands struct {
 	Data   string
 }
 
+//type SshObject struct{
+//	  Data string
+///	}
+
 var iaasProviders = make(map[string]IaaS)
 
 func RegisterIaasProvider(name string, iaas IaaS) {
@@ -77,14 +83,14 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 	err := errors.New("")
 	pdc_type := ""
-	if name == "megam" {
-		pdc_type = name
-	} else {
-		pdc, err = getProviderName(name)
+    if name == "megam" {
+      pdc_type = name
+    } else {
+       pdc, err = getProviderName(name)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Error: Riak didn't cooperate:\n%s.", err)
 		}
-	}
+    }
 
 	provider, ok := iaasProviders[pdc_type]
 	if !ok {
@@ -97,7 +103,7 @@ func GetIaasProvider(name string) (IaaS, *global.PredefClouds, error) {
 func getProviderName(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	conn, err := db.Conn(PREDEFCLOUDS)
+	conn, err := db.Conn(PREDEFCLOUDSBUCKET)
 
 	if err != nil {
 		return pdc, err
@@ -149,12 +155,12 @@ func GetIdentityFileLocation(file string) (string, error) {
 	s = strings.Split(file, "_")
 	email, name := s[0], s[1]
 
-	megam_home, err := config.GetString("megam:home")
+	megam_home, err := config.GetString("megam_home")
 	if err != nil {
 		return "", err
 	}
 
-	return megam_home + CLOUDKEYS + "/" + email + "/" + name, nil
+	return megam_home + CLOUDKEYSBUCKET + "/" + email + "/" + name, nil
 }
 
 type SshFile struct {
@@ -167,7 +173,7 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 	email, name := sa[0], sa[1]
 	ssh := &db.SshObject{}
 
-	conn, err := db.Conn(SSH_FILES)
+	conn, err := db.Conn(SSHFILESBUCKET)
 	if err != nil {
 		return err
 	}
@@ -177,13 +183,12 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 		return ferr
 	}
 
-	megam_home, ckberr := config.GetString("megam:home")
+	megam_home, ckberr := config.GetString("megam_home")
 	if ckberr != nil {
 		return ckberr
 	}
 
-	basePath := megam_home + CLOUDKEYS
-
+	basePath := megam_home + CLOUDKEYSBUCKET
 	dir := path.Join(basePath, email)
 	filePath := path.Join(dir, name+"."+keyvalue)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -203,4 +208,25 @@ func downloadSshFiles(pdc *global.PredefClouds, keyvalue string, permission os.F
 		return errf
 	}
 	return nil
+}
+
+type AccessKeys struct {
+	AccessKey string `json:"-A"`
+	SecretKey string `json:"-K"`
+}
+
+func GetAccessKeys(pdc *global.PredefClouds) (*AccessKeys, error) {
+	keys := &AccessKeys{}
+
+	conn, err := db.Conn(CLOUDACCESSKEYSBUCKET)
+	if err != nil {
+		return keys, err
+	}
+
+	ferr := conn.FetchStruct(pdc.Access.VaultLocation, keys)
+	if ferr != nil {
+		return keys, ferr
+	}
+
+	return keys, nil
 }

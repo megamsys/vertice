@@ -20,9 +20,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/provisioner"
-	//	"encoding/json"
 	"github.com/megamsys/megamd/global"
-	"github.com/tsuru/config"
 )
 
 const (
