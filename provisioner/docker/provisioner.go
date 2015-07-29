@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/log"
 	"github.com/megamsys/libgo/db"
@@ -31,7 +30,11 @@ import (
 	"github.com/tsuru/config"
 )
 
-
+/*
+*
+* Registers docker as provisioner in provisioner interface.
+*
+ */
 type dockerProvisioner struct {
 	cluster        *swarmc.Cluster
 	storage        swarmc.Storage
@@ -192,7 +195,7 @@ func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id s
 
 		herr := setHostName(containerName, ipaddress)
 		if herr != nil {
-		  log.Error("set host name error : %s", herr)
+			log.Error("set host name error : %s", herr)
 		}
 
 		updateContainerJSON(assembly, ipaddress, containerID, endpoint)
@@ -244,7 +247,7 @@ func (i *dockerProvisioner) Delete(assembly *global.AssemblyWithComponents, id s
 /*
 * Docker API client to connect to swarm/docker VM.
 * Swarm supports all docker API endpoints
-*/
+ */
 func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
@@ -298,14 +301,14 @@ func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) 
 
 	/*
 	 * hostConfig{} struct for portbindings - to expose visible ports
-	 *  Also for specfying the container configurations (memory, cpuquota etc)
+	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
 
 	hostConfig := docker.HostConfig{}
 
 	/*
 	 *   Starting container once the container is created - container ID &
-	 *   hostConfig is proivided to start the container.
+	 *   hostConfig is provided to start the container.
 	 *
 	 */
 	serr := client.StartContainer(containerID, &hostConfig)
@@ -313,12 +316,12 @@ func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) 
 		log.Error("Start container was failed : %s", serr)
 		return serr
 	}
- return nil
+	return nil
 }
 
 /*
 * stop the container using docker endpoint
-*/
+ */
 func StopContainer(containerID string, endpoint string) error {
 
 	client, _ := docker.NewClient(endpoint)
@@ -332,7 +335,7 @@ func StopContainer(containerID string, endpoint string) error {
 
 /*
 * restart the container using docker endpoint
-*/
+ */
 func RestartContainer(containerID string, endpoint string) error {
 	client, _ := docker.NewClient(endpoint)
 	rerr := client.RestartContainer(containerID, 10)
