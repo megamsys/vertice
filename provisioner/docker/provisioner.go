@@ -73,12 +73,12 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			return "", cerr
 		}
 
-		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "cpu")
+		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Inputs, "cpu")
 		if perrscm != nil {
 			log.Error("Failed to get the endpoint value : %s", perrscm)
 		}
 
-		pair_memory, iderr := global.ParseKeyValuePair(assembly.Components[0].Outputs, "ram")
+		pair_memory, iderr := global.ParseKeyValuePair(assembly.Inputs, "ram")
 		if iderr != nil {
 			log.Error("Failed to get the endpoint value : %s", iderr)
 		}
