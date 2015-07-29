@@ -160,8 +160,8 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
 	buffer.WriteString("create")	
-	cpu, perr := global.ParseKeyValuePair(assembly.Inputs, "cpu")
-	ram, perr := global.ParseKeyValuePair(assembly.Inputs, "ram")
+	cpu, _ := global.ParseKeyValuePair(assembly.Inputs, "cpu")
+	ram, _ := global.ParseKeyValuePair(assembly.Inputs, "ram")
 	templatekey := ""
 	if len(assembly.Components) > 0 {
 	   megamtemplatekey, err_templatekey := config.GetString("opennebula:default_template_name")
