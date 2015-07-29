@@ -20,19 +20,15 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/provisioner"
-	//	"encoding/json"
 	"github.com/megamsys/megamd/global"
-	"github.com/tsuru/config"
 )
+
+const PREDEFCLOUDSBUCKET= "predefclouds"
 
 func GetPredefClouds(host string) (*global.PredefClouds, error) {
 	pdc := &global.PredefClouds{}
 
-	predefBucket, perr := config.GetString("riak:predefclouds")
-	if perr != nil {
-		return pdc, perr
-	}
-	conn, err := db.Conn(predefBucket)
+	conn, err := db.Conn(PREDEFCLOUDSBUCKET)
 
 	if err != nil {
 		return pdc, err
