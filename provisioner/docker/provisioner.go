@@ -18,6 +18,7 @@ package docker
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
@@ -72,7 +73,17 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			return "", cerr
 		}
 
-		serr := StartContainer(containerID, endpoint)
+		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "cpu")
+		if perrscm != nil {
+			log.Error("Failed to get the endpoint value : %s", perrscm)
+		}
+
+		pair_memory, iderr := global.ParseKeyValuePair(assembly.Components[0].Outputs, "memory")
+		if iderr != nil {
+			log.Error("Failed to get the endpoint value : %s", iderr)
+		}
+
+		serr := StartContainer(containerID, endpoint, pair_cpu.Value, pair_memory.Value)
 		if serr != nil {
 			log.Error("container starting error : %s", serr)
 			return "", serr
@@ -187,7 +198,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 /*
 * start the container using docker endpoint
  */
-func StartContainer(containerID string, endpoint string) error {
+func StartContainer(containerID string, endpoint string, cpu string, cmemory string) error {
 
 	client, _ := docker.NewClient(endpoint)
 
@@ -195,8 +206,20 @@ func StartContainer(containerID string, endpoint string) error {
 	 * hostConfig{} struct for portbindings - to expose visible ports
 	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
+	mem, _ := strconv.Atoi(cmemory)
+	var memory int64
+	memory = int64(mem)
 
-	hostConfig := docker.HostConfig{}
+	cpuq, _ := strconv.Atoi(cpu)
+	var cpuqo int64
+	cpuqo = int64(cpuq)
+	cpuQuota := cpuqo * 25000
+
+	period := 50000
+	var cpuPeriod int64
+	cpuPeriod = int64(period)
+
+	hostConfig := docker.HostConfig{Memory: memory, CPUPeriod: cpuPeriod, CPUQuota: cpuQuota}
 
 	/*
 	 *   Starting container once the container is created - container ID &
