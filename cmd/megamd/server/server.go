@@ -12,20 +12,21 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package server
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+
 	log "code.google.com/p/log4go"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/api/http"
-	"github.com/megamsys/megamd/cmd/megamd/server/queue"	
+	"github.com/megamsys/megamd/cmd/megamd/server/queue"
 	"github.com/megamsys/megamd/global"
 	"github.com/tsuru/config"
-	"encoding/json"
-	"os"
-	"fmt"
 )
 
 type Server struct {
@@ -55,22 +56,23 @@ func (self *Server) ListenAndServe() error {
 	var queueInput [3]string
 	queueInput[0] = "cloudstandup"
 	queueInput[1] = "events"
-    self.Checker()
-    self.IPInit()    
-    
+	queueInput[2] = "dockerstate"
+	self.Checker()
+	self.IPInit()
+
 	// Queue input
 	for i := range queueInput {
 		listenQueue := queueInput[i]
 		queueserver := queue.NewServer(listenQueue)
 		go queueserver.ListenAndServe()
 	}
-	self.HttpApi.ListenAndServe()	
-	
+	self.HttpApi.ListenAndServe()
+
 	return nil
 }
 
 type Connection struct {
-	Dial     string `json:"dial"`
+	Dial string `json:"dial"`
 }
 
 func (self *Server) Checker() {
@@ -81,53 +83,53 @@ func (self *Server) Checker() {
 	}
 
 	_, connerr := factor.Dial()
-    if connerr != nil {
-    	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start rabbitmq service.\n", connerr)
-         os.Exit(1)
-    }
-    log.Info("rabbitmq connected [ok]")
+	if connerr != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n Please start rabbitmq service.\n", connerr)
+		os.Exit(1)
+	}
+	log.Info("rabbitmq connected [ok]")
 
-    log.Info("verifying riak")
+	log.Info("verifying riak")
 
-	 rconn, rerr := db.Conn("connection")
-	 if rerr != nil {
-		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
-         os.Exit(1)
-	 }
+	rconn, rerr := db.Conn("connection")
+	if rerr != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
+		os.Exit(1)
+	}
 
-	 data := "sampledata"
-	 ferr := rconn.StoreObject("sampleobject", data)
-	 if ferr != nil {
-	 	 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
-         os.Exit(1)
-	 }
-	 defer rconn.Close()
-    log.Info("riak connected [ok]")
+	data := "sampledata"
+	ferr := rconn.StoreObject("sampleobject", data)
+	if ferr != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
+		os.Exit(1)
+	}
+	defer rconn.Close()
+	log.Info("riak connected [ok]")
 
 }
 
 func (self *Server) IPInit() {
-    
-     rconn, rerr := db.Conn("ipindex")
-	 if rerr != nil {
-		 fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
-         os.Exit(1)
-	 }
+
+	rconn, rerr := db.Conn("ipindex")
+	if rerr != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", rerr)
+		os.Exit(1)
+	}
 
 	index := global.IPIndex{}
 	subnet, _ := config.GetString("swarm:subnet")
 	_, err := index.Get(global.IPINDEXKEY)
 	if err != nil {
-	  	data := &global.IPIndex{Ip: subnet, Subnet: subnet, Index: 1} 
-	  	res2B, _ := json.Marshal(data)
-	  	ferr := rconn.StoreObject(global.IPINDEXKEY, string(res2B))
-	  	if ferr != nil {
-	 	 	fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
-         	os.Exit(1)
-	 	}
+		data := &global.IPIndex{Ip: subnet, Subnet: subnet, Index: 1}
+		res2B, _ := json.Marshal(data)
+		ferr := rconn.StoreObject(global.IPINDEXKEY, string(res2B))
+		if ferr != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n Please start Riak service.\n", ferr)
+			os.Exit(1)
+		}
 	}
-	
-   defer rconn.Close()	
+
+	defer rconn.Close()
 }
 
 func (self *Server) Stop() {

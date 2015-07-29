@@ -62,7 +62,7 @@ func NewCoordinator(chann []byte, queue string) {
 	case "events":
 		eventsHandler(chann)
 		break
-	case "dockerState":
+	case "dockerstate":
 		dockerStateHandler(chann)
 		break
 	}
@@ -105,7 +105,7 @@ func dockerStateHandler(chann []byte) {
 	switch req.Action {
 	case "start":
 		log.Info("Starting Container")
-		//	go docker.startContainer(asm)
+		go docker.StartContainer(cont_id.Value, endpoint.Value)
 		break
 	case "stop":
 		log.Info("Stopping Container")

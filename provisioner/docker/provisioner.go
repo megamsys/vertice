@@ -18,6 +18,7 @@ package docker
 import (
 	"encoding/json"
 	"fmt"
+
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/megamd/global"
@@ -29,7 +30,7 @@ import (
 *
 * Registers docker as provisioner in provisioner interface.
 *
-*/
+ */
 
 func Init() {
 	provisioner.Register("docker", &Docker{})
@@ -45,7 +46,7 @@ const BAREMETAL = "baremetal"
 * Baremetal and VM-docker launch. Specify endpoint
 * Swarm Host IP is added into the conf file.
 *
-*/
+ */
 
 func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, instance bool, act_id string) (string, error) {
 	log.Info("%q", assembly)
@@ -53,7 +54,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 	if perrscm != nil {
 		log.Error("Failed to get the endpoint value : %s", perrscm)
 		return "", perrscm
-	}	
+	}
 
 	var endpoint string
 	if pair_endpoint.Value == BAREMETAL {
@@ -64,30 +65,30 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		 */
 		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
-		
+
 		containerID, containerName, cerr := create(assembly, endpoint)
 		if cerr != nil {
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
 		}
-		
+
 		serr := StartContainer(containerID, endpoint)
 		if serr != nil {
 			log.Error("container starting error : %s", serr)
 			return "", serr
 		}
-		
+
 		ipaddress, iperr := setContainerNAL(containerID, containerName, endpoint)
 		if iperr != nil {
 			log.Error("set container network was failed : %s", iperr)
 			return "", iperr
 		}
-		
+
 		herr := setHostName(containerName, ipaddress)
 		if herr != nil {
-		  log.Error("set host name error : %s", herr)
+			log.Error("set host name error : %s", herr)
 		}
-		
+
 		updateContainerJSON(assembly, ipaddress, containerID, endpoint)
 	} else {
 		endpoint = pair_endpoint.Value
@@ -135,11 +136,11 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 }
 
 /*
-* Docker API client to connect to swarm/docker VM. 
+* Docker API client to connect to swarm/docker VM.
 * Swarm supports all docker API endpoints
-*/
+ */
 func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
-	
+
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
@@ -151,7 +152,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 		log.Error("Failed to get the image value : %s", perrdomain)
 		return "", "", perrdomain
 	}
-	
+
 	client, _ := docker.NewClient(endpoint)
 
 	opts := docker.PullImageOptions{
@@ -162,7 +163,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 		log.Error("Image pulled failed : %s", pullerr)
 		return "", "", pullerr
 	}
-	
+
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
 	copts := docker.CreateContainerOptions{Name: fmt.Sprint(assembly.Components[0].Name, ".", pair_domain.Value), Config: &dconfig}
 
@@ -175,31 +176,31 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 		log.Error("Container creation failed : %s", conerr)
 		return "", "", conerr
 	}
-	
+
 	cont := &docker.Container{}
 	mapP, _ := json.Marshal(container)
 	json.Unmarshal([]byte(string(mapP)), cont)
-	
+
 	return cont.ID, cont.Name, nil
 }
 
-/* 
+/*
 * start the container using docker endpoint
-*/
+ */
 func StartContainer(containerID string, endpoint string) error {
-	
+
 	client, _ := docker.NewClient(endpoint)
-	
+
 	/*
 	 * hostConfig{} struct for portbindings - to expose visible ports
-	 *  Also for specfying the container configurations (memory, cpuquota etc)
+	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
 
 	hostConfig := docker.HostConfig{}
-		
+
 	/*
 	 *   Starting container once the container is created - container ID &
-	 *   hostConfig is proivided to start the container.
+	 *   hostConfig is provided to start the container.
 	 *
 	 */
 	serr := client.StartContainer(containerID, &hostConfig)
@@ -207,12 +208,12 @@ func StartContainer(containerID string, endpoint string) error {
 		log.Error("Start container was failed : %s", serr)
 		return serr
 	}
- return nil	
+	return nil
 }
 
-/* 
+/*
 * stop the container using docker endpoint
-*/
+ */
 func StopContainer(containerID string, endpoint string) error {
 
 	client, _ := docker.NewClient(endpoint)
@@ -224,9 +225,9 @@ func StopContainer(containerID string, endpoint string) error {
 	return nil
 }
 
-/* 
+/*
 * restart the container using docker endpoint
-*/
+ */
 func RestartContainer(containerID string, endpoint string) error {
 	client, _ := docker.NewClient(endpoint)
 	rerr := client.RestartContainer(containerID, 10)
