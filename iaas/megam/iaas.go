@@ -76,17 +76,19 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 	}
 
 	riakHost, err_riakHost := config.GetString("chef:riak")
+
 	if err_riakHost != nil {
 		return "", err_riakHost
 	}
 
 	rabbitmqHost, err_rabbitmq := config.GetString("chef:amqp")
-	if err_rabbitmq != nil {
+if err_rabbitmq != nil {
 		return "", err_rabbitmq
 	}
 
+
 	monitor, err_monitor := config.GetString("chef:monitor")
-	if err_monitor != nil {
+if err_monitor != nil {
 		return "", err_monitor
 	}
 
@@ -154,7 +156,8 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
 	buffer.WriteString("create")
-
+	cpu, _ := global.ParseKeyValuePair(assembly.Inputs, "cpu")
+	ram, _ := global.ParseKeyValuePair(assembly.Inputs, "ram")
 	templatekey := ""
 	if len(assembly.Components) > 0 {
 	   megamtemplatekey, err_templatekey := config.GetString("opennebula:template")
@@ -197,6 +200,9 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	} else {
 		return "", fmt.Errorf("Identity file doesn't loaded")
 	}
+
+	buffer.WriteString(" --cpu " + cpu.Value)
+	buffer.WriteString(" --ram " + ram.Value)
 
 	zonekey, err_zonekey := config.GetString("opennebula:zone")
 	if err_zonekey != nil {

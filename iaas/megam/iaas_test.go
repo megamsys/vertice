@@ -51,17 +51,29 @@ var json1 = `{"key":"domain","value":"megambox.com"}`
 	var res4 = &global.KeyValuePair{}
 	var input4 = json.Unmarshal([]byte(json4), &res4)
 	
+	var json5 = `{"key":"cpu","value":"8"}`
+
+	var res5 = &global.KeyValuePair{}
+	var input5 = json.Unmarshal([]byte(json5), &res5)
+	
+	var json6 = `{"key":"ram","value":"8"}`
+
+	var res6 = &global.KeyValuePair{}
+	var input6 = json.Unmarshal([]byte(json6), &res6)
+	
 	var inputs = make([]*global.KeyValuePair, 0)
 	var d = append(inputs, res1)
 	var e = append(d, res2)
 	var f = append(e, res3)
 	var g = append(f, res4)
+	var h = append(g, res5)
+	var i = append(h, res6)
 		
 var	asm = &global.AssemblyWithComponents{
 							Id: 			"ASM1226483770383794176",
 							Name: 			"winfred", 
 							ToscaType: 		"tosca.torpedo.debian",
-							Inputs:			g,
+							Inputs:			i,
 							Status:			"LAUNCHING",
 							CreatedAt:		"2015-06-27 07:38:51 +0000",
 							}

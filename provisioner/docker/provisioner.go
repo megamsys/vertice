@@ -18,7 +18,9 @@ package docker
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
+	"strconv"
+
+	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/log"
 	"github.com/megamsys/libgo/db"
@@ -175,13 +177,24 @@ func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id s
 		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
 
-		containerID, containerName, cerr := create(assembly, endpoint)
+		containerID, containerName, swarmNode, cerr := create(assembly, endpoint)
 		if cerr != nil {
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
 		}
 
-		serr := StartContainer(containerID, endpoint)
+
+		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Inputs, "cpu")
+		if perrscm != nil {
+			log.Error("Failed to get the endpoint value : %s", perrscm)
+		}
+
+		pair_memory, iderr := global.ParseKeyValuePair(assembly.Inputs, "ram")
+		if iderr != nil {
+			log.Error("Failed to get the endpoint value : %s", iderr)
+		}
+
+		serr := StartContainer(containerID, endpoint, pair_cpu.Value, pair_memory.Value)
 		if serr != nil {
 			log.Error("container starting error : %s", serr)
 			return "", serr
@@ -198,7 +211,7 @@ func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id s
 			log.Error("set host name error : %s", herr)
 		}
 
-		updateContainerJSON(assembly, ipaddress, containerID, endpoint)
+		updateContainerJSON(assembly, ipaddress, containerID, endpoint, swarmNode)
 	} else {
 		endpoint = pair_endpoint.Value
 		create(assembly, endpoint)
@@ -248,17 +261,17 @@ func (i *dockerProvisioner) Delete(assembly *global.AssemblyWithComponents, id s
 * Docker API client to connect to swarm/docker VM.
 * Swarm supports all docker API endpoints
  */
-func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
+func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, string, error) {
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
-		return "", "", perrscm
+		return "", "", "", perrscm
 	}
 
 	pair_domain, perrdomain := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 	if perrdomain != nil {
 		log.Error("Failed to get the image value : %s", perrdomain)
-		return "", "", perrdomain
+		return "", "", "", perrdomain
 	}
 
 	client, _ := docker.NewClient(endpoint)
@@ -269,7 +282,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	pullerr := client.PullImage(opts, docker.AuthConfiguration{})
 	if pullerr != nil {
 		log.Error("Image pulled failed : %s", pullerr)
-		return "", "", pullerr
+		return "", "", "", pullerr
 	}
 
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
@@ -282,29 +295,49 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	container, conerr := client.CreateContainer(copts)
 	if conerr != nil {
 		log.Error("Container creation failed : %s", conerr)
-		return "", "", conerr
+		return "", "", "", conerr
 	}
 
 	cont := &docker.Container{}
 	mapP, _ := json.Marshal(container)
 	json.Unmarshal([]byte(string(mapP)), cont)
 
-	return cont.ID, cont.Name, nil
+	inspect, _ := client.InspectContainer(cont.ID)
+	contI := &docker.Container{}
+	mapInsp, _ := json.Marshal(inspect)
+	json.Unmarshal([]byte(string(mapInsp)), contI)
+
+	swarmNode := &docker.SwarmNode{}
+	mapSwarm,_ := json.Marshal(contI.Node)
+	json.Unmarshal([]byte(string(mapSwarm)), swarmNode)
+
+	return cont.ID, cont.Name, swarmNode.IP, nil
 }
 
 /*
 * start the container using docker endpoint
 */
 func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) error {
-
-	client, _ := docker.NewClient(endpoint)
+		client, _ := docker.NewClient(endpoint)
 
 	/*
 	 * hostConfig{} struct for portbindings - to expose visible ports
 	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
+	mem, _ := strconv.Atoi(cmemory)
+	var memory int64
+	memory = int64(mem)
 
-	hostConfig := docker.HostConfig{}
+	cpuq, _ := strconv.Atoi(cpu)
+	var cpuqo int64
+	cpuqo = int64(cpuq)
+	cpuQuota := cpuqo * 25000
+
+	period := 50000
+	var cpuPeriod int64
+	cpuPeriod = int64(period)
+
+	hostConfig := docker.HostConfig{Memory: memory, CPUPeriod: cpuPeriod, CPUQuota: cpuQuota}
 
 	/*
 	 *   Starting container once the container is created - container ID &
