@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,90 +44,90 @@ func (i *MegamIaaS) CreateMachine(pdc *global.PredefClouds, assembly *global.Ass
 	if err_accesskey != nil {
 		return "", err_accesskey
 	}
-	
+
 	secretkey, err_secretkey := config.GetString("opennebula:secret_key")
 	if err_secretkey != nil {
 		return "", err_secretkey
 	}
-	
+
 	str, err := buildCommand(assembly)
 	if err != nil {
 		return "", err
 	}
-	
+
 	pair, perr := global.ParseKeyValuePair(assembly.Inputs, "domain")
 	if perr != nil {
 		log.Error("Failed to get the domain value : %s", perr)
 	}
-		
+
 	knifePath, kerr := config.GetString("knife:path")
 	if kerr != nil {
 		return "", kerr
-	}	
-	
+	}
+
 	str = str + " -c " + knifePath
 	str = str + " -N " + assembly.Name + "." + pair.Value
 	str = str + " -A " + accesskey
 	str = str + " -K " + secretkey
-	
+
 	recipe, err_recipe := config.GetString("knife:recipe")
 	if err_recipe != nil {
 		return "", err_recipe
 	}
-	
+
 	riakHost, err_riakHost := config.GetString("launch:riak")
 	if err_riakHost != nil {
 		return "", err_riakHost
 	}
-	
+
 	rabbitmqHost, err_rabbitmq := config.GetString("launch:rabbitmq")
 	if err_rabbitmq != nil {
 		return "", err_rabbitmq
 	}
-	
+
 	monitor, err_monitor := config.GetString("launch:monitor")
 	if err_monitor != nil {
 		return "", err_monitor
 	}
-	
+
 	kibana, err_kibana := config.GetString("launch:kibana")
 	if err_kibana != nil {
 		return "", err_kibana
 	}
-	
+
 	etcdHost, err_etcd := config.GetString("launch:etcd")
 	if err_etcd != nil {
 		return "", err_etcd
 	}
 
-	
+
 	str = str + " --run-list recipe[" + recipe + "]"
 	attributes := &iaas.Attributes{RiakHost: riakHost, AccountID: act_id, AssemblyID: assembly.Id, RabbitMQ: rabbitmqHost, MonitorHost: monitor, KibanaHost: kibana, EtcdHost: etcdHost}
     b, aerr := json.Marshal(attributes)
-    if aerr != nil {        
+    if aerr != nil {
         return "", aerr
     }
 	str = str + " --json-attributes " + string(b)
-	
+
 	return str, nil
- 
+
 }
 
 /*
 * delete the machine from megam server using knife opennebula plugin
 */
 func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.AssemblyWithComponents) (string, error) {
-  
+
 	accesskey, err_accesskey := config.GetString("opennebula:access_key")
 	if err_accesskey != nil {
 		return "", err_accesskey
 	}
-	
+
 	secretkey, err_secretkey := config.GetString("opennebula:secret_key")
 	if err_secretkey != nil {
 		return "", err_secretkey
 	}
-     
+
      str, err := buildDelCommand(iaas.GetPlugins("opennebula"), pdc, "delete")
 	if err != nil {
 	return "", err
@@ -146,9 +146,9 @@ func (i *MegamIaaS) DeleteMachine(pdc *global.PredefClouds, assembly *global.Ass
 		return "", kerr
 	}
 	str = strings.Replace(str, " -c ", " -c "+knifePath+" ", -1)
-	str = strings.Replace(str, "<node_name>", assembly.Name + "." + pair.Value, -1 )    
+	str = strings.Replace(str, "<node_name>", assembly.Name + "." + pair.Value, -1 )
 
-    return str, nil	
+    return str, nil
 }
 
 /*
@@ -159,7 +159,7 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	buffer.WriteString("knife ")
 	buffer.WriteString("opennebula ")
 	buffer.WriteString("server ")
-	buffer.WriteString("create")	
+	buffer.WriteString("create")
 	cpu, _ := global.ParseKeyValuePair(assembly.Inputs, "cpu")
 	ram, _ := global.ParseKeyValuePair(assembly.Inputs, "ram")
 	templatekey := ""
@@ -167,8 +167,8 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	   megamtemplatekey, err_templatekey := config.GetString("opennebula:default_template_name")
 		if err_templatekey != nil {
 			return "", err_templatekey
-		}	
-		templatekey = megamtemplatekey + "_" + cpu.Value + "_" + ram.Value
+		}
+		templatekey = megamtemplatekey
 	} else {
 		atype := make([]string, 3)
 		atype = strings.Split(assembly.ToscaType, ".")
@@ -176,9 +176,9 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 		if perr != nil {
 			log.Error("Failed to get the version : %s", perr)
 		}
-    	templatekey = "megam_" + atype[2] + "_" + pair.Value + "_" + cpu.Value + "_" + ram.Value
+    	templatekey = "megam_" + atype[2] + "_" + pair.Value
 	}
-	
+
 	if len(templatekey) > 0 {
 		buffer.WriteString(" --template-name " + templatekey)
 	} else {
@@ -204,6 +204,9 @@ func buildCommand(assembly *global.AssemblyWithComponents) (string, error) {
 	} else {
 		return "", fmt.Errorf("Identity file doesn't loaded")
 	}
+
+	buffer.WriteString(" --cpu " + cpu.Value)
+	buffer.WriteString(" --ram " + ram.Value)
 
 	zonekey, err_zonekey := config.GetString("opennebula:zone")
 	if err_zonekey != nil {
@@ -232,7 +235,7 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 			return "", fmt.Errorf("Plugin commands doesn't loaded")
 		}
 	}
-	
+
 	zonekey, err_zonekey := config.GetString("opennebula:zone")
 	if err_zonekey != nil {
 		return "", err_zonekey
@@ -242,7 +245,7 @@ func buildDelCommand(plugin *iaas.Plugins, pdc *global.PredefClouds, command str
 	} else {
 		return "", fmt.Errorf("Zone doesn't loaded")
 	}
-	
-	return buffer.String(), nil 
-	
-}	
+
+	return buffer.String(), nil
+
+}
