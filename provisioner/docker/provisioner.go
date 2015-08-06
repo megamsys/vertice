@@ -196,6 +196,13 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	contI := &docker.Container{}
 	mapInsp, _ := json.Marshal(inspect)
 	json.Unmarshal([]byte(string(mapInsp)), contI)
+	
+	//var port string
+
+	//for k, _ := range container_network.Ports {
+	//porti := strings.Split(string(k), "/")
+	//port = porti[0]
+	//}
 
 	swarmNode := &docker.SwarmNode{}
 	mapSwarm, _ := json.Marshal(contI.Node)
