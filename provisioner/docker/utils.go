@@ -114,7 +114,7 @@ func setBit(a []byte, k uint) {
 	a[k/8] |= 1 << (k % 8)
 }
 
-func setContainerNAL(containerID string, containerName string, endpoint string) (string, error) {
+func setContainerNAL(containerID string, containerName string, swarmNode string) (string, error) {
 
 	/*
 	* generate the ip
@@ -126,12 +126,12 @@ func setContainerNAL(containerID string, containerName string, endpoint string) 
 		log.Error("Ip generation was failed : %s", iperr)
 		return "", iperr
 	}
-	client, _ := docker.NewClient(endpoint)
+	client, _ := docker.NewClient(swarmNode)
 	ch := make(chan bool)
 	/*
 	* configure ip to container
 	 */
-	go recv(containerID, containerName, ip.String(), client, ch)
+	go recv(containerID, containerName, ip.String(), client, ch, swarmNode)
 
 	uerr := updateIndex(ip.String(), pos)
 	if uerr != nil {
@@ -212,7 +212,7 @@ func GetCpuQuota() int64 {
 
 }
 
-func recv(containerID string, containerName string, ip string, client *docker.Client, ch chan bool) {
+func recv(containerID string, containerName string, ip string, client *docker.Client, ch chan bool, swarmNode string) {
 	log.Info("Receiver waited for container up")
 	time.Sleep(18000 * time.Millisecond)
 
@@ -230,18 +230,18 @@ func recv(containerID string, containerName string, ip string, client *docker.Cl
 	json.Unmarshal([]byte(string(mapN)), container_state)
 
 	if container_state.Running == true {
-		postnetwork(containerID, ip)
-		postlogs(containerID, containerName)
+		postnetwork(containerID, ip, swarmNode)
+		postlogs(containerID, containerName, swarmNode)
 		ch <- true
 		return
 	}
 
-	go recv(containerID, containerName, ip, client, ch)
+	go recv(containerID, containerName, ip, client, ch, swarmNode)
 }
 
-func postnetwork(containerid string, ip string) {
-	gulpUrl, _ := config.GetString("docker:gulp_url")
-	url := gulpUrl + "docker/networks"
+func postnetwork(containerid string, ip string, swarmNode string) {
+	gulpPort, _ := config.GetString("docker:gulp_port")
+	url := swarmNode + ":" + gulpPort + "docker/networks"
 	log.Info("URL:> %s", url)
 
 	bridge, _ := config.GetString("docker:bridge")
@@ -266,9 +266,9 @@ func postnetwork(containerid string, ip string) {
 	log.Info("response Body : %s", string(body))
 }
 
-func postlogs(containerid string, containername string) error {
-	gulpUrl, _ := config.GetString("docker:gulp_url")
-	url := gulpUrl + "docker/logs"
+func postlogs(containerid string, containername string, swarmNode string) error {
+	gulpPort, _ := config.GetString("docker:gulp_port")
+	url := swarmNode + ":" + gulpPort + "/docker/logs"
 	log.Info("URL:> %s", url)
 
 	data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}

@@ -72,7 +72,6 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
 		}
-		
 
 		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Inputs, "cpu")
 		if perrscm != nil {
@@ -90,7 +89,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			return "", serr
 		}
 
-		ipaddress, iperr := setContainerNAL(containerID, containerName, endpoint)
+		ipaddress, iperr := setContainerNAL(containerID, containerName, swarmNode)
 		if iperr != nil {
 			log.Error("set container network was failed : %s", iperr)
 			return "", iperr
@@ -199,7 +198,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	json.Unmarshal([]byte(string(mapInsp)), contI)
 
 	swarmNode := &docker.SwarmNode{}
-	mapSwarm,_ := json.Marshal(contI.Node)
+	mapSwarm, _ := json.Marshal(contI.Node)
 	json.Unmarshal([]byte(string(mapSwarm)), swarmNode)
 
 	return cont.ID, cont.Name, swarmNode.IP, nil
