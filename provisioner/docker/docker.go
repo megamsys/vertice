@@ -27,26 +27,20 @@ import (
 )
 
 func buildClusterStorage() (cluster.Storage, error) {
-	mongoUrl, _ := config.GetString("docker:cluster:mongo-url")
-	mongoDatabase, _ := config.GetString("docker:cluster:mongo-database")
-	if mongoUrl == "" || mongoDatabase == "" {
-		return nil, fmt.Errorf("Cluster Storage: docker:cluster:{mongo-url,mongo-database} must be set.")
-	}
-	storage, err := mongodb.Mongodb(mongoUrl, mongoDatabase)
+	pdc := &global.PredefClouds{}
+
+	conn, err := db.Conn(CONTAINERS)
 	if err != nil {
-		return nil, fmt.Errorf("Cluster Storage: Unable to connect to mongodb: %s (docker:cluster:mongo-url = %q; docker:cluster:mongo-database = %q)",
-			err.Error(), mongoUrl, mongoDatabase)
+		return pdc, err
+	}
+
+	err = conn.FetchStruct(host, pdc)
+	if err != nil {
+		return pdc, err
 	}
 	return storage, nil
 }
 
-func getPort() (string, error) {
-	port, err := config.Get("docker:run-cmd:port")
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprint(port), nil
-}
 
 func urlToHost(urlStr string) string {
 	url, _ := url.Parse(urlStr)
@@ -119,25 +113,6 @@ func randomString() string {
 	return fmt.Sprintf("%x", h.Sum(nil))[:20]
 }
 
-func (c *container) addEnvsToConfig(app provision.App, cfg *docker.Config) {
-	sharedMount, _ := config.GetString("docker:sharedfs:mountpoint")
-	sharedBasedir, _ := config.GetString("docker:sharedfs:hostdir")
-	host, _ := config.GetString("host")
-	for _, envData := range app.Envs() {
-		cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
-	}
-	cfg.Env = append(cfg.Env, []string{
-		fmt.Sprintf("%s=%s", "TSURU_HOST", host),
-		fmt.Sprintf("%s=%s", "TSURU_PROCESSNAME", c.ProcessName),
-	}...)
-	if sharedMount != "" && sharedBasedir != "" {
-		cfg.Volumes = map[string]struct{}{
-			sharedMount: {},
-		}
-		cfg.Env = append(cfg.Env, fmt.Sprintf("TSURU_SHAREDFS_MOUNTPOINT=%s", sharedMount))
-	}
-}
-
 // creates a new container in Docker.
 func (c *container) create(args runContainerActionsArgs) error {
 	port, err := getPort()
@@ -166,7 +141,6 @@ func (c *container) create(args runContainerActionsArgs) error {
 		CPUShares:    int64(args.app.GetCpuShare()),
 		SecurityOpts: securityOpts,
 	}
-	c.addEnvsToConfig(args.app, &config)
 	opts := docker.CreateContainerOptions{Name: c.Name, Config: &config}
 	var nodeList []string
 	if len(args.destinationHosts) > 0 {

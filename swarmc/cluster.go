@@ -5,7 +5,7 @@
 // Package cluster provides types and functions for management of Docker
 // clusters, scheduling container operations among hosts running Docker
 // (nodes).
-package cluster
+package swarmc
 
 import (
 	"errors"
@@ -18,7 +18,7 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/fsouza/go-dockerclient/testing"
-	"github.com/tsuru/docker-cluster/log"
+	"github.com/megamsys/megamd/log"
 )
 
 var (
@@ -27,7 +27,6 @@ var (
 )
 
 type node struct {
-	*docker.Client
 	persistentClient *http.Client
 	addr             string
 }
@@ -48,14 +47,6 @@ type ContainerStorage interface {
 	RetrieveContainers() ([]Container, error)
 }
 
-// ImageStorage works like ContainerStorage, but stores information about
-// images and hosts.
-type ImageStorage interface {
-	StoreImage(repo, id, host string) error
-	RetrieveImage(repo string) (Image, error)
-	RemoveImage(repo, id, host string) error
-	RetrieveImages() ([]Image, error)
-}
 
 type NodeStorage interface {
 	StoreNode(node Node) error
@@ -71,7 +62,6 @@ type NodeStorage interface {
 
 type Storage interface {
 	ContainerStorage
-	ImageStorage
 	NodeStorage
 }
 
@@ -79,10 +69,10 @@ type Storage interface {
 // provide methods for interaction with those nodes, like CreateContainer,
 // which creates a container in one node of the cluster.
 type Cluster struct {
-	Healer           Healer
-	scheduler        Scheduler
-	stor             Storage
-	monitoringDone   chan bool
+	docker.Client     *docker.Client
+	stor              Storage
+	Healer            Healer
+	monitoringDone    chan bool
 	dryServer        *testing.DockerServer
 	pingClient       *http.Client
 	timeout10Client  *http.Client
@@ -125,7 +115,7 @@ func wrapErrorWithCmd(n node, err error, cmd string) error {
 // The scheduler parameter defines the scheduling strategy. It defaults
 // to round robin if nil.
 // The storage parameter is the storage the cluster instance will use.
-func New(scheduler Scheduler, storage Storage, nodes ...Node) (*Cluster, error) {
+func New(storage Storage, nodes ...Node) (*Cluster, error) {
 	var (
 		c   Cluster
 		err error
@@ -137,11 +127,8 @@ func New(scheduler Scheduler, storage Storage, nodes ...Node) (*Cluster, error) 
 	c.timeout10Client = clientWithTimeout(10*time.Second, 1*time.Hour)
 	c.persistentClient = clientWithTimeout(10*time.Second, 0)
 	c.stor = storage
-	c.scheduler = scheduler
 	c.Healer = DefaultHealer{}
-	if scheduler == nil {
-		c.scheduler = &roundRobin{lastUsed: -1}
-	}
+
 	if len(nodes) > 0 {
 		for _, n := range nodes {
 			err = c.Register(n)
@@ -447,28 +434,7 @@ func (c *Cluster) DryMode() error {
 			return err
 		}
 	}
-	images, err := oldStor.RetrieveImages()
-	if err != nil {
-		return err
-	}
-	for _, img := range images {
-		for _, historyEntry := range img.History {
-			if historyEntry.ImageId != img.LastId && historyEntry.Node != img.LastNode {
-				err = c.PullImage(docker.PullImageOptions{
-					Repository: img.Repository,
-				}, docker.AuthConfiguration{}, historyEntry.Node)
-				if err != nil {
-					return err
-				}
-			}
-		}
-		err = c.PullImage(docker.PullImageOptions{
-			Repository: img.Repository,
-		}, docker.AuthConfiguration{}, img.LastNode)
-		if err != nil {
-			return err
-		}
-	}
+
 	containers, err := oldStor.RetrieveContainers()
 	if err != nil {
 		return err

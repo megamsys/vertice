@@ -6,7 +6,7 @@
 // clusters, scheduling container operations among hosts running Docker
 // (nodes).
 
-package cluster
+package swarmc
 
 import "time"
 

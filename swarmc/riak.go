@@ -2,15 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package mongodb
+package swarmc
 
 import (
 	"time"
 
-	"github.com/tsuru/docker-cluster/cluster"
-	"github.com/tsuru/docker-cluster/storage"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/megamsys/megamd/swarmc/somestore"
 )
 
 type mongodbStorage struct {
@@ -213,23 +210,4 @@ func (s *mongodbStorage) RemoveNode(address string) error {
 func (s *mongodbStorage) getColl(name string) *mgo.Collection {
 	session := s.session.Copy()
 	return session.DB(s.dbName).C(name)
-}
-
-func Mongodb(addr, dbName string) (cluster.Storage, error) {
-	dialInfo, err := mgo.ParseURL(addr)
-	if err != nil {
-		return nil, err
-	}
-	dialInfo.FailFast = true
-	session, err := mgo.DialWithInfo(dialInfo)
-	if err != nil {
-		return nil, err
-	}
-	session.SetSyncTimeout(10 * time.Second)
-	session.SetSocketTimeout(1 * time.Minute)
-	storage := mongodbStorage{
-		session: session,
-		dbName:  dbName,
-	}
-	return &storage, nil
 }

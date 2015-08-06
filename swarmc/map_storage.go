@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package cluster
+package swarmc
 
 import (
 	"sync"
 	"time"
 
-	"github.com/tsuru/docker-cluster/storage"
+	"github.com/megamsys/megamd/swarmc/somestore"
 )
 
 type MapStorage struct {
@@ -58,71 +58,6 @@ func (s *MapStorage) RetrieveContainers() ([]Container, error) {
 	return entries, nil
 }
 
-func (s *MapStorage) StoreImage(repo, id, host string) error {
-	s.iMut.Lock()
-	defer s.iMut.Unlock()
-	if s.iMap == nil {
-		s.iMap = make(map[string]*Image)
-	}
-	img, _ := s.iMap[repo]
-	if img == nil {
-		img = &Image{Repository: repo, History: []ImageHistory{}}
-		s.iMap[repo] = img
-	}
-	hasId := false
-	for _, entry := range img.History {
-		if entry.ImageId == id && entry.Node == host {
-			hasId = true
-			break
-		}
-	}
-	if !hasId {
-		img.History = append(img.History, ImageHistory{Node: host, ImageId: id})
-	}
-	img.LastNode = host
-	img.LastId = id
-	return nil
-}
-
-func (s *MapStorage) RetrieveImage(repo string) (Image, error) {
-	s.iMut.Lock()
-	defer s.iMut.Unlock()
-	image, ok := s.iMap[repo]
-	if !ok {
-		return Image{}, storage.ErrNoSuchImage
-	}
-	if len(image.History) == 0 {
-		return Image{}, storage.ErrNoSuchImage
-	}
-	return *image, nil
-}
-
-func (s *MapStorage) RemoveImage(repo, id, host string) error {
-	s.iMut.Lock()
-	defer s.iMut.Unlock()
-	image, ok := s.iMap[repo]
-	if !ok {
-		return storage.ErrNoSuchImage
-	}
-	newHistory := []ImageHistory{}
-	for _, entry := range image.History {
-		if entry.ImageId != id || entry.Node != host {
-			newHistory = append(newHistory, entry)
-		}
-	}
-	image.History = newHistory
-	return nil
-}
-
-func (s *MapStorage) RetrieveImages() ([]Image, error) {
-	s.iMut.Lock()
-	defer s.iMut.Unlock()
-	images := make([]Image, 0, len(s.iMap))
-	for _, img := range s.iMap {
-		images = append(images, *img)
-	}
-	return images, nil
-}
 
 func (s *MapStorage) updateNodeMap() {
 	s.nodeMap = make(map[string]*Node)

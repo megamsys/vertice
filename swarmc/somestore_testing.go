@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tsuru/docker-cluster/cluster"
-	cstorage "github.com/tsuru/docker-cluster/storage"
+	"github.com/megamsys/megamd/swarmc"
+	cstorage "github.com/megamsys/swarmc/riak"
 )
 
 func assertIsNil(val interface{}, t *testing.T) {
