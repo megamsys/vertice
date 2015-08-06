@@ -16,22 +16,23 @@
 package docker
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"strings"
+	"io/ioutil"
+	"math"
 	"net"
 	"net/http"
-	"io/ioutil"
-	"bytes"
-	"math"
+	"strings"
+	"time"
+
 	log "code.google.com/p/log4go"
+	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/megamd/global"
 	"github.com/megamsys/seru/cmd"
 	"github.com/megamsys/seru/cmd/seru"
 	"github.com/tsuru/config"
-	"github.com/fsouza/go-dockerclient"
-	"time"
 )
 
 func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
@@ -47,8 +48,8 @@ func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
 		log.Error("Error: Riak didn't cooperate:\n%s.", err)
 		return nil, 0, err
 	}
-	
-	return getIP(subnet, res.Index+1), res.Index+1, nil
+
+	return getIP(subnet, res.Index+1), res.Index + 1, nil
 }
 
 // Given Subnet of interest and free bit position, this method returns the corresponding ip address
@@ -113,11 +114,11 @@ func setBit(a []byte, k uint) {
 	a[k/8] |= 1 << (k % 8)
 }
 
-func setContainerNAL(containerID string, containerName string, endpoint string) (string, error) {   
-	
+func setContainerNAL(containerID string, containerName string, endpoint string) (string, error) {
+
 	/*
-	* generate the ip 
-	*/
+	* generate the ip
+	 */
 	subnetip, _ := config.GetString("docker:subnet")
 	_, subnet, _ := net.ParseCIDR(subnetip)
 	ip, pos, iperr := IPRequest(*subnet)
@@ -129,9 +130,9 @@ func setContainerNAL(containerID string, containerName string, endpoint string) 
 	ch := make(chan bool)
 	/*
 	* configure ip to container
-	*/
+	 */
 	go recv(containerID, containerName, ip.String(), client, ch)
-		
+
 	uerr := updateIndex(ip.String(), pos)
 	if uerr != nil {
 		log.Error("Ip index update was failed : %s", uerr)
@@ -144,24 +145,24 @@ func setContainerNAL(containerID string, containerName string, endpoint string) 
 * UpdateComponent updates the ipaddress that is bound to the container
 * It talks to riakdb and updates the respective component(s)
  */
-func updateContainerJSON(assembly *global.AssemblyWithComponents, ipaddress string, containerID string, endpoint string) {
+func updateContainerJSON(assembly *global.AssemblyWithComponents, ipaddress string, containerID string, endpoint string, swarmNode string) {
 
-    
 	var port string
 
 	//for k, _ := range container_network.Ports {
-		//porti := strings.Split(string(k), "/")
-		//port = porti[0]
+	//porti := strings.Split(string(k), "/")
+	//port = porti[0]
 	//}
 	port = ""
-	fmt.Println(port)	
-    
+	fmt.Println(port)
+
 	log.Debug("Update process for component with ip and container id")
-	mySlice := make([]*global.KeyValuePair, 3)
+	mySlice := make([]*global.KeyValuePair, 5)
 	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
 	mySlice[1] = &global.KeyValuePair{Key: "id", Value: containerID}
 	mySlice[2] = &global.KeyValuePair{Key: "port", Value: port}
-	mySlice[2] = &global.KeyValuePair{Key: "endpoint", Value: endpoint}
+	mySlice[3] = &global.KeyValuePair{Key: "endpoint", Value: endpoint}
+	mySlice[4] = &global.KeyValuePair{Key: "host", Value: swarmNode}
 
 	update := global.Component{
 		Id:                assembly.Components[0].Id,
@@ -212,10 +213,10 @@ func GetCpuQuota() int64 {
 }
 
 func recv(containerID string, containerName string, ip string, client *docker.Client, ch chan bool) {
-    log.Info("Receiver waited for container up")
+	log.Info("Receiver waited for container up")
 	time.Sleep(18000 * time.Millisecond)
-	
-    /*
+
+	/*
 	 * Inspect API is called to fetch the data about the launched container
 	 *
 	 */
@@ -223,46 +224,46 @@ func recv(containerID string, containerName string, ip string, client *docker.Cl
 	contain := &docker.Container{}
 	mapC, _ := json.Marshal(inscontainer)
 	json.Unmarshal([]byte(string(mapC)), contain)
-	
+
 	container_state := &docker.State{}
 	mapN, _ := json.Marshal(contain.State)
 	json.Unmarshal([]byte(string(mapN)), container_state)
-	
-    if container_state.Running == true {
-    	postnetwork(containerID, ip)
-    	postlogs(containerID, containerName)
-        ch <- true        
-        return
-    }
-    
-    go recv(containerID, containerName, ip, client, ch)
+
+	if container_state.Running == true {
+		postnetwork(containerID, ip)
+		postlogs(containerID, containerName)
+		ch <- true
+		return
+	}
+
+	go recv(containerID, containerName, ip, client, ch)
 }
 
-func postnetwork(containerid string, ip string) {		
+func postnetwork(containerid string, ip string) {
 	gulpUrl, _ := config.GetString("docker:gulp_url")
 	url := gulpUrl + "docker/networks"
-    log.Info("URL:> %s", url)
+	log.Info("URL:> %s", url)
 
 	bridge, _ := config.GetString("docker:bridge")
 	gateway, _ := config.GetString("docker:gateway")
-	
-    data := &global.DockerNetworksInfo{Bridge: bridge, ContainerId: containerid, IpAddr: ip, Gateway: gateway} 
+
+	data := &global.DockerNetworksInfo{Bridge: bridge, ContainerId: containerid, IpAddr: ip, Gateway: gateway}
 	res2B, _ := json.Marshal(data)
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
-    req.Header.Set("X-Custom-Header", "myvalue")
-    req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
 
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        log.Error("gulpd client was failed : %s", err)
-    }
-    defer resp.Body.Close()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error("gulpd client was failed : %s", err)
+	}
+	defer resp.Body.Close()
 
-    log.Info("response Status : %s", resp.Status)
-    log.Info("response Headers : %s", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-    log.Info("response Body : %s", string(body))   
+	log.Info("response Status : %s", resp.Status)
+	log.Info("response Headers : %s", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	log.Info("response Body : %s", string(body))
 }
 
 func postlogs(containerid string, containername string) error {
@@ -284,14 +285,13 @@ func postlogs(containerid string, containername string) error {
 	defer resp.Body.Close()
 
 	log.Info("response Status : %s", resp.Status)
-    log.Info("response Headers : %s", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-    log.Info("response Body : %s", string(body)) 
-    return nil
+	log.Info("response Headers : %s", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	log.Info("response Body : %s", string(body))
+	return nil
 }
 
-
-func updateIndex(ip string, pos uint) error{
+func updateIndex(ip string, pos uint) error {
 
 	index := global.IPIndex{}
 	res, err := index.Get(global.IPINDEXKEY)
@@ -301,9 +301,9 @@ func updateIndex(ip string, pos uint) error{
 	}
 
 	update := global.IPIndex{
-		Ip:			ip, 			
-		Subnet: 	res.Subnet,
-		Index:		pos,
+		Ip:     ip,
+		Subnet: res.Subnet,
+		Index:  pos,
 	}
 
 	conn, connerr := db.Conn("ipindex")
@@ -324,7 +324,7 @@ func updateIndex(ip string, pos uint) error{
 /*
 * Register a hostname on AWS Route53 using megam seru -
 *        www.github.com/megamsys/seru
-*/
+ */
 func setHostName(name string, ip string) error {
 
 	s := make([]string, 4)

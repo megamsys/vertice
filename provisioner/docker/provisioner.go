@@ -67,11 +67,12 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
 
-		containerID, containerName, cerr := create(assembly, endpoint)
+		containerID, containerName, swarmNode, cerr := create(assembly, endpoint)
 		if cerr != nil {
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
 		}
+		
 
 		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Inputs, "cpu")
 		if perrscm != nil {
@@ -100,7 +101,7 @@ func (i *Docker) Create(assembly *global.AssemblyWithComponents, id string, inst
 			log.Error("set host name error : %s", herr)
 		}
 
-		updateContainerJSON(assembly, ipaddress, containerID, endpoint)
+		updateContainerJSON(assembly, ipaddress, containerID, endpoint, swarmNode)
 	} else {
 		endpoint = pair_endpoint.Value
 		create(assembly, endpoint)
@@ -150,18 +151,18 @@ func (i *Docker) Delete(assembly *global.AssemblyWithComponents, id string) (str
 * Docker API client to connect to swarm/docker VM.
 * Swarm supports all docker API endpoints
  */
-func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, error) {
+func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, string, error) {
 
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
-		return "", "", perrscm
+		return "", "", "", perrscm
 	}
 
 	pair_domain, perrdomain := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 	if perrdomain != nil {
 		log.Error("Failed to get the image value : %s", perrdomain)
-		return "", "", perrdomain
+		return "", "", "", perrdomain
 	}
 
 	client, _ := docker.NewClient(endpoint)
@@ -172,7 +173,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	pullerr := client.PullImage(opts, docker.AuthConfiguration{})
 	if pullerr != nil {
 		log.Error("Image pulled failed : %s", pullerr)
-		return "", "", pullerr
+		return "", "", "", pullerr
 	}
 
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
@@ -185,14 +186,23 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	container, conerr := client.CreateContainer(copts)
 	if conerr != nil {
 		log.Error("Container creation failed : %s", conerr)
-		return "", "", conerr
+		return "", "", "", conerr
 	}
 
 	cont := &docker.Container{}
 	mapP, _ := json.Marshal(container)
 	json.Unmarshal([]byte(string(mapP)), cont)
 
-	return cont.ID, cont.Name, nil
+	inspect, _ := client.InspectContainer(cont.ID)
+	contI := &docker.Container{}
+	mapInsp, _ := json.Marshal(inspect)
+	json.Unmarshal([]byte(string(mapInsp)), contI)
+
+	swarmNode := &docker.SwarmNode{}
+	mapSwarm,_ := json.Marshal(contI.Node)
+	json.Unmarshal([]byte(string(mapSwarm)), swarmNode)
+
+	return cont.ID, cont.Name, swarmNode.IP, nil
 }
 
 /*
