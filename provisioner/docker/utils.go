@@ -147,18 +147,13 @@ func setContainerNAL(containerID string, containerName string, swarmNode string)
  */
 func updateContainerJSON(assembly *global.AssemblyWithComponents, ipaddress string, containerID string, endpoint string, swarmNode string) {
 
-	var port string
-
-	for k, _ := range container_network.Ports {
-	porti := strings.Split(string(k), "/")
-	port = porti[0]
-	}
+	
 
 	log.Debug("Update process for component with ip and container id")
 	mySlice := make([]*global.KeyValuePair, 5)
 	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
 	mySlice[1] = &global.KeyValuePair{Key: "id", Value: containerID}
-	mySlice[2] = &global.KeyValuePair{Key: "port", Value: port}
+	mySlice[2] = &global.KeyValuePair{Key: "port", Value: ""}
 	mySlice[3] = &global.KeyValuePair{Key: "endpoint", Value: endpoint}
 	mySlice[4] = &global.KeyValuePair{Key: "host", Value: swarmNode}
 
