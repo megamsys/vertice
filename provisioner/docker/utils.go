@@ -25,7 +25,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
+	"strconv"
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/db"
@@ -126,7 +126,7 @@ func setContainerNAL(containerID string, containerName string, swarmNode string)
 		log.Error("Ip generation was failed : %s", iperr)
 		return "", iperr
 	}
-	client, _ := docker.NewClient(swarmNode)
+	client, _ := docker.NewClient("http://"+swarmNode+":2375")
 	ch := make(chan bool)
 	/*
 	* configure ip to container
@@ -149,12 +149,10 @@ func updateContainerJSON(assembly *global.AssemblyWithComponents, ipaddress stri
 
 	var port string
 
-	//for k, _ := range container_network.Ports {
-	//porti := strings.Split(string(k), "/")
-	//port = porti[0]
-	//}
-	port = ""
-	fmt.Println(port)
+	for k, _ := range container_network.Ports {
+	porti := strings.Split(string(k), "/")
+	port = porti[0]
+	}
 
 	log.Debug("Update process for component with ip and container id")
 	mySlice := make([]*global.KeyValuePair, 5)
@@ -240,8 +238,10 @@ func recv(containerID string, containerName string, ip string, client *docker.Cl
 }
 
 func postnetwork(containerid string, ip string, swarmNode string) {
-	gulpPort, _ := config.GetString("docker:gulp_port")
-	url := swarmNode + ":" + gulpPort + "docker/networks"
+	gulpPort, _ := config.GetInt("docker:gulp_port")
+	
+	log.Info(gulpPort)
+	url := "http://" +swarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/networks"
 	log.Info("URL:> %s", url)
 
 	bridge, _ := config.GetString("docker:bridge")
@@ -267,8 +267,8 @@ func postnetwork(containerid string, ip string, swarmNode string) {
 }
 
 func postlogs(containerid string, containername string, swarmNode string) error {
-	gulpPort, _ := config.GetString("docker:gulp_port")
-	url := swarmNode + ":" + gulpPort + "/docker/logs"
+	gulpPort, _ := config.GetInt("docker:gulp_port")
+	url := "http://" +swarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/logs"
 	log.Info("URL:> %s", url)
 
 	data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}
