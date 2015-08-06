@@ -114,7 +114,7 @@ func setBit(a []byte, k uint) {
 	a[k/8] |= 1 << (k % 8)
 }
 
-func setContainerNAL(containerID string, containerName string, swarmNode string) (string, error) {
+func setContainerNAL(container *global.Container) (string, error) {
 
 	/*
 	* generate the ip
@@ -126,12 +126,12 @@ func setContainerNAL(containerID string, containerName string, swarmNode string)
 		log.Error("Ip generation was failed : %s", iperr)
 		return "", iperr
 	}
-	client, _ := docker.NewClient("http://"+swarmNode+":2375")
+	client, _ := docker.NewClient("http://"+container.SwarmNode+":2375")
 	ch := make(chan bool)
 	/*
 	* configure ip to container
 	 */
-	go recv(containerID, containerName, ip.String(), client, ch, swarmNode)
+	go recv(container, ip.String(), client, ch)
 
 	uerr := updateIndex(ip.String(), pos)
 	if uerr != nil {
@@ -145,17 +145,17 @@ func setContainerNAL(containerID string, containerName string, swarmNode string)
 * UpdateComponent updates the ipaddress that is bound to the container
 * It talks to riakdb and updates the respective component(s)
  */
-func updateContainerJSON(assembly *global.AssemblyWithComponents, ipaddress string, containerID string, endpoint string, swarmNode string) {
+func updateContainerJSON(assembly *global.AssemblyWithComponents, container *global.Container, endpoint string) {
 
 	
 
 	log.Debug("Update process for component with ip and container id")
 	mySlice := make([]*global.KeyValuePair, 5)
-	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: ipaddress}
-	mySlice[1] = &global.KeyValuePair{Key: "id", Value: containerID}
-	mySlice[2] = &global.KeyValuePair{Key: "port", Value: ""}
+	mySlice[0] = &global.KeyValuePair{Key: "ip", Value: container.IPAddress}
+	mySlice[1] = &global.KeyValuePair{Key: "id", Value: container.ContainerID}
+	mySlice[2] = &global.KeyValuePair{Key: "port", Value: container.Ports}
 	mySlice[3] = &global.KeyValuePair{Key: "endpoint", Value: endpoint}
-	mySlice[4] = &global.KeyValuePair{Key: "host", Value: swarmNode}
+	mySlice[4] = &global.KeyValuePair{Key: "host", Value: container.SwarmNode}
 
 	update := global.Component{
 		Id:                assembly.Components[0].Id,
@@ -205,7 +205,7 @@ func GetCpuQuota() int64 {
 
 }
 
-func recv(containerID string, containerName string, ip string, client *docker.Client, ch chan bool, swarmNode string) {
+func recv(container *global.Container, ip string, client *docker.Client, ch chan bool) {
 	log.Info("Receiver waited for container up")
 	time.Sleep(18000 * time.Millisecond)
 
@@ -213,7 +213,7 @@ func recv(containerID string, containerName string, ip string, client *docker.Cl
 	 * Inspect API is called to fetch the data about the launched container
 	 *
 	 */
-	inscontainer, _ := client.InspectContainer(containerID)
+	inscontainer, _ := client.InspectContainer(container.ContainerID)
 	contain := &docker.Container{}
 	mapC, _ := json.Marshal(inscontainer)
 	json.Unmarshal([]byte(string(mapC)), contain)
@@ -223,26 +223,25 @@ func recv(containerID string, containerName string, ip string, client *docker.Cl
 	json.Unmarshal([]byte(string(mapN)), container_state)
 
 	if container_state.Running == true {
-		postnetwork(containerID, ip, swarmNode)
-		postlogs(containerID, containerName, swarmNode)
+		postnetwork(container, ip)
+		postlogs(container)
 		ch <- true
 		return
 	}
 
-	go recv(containerID, containerName, ip, client, ch, swarmNode)
+	go recv(container, ip, client, ch)
 }
 
-func postnetwork(containerid string, ip string, swarmNode string) {
+func postnetwork(container *global.Container, ip string) {
 	gulpPort, _ := config.GetInt("docker:gulp_port")
 	
-	log.Info(gulpPort)
-	url := "http://" +swarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/networks"
+	url := "http://" +container.SwarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/networks"
 	log.Info("URL:> %s", url)
 
 	bridge, _ := config.GetString("docker:bridge")
 	gateway, _ := config.GetString("docker:gateway")
 
-	data := &global.DockerNetworksInfo{Bridge: bridge, ContainerId: containerid, IpAddr: ip, Gateway: gateway}
+	data := &global.DockerNetworksInfo{Bridge: bridge, ContainerId: container.ContainerID, IpAddr: ip, Gateway: gateway}
 	res2B, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
 	req.Header.Set("X-Custom-Header", "myvalue")
@@ -261,12 +260,12 @@ func postnetwork(containerid string, ip string, swarmNode string) {
 	log.Info("response Body : %s", string(body))
 }
 
-func postlogs(containerid string, containername string, swarmNode string) error {
+func postlogs(container *global.Container) error {
 	gulpPort, _ := config.GetInt("docker:gulp_port")
-	url := "http://" +swarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/logs"
+	url := "http://" +container.SwarmNode + ":" + strconv.Itoa(gulpPort) + "/docker/logs"
 	log.Info("URL:> %s", url)
 
-	data := &global.DockerLogsInfo{ContainerId: containerid, ContainerName: containername}
+	data := &global.DockerLogsInfo{ContainerId: container.ContainerID, ContainerName: container.ContainerName}
 	res2B, _ := json.Marshal(data)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(res2B))
 	req.Header.Set("X-Custom-Header", "myvalue")
@@ -320,10 +319,10 @@ func updateIndex(ip string, pos uint) error {
 * Register a hostname on AWS Route53 using megam seru -
 *        www.github.com/megamsys/seru
  */
-func setHostName(name string, ip string) error {
+func setHostName(container *global.Container) error {
 
 	s := make([]string, 4)
-	s = strings.Split(name, ".")
+	s = strings.Split(container.ContainerName, ".")
 
 	accesskey, _ := config.GetString("aws:accesskey")
 	secretkey, _ := config.GetString("aws:secretkey")
@@ -333,7 +332,7 @@ func setHostName(name string, ip string) error {
 		Secretid:  secretkey,
 		Domain:    fmt.Sprint(s[1], ".", s[2], "."),
 		Subdomain: s[0],
-		Ip:        ip,
+		Ip:        container.IPAddress,
 	}
 
 	seruerr := seru.ApiRun(&cmd.Context{})
