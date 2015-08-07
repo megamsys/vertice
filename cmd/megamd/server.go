@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,26 +16,28 @@
 package main
 
 import (
-	log "code.google.com/p/log4go"
 	"fmt"
+	"github.com/megamsys/megamd/log"
 	"github.com/megamsys/megamd/cmd/megamd/server"
 	"runtime"
 	"time"
 )
 
+//The main calls this to start the megamd daemon.
+//TO-DO: we will nuse all the cpu, this has to be a configurable parameter in the megamd.conf.
 func StartDaemon(dry bool) {
 
-	runtime.GOMAXPROCS(runtime.NumCPU())	
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	log.Info("Starting Megamd Server ...")
+	log.Debugf("[main] Starting megamd ...")
 
-	fmt.Printf(`
-███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗ 
+	log.Debugf(`
+███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗
 ████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
 ██╔████╔██║█████╗  ██║  ███╗███████║██╔████╔██║██║  ██║
 ██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██║██║╚██╔╝██║██║  ██║
 ██║ ╚═╝ ██║███████╗╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝
-╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝ 
+╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝
 `)
 
 	server, err := server.NewServer()
@@ -51,6 +53,6 @@ func StartDaemon(dry bool) {
 
 	err = server.ListenAndServe()
 	if err != nil {
-		log.Error("ListenAndServe failed: ", err)
+		log.Errorf("[main] megamd failed to start", err)
 	}
 }

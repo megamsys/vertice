@@ -1,4 +1,4 @@
-/* 
+/*
 ** Copyright [2013-2015] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,8 @@ var _ = check.Suite(&S{})
 
 
 func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
-	baseManager := cmd.BuildBaseManager("megam", version, header)
-	manager := buildManager("megam")
+	baseManager := cmd.BuildBaseManager("megamd", version, header)
+	manager := buildManager("megamd")
 	for name, instance := range baseManager.Commands {
 		command, ok := manager.Commands[name]
 		c.Assert(ok, check.Equals, true)
@@ -40,17 +40,9 @@ func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
 	}
 }
 
-/*func (s *S) TestAppStartIsRegistered(c *check.C) {
-	manager := buildManager("megam")
-	create, ok := manager.Commands["startapp"]
+func (s *S) TestStartDIsRegistered(c *check.C) {
+	manager := buildManager("megamd")
+	create, ok := manager.Commands["start"]
 	c.Assert(ok, check.Equals, true)
-	c.Assert(create, check.FitsTypeOf, &AppStart{})
+	c.Assert(create, check.FitsTypeOf, &StartD{})
 }
-
-func (s *S) TestAppStopIsRegistered(c *check.C) {
-	manager := buildManager("megam")
-	remove, ok := manager.Commands["stopapp"]
-	c.Assert(ok, check.Equals, true)
-	c.Assert(remove, check.FitsTypeOf, &AppStop{})
-}
-*/

@@ -18,7 +18,7 @@ package main
 import (
 	"fmt"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/log"
+	"github.com/megamsys/megamd/log"
 	"github.com/tsuru/config"
 	"os"
 	"path/filepath"
@@ -37,12 +37,14 @@ func buildManager(name string) *cmd.Manager {
 	return m
 }
 
+//start the logger with file logging and console logging.
+//we will have to move the log directory into libgo
 func main() {
+	log.Init()
 	p, _ := filepath.Abs(defaultConfigPath)
-	log.Println(fmt.Errorf("Conf: %s", p))
+	log.Debugf("[main] configuration file %s",)
 	config.ReadConfigFile(defaultConfigPath)
 	name := cmd.ExtractProgramName(os.Args[0])
 	manager := buildManager(name)
-	log.Init()
 	manager.Run(os.Args[1:])
 }
