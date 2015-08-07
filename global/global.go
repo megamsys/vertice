@@ -313,6 +313,17 @@ type DockerLogsInfo struct {
 	ContainerName string `json:"container_name"`
 }
 
+type Container struct {
+	ContainerID			string
+	ContainerName		string
+	Ports				string
+	SwarmNode			string
+	IPAddress			string
+	Endpoint			string
+	Cpu					string
+	Ram					string
+}
+
 const IPINDEXKEY = "ipgen"
 
 type IPIndex struct {

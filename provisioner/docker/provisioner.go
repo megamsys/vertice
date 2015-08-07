@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-
+	"strings"
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/log"
@@ -141,10 +141,10 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	out := """
+	out := `
 	*-------------------------------------------------*
-	| megamswarm     ----->    fishing nodes for you. |
-	*-------------------------------------------------*\n"""
+	| megamswarm      --->     fished nodes for you.  |
+	*-------------------------------------------------*\n`
 
 	for _, node := range nodeList {
 		out += fmt.Sprintf("    Docker node: %s\n", node.Address)
@@ -177,12 +177,11 @@ func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id s
 		api_host, _ := config.GetString("docker:swarm_host")
 		endpoint = api_host
 
-		containerID, containerName, swarmNode, cerr := create(assembly, endpoint)
+		container, cerr := create(assembly, endpoint)
 		if cerr != nil {
 			log.Error("container creation was failed : %s", cerr)
 			return "", cerr
 		}
-
 
 		pair_cpu, perrscm := global.ParseKeyValuePair(assembly.Inputs, "cpu")
 		if perrscm != nil {
@@ -194,24 +193,29 @@ func (i *dockerProvisioner) Create(assembly *global.AssemblyWithComponents, id s
 			log.Error("Failed to get the endpoint value : %s", iderr)
 		}
 
-		serr := StartContainer(containerID, endpoint, pair_cpu.Value, pair_memory.Value)
+        container.Cpu = pair_cpu.Value
+        container.Ram = pair_memory.Value
+
+		serr := StartContainer(container, endpoint)
 		if serr != nil {
 			log.Error("container starting error : %s", serr)
 			return "", serr
 		}
 
-		ipaddress, iperr := setContainerNAL(containerID, containerName, endpoint)
+		ipaddress, iperr := setContainerNAL(container)
 		if iperr != nil {
 			log.Error("set container network was failed : %s", iperr)
 			return "", iperr
 		}
 
-		herr := setHostName(containerName, ipaddress)
+		container.IPAddress = ipaddress
+
+		herr := setHostName(container)
 		if herr != nil {
 			log.Error("set host name error : %s", herr)
 		}
 
-		updateContainerJSON(assembly, ipaddress, containerID, endpoint, swarmNode)
+		updateContainerJSON(assembly, container, endpoint)
 	} else {
 		endpoint = pair_endpoint.Value
 		create(assembly, endpoint)
@@ -261,17 +265,19 @@ func (i *dockerProvisioner) Delete(assembly *global.AssemblyWithComponents, id s
 * Docker API client to connect to swarm/docker VM.
 * Swarm supports all docker API endpoints
  */
-func create(assembly *global.AssemblyWithComponents, endpoint string) (string, string, string, error) {
+
+func create(assembly *global.AssemblyWithComponents, endpoint string) (*global.Container, error) {
+
 	pair_img, perrscm := global.ParseKeyValuePair(assembly.Components[0].Inputs, "source")
 	if perrscm != nil {
 		log.Error("Failed to get the image value : %s", perrscm)
-		return "", "", "", perrscm
+		return &global.Container{}, perrscm
 	}
 
 	pair_domain, perrdomain := global.ParseKeyValuePair(assembly.Components[0].Inputs, "domain")
 	if perrdomain != nil {
 		log.Error("Failed to get the image value : %s", perrdomain)
-		return "", "", "", perrdomain
+		return &global.Container{}, perrdomain
 	}
 
 	client, _ := docker.NewClient(endpoint)
@@ -282,7 +288,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	pullerr := client.PullImage(opts, docker.AuthConfiguration{})
 	if pullerr != nil {
 		log.Error("Image pulled failed : %s", pullerr)
-		return "", "", "", pullerr
+		return &global.Container{}, pullerr
 	}
 
 	dconfig := docker.Config{Image: pair_img.Value, NetworkDisabled: true}
@@ -295,7 +301,7 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	container, conerr := client.CreateContainer(copts)
 	if conerr != nil {
 		log.Error("Container creation failed : %s", conerr)
-		return "", "", "", conerr
+		return &global.Container{}, conerr
 	}
 
 	cont := &docker.Container{}
@@ -307,28 +313,48 @@ func create(assembly *global.AssemblyWithComponents, endpoint string) (string, s
 	mapInsp, _ := json.Marshal(inspect)
 	json.Unmarshal([]byte(string(mapInsp)), contI)
 
+	ins, _ := client.InspectImage(pair_img.Value)
+	conti := &docker.Image{}
+	mapins, _ := json.Marshal(ins)
+	json.Unmarshal([]byte(string(mapins)), conti)
+
+	confi := &docker.Config{}
+	mapc, _ := json.Marshal(conti.ContainerConfig)
+	json.Unmarshal([]byte(string(mapc)), confi)
+
+
+	//ports := make([]string, len(confi.ExposedPorts))
+	var ports string
+	for k, _ := range confi.ExposedPorts {
+		//i := 0
+		porti := strings.Split(string(k), "/")
+		//ports[i] = porti[0]
+		ports = porti[0] + ", " + ports
+		//i++
+	}
+
 	swarmNode := &docker.SwarmNode{}
-	mapSwarm,_ := json.Marshal(contI.Node)
+	mapSwarm, _ := json.Marshal(contI.Node)
 	json.Unmarshal([]byte(string(mapSwarm)), swarmNode)
 
-	return cont.ID, cont.Name, swarmNode.IP, nil
+	return &global.Container{ContainerID: cont.ID, ContainerName: cont.Name, SwarmNode: swarmNode.IP, Ports: ports}, nil
 }
 
 /*
 * start the container using docker endpoint
 */
-func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) error {
+func (p *dockerProvisioner) StartContainer(container *global.Container, endpoint string) error {
 		client, _ := docker.NewClient(endpoint)
 
 	/*
 	 * hostConfig{} struct for portbindings - to expose visible ports
 	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
-	mem, _ := strconv.Atoi(cmemory)
+	mem, _ := strconv.Atoi(container.Ram)
 	var memory int64
 	memory = int64(mem)
 
-	cpuq, _ := strconv.Atoi(cpu)
+	cpuq, _ := strconv.Atoi(container.Cpu)
 	var cpuqo int64
 	cpuqo = int64(cpuq)
 	cpuQuota := cpuqo * 25000
@@ -344,7 +370,7 @@ func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) 
 	 *   hostConfig is provided to start the container.
 	 *
 	 */
-	serr := client.StartContainer(containerID, &hostConfig)
+	serr := client.StartContainer(container.ContainerID, &hostConfig)
 	if serr != nil {
 		log.Error("Start container was failed : %s", serr)
 		return serr
@@ -355,10 +381,10 @@ func (p *dockerProvisioner) StartContainer(containerID string, endpoint string) 
 /*
 * stop the container using docker endpoint
  */
-func StopContainer(containerID string, endpoint string) error {
+func StopContainer(container *global.Container, endpoint string) error {
 
 	client, _ := docker.NewClient(endpoint)
-	serr := client.StopContainer(containerID, 10)
+	serr := client.StopContainer(container.ContainerID, 10)
 	if serr != nil {
 		log.Error("container was not stopped - Error : %s", serr)
 		return serr
@@ -369,9 +395,9 @@ func StopContainer(containerID string, endpoint string) error {
 /*
 * restart the container using docker endpoint
  */
-func RestartContainer(containerID string, endpoint string) error {
+func RestartContainer(container *global.Container, endpoint string) error {
 	client, _ := docker.NewClient(endpoint)
-	rerr := client.RestartContainer(containerID, 10)
+	rerr := client.RestartContainer(container.ContainerID, 10)
 	if rerr != nil {
 		log.Error("container was not restarted - Error : %s", rerr)
 		return rerr
