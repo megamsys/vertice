@@ -102,12 +102,12 @@ func dockerStateHandler(chann []byte) {
 		log.Error("Failed to get the container id : %s", perrscm)
 	}
 
-	pair_cpu, perrscm := global.ParseKeyValuePair(asm.Components[0].Inputs, "cpu")
+	pair_cpu, perrscm := global.ParseKeyValuePair(asm.Inputs, "cpu")
 	if perrscm != nil {
 		log.Error("Failed to get the cpu value : %s", perrscm)
 	}
 
-	pair_memory, iderr := global.ParseKeyValuePair(asm.Components[0].Outputs, "memory")
+	pair_memory, iderr := global.ParseKeyValuePair(asm.Inputs, "ram")
 	if iderr != nil {
 		log.Error("Failed to get the memory value : %s", iderr)
 	}
@@ -115,15 +115,15 @@ func dockerStateHandler(chann []byte) {
 	switch req.Action {
 	case "start":
 		log.Info("Starting Container")
-		go docker.StartContainer(cont_id.Value, endpoint.Value, pair_cpu.Value, pair_memory.Value)
+		go docker.StartContainer(&global.Container{ContainerID: cont_id.Value, Cpu: pair_cpu.Value, Ram: pair_memory.Value}, endpoint.Value)
 		break
 	case "stop":
 		log.Info("Stopping Container")
-		go docker.StopContainer(cont_id.Value, endpoint.Value)
+		go docker.StopContainer(&global.Container{ContainerID: cont_id.Value}, endpoint.Value)
 		break
 	case "restart":
 		log.Info("Restarting container")
-		go docker.RestartContainer(cont_id.Value, endpoint.Value)
+		go docker.RestartContainer(&global.Container{ContainerID: cont_id.Value}, endpoint.Value)
 		break
 	}
 }
