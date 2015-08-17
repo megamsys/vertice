@@ -12,19 +12,20 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package github
 
 import (
-  "github.com/megamsys/megamd/plugins"
-  "github.com/megamsys/megamd/global"
-  log "code.google.com/p/log4go"
- // git "github.com/CodeHub-io/Go-GitHub-API"
-  git "github.com/google/go-github/github"
-  "code.google.com/p/goauth2/oauth"
-  "encoding/json"
-  "strings"
-  "github.com/tsuru/config"
+	log "code.google.com/p/log4go"
+	"github.com/megamsys/megamd/global"
+	"github.com/megamsys/megamd/plugins"
+	// git "github.com/CodeHub-io/Go-GitHub-API"
+	"encoding/json"
+	"strings"
+
+	"code.google.com/p/goauth2/oauth"
+	git "github.com/google/go-github/github"
+	"github.com/tsuru/config"
 )
 
 /**
@@ -38,8 +39,8 @@ func Init() {
 type GithubPlugin struct{}
 
 const (
-   GITHUB = "github"
-   ENABLE = "true"
+	GITHUB = "github"
+	ENABLE = "true"
 )
 
 /**
@@ -48,29 +49,29 @@ const (
 **get trigger url from config file
 **/
 func (c *GithubPlugin) Watcher(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
-     switch ci.OperationType {
-		case "CI":
-			cierr := cioperation(asm, ci, com)
-			if cierr != nil {
-					return cierr
-			}
-			break
-     }
+	switch ci.OperationType {
+	case "CI":
+		cierr := cioperation(asm, ci, com)
+		if cierr != nil {
+			return cierr
+		}
+		break
+	}
 	return nil
 }
 
 func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com *global.Component) error {
-    pair_scm, perrscm := global.ParseKeyValuePair(ci.OperationRequirements, "ci-scm")
-		if perrscm != nil {
-			log.Error("Failed to get the domain value : %s", perrscm)
-		}
+	pair_scm, perrscm := global.ParseKeyValuePair(ci.OperationRequirements, "ci-scm")
+	if perrscm != nil {
+		log.Error("Failed to get the domain value : %s", perrscm)
+	}
 
 	pair_enable, perrenable := global.ParseKeyValuePair(ci.OperationRequirements, "ci-enable")
-		if perrenable != nil {
-			log.Error("Failed to get the domain value : %s", perrenable)
-		}
+	if perrenable != nil {
+		log.Error("Failed to get the domain value : %s", perrenable)
+	}
 
-	if(pair_scm.Value == GITHUB && pair_enable.Value == ENABLE) {
+	if pair_scm.Value == GITHUB && pair_enable.Value == ENABLE {
 		log.Info("Github is working")
 
 		pair_token, perrtoken := global.ParseKeyValuePair(ci.OperationRequirements, "ci-token")
@@ -92,22 +93,23 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 		if apiverr != nil {
 			return apiverr
 		}
-		trigger_url := "http://"+api_host+"/"+api_version+"/assembly/build/"+asm.Id + "/" + com.Id
+
+		trigger_url := "https://" + api_host + "/" + api_version + "/assembly/build/" + asm.Id + "/" + asm.Name
 
 		byt12 := []byte(`{"url": "","content_type": "json"}`)
 		var postData map[string]interface{}
-    	if perr := json.Unmarshal(byt12, &postData); perr != nil {
-        	return perr
-    	}
+		if perr := json.Unmarshal(byt12, &postData); perr != nil {
+			return perr
+		}
 		postData["url"] = trigger_url
 
 		byt1 := []byte(`{"name": "web", "active": true, "events": [ "push" ]}`)
-		postHook :=  git.Hook{Config: postData }
-    	if perr := json.Unmarshal(byt1, &postHook); perr != nil {
-        	log.Info(perr)
-    	}
+		postHook := git.Hook{Config: postData}
+		if perr := json.Unmarshal(byt1, &postHook); perr != nil {
+			log.Info(perr)
+		}
 
-    	pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
+		pair_source, perrsource := global.ParseKeyValuePair(com.Inputs, "source")
 		if perrsource != nil {
 			log.Error("Failed to get the domain value : %s", perrsource)
 		}
@@ -117,12 +119,12 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 			log.Error("Failed to get the domain value : %s", perrowner)
 		}
 
-        source := strings.Split(pair_source.Value, "/")
+		source := strings.Split(pair_source.Value, "/")
 		_, _, err := client.Repositories.CreateHook(pair_owner.Value, strings.TrimRight(source[len(source)-1], ".git"), &postHook)
 
-    	if err != nil {
-        	return err
-    	}
+		if err != nil {
+			return err
+		}
 
 	} else {
 		log.Info("Github is skipped")
@@ -135,7 +137,7 @@ func cioperation(asm *global.AssemblyWithComponents, ci *global.Operations, com 
 ** now this function performs build the pushed application from github to remote
 **/
 func (c *GithubPlugin) Notify(m *global.EventMessage) error {
-  /* request_asm := global.Assembly{Id: m.AssemblyId}
+	/* request_asm := global.Assembly{Id: m.AssemblyId}
 	asm, asmerr := request_asm.Get(m.AssemblyId)
 	if(asmerr != nil) {
 		return asmerr
