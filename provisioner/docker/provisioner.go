@@ -18,7 +18,7 @@ package docker
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
+	//"strconv"
 	"strings"
 	log "code.google.com/p/log4go"
 	"github.com/fsouza/go-dockerclient"
@@ -240,20 +240,21 @@ func StartContainer(container *global.Container, endpoint string) error {
 	 * hostConfig{} struct for portbindings - to expose visible ports
 	 *  Also for specifying the container configurations (memory, cpuquota etc)
 	 */
-	mem, _ := strconv.Atoi(container.Ram)
-	var memory int64
-	memory = int64(mem)
+	//mem, _ := strconv.Atoi(container.Ram)
+	//var memory int64
+	//memory = int64(mem)
 
-	cpuq, _ := strconv.Atoi(container.Cpu)
-	var cpuqo int64
-	cpuqo = int64(cpuq)
-	cpuQuota := cpuqo * 25000
+	//cpuq, _ := strconv.Atoi(container.Cpu)
+	//var cpuqo int64
+	//cpuqo = int64(cpuq)
+	//cpuQuota := cpuqo * 25000
 
-	period := 50000
-	var cpuPeriod int64
-	cpuPeriod = int64(period)
+	//period := 50000
+	//var cpuPeriod int64
+	//cpuPeriod = int64(period)
 
-	hostConfig := docker.HostConfig{Memory: memory, CPUPeriod: cpuPeriod, CPUQuota: cpuQuota}
+	//hostConfig := docker.HostConfig{Memory: memory, CPUPeriod: cpuPeriod, CPUQuota: cpuQuota}
+	hostConfig := docker.HostConfig{}
 
 	/*
 	 *   Starting container once the container is created - container ID &
