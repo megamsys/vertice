@@ -11,8 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/megamsys/megamd/app"
-	"github.com/megamsys/megamd/deployd"
+	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 )
 

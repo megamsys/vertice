@@ -18,9 +18,7 @@ package carton
 import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/megamd/global"
-	"github.com/megamsys/megamd/log"
-	"github.com/megamsys/megamd/provisioner"
+	log "github.com/golang/glog"
 )
 
 // Carton is the main type in megam. A carton represents a real world assembly.

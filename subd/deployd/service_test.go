@@ -2,7 +2,6 @@ package deployd
 
 import (
 	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/services/deployd"
 	"gopkg.in/check.v1"
 )
 

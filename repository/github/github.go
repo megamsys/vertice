@@ -10,10 +10,11 @@
 package github
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"net/http"
+	"encoding/json"
+	log "github.com/golang/glog"
+	git "github.com/google/go-github/github"
+	"golang.org/x/oauth2"
+	"strings"
 )
 
 func init() {

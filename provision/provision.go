@@ -21,7 +21,6 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/megamsys/megamd/carton/bind"
 )
 
 var (

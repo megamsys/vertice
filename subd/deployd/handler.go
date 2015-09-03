@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/megamsys/subd/deployd"
 )
 
 type Handler struct {

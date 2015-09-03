@@ -12,11 +12,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/megamsys/megamd/action"
-	"github.com/megamsys/megamd/caton/bind"
-	"github.com/megamsys/megamd/db"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
 )
 
 var (

@@ -2,7 +2,6 @@ package docker
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/services/docker"
 	"gopkg.in/check.v1"
 )
 

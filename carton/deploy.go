@@ -25,8 +25,6 @@ import (
 
 	log "github.com/golang/glog"
 	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
 )
 
 type DeployOpts struct {

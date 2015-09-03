@@ -17,7 +17,6 @@ import (
 
 	"github.com/bmizerany/pat"
 	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/services/http"
 )
 
 type route struct {

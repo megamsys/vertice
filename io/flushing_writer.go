@@ -12,7 +12,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/tsuru/tsuru/log"
+	log "github.com/golang/glog"
 )
 
 // FlushingWriter is a custom writer that flushes after writing, if the

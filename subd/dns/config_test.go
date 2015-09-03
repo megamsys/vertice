@@ -2,7 +2,6 @@ package dns
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/services/dns"
 	"gopkg.in/check.v1"
 )
 

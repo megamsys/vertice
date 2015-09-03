@@ -20,7 +20,6 @@ import (
 	"os"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/cmd"
 )
 
 // These variables are populated via the Go linker.

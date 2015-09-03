@@ -21,9 +21,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/megamsys/megamd/provision/provisiontest"
-	"github.com/megamsys/megamd/repository"
-	"github.com/megamsys/megamd/repository/repositorytest"
+
 	"gopkg.in/check.v1"
 )
 

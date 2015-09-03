@@ -2,7 +2,6 @@ package httpd
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/services/httpd"
 	"gopkg.in/check.v1"
 )
 

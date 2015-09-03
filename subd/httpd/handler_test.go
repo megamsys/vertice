@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/services/http"
 )
 
 

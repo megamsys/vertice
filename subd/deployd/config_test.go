@@ -2,7 +2,6 @@ package deployd
 
 import (
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/deployd"
 	"gopkg.in/check.v1"
 )
 

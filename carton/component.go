@@ -16,10 +16,9 @@
 package carton
 
 import (
+	log "github.com/golang/glog"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/db"
-	"github.com/megamsys/megamd/log"
-	"github.com/megamsys/megamd/provisioner"
 )
 
 type Operations struct {

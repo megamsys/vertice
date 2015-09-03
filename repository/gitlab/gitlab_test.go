@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/megamsys/megamd/repository"
 	"gopkg.in/check.v1"
 )
 
