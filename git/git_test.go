@@ -1,6 +1,18 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+/*
+** Copyright [2013-2015] [Megam Systems]
+**
+** Licensed under the Apache License, Version 2.0 (the "License");
+** you may not use this file except in compliance with the License.
+** You may obtain a copy of the License at
+**
+** http://www.apache.org/licenses/LICENSE-2.0
+**
+** Unless required by applicable law or agreed to in writing, software
+** distributed under the License is distributed on an "AS IS" BASIS,
+** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+** See the License for the specific language governing permissions and
+** limitations under the License.
+ */
 
 package git
 
@@ -148,8 +160,8 @@ func (s *S) TestGetRemoteURL(c *check.C) {
 		expected string
 		err      error
 	}{
-		{"origin", "git@github.com:tsuru/tsuru-django-sample.git", nil},
-		{"tsuru", "git@tsuruhost.com:gopher.git", nil},
+		{"origin", "git@github.com:"github.com/megamsys/megamd/"github.com/megamsys/megamd-django-sample.git", nil},
+		{"github.com/megamsys/megamd", "git@"github.com/megamsys/megamdhost.com:gopher.git", nil},
 		{"wut", "", errors.New(`Remote "wut" not found.`)},
 	}
 	repo, err := OpenRepository(s.repoPath)

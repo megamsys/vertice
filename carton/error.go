@@ -12,33 +12,19 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
- */
-package main
+*/
+package carton
+
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/cmd"
 )
 
-// These variables are populated via the Go linker.
-var (
-	version string = "0.9"
-	commit  string = "01"
-	branch  string = "master"
-)
-
-func cmdRegistry(name string) *cmd.Manager {
-	m := cmd.BuildBaseManager(name, version, header)
-	m.Register(&Start{})
-	return m
+type AppLifecycleError struct {
+	app string
+	Err error
 }
 
-//Run the commands from cli.
-func main() {
-	name := cmd.ExtractProgramName(os.Args[0])
-	manager := cmdRegistry(name)
-	manager.Run(os.Args[1:])
+func (e *AppLifecycleError) Error() string {
+	return fmt.Sprintf("gulpd failed to apply the lifecle to the app %q: %s", e.app, e.Err)
 }
