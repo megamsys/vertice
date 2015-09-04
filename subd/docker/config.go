@@ -1,10 +1,11 @@
 package docker
 
 import (
-	"os"
-	"time"
-
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/toml"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
@@ -28,11 +29,11 @@ const (
 )
 
 type Config struct {
-	Enabled   bool    		 	`toml:"enabled"`
-	Registry  string   			`toml:"registry"`
-	Namespace string   			`toml:"namespace"`
-	Master    []string 			`toml:"master"`
-	Bridges   map[string]bridge
+	Enabled   bool     `toml:"enabled"`
+	Registry  string   `toml:"registry"`
+	Namespace string   `toml:"namespace"`
+	Master    []string `toml:"master"`
+	Bridges   map[string]string
 	MemSize   int           `toml:"mem_size"`
 	SwapSize  int           `toml:"swap_size"`
 	CPUPeriod toml.Duration `toml:"cpu_period"`
@@ -40,17 +41,21 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	table := NewTable()
-	table.AddRow(Row{Colorfy("Config:", "white", "", "bold"), Colorfy("Docker", "green", "", "")})
-	table.AddRow(Row{"Enabled", c.Enabled})
-	table.AddRow(Row{"Registry", c.Registry})
-	table.AddRow(Row{"Master", c.Master.String()})
-	table.AddRow(Row{"Bridges", c.Bridges.String()})
-	table.AddRow(Row{"MemSize", c.MemSize})
-	table.AddRow(Row{"SwapSize", c.SwapSize})
-	table.AddRow(Row{"CPUPeriod", c.CPUPeriod})
-	table.AddRow(Row{"CPUQuota", c.CPUQuota})
-	table.AddRow(Row{"", ""})
+	bs := make([]string, len(c.Bridges))
+	for k, v := range c.Bridges {
+		bs = append(bs, k, v, "\n")
+	}
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Docker", "green", "", "")})
+	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
+	table.AddRow(cmd.Row{"Registry", c.Registry})
+	table.AddRow(cmd.Row{"Master", strings.Join(c.Master, ", ")})
+	table.AddRow(cmd.Row{"Bridges", strings.Join(bs, ", ")})
+	table.AddRow(cmd.Row{"MemSize", strconv.Itoa(c.MemSize)})
+	table.AddRow(cmd.Row{"SwapSize", strconv.Itoa(c.SwapSize)})
+	table.AddRow(cmd.Row{"CPUPeriod", c.CPUPeriod.String()})
+	table.AddRow(cmd.Row{"CPUQuota", c.CPUQuota.String()})
+	table.AddRow(cmd.Row{"", ""})
 	return table.String()
 }
 

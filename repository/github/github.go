@@ -13,7 +13,6 @@ import (
 	"encoding/json"
 	log "github.com/golang/glog"
 	git "github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 	"strings"
 )
 

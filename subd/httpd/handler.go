@@ -1,22 +1,12 @@
 package httpd
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
-	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/bmizerany/pat"
-	"github.com/megamsys/megamd/meta"
 )
 
 type route struct {
@@ -35,14 +25,13 @@ type Handler struct {
 // NewHandler returns a new instance of handler with routes.
 func NewHandler() *Handler {
 	h := &Handler{
-		mux:            pat.New(),
-		loggingEnabled: loggingEnabled,
+		mux: pat.New(),
 	}
 
 	h.SetRoutes([]route{
 		route{ // Ping
 			"ping",
-			"GET", "/ping", true, h.servePing,
+			"GET", "/ping", h.servePing,
 		},
 	})
 
@@ -88,7 +77,10 @@ func (h *Handler) servePing(w http.ResponseWriter, r *http.Request) {
 	v["name"] = "megamd"
 	v["version"] = "0.9"
 	w.Header().Set("Content-Type", "application/json")
-	return json.NewEncoder(w).Encode(&v)
+	// Status header is OK once this point is reached.
+	w.WriteHeader(http.StatusOK)
+	w.Write(MarshalJSON(v, true))
+	w.(http.Flusher).Flush()
 }
 
 // versionHeader takes a HTTP handler and returns a HTTP handler
@@ -98,4 +90,20 @@ func versionHeader(inner http.Handler, h *Handler) http.Handler {
 		w.Header().Add("X-MEGAMD-Version", h.Version)
 		inner.ServeHTTP(w, r)
 	})
+}
+
+// MarshalJSON will marshal v to JSON. Pretty prints if pretty is true.
+func MarshalJSON(v interface{}, pretty bool) []byte {
+	var b []byte
+	var err error
+	if pretty {
+		b, err = json.MarshalIndent(v, "", "    ")
+	} else {
+		b, err = json.Marshal(v)
+	}
+
+	if err != nil {
+		return []byte(err.Error())
+	}
+	return b
 }

@@ -21,6 +21,7 @@ import (
 	"io"
 	"net/url"
 
+	"github.com/megamsys/megamd/carton/bind"
 )
 
 var (
@@ -81,7 +82,7 @@ const (
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	C          carton.Component
+	//	C          Component
 	Name       string
 	DomainName string
 	Tosca      string
@@ -130,7 +131,7 @@ type Carton interface {
 	Named
 
 	Bind(*Box) error
-	Unbind(*Unit) error
+	Unbind(*Box) error
 
 	// Log should be used to log messages in the app.
 	Log(message, source, unit string) error
@@ -151,20 +152,20 @@ type Carton interface {
 
 // CNameManager represents a provisioner that supports cname on applications.
 type CNameManager interface {
-	SetCName(app App, cname string) error
-	UnsetCName(app App, cname string) error
+	SetCName(b *Box, cname string) error
+	UnsetCName(b *Box, cname string) error
 }
 
 // GitDeployer is a provisioner that can deploy the application from a Git
 // repository.
 type GitDeployer interface {
-	GitDeploy(app App, version string, w io.Writer) (string, error)
+	GitDeploy(b *Box, w io.Writer) (string, error)
 }
 
 // ImageDeployer is a provisioner that can deploy the application from a
 // previously generated image.
 type ImageDeployer interface {
-	ImageDeploy(app App, image string, w io.Writer) (string, error)
+	ImageDeploy(b *Box, image string, w io.Writer) (string, error)
 }
 
 // Provisioner is the basic interface of this package.
@@ -188,17 +189,17 @@ type Provisioner interface {
 	// string parameter represeting the name of the process to start. When
 	// the process is empty, Restart will restart all units of the
 	// application.
-	Restart(*Carton, string, io.Writer) error
+	Restart(*Box, string, io.Writer) error
 
 	// Start starts the units of the application, with an optional string
 	// parameter represeting the name of the process to start. When the
 	// process is empty, Start will start all units of the application.
-	Start(*Carton, string) error
+	Start(*Box, string) error
 
 	// Stop stops the units of the application, with an optional string
 	// parameter represeting the name of the process to start. When the
 	// process is empty, Stop will stop all units of the application.
-	Stop(*Carton, string) error
+	Stop(*Box, string) error
 
 	// Addr returns the address for an app.
 	//
@@ -208,7 +209,7 @@ type Provisioner interface {
 	Addr(Carton) (string, error)
 
 	// Returns the metric backend environs for the app.
-	MetricEnvs(App) map[string]string
+	MetricEnvs(Carton) map[string]string
 }
 
 type MessageProvisioner interface {
@@ -292,4 +293,8 @@ type MegamdYamlHealthcheck struct {
 type MegamdYamlData struct {
 	Hooks       MegamdYamlHooks
 	Healthcheck MegamdYamlHealthcheck
+}
+
+func (box *Box) Log(message, source, unit string) error {
+	return nil
 }

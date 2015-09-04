@@ -17,45 +17,45 @@ package carton
 
 import (
 	log "github.com/golang/glog"
-	"github.com/megamsys/libgo/action"
-	"github.com/megamsys/libgo/db"
+//	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/provision"
 )
 
 type Operations struct {
-	OperationType         string          `json:"operation_type"`
-	Description           string          `json:"description"`
-	OperationRequirements []*KeyValuePair `json:"operation_requirements"`
+	OperationType         string      `json:"operation_type"`
+	Description           string      `json:"description"`
+	OperationRequirements []*JsonPair `json:"operation_requirements"`
 }
 
 type Artifacts struct {
-	ArtifactType         string          `json:"artifact_type"`
-	Content              string          `json:"content"`
-	ArtifactRequirements []*KeyValuePair `json:"artifact_requirements"`
+	ArtifactType         string      `json:"artifact_type"`
+	Content              string      `json:"content"`
+	ArtifactRequirements []*JsonPair `json:"artifact_requirements"`
 }
 
 type Component struct {
-	Id                string          `json:"id"`
-	Name              string          `json:"name"`
-	ToscaType         string          `json:"tosca_type"`
-	Inputs            []*KeyValuePair `json:"inputs"`
-	Outputs           []*KeyValuePair `json:"outputs"`
-	Artifacts         *Artifacts      `json:"artifacts"`
-	RelatedComponents []string        `json:"related_components"`
-	Operations        []*Operations   `json:"operations"`
-	Status            string          `json:"status"`
-	CreatedAt         string          `json:"created_at"`
+	Id                string        `json:"id"`
+	Name              string        `json:"name"`
+	ToscaType         string        `json:"tosca_type"`
+	Inputs            []*JsonPair   `json:"inputs"`
+	Outputs           []*JsonPair   `json:"outputs"`
+	Artifacts         *Artifacts    `json:"artifacts"`
+	RelatedComponents []string      `json:"related_components"`
+	Operations        []*Operations `json:"operations"`
+	Status            string        `json:"status"`
+	CreatedAt         string        `json:"created_at"`
 }
 
 func NewComponent(id string) *Component {
-	&Component{Id: id}
+	return &Component{Id: id}
 }
 
 /**
 **fetch the component json from riak and parse the json to struct
 **/
-func (c *Component) Get(comp_id string) error {
-	log.Debugf("[global] Get component %s", asmId)
-	if conn, err := db.Conn("components"); err != nil {
+func (c *Component) Get(cid string) error {
+	log.Infof("[global] Get component %s", cid)
+	/*if conn, err := db.Conn("components"); err != nil {
 		return err
 	}
 
@@ -63,9 +63,10 @@ func (c *Component) Get(comp_id string) error {
 		return err
 	}
 	defer conn.Close()
+	*/
 	return nil
 }
 
-func (c *Component) mkBox() (*provisioner.Box, error) {
+func (c *Component) mkBox() (*provision.Box, error) {
 	return nil, nil
 }

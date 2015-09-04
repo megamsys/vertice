@@ -1,46 +1,47 @@
 package deployd
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"log"
-	"time"
-
+	"fmt"
+	"github.com/megamsys/megamd/carton"
 )
 
 type Handler struct {
-	d  *deployd.Config
-	ch EventChannel
+	d            *Config
+	EventChannel chan bool
 }
 
-func (h *Handler) ServeAMQP(r app.Requests) error {
-	c, err := carton.Get(r.Id)
+// NewHandler returns a new instance of handler with routes.
+func NewHandler(c *Config) *Handler {
+	return &Handler{d: c}
+
+}
+
+func (h *Handler) serveAMQP(r *carton.Requests) error {
+	a, err := carton.Get(r.Id)
 	if err != nil {
 		return err
 	}
 
-	switch ParseRequest(r.Name) {
-	case ReqCreate:
-		err = carton.Deploy(app.DeployOptions{
-			C:      c,
-			Image:  c.Image,
-			Config: h.d,
-		})
-		if err == nil {
-			fmt.Fprintln(w, "\nOK")
-		}
-	case ReqDelete:
-		if err = carton.Delete(dd); err != nil {
-			return err
-		}
+	c, err := a.MkCartons()
+	if err != nil {
+		return err
+	}
+
+	ra, err := carton.ParseRequest(r.Name)
+
+	switch ra {
+	case carton.ReqCreate:
+		carton.CDeploys(c[0])
+		fmt.Printf("%s", "OK")
+	case carton.ReqDelete:
+		carton.Delete(c[0])
 		/*case ReqCreating:
 		if err = app.Stateup(di); err != nil {
 		}
 			return err
 		*/
 	default:
-		ReqError
+		return carton.ErrInvalidReqtype
 	}
 	return nil
 }

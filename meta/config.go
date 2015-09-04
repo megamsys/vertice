@@ -1,7 +1,10 @@
 package meta
 
 import (
+	// /"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 	"time"
 
 	"github.com/megamsys/libgo/cmd"
@@ -24,6 +27,9 @@ const (
 	// DefaultAMQP is the default rabbitmq if one is not provided.
 	DefaultAMQP = "amqp://guest:guest@localhost:5672/"
 
+	// DefaultProvider is the default provisioner used by our engine.
+	DefaultProvider = "one"
+
 	// DefaultHeartbeatTimeout is the default heartbeat timeout for the store.
 	DefaultHeartbeatTimeout = 1000 * time.Millisecond
 
@@ -44,22 +50,24 @@ type Config struct {
 	Api                string        `toml:"api"`
 	AMQP               string        `toml:"amqp"`
 	Peers              []string      `toml:"-"`
+	Provider           string        `toml:"provider"`
 	ElectionTimeout    toml.Duration `toml:"election-timeout"`
 	HeartbeatTimeout   toml.Duration `toml:"heartbeat-timeout"`
 	LeaderLeaseTimeout toml.Duration `toml:"leader-lease-timeout"`
 }
 
 func (c Config) String() string {
-	table := NewTable()
-	table.AddRow(Row{Colorfy("Config:", "white", "", "bold"), Colorfy("Meta", "green", "", "")})
-	table.AddRow(Row{"Home", c.Home})
-	table.AddRow(Row{"Dir", c.Dir})
-	table.AddRow(Row{"Riak", c.Riak})
-	table.AddRow(Row{"API", c.Api})
-	table.AddRow(Row{"AMQP", c.AMQP})
-	table.AddRow(Row{"Hostname", c.Hostname})
-	table.AddRow(Row{"", ""})
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Meta", "green", "", "")})
+	table.AddRow(cmd.Row{"Home", c.Home})
+	table.AddRow(cmd.Row{"Dir", c.Dir})
+	table.AddRow(cmd.Row{"Riak", c.Riak})
+	table.AddRow(cmd.Row{"API", c.Api})
+	table.AddRow(cmd.Row{"AMQP", c.AMQP})
+	table.AddRow(cmd.Row{"Hostname", c.Hostname})
+	table.AddRow(cmd.Row{"", ""})
 	return table.String()
+
 }
 
 func NewConfig() *Config {
@@ -70,7 +78,8 @@ func NewConfig() *Config {
 	} else if u, err := user.Current(); err == nil {
 		homeDir = u.HomeDir
 	} else {
-		return nil, fmt.Errorf("failed to determine home directory")
+		return nil
+		//fmt.Errorf("failed to determine home directory")
 	}
 
 	defaultDir := filepath.Join(homeDir, "megamd/meta")
@@ -84,6 +93,7 @@ func NewConfig() *Config {
 		Riak:               DefaultRiak,
 		Api:                DefaultApi,
 		AMQP:               DefaultAMQP,
+		Provider:           DefaultProvider,
 		ElectionTimeout:    toml.Duration(DefaultElectionTimeout),
 		HeartbeatTimeout:   toml.Duration(DefaultHeartbeatTimeout),
 		LeaderLeaseTimeout: toml.Duration(DefaultLeaderLeaseTimeout),

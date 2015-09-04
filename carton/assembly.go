@@ -16,9 +16,11 @@
 package carton
 
 import (
-	"github.com/megamsys/libgo/action"
-	"github.com/megamsys/libgo/db"
 	log "github.com/golang/glog"
+	"strings"
+	//	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/carton/bind"
 )
 
 // Carton is the main type in megam. A carton represents a real world assembly.
@@ -48,27 +50,27 @@ type ambly struct {
 type Assembly struct {
 	ambly
 	ComponentIds []string `json:"components"`
-	Components   map[string]Component
+	Components   map[string]*Component
 }
 
 //mkAssemblies into a carton. Just use what you need inside this carton
 //a carton comprises of self contained boxes (actually a "colored component") externalized
 //with what we need.
-func GetCarton(id string) (*Carton, error) {
+func mkCarton(id string) (*Carton, error) {
 	a, err := get(id)
 	if err != nil {
 		return nil, err
 	}
 
-	c = &Carton{
+	c := &Carton{
 		Name:     a.Name,
-		Platform: a.Tosca,
-		Cpushare: a.Cpushare,
-		Memory:   a.Memory,
-		Swap:     a.Swap,
-		HDD:      a.HDD,
+		Tosca:    a.ToscaType,
+		Cpushare: a.getCpushare(),
+		Memory:   a.getMemory(),
+		Swap:     a.getSwap(),
+		HDD:      a.getHDD(),
 		Envs:     a.envs(),
-		Boxes:    a.mkBoxes(),
+		//		Boxes:    a.mkBoxes(),
 	}
 	return c, nil
 }
@@ -78,20 +80,22 @@ func GetCarton(id string) (*Carton, error) {
 func get(id string) (*Assembly, error) {
 	log.Infof("get %s", id)
 	a := &Assembly{}
-	if conn, err := db.Conn("assembly"); err != nil {
-		return d, err
-	}
+	/*	if conn, err := db.Conn("assembly"); err != nil {
+			return d, err
+		}
 
-	if err := conn.FetchStruct(id, a); err != nil {
-		return d, ferr
-	}
-	a.dig()
-	defer conn.Close()
-	return result, nil
+		if err := conn.FetchStruct(id, a); err != nil {
+			return d, ferr
+		}
+		a.dig()
+		defer conn.Close()
+		return result, nil
+	*/
+	return a, nil
 }
 
 func (a *Assembly) dig() error {
-	for i, cid := range a.ComponentIds {
+	for _, cid := range a.ComponentIds {
 		if len(strings.TrimSpace(cid)) > 1 {
 			comp := NewComponent(cid)
 			if err := comp.Get(comp.Id); err != nil {
@@ -101,27 +105,45 @@ func (a *Assembly) dig() error {
 			a.Components[comp.Id] = comp
 		}
 	}
+	return nil
 }
 
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
 func (a *Assembly) mkBoxes() ([]*provision.Box, error) {
-	err := nil
 	newBoxs := make([]*provision.Box, len(a.Components))
-
-	for i, comp := range a.Components {
-		if err, b := comp.mkBox(); err != nil {
-			append(newBoxs, b)
+	for _, comp := range a.Components {
+		if b, err := comp.mkBox(); err != nil {
+			return nil, err
+		} else {
+			newBoxs = append(newBoxs, b)
 		}
 	}
-	return newBoxs, err
+	return newBoxs, nil
 }
 
 //all the variables in the inputs shall be treated as ENV.
 //we can use a filtered approach as well.
-func (a *Assembly) envs() {
+func (a *Assembly) envs() []bind.EnvVar {
 	envs := make([]bind.EnvVar, 0, len(a.Inputs))
-	for k, v := range a.Inputs {
-		envs = append(envs, bind.EnvVar{ Name: k, Value: v})
+	for _, i := range a.Inputs {
+		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
 	}
+	return envs
+}
+
+func (a *Assembly) getCpushare() int64 {
+	return 0
+}
+
+func (a *Assembly) getMemory() int64 {
+	return 0
+}
+
+func (a *Assembly) getSwap() string {
+	return ""
+}
+
+func (a *Assembly) getHDD() int64 {
+	return 0
 }

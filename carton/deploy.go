@@ -18,18 +18,17 @@ package carton
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"io"
 	"time"
 
 	log "github.com/golang/glog"
-	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/provision"
 )
 
 type DeployOpts struct {
-	B      *Box
-	Config deployd.Config
+	B      *provision.Box
+	Image 	string
+//	Config deployd.Config
 }
 
 // Deploy runs a deployment of an application. It will first try to run an
@@ -41,9 +40,9 @@ func Deploy(opts *DeployOpts) error {
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	imageId, err := deployToProvisioner(&opts, writer)
+	imageId, err := deployToProvisioner(opts, writer)
 	elapsed := time.Since(start)
-	saveErr := saveDeployData(&opts, imageId, outBuffer.String(), elapsed, err)
+	saveErr := saveDeployData(opts, imageId, outBuffer.String(), elapsed, err)
 	if saveErr != nil {
 		log.Errorf("WARNING: couldn't save deploy data, deploy opts: %#v", opts)
 	}
@@ -63,7 +62,7 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 }
 
 func saveDeployData(opts *DeployOpts, imageId, log string, duration time.Duration, deployError error) error {
-	comp := Components{
+/*	comp := Components{
 		App:       opts.Box.Name,
 		Timestamp: time.Now(),
 		Duration:  duration,
@@ -76,8 +75,9 @@ func saveDeployData(opts *DeployOpts, imageId, log string, duration time.Duratio
 	if deployError != nil {
 		deploy.Error = deployError.Error()
 	}
-
+*/
 	//Riak: code to save the status of a deploy (created.)
+	return nil
 }
 
 func markDeploysAsRemoved(boxName string) error {

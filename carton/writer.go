@@ -16,7 +16,7 @@ type Logger interface {
 }
 
 type LogWriter struct {
-	Carton    Logger
+	Box    Logger
 	Source string
 	msgCh  chan []byte
 	doneCh chan bool
@@ -67,5 +67,6 @@ func (w *LogWriter) Write(data []byte) (int, error) {
 }
 
 func (w *LogWriter) write(data []byte) error {
-	return w.Carton.Log(string(data), source, "megd")
+	//return w.Box.Log(string(data), source, "megd")
+	return nil
 }

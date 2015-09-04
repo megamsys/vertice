@@ -1,17 +1,10 @@
 package carton
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"net/url"
 	"regexp"
-	"sort"
-	"strings"
-	"time"
-
-	"github.com/golang/glog"
+	"github.com/megamsys/megamd/carton/bind"
+	"github.com/megamsys/megamd/provision"
+	log "github.com/golang/glog"
 )
 
 var (
@@ -21,19 +14,21 @@ var (
 type Carton struct {
 	Name     string
 	Tosca    string
-	Cpushare string
-	Memory   string
+	Cpushare int64
+	Memory   int64
 	Swap     string
-	HDD      string
-	Envs     map[string]bind.EnvVar
+	HDD      int64
+	Envs     []bind.EnvVar
 	Boxes    *[]provision.Box
 }
+
+
 
 // CartonDeploys.. we need the config or no ?
 // May be stick it into the provisioner directly during a load.
 func CDeploys(c *Carton) {
-	for box := range c.Boxes {
-		err := carton.Deploys(&DeployOpts{B: box})
+	for _, box := range *c.Boxes {
+		err := Deploy(&DeployOpts{B: &box})
 		if err != nil {
 			log.Errorf("Unable to destroy box in provisioner", err)
 		}
@@ -42,8 +37,8 @@ func CDeploys(c *Carton) {
 
 // Deletes a carton.
 func Delete(c *Carton) {
-	for box := range c.Boxes {
-		err := Provisioner.Destroy(box)
+	for _, box := range *c.Boxes {
+		err := Provisioner.Destroy(&box, nil)
 		if err != nil {
 			log.Errorf("Unable to destroy box in provisioner", err)
 		}
@@ -74,17 +69,13 @@ func (c *Carton) Unbind(box *provision.Box) error {
 }
 
 // Group the related_components into BindInstances.
-func (c *Carton) Group() ([]*YBoundBox, err) {
+func (c *Carton) Group() ([]*bind.YBoundBox, error) {
 	return nil, nil
 }
 
 // Available returns true if at least one of N units is started or unreachable.
 func (c *Carton) Available() bool {
-	boxes, err := c.Boxes()
-	if err != nil {
-		return false
-	}
-	for _, box := range boxes {
+	for _, box := range *c.Boxes {
 		if box.Available() {
 			return true
 		}
@@ -95,8 +86,8 @@ func (c *Carton) Available() bool {
 // Start starts the app calling the provisioner.Start method and
 // changing the units state to StatusStarted.
 func (c *Carton) Start() error {
-	for box := range c.Boxes {
-		err := Provisioner.Start(box)
+	for _, box := range *c.Boxes {
+		err := Provisioner.Start(&box, "")
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err
@@ -106,8 +97,8 @@ func (c *Carton) Start() error {
 }
 
 func (c *Carton) Stop() error {
-	for box := range c.Boxes {
-		err := Provisioner.Stop(box)
+	for _, box := range *c.Boxes {
+		err := Provisioner.Stop(&box, "")
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err
@@ -118,8 +109,8 @@ func (c *Carton) Stop() error {
 
 // Restart runs the restart hook for the app, writing its output to w.
 func (c *Carton) Restart() error {
-	for box := range c.Boxes {
-		err := Provisioner.Restart(box)
+	for _, box := range *c.Boxes {
+		err := Provisioner.Restart(&box, "", nil)
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err
@@ -139,8 +130,8 @@ func (c *Carton) GetMemory() int64 {
 }
 
 // GetCpuShare returns the cpu share for the carton.
-func (c *Carton) GetCpuShare() int {
-	return c.CpuShare
+func (c *Carton) GetCpuShare() int64 {
+	return c.Cpushare
 }
 
 // GetMemory returns the memory limit (in bytes) for the carton.
@@ -149,15 +140,15 @@ func (c *Carton) GetHDD() int64 {
 }
 
 // Envs returns a map representing the apps environment variables.
-func (c *Carton) Envs() map[string]bind.EnvVar {
-	return c.Env
+func (c *Carton) GetEnvs() []bind.EnvVar {
+	return c.Envs
 }
 
-// AddCName adds a CName to box. It updates the attribute,
+/* AddCName adds a CName to box. It updates the attribute,
 // calls the SetCName function on the provisioner and saves
 // the box in the database, returning an error when it cannot save the change
 // in the database or add the CName on the provisioner.
-func (b *Box) AddCName(cnames ...string) error {
+func (b *provision.Box) AddCName(cnames ...string) error {
 	for _, cname := range cnames {
 		if cname != "" && !cnameRegexp.MatchString(cname) {
 			return stderr.New("Invalid cname")
@@ -201,7 +192,7 @@ func (c *Carton) RemoveCName(cnames ...string) error {
 
 // Log adds a log message to the app. Specifying a good source is good so the
 // user can filter where the message come from.
-func (box *Box) Log(message, source, unit string) error {
+func (box *provision.Box) Log(message, source, unit string) error {
 	messages := strings.Split(message, "\n")
 	logs := make([]interface{}, 0, len(messages))
 	for _, msg := range messages {
@@ -227,3 +218,4 @@ func (box *Box) Log(message, source, unit string) error {
 	}
 	return nil
 }
+*/

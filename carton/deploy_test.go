@@ -463,7 +463,7 @@ func (s *S) TestDeployApp(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
+	err = Deploy({
 		App:          &a,
 		Version:      "version",
 		Commit:       "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c",
@@ -487,7 +487,7 @@ func (s *S) TestDeployAppWithUpdatePlatform(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
+	err = Deploy({
 		App:          &a,
 		Version:      "version",
 		Commit:       "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c",
@@ -513,7 +513,7 @@ func (s *S) TestDeployAppIncrementDeployNumber(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
+	err = Deploy({
 		App:          &a,
 		Version:      "version",
 		Commit:       "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c",
@@ -537,7 +537,7 @@ func (s *S) TestDeployAppSaveDeployData(c *check.C) {
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
 	commit := "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c"
-	err = Deploy("github.com/megamsys{
+	err = Deploy({
 		App:          &a,
 		Version:      "version",
 		Commit:       commit,
@@ -561,159 +561,6 @@ func (s *S) TestDeployAppSaveDeployData(c *check.C) {
 	c.Assert(result["origin"], check.Equals, "git")
 }
 
-func (s *S) TestDeployAppSaveDeployDataOriginRollback(c *check.C) {
-	a := App{
-		Name:     "otherapp",
-		Platform: "zend",
-		Teams:    []string{s.team.Name},
-	}
-	err := s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	s.provisioner.Provision(&a)
-	defer s.provisioner.Destroy(&a)
-	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
-		App:          &a,
-		OutputStream: writer,
-		Image:        "some-image",
-	})
-	c.Assert(err, check.IsNil)
-	s.conn.Apps().Find(bson.M{"name": a.Name}).One(&a)
-	c.Assert(a.Deploys, check.Equals, uint(1))
-	var result map[string]interface{}
-	s.conn.Deploys().Find(bson.M{"app": a.Name}).One(&result)
-	c.Assert(result["app"], check.Equals, a.Name)
-	now := time.Now()
-	diff := now.Sub(result["timestamp"].(time.Time))
-	c.Assert(diff < 60*time.Second, check.Equals, true)
-	c.Assert(result["duration"], check.Not(check.Equals), 0)
-	c.Assert(result["image"], check.Equals, "some-image")
-	c.Assert(result["log"], check.Equals, "Image deploy called")
-	c.Assert(result["origin"], check.Equals, "rollback")
-}
-
-func (s *S) TestDeployAppSaveDeployDataOriginAppDeploy(c *check.C) {
-	a := App{
-		Name:     "otherapp",
-		Platform: "zend",
-		Teams:    []string{s.team.Name},
-	}
-	err := s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	s.provisioner.Provision(&a)
-	defer s.provisioner.Destroy(&a)
-	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
-		App:          &a,
-		OutputStream: writer,
-		File:         ioutil.NopCloser(bytes.NewBuffer([]byte("my file"))),
-	})
-	c.Assert(err, check.IsNil)
-	s.conn.Apps().Find(bson.M{"name": a.Name}).One(&a)
-	c.Assert(a.Deploys, check.Equals, uint(1))
-	var result map[string]interface{}
-	s.conn.Deploys().Find(bson.M{"app": a.Name}).One(&result)
-	c.Assert(result["app"], check.Equals, a.Name)
-	now := time.Now()
-	diff := now.Sub(result["timestamp"].(time.Time))
-	c.Assert(diff < 60*time.Second, check.Equals, true)
-	c.Assert(result["duration"], check.Not(check.Equals), 0)
-	c.Assert(result["image"], check.Equals, "app-image")
-	c.Assert(result["log"], check.Equals, "Upload deploy called")
-	c.Assert(result["origin"], check.Equals, "app-deploy")
-}
-
-func (s *S) TestDeployAppSaveDeployErrorData(c *check.C) {
-	provisioner := provisiontest.NewFakeProvisioner()
-	provisioner.PrepareFailure("GitDeploy", errors.New("deploy error"))
-	Provisioner = provisioner
-	defer func() {
-		Provisioner = s.provisioner
-	}()
-	a := App{
-		Name:     "testErrorApp",
-		Platform: "zend",
-		Teams:    []string{s.team.Name},
-	}
-	err := s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	provisioner.Provision(&a)
-	defer provisioner.Destroy(&a)
-	writer := &bytes.Buffer{}
-	err = Deploy("github.com/megamsys{
-		App:          &a,
-		Version:      "version",
-		Commit:       "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c",
-		OutputStream: writer,
-	})
-	c.Assert(err, check.NotNil)
-	var result map[string]interface{}
-	s.conn.Deploys().Find(bson.M{"app": a.Name}).One(&result)
-	c.Assert(result["app"], check.Equals, a.Name)
-	c.Assert(result["error"], check.NotNil)
-}
-
-func (s *S) TestUserHasPermission(c *check.C) {
-	user := &auth.User{Email: "user@user.com", Password: "123456"}
-	nativeScheme := auth.ManagedScheme(native.NativeScheme{})
-	AuthScheme = nativeScheme
-	_, err := nativeScheme.Create(user)
-	c.Assert(err, check.IsNil)
-	defer user.Delete()
-	team := &auth.Team{Name: "team", Users: []string{user.Email}}
-	err = s.conn.Teams().Insert(team)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Teams().Remove(team)
-	a := App{
-		Name:     "g1",
-		Platform: "zend",
-		Teams:    []string{team.Name},
-	}
-	err = s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	hasPermission := userHasPermission(user, a.Name)
-	c.Assert(hasPermission, check.Equals, true)
-}
-
-func (s *S) TestUserHasNoPermission(c *check.C) {
-	user := &auth.User{Email: "user@user.com", Password: "123456"}
-	nativeScheme := auth.ManagedScheme(native.NativeScheme{})
-	AuthScheme = nativeScheme
-	_, err := nativeScheme.Create(user)
-	c.Assert(err, check.IsNil)
-	defer user.Delete()
-	team := &auth.Team{Name: "team", Users: []string{user.Email}}
-	err = s.conn.Teams().Insert(team)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Teams().Remove(team)
-	a := App{
-		Name:     "g1",
-		Platform: "zend",
-	}
-	err = s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	hasPermission := userHasPermission(user, a.Name)
-	c.Assert(hasPermission, check.Equals, false)
-}
-
-func (s *S) TestIncrementDeploy(c *check.C) {
-	a := App{
-		Name:     "otherapp",
-		Platform: "zend",
-		Teams:    []string{s.team.Name},
-	}
-	err := s.conn.Apps().Insert(a)
-	c.Assert(err, check.IsNil)
-	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	incrementDeploy(&a)
-	s.conn.Apps().Find(bson.M{"name": a.Name}).One(&a)
-	c.Assert(a.Deploys, check.Equals, uint(1))
-}
 
 func (s *S) TestDeployToProvisioner(c *check.C) {
 	a := App{
@@ -727,7 +574,7 @@ func (s *S) TestDeployToProvisioner(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	opts := "github.com/megamsys{App: &a, Version: "version"}
+	opts := {App: &a, Version: "version"}
 	_, err = deployToProvisioner(&opts, writer)
 	c.Assert(err, check.IsNil)
 	logs := writer.String()
@@ -746,7 +593,7 @@ func (s *S) TestDeployToProvisionerArchive(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	opts := "github.com/megamsys{App: &a, ArchiveURL: "https://s3.amazonaws.com/smt/archive.tar.gz"}
+	opts := {App: &a, ArchiveURL: "https://s3.amazonaws.com/smt/archive.tar.gz"}
 	_, err = deployToProvisioner(&opts, writer)
 	c.Assert(err, check.IsNil)
 	logs := writer.String()
@@ -765,7 +612,7 @@ func (s *S) TestDeployToProvisionerUpload(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	opts := "github.com/megamsys{App: &a, File: ioutil.NopCloser(bytes.NewBuffer([]byte("my file")))}
+	opts := {App: &a, File: ioutil.NopCloser(bytes.NewBuffer([]byte("my file")))}
 	_, err = deployToProvisioner(&opts, writer)
 	c.Assert(err, check.IsNil)
 	logs := writer.String()
@@ -784,7 +631,7 @@ func (s *S) TestDeployToProvisionerImage(c *check.C) {
 	s.provisioner.Provision(&a)
 	defer s.provisioner.Destroy(&a)
 	writer := &bytes.Buffer{}
-	opts := "github.com/megamsys{App: &a, Image: "my-image-x"}
+	opts := {App: &a, Image: "my-image-x"}
 	_, err = deployToProvisioner(&opts, writer)
 	c.Assert(err, check.IsNil)
 	logs := writer.String()
@@ -797,7 +644,7 @@ func (s *S) TestMarkDeploysAsRemoved(c *check.C) {
 	err := s.conn.Apps().Insert(a)
 	c.Assert(err, check.IsNil)
 	defer s.conn.Apps().Remove(bson.M{"name": a.Name})
-	opts := "github.com/megamsys{
+	opts := {
 		App:     &a,
 		Version: "version",
 		Commit:  "1ee1f1084927b3a5db59c9033bc5c4abefb7b93c",

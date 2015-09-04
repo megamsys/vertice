@@ -15,13 +15,16 @@
  */
 package bind
 
-import "fmt"
+import (
+	"fmt"
+	)
 
 // EnvVar represents a environment variable for a carton.
 type EnvVar struct {
 	Name  string
 	Value string
 }
+
 
 func (e *EnvVar) String() string {
 	return fmt.Sprintf("%s=%s", e.Name, e.Value)
@@ -30,13 +33,13 @@ func (e *EnvVar) String() string {
 type Binder interface {
 
 	// Bind makes the bind between two boxes.
-	Bind(b *Box) error
+	//Bind(b *provision.Box) error
 
 	// Unbind makes the unbind between two boxes
-	Unbind(b *Box) error
+	//Unbind(b *provision.Box) error
 
 	// Provides the YetToBeBoud instances for a box.
-	Group() (*[]YBoundBox, error)
+	//Group() (*[]YBoundBox, error)
 }
 
 /*Yet to be bound instance for a box.

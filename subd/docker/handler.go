@@ -1,46 +1,47 @@
 package docker
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"log"
-	"time"
-
+	"fmt"
+	"github.com/megamsys/megamd/carton"
 )
 
 type Handler struct {
 	Provider string
-	One      *OneConfig
+	D      *Config
 }
 
-func (h *Handler) ServeAMQP(r app.Requests) error {
-	assembly, err := app.Get(r.Id)
+
+// NewHandler returns a new instance of handler with routes.
+func NewHandler(c *Config) *Handler {
+	return &Handler{D: c}
+}
+
+func (h *Handler) serveAMQP(r *carton.Requests) error {
+	a, err := carton.Get(r.Id)
 	if err != nil {
 		return err
 	}
 
-	di := app.DeployInfo{
-		Assembly: assembly,
-		Config:   h.One,
-		//	EventChannel:      ch,
+	c, err := a.MkCartons()
+	if err != nil {
+		return err
 	}
 
-	switch ParseRequest(r.Name) {
-	case ReqCreate:
-		if err = provMap[h.Provider].Deploy(di); err != nil {
-			return err
+	ra, err := carton.ParseRequest(r.Name)
+
+	switch ra {
+	case carton.ReqCreate:
+		carton.CDeploys(c[0])
+		fmt.Printf("%s", "OK")
+	case carton.ReqDelete:
+		carton.Delete(c[0])
+		/*case ReqCreating:
+		if err = app.Stateup(di); err != nil {
 		}
-	case ReqCreating:
-		if err = provMap[h.Provider].Stateup(di); err != nil {
 			return err
-		}
-	case ReqDelete:
-		if err = provMap[h.Provider].UnDeploy(di); err != nil {
-			return err
-		}
+		*/
 	default:
-		ReqError
+		return carton.ErrInvalidReqtype
 	}
 	return nil
 }

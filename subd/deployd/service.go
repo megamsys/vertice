@@ -1,17 +1,15 @@
 package deployd
 
 import (
-	"bufio"
-	"bytes"
-	"io"
-	"log"
-	"os"
-	"strconv"
-	"strings"
+	"fmt"
+	log "github.com/golang/glog"
+	"github.com/megamsys/libgo/amqp"
+	"github.com/megamsys/megamd/carton"
+	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/megamd/provision"
+
 	"sync"
 	"time"
-
-	"github.com/megamsys/megamd/meta"
 )
 
 const leaderWaitTimeout = 30 * time.Second
@@ -25,22 +23,18 @@ type Service struct {
 	Handler *Handler
 
 	Meta    *meta.Config
-	Deployd *deployd.Config
+	Deployd *Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c meta.Config, d deployd.Config) (*Service, error) {
-	if err != nil {
-		return nil, err
-	}
-
+func NewService(c *meta.Config, d *Config) *Service {
 	s := &Service{
 		err:     make(chan error),
-		Meta:    &c,
-		Deployd: &d,
+		Meta:    c,
+		Deployd: d,
 	}
 	s.Handler = NewHandler(s.Deployd)
-	return s, nil
+	return s
 }
 
 // Open starts the service
@@ -55,11 +49,16 @@ func (s *Service) Open() error {
 	ch, err := p.Sub()
 
 	for raw := range ch {
-		p, err := app.NewPayload(raw)
+		p, err := carton.NewPayload(raw)
 		if err != nil {
 			return err
 		}
-		go s.Handler.serveAMQP(p.Convert())
+
+		pc, err := p.Convert()
+		if err != nil {
+			return err
+		}
+		go s.Handler.serveAMQP(pc)
 	}
 
 	return nil
@@ -82,18 +81,24 @@ func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
 func (s *Service) setProvisioner() {
-	app.Provisioner, err = provision.Get(s.Meta.Provider)
-	if err != nil {
-		fatal(err)
+	a, err := provision.Get(s.Meta.Provider)
+
+  carton.Provisioner = a
+
+  if err != nil {
+		//fatal(err)
+		fmt.Errorf("fatal error, couldn't located the provisioner %s", s.Meta.Provider)
 	}
-	fmt.Printf("Using %q provisioner.\n", s.Provider)
-	if initializableProvisioner, ok := app.Provisioner.(provision.InitializableProvisioner); ok {
+	fmt.Printf("Using %q provisioner.\n", s.Meta.Provider)
+	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize()
 		if err != nil {
-			fatal(err)
+			//			fatal(err)
+			fmt.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)
+
 		}
 	}
-	if messageProvisioner, ok := app.Provisioner.(provision.MessageProvisioner); ok {
+	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {
 		startupMessage, err := messageProvisioner.StartupMessage()
 		if err == nil && startupMessage != "" {
 			fmt.Print(startupMessage)

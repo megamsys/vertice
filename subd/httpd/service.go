@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"strings"
+
+	log "github.com/golang/glog"
 )
 
 // Service manages the listener and handler for an HTTP endpoint.
@@ -18,27 +19,25 @@ type Service struct {
 }
 
 // NewService returns a new instance of Service.
-func NewService(c httpd.Config) *Service {
+func NewService(c *Config) *Service {
 	s := &Service{
 		addr: c.BindAddress,
 		err:  make(chan error),
-		Handler: NewHandler(
-			"0.9",
-		),
+		Handler: NewHandler(),
 	}
 	return s
 }
 
 // Open starts the service
 func (s *Service) Open() error {
-	s.Logger.Println("Starting HTTP service")
+	log.Infof("Starting HTTP service")
 
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return err
 	}
 
-	s.Logger.Println("Listening on HTTP:", listener.Addr().String())
+	log.Infof("Listening on HTTP:", listener.Addr().String())
 	s.ln = listener
 
 	// Begin listening for requests in a separate goroutine.

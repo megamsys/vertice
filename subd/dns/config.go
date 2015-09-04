@@ -1,5 +1,10 @@
 package dns
 
+import (
+	"github.com/megamsys/libgo/cmd"
+	"strconv"
+)
+
 type Config struct {
 	Enabled          bool   `toml:"enabled"`
 	Route53AccessKey string `toml:"route53_access_key"`
@@ -7,16 +12,16 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	table := NewTable()
-	table.AddRow(Row{Colorfy("Config:", "white", "", "bold"), Colorfy("DNS", "green", "", "")})
-	table.AddRow(Row{"Enabled", c.Enabled})
-	table.AddRow(Row{"Accesskey", c.Route53AccessKey})
-	table.AddRow(Row{"Secretkey", c.Route53SecretKey})
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("DNS", "green", "", "")})
+	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
+	table.AddRow(cmd.Row{"Accesskey", c.Route53AccessKey})
+	table.AddRow(cmd.Row{"Secretkey", c.Route53SecretKey})
 	return table.String()
 }
 
-func NewConfig() Config {
-	return Config{
+func NewConfig() *Config {
+	return &Config{
 		Enabled: true,
 	}
 }

@@ -16,10 +16,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/cmd/megamd/run"
 )
 
 // These variables are populated via the Go linker.
@@ -27,11 +27,12 @@ var (
 	version string = "0.9"
 	commit  string = "01"
 	branch  string = "master"
+	header  string = "supported"
 )
 
 func cmdRegistry(name string) *cmd.Manager {
 	m := cmd.BuildBaseManager(name, version, header)
-	m.Register(&Start{})
+	m.Register(&run.Start{})
 	return m
 }
 

@@ -1,5 +1,9 @@
 package deployd
 
+import (
+	"github.com/megamsys/libgo/cmd"
+)
+
 const (
 	// Default provisioning provider for vms is OpenNebula.
 	// This is just an endpoint for Megam. We could have openstack, chef, salt, puppet etc.
@@ -31,14 +35,14 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	table := NewTable()
-	table.AddRow(Row{Colorfy("Config:", "white", "", "bold"), Colorfy("Deployd", "green", "", "")})
-	table.AddRow(Row{"Provider", c.Provider})
-	table.AddRow(Row{"Endpoint", c.OneEndPoint})
-	table.AddRow(Row{"Userid", c.OneUserid})
-	table.AddRow(Row{"Password", c.OnePassword})
-	table.AddRow(Row{"Template", c.OneTemplate})
-	table.AddRow(Row{"", ""})
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Deployd", "green", "", "")})
+	table.AddRow(cmd.Row{"Provider", c.Provider})
+	table.AddRow(cmd.Row{"Endpoint", c.OneEndPoint})
+	table.AddRow(cmd.Row{"Userid", c.OneUserid})
+	table.AddRow(cmd.Row{"Password", c.OnePassword})
+	table.AddRow(cmd.Row{"Template", c.OneTemplate})
+	table.AddRow(cmd.Row{"", ""})
 	return table.String()
 }
 

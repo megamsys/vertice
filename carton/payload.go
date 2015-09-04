@@ -16,80 +16,75 @@
 package carton
 
 import (
-	log "github.com/golang/gog"
-	"github.com/megamsys/libgo/action"
-	"github.com/megamsys/libgo/db"
+	"encoding/json"
+	"errors"
+	log "github.com/golang/glog"
+	//	"github.com/megamsys/libgo/db"
 )
 
 var (
-	ErrInvalidRequesttype = errors.New("invalid requesttype")
+	ErrInvalidReqtype = errors.New("invalid requesttype")
 )
-
-type InvalidProcessError struct {
-	Msg string
-}
-
-func (e InvalidProcessError) Error() string {
-	return fmt.Sprintf("process error: %s", e.Msg)
-}
 
 // Request represents the job for an unit in megam.
 type Request string
 
 func (r Request) String() string {
-	return string(s)
+	return string(r)
 }
 
 func ParseRequest(req string) (Request, error) {
 	switch req {
 	case "build":
 		return ReqBuild, nil
-	case "building":
-		return ReqBuilding, nil
-	case "built":
-		return ReqBuilt, nil
-	case "create":
-		return ReqCreate, nil
-	case "creating":
-		return ReqCreating, nil
-	case "stateup":
-		return ReqStateup, nil
-	case "statedown":
-		return ReqStatedown, nil
-	case "created":
-		return ReqCreated, nil
-	case "delete":
-		return ReqDelete, nil
-	case "deleting":
-		return ReqDeleting, nil
-	case "deleted":
-		return ReqDeleted, nil
-	case "error":
-		return ReqError, nil
-	case "start":
-		return ReqStart, nil
-	case "starting":
-		return ReqStarting, nil
-	case "started":
-		return ReqStarted, nil
-	case "stop":
-		return ReqStop, nil
-	case "stoping":
-		return ReqStoping, nil
-	case "stopped":
-		return ReqStopped, nil
+		/*	case "building":
+				return ReqBuild, nil
+			case "built":
+				return ReqBuilt, nil
+			case "create":
+				return ReqCreate, nil
+			case "creating":
+				return ReqCreating, nil
+			case "stateup":
+				return ReqStateup, nil
+			case "statedown":
+				return ReqStatedown, nil
+			case "created":
+				return ReqCreated, nil
+			case "delete":
+				return ReqDelete, nil
+			case "deleting":
+				return ReqDeleting, nil
+			case "deleted":
+				return ReqDeleted, nil
+			case "error":
+				return ReqError, nil
+			case "start":
+				return ReqStart, nil
+			case "starting":
+				return ReqStarting, nil
+			case "started":
+				return ReqStarted, nil
+			case "stop":
+				return ReqStop, nil
+			case "stoping":
+				return ReqStoping, nil
+			case "stopped":
+				return ReqStopped, nil */
 	}
 	return Request(""), ErrInvalidReqtype
 }
 
 const (
+	ReqDelete = Request("delete")
+	ReqCreate = Request("create")
 	// ReqCreating is the initial status of a unit in the database,
 	// it should transition shortly to a more specific status
 	ReqCreating = Request("create")
 
 	// ReqBuilding is the status for units being provisioned by the
 	// provisioner, like in the deployment.
-	ReqBuilding = Request("building")
+	ReqBuild = Request("building")
 
 	// ReqError is the status for units that failed to start, because of
 	// an application error.
@@ -118,8 +113,9 @@ type Requests struct {
 **fetch the request json from riak and parse the json to struct
 **/
 func (p *Payload) Convert() (*Requests, error) {
-	log.Debugf("Get request %s", p.Id)
 	r := &Requests{}
+	/*log.Debugf("Get request %s", p.Id)
+
 	c, err := db.Conn("requests")
 	if err != nil {
 		return nil, err
@@ -129,6 +125,7 @@ func (p *Payload) Convert() (*Requests, error) {
 		return nil, err
 	}
 	defer c.Close()
+	*/
 	return r, nil
 }
 
@@ -137,7 +134,7 @@ type Payload struct {
 }
 
 type PayloadConvertor interface {
-	Convert(Payload p) (*Requests, error)
+	Convert(p *Payload) (*Requests, error)
 }
 
 func NewPayload(b []byte) (*Payload, error) {

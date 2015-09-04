@@ -17,7 +17,8 @@ package carton
 
 import (
 	log "github.com/golang/glog"
-	"github.com/megamsys/libgo/db"
+	//	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/provision"
 )
 
 var Provisioner provision.Provisioner
@@ -45,25 +46,30 @@ func Get(id string) (*Assemblies, error) {
 	a := &Assemblies{}
 
 	log.Infof("Assemblies %s", id)
-	if conn, err := db.Conn("assemblies"); err != nil {
-		return a, err
-	}
+	/*	r, err := NewRiakDB(addr, bkt)
+		storage, err := r.Conn()
 
-	if err = conn.FetchStruct(id, a); err != nil {
-		return a, err
-	}
-	defer conn.Close()
-	log.Infof("Assemblies %v", a)
+		if conn, err := db.Conn("assemblies"); err != nil {
+			return a, err
+		}
+
+		if err = conn.FetchStruct(id, a); err != nil {
+			return a, err
+		}
+		defer conn.Close()
+		log.Infof("Assemblies %v", a)
+	*/
 	return a, nil
 }
 
-func (a *Assemblies) mkCartons() (Cartons, error) {
+func (a *Assemblies) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, len(a.AssemblysId))
-	err := nil
-	for i, ai := range a.AssemblysId {
-		if err, b := carton.mkCarton(ai); err != nil {
-			append(newCs, b)
+	for _, ai := range a.AssemblysId {
+		if b, err := mkCarton(ai); err != nil {
+			return nil, err
+		} else {
+			newCs = append(newCs, b)
 		}
 	}
-	return newCs, err
+	return newCs, nil
 }
