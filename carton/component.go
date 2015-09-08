@@ -16,29 +16,31 @@
 package carton
 
 import (
-	log "github.com/golang/glog"
-//	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
+	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 type Operations struct {
-	OperationType         string      `json:"operation_type"`
-	Description           string      `json:"description"`
-	OperationRequirements []*JsonPair `json:"operation_requirements"`
+	OperationType         string    `json:"operation_type"`
+	Description           string    `json:"description"`
+	OperationRequirements JsonPairs `json:"operation_requirements"`
 }
 
 type Artifacts struct {
-	ArtifactType         string      `json:"artifact_type"`
-	Content              string      `json:"content"`
-	ArtifactRequirements []*JsonPair `json:"artifact_requirements"`
+	ArtifactType         string    `json:"artifact_type"`
+	Content              string    `json:"content"`
+	ArtifactRequirements JsonPairs `json:"artifact_requirements"`
 }
 
 type Component struct {
 	Id                string        `json:"id"`
 	Name              string        `json:"name"`
 	ToscaType         string        `json:"tosca_type"`
-	Inputs            []*JsonPair   `json:"inputs"`
-	Outputs           []*JsonPair   `json:"outputs"`
+	Inputs            JsonPairs     `json:"inputs"`
+	Outputs           JsonPairs     `json:"outputs"`
 	Artifacts         *Artifacts    `json:"artifacts"`
 	RelatedComponents []string      `json:"related_components"`
 	Operations        []*Operations `json:"operations"`
@@ -46,27 +48,68 @@ type Component struct {
 	CreatedAt         string        `json:"created_at"`
 }
 
-func NewComponent(id string) *Component {
-	return &Component{Id: id}
+func (a *Component) String() string {
+	if d, err := yaml.Marshal(a); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
 }
 
 /**
 **fetch the component json from riak and parse the json to struct
 **/
-func (c *Component) Get(cid string) error {
-	log.Infof("[global] Get component %s", cid)
-	/*if conn, err := db.Conn("components"); err != nil {
-		return err
+func NewComponent(id string) (*Component, error) {
+	c := &Component{Id: id}
+	if err := db.Fetch("components", id, c); err != nil {
+		return nil, err
 	}
-
-	if err := conn.FetchStruct(comp_id, c); err != nil {
-		return err
-	}
-	defer conn.Close()
-	*/
-	return nil
+	return c, nil
 }
 
-func (c *Component) mkBox() (*provision.Box, error) {
-	return nil, nil
+//make a box with the details for a provisioner.
+func (c *Component) mkBox() (provision.Box, error) {
+	repo := c.NewRepo(repository.CI)
+
+	return provision.Box{
+		ComponentId: c.Id,
+		Name:        c.Name,
+		DomainName:  c.Inputs.match(provision.DOMAIN),
+		Tosca:       c.ToscaType,
+		Commit:      "",
+		Image:       "",
+		Repo:        repo,
+		Provider:    c.Inputs.match(provision.PROVIDER),
+		Ip:          "",
+	}, nil
+}
+
+func (c *Component) NewRepo(ci string) repository.Repo {
+	o := parseOps(c.Operations, ci)
+
+	if o != nil {
+		enabled, _ := strconv.ParseBool(o.OperationRequirements.match(repository.CI_ENABLED))
+
+		return repository.Repo{
+			Enabled:  enabled,
+			Token:    o.OperationRequirements.match(repository.CI_TOKEN),
+			Git:      o.OperationRequirements.match(repository.CI_SCM),
+			GitURL:   o.OperationRequirements.match(repository.CI_URL),
+			UserName: o.OperationRequirements.match(repository.CI_USER),
+			Version:  o.OperationRequirements.match(repository.CI_APIVERSION),
+		}
+
+	}
+	return repository.Repo{}
+
+}
+
+func parseOps(ops []*Operations, optype string) *Operations {
+	for _, o := range ops {
+		switch o.OperationType {
+		case repository.CI:
+			return o
+		}
+	}
+	return nil
 }

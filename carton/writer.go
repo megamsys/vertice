@@ -8,7 +8,7 @@ import (
 	"errors"
 	"time"
 
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 )
 
 type Logger interface {

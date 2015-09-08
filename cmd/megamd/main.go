@@ -18,6 +18,7 @@ package main
 import (
 	"os"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/cmd/megamd/run"
 )
@@ -29,6 +30,13 @@ var (
 	branch  string = "master"
 	header  string = "supported"
 )
+
+func init() {
+	// Only log the debug or above
+  log.SetLevel(log.DebugLevel)  // level is configurable via cli option.
+	// Output to stderr instead of stdout, could also be a file.
+  log.SetOutput(os.Stdout)
+}
 
 func cmdRegistry(name string) *cmd.Manager {
 	m := cmd.BuildBaseManager(name, version, header)

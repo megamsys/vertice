@@ -16,14 +16,17 @@
 package carton
 
 import (
-	log "github.com/golang/glog"
-	//	"github.com/megamsys/libgo/db"
+	"strings"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
+	"gopkg.in/yaml.v2"
 )
 
 var Provisioner provision.Provisioner
 
 type Cartons []*Carton
+type JsonPairs []*JsonPair
 
 type JsonPair struct {
 	K string `json:"key"`
@@ -40,36 +43,47 @@ type Assemblies struct {
 	CreatedAt   string      `json:"created_at"`
 }
 
+func (a *Assemblies) String() string {
+	if d, err := yaml.Marshal(a); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
+}
+
 /** This is a plublic function as this is the  entry for the app deployment
 and any others we do. **/
 func Get(id string) (*Assemblies, error) {
 	a := &Assemblies{}
+	if err := db.Fetch("assemblies", id, a); err != nil {
+		return nil, err
+	}
 
-	log.Infof("Assemblies %s", id)
-	/*	r, err := NewRiakDB(addr, bkt)
-		storage, err := r.Conn()
-
-		if conn, err := db.Conn("assemblies"); err != nil {
-			return a, err
-		}
-
-		if err = conn.FetchStruct(id, a); err != nil {
-			return a, err
-		}
-		defer conn.Close()
-		log.Infof("Assemblies %v", a)
-	*/
+	log.Debugf("Assemblies %v", a)
 	return a, nil
 }
 
 func (a *Assemblies) MkCartons() (Cartons, error) {
-	newCs := make(Cartons, len(a.AssemblysId))
+	newCs := make(Cartons, 0, len(a.AssemblysId))
 	for _, ai := range a.AssemblysId {
-		if b, err := mkCarton(ai); err != nil {
-			return nil, err
-		} else {
-			newCs = append(newCs, b)
+		if len(strings.TrimSpace(ai)) > 1 {
+			if b, err := mkCarton(ai); err != nil {
+				return nil, err
+			} else {
+				newCs = append(newCs, b)
+			}
 		}
 	}
+	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
+}
+
+//match for a value in the JSONPair and send the value
+func (p *JsonPairs) match(k string) string {
+	for _, j := range *p {
+		if j.K == k {
+			return j.V
+		}
+	}
+	return ""
 }

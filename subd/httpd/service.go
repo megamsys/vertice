@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 )
 
 // Service manages the listener and handler for an HTTP endpoint.
@@ -30,7 +30,7 @@ func NewService(c *Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Infof("Starting HTTP service")
+	log.Infof("Starting httpd service")
 
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {

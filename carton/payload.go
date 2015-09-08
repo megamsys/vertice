@@ -18,8 +18,9 @@ package carton
 import (
 	"encoding/json"
 	"errors"
-	log "github.com/golang/glog"
-	//	"github.com/megamsys/libgo/db"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/db"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -109,24 +110,27 @@ type Requests struct {
 	CreatedAt string `json:"created_at"`
 }
 
+func (r *Requests) String() string {
+	if d, err := yaml.Marshal(r); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
+}
+
 /**
 **fetch the request json from riak and parse the json to struct
 **/
 func (p *Payload) Convert() (*Requests, error) {
+	log.Infof("get requests %s", p.Id)
 	r := &Requests{}
-	/*log.Debugf("Get request %s", p.Id)
+	if err := db.Fetch("requests", p.Id, r); err != nil {
+		return nil, err
+	}
 
-	c, err := db.Conn("requests")
-	if err != nil {
-		return nil, err
-	}
-	err := c.FetchStruct(id, r)
-	if err != nil {
-		return nil, err
-	}
-	defer c.Close()
-	*/
+	log.Debugf("Requests %v", r)
 	return r, nil
+
 }
 
 type Payload struct {

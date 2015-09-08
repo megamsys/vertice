@@ -22,12 +22,22 @@ import (
 	"net/url"
 
 	"github.com/megamsys/megamd/carton/bind"
+	"github.com/megamsys/megamd/repository"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	DOMAIN   = "domain"
+	PROVIDER = "provider"
+	CPU      = "cpu"
+	RAM      = "ram"
 )
 
 var (
-	ErrInvalidStatus = errors.New("invalid status")
-	ErrEmptyApp      = errors.New("no units for this app")
-	ErrUnitNotFound  = errors.New("unit not found")
+	ErrInvalidStatus  = errors.New("invalid status")
+	ErrEmptyApp       = errors.New("no units for this app")
+	ErrUnitNotFound   = errors.New("unit not found")
+	ErrOpTypeNotFound = errors.New("op type not found")
 )
 
 // Status represents the status of a unit in megamd
@@ -82,17 +92,25 @@ const (
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	//	C          Component
-	Name       string
-	DomainName string
-	Tosca      string
-	Commit     string
-	Image      string
-	Git        string
-	Status     Status
-	Provider   string
-	Address    *url.URL
-	Ip         string
+	ComponentId string
+	Name        string
+	DomainName  string
+	Tosca       string
+	Commit      string
+	Image       string
+	Repo        repository.Repository
+	Status      Status
+	Provider    string
+	Address     *url.URL
+	Ip          string
+}
+
+func (b *Box) String() string {
+	if d, err := yaml.Marshal(b); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
 }
 
 // GetName returns the name of the box.

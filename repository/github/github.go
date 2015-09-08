@@ -11,7 +11,7 @@ package github
 
 import (
 	"encoding/json"
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 	git "github.com/google/go-github/github"
 	"strings"
 )

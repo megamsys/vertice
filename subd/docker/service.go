@@ -2,7 +2,7 @@ package docker
 
 import (
 	"fmt"
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"

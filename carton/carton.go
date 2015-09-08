@@ -4,7 +4,9 @@ import (
 	"regexp"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
+	"gopkg.in/yaml.v2"
+
 )
 
 var (
@@ -22,6 +24,13 @@ type Carton struct {
 	Boxes    *[]provision.Box
 }
 
+func (a *Carton) String() string {
+	if d, err := yaml.Marshal(a); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
+}
 
 
 // CartonDeploys.. we need the config or no ?

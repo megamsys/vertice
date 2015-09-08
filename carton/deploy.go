@@ -21,7 +21,7 @@ import (
 	"io"
 	"time"
 
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/provision"
 )
 

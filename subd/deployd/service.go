@@ -2,7 +2,7 @@ package deployd
 
 import (
 	"fmt"
-	log "github.com/golang/glog"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
@@ -34,6 +34,7 @@ func NewService(c *meta.Config, d *Config) *Service {
 		Deployd: d,
 	}
 	s.Handler = NewHandler(s.Deployd)
+	c.MC() //an accessor.
 	return s
 }
 
@@ -43,7 +44,7 @@ func (s *Service) Open() error {
 
 	p, err := amqp.NewRabbitMQ(s.Meta.AMQP, QUEUE)
 	if err != nil {
-		log.Errorf("Couldn't establish an amqp (%s): %s", s.Meta, err.Error())
+		log.Errorf("Couldn't establish an amqp (%s): %s", s.Meta.AMQP, err.Error())
 	}
 
 	ch, err := p.Sub()
@@ -64,6 +65,24 @@ func (s *Service) Open() error {
 	return nil
 }
 
+/* processBatches continually drains the given batcher and writes the batches to the database.
+func (s *Service) processBatches(batcher *RequestsBatcher) {
+	defer s.wg.Done()
+	for raw := range ch {
+		p, err := carton.NewPayload(raw)
+		if err != nil {
+			return err
+		}
+
+		pc, err := p.Convert()
+		if err != nil {
+			return err
+		}
+		s.Handler.serveAMQP(pc)
+	}
+}
+*/
+
 // Close closes the underlying subscribe channel.
 func (s *Service) Close() error {
 	/*save the subscribe channel and close it.
@@ -83,9 +102,9 @@ func (s *Service) Err() <-chan error { return s.err }
 func (s *Service) setProvisioner() {
 	a, err := provision.Get(s.Meta.Provider)
 
-  carton.Provisioner = a
+	carton.Provisioner = a
 
-  if err != nil {
+	if err != nil {
 		//fatal(err)
 		fmt.Errorf("fatal error, couldn't located the provisioner %s", s.Meta.Provider)
 	}

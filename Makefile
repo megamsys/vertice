@@ -70,6 +70,7 @@ get-code:
 	go get $(GO_EXTRAFLAGS) -u -d   ./...
 
 godep:
+	@echo "--- godep start"
 	go get $(GO_EXTRAFLAGS) github.com/tools/godep
 	godep restore ./...
 

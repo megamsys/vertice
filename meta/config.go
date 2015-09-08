@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/megamsys/libgo/cmd"
@@ -46,7 +47,7 @@ type Config struct {
 	Dir                string        `toml:"dir"`
 	Hostname           string        `toml:"hostname"`
 	BindAddress        string        `toml:bind_address`
-	Riak               string        `toml:"riak"`
+	Riak               []string      `toml:"riak"`
 	Api                string        `toml:"api"`
 	AMQP               string        `toml:"amqp"`
 	Peers              []string      `toml:"-"`
@@ -56,12 +57,14 @@ type Config struct {
 	LeaderLeaseTimeout toml.Duration `toml:"leader-lease-timeout"`
 }
 
+var MC *Config
+
 func (c Config) String() string {
 	table := cmd.NewTable()
 	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Meta", "green", "", "")})
 	table.AddRow(cmd.Row{"Home", c.Home})
 	table.AddRow(cmd.Row{"Dir", c.Dir})
-	table.AddRow(cmd.Row{"Riak", c.Riak})
+	table.AddRow(cmd.Row{"Riak", strings.Join(c.Riak, ",")})
 	table.AddRow(cmd.Row{"API", c.Api})
 	table.AddRow(cmd.Row{"AMQP", c.AMQP})
 	table.AddRow(cmd.Row{"Hostname", c.Hostname})
@@ -90,7 +93,7 @@ func NewConfig() *Config {
 		Dir:                defaultDir,
 		Hostname:           DefaultHostname,
 		BindAddress:        DefaultBindAddress,
-		Riak:               DefaultRiak,
+		Riak:               []string{DefaultRiak},
 		Api:                DefaultApi,
 		AMQP:               DefaultAMQP,
 		Provider:           DefaultProvider,
@@ -98,4 +101,8 @@ func NewConfig() *Config {
 		HeartbeatTimeout:   toml.Duration(DefaultHeartbeatTimeout),
 		LeaderLeaseTimeout: toml.Duration(DefaultLeaderLeaseTimeout),
 	}
+}
+
+func (c *Config) MC() {
+	MC = c
 }

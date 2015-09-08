@@ -2,6 +2,7 @@ package deployd
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton"
 )
 
@@ -17,7 +18,7 @@ func NewHandler(c *Config) *Handler {
 }
 
 func (h *Handler) serveAMQP(r *carton.Requests) error {
-	a, err := carton.Get(r.Id)
+	a, err := carton.Get(r.CatId)
 	if err != nil {
 		return err
 	}
@@ -28,7 +29,7 @@ func (h *Handler) serveAMQP(r *carton.Requests) error {
 	}
 
 	ra, err := carton.ParseRequest(r.Name)
-
+	log.Warnf("Parse request %s\n", r.Name)
 	switch ra {
 	case carton.ReqCreate:
 		carton.CDeploys(c[0])
