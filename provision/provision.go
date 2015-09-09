@@ -19,11 +19,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 
 	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/repository"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -89,53 +86,6 @@ const (
 	StatusStopped = Status("stopped")
 )
 
-// Box represents a provision unit. Can be a machine, container or anything
-// IP-addressable.
-type Box struct {
-	ComponentId string
-	Name        string
-	DomainName  string
-	Tosca       string
-	Commit      string
-	Image       string
-	Repo        repository.Repository
-	Status      Status
-	Provider    string
-	Address     *url.URL
-	Ip          string
-}
-
-func (b *Box) String() string {
-	if d, err := yaml.Marshal(b); err != nil {
-		return err.Error()
-	} else {
-		return string(d)
-	}
-}
-
-// GetName returns the name of the box.
-func (b *Box) GetFullName() string {
-	return b.Name + b.DomainName
-}
-
-// GetTosca returns the tosca type of the box.
-func (b *Box) GetTosca() string {
-	return b.Tosca
-}
-
-// GetIp returns the Unit.IP.
-func (b *Box) GetIp() string {
-	return b.Ip
-}
-
-// Available returns true if the unit is available. It will return true
-// whenever the unit itself is available, even when the application process is
-// not.
-func (b *Box) Available() bool {
-	return b.Status == StatusStarted ||
-		b.Status == StatusStarting ||
-		b.Status == StatusError
-}
 
 // Named is something that has a name, providing the GetName method.
 type Named interface {
@@ -311,8 +261,4 @@ type MegamdYamlHealthcheck struct {
 type MegamdYamlData struct {
 	Hooks       MegamdYamlHooks
 	Healthcheck MegamdYamlHealthcheck
-}
-
-func (box *Box) Log(message, source, unit string) error {
-	return nil
 }

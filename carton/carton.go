@@ -1,16 +1,21 @@
 package carton
 
 import (
-	"regexp"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
-	log "github.com/Sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-
 )
 
-var (
-	cnameRegexp = regexp.MustCompile(`^(\*\.)?[a-zA-Z0-9][\w-.]+$`)
+
+type BoxLevel int
+
+const (
+	// BoxAny indicates that there is atleast one box to deploy or delete.
+	BoxAny BoxLevel = iota
+
+	// BoxZero indicates that there are no boxes to deploy or delete.
+	BoxZero
 )
 
 type Carton struct {
@@ -32,26 +37,44 @@ func (a *Carton) String() string {
 	}
 }
 
-
-// CartonDeploys.. we need the config or no ?
-// May be stick it into the provisioner directly during a load.
-func CDeploys(c *Carton) {
-	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box})
-		if err != nil {
-			log.Errorf("Unable to destroy box in provisioner", err)
-		}
+//If there are boxes, then it set the enum BoxAny or its BoxZero
+func (c *Carton) lvl() BoxLevel {
+	if len(*c.Boxes) > 0 {
+		return BoxAny
+	} else {
+		return BoxZero
 	}
 }
 
-// Deletes a carton.
-func Delete(c *Carton) {
+//Converts a carton to a box, if there are no boxes below.
+func (c *Carton) toBox() error {
+	switch c.lvl() {
+	case BoxZero:
+		//mkBox return nil
+	}
+	return nil
+}
+
+// Deploy carton, which basically deploys the boxes.
+func (c *Carton) Deploy() error {
+	for _, box := range *c.Boxes {
+		err := Deploy(&DeployOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to deploy box", err)
+		}
+	}
+	return nil
+}
+
+// Deletes a carton, which deletes its boxes.
+func (c *Carton) Delete() error {
 	for _, box := range *c.Boxes {
 		err := Provisioner.Destroy(&box, nil)
 		if err != nil {
-			log.Errorf("Unable to destroy box in provisioner", err)
+			log.Errorf("Unable to destroy box", err)
 		}
 	}
+	return nil
 }
 
 func (c *Carton) Bind(box *provision.Box) error {
@@ -82,7 +105,7 @@ func (c *Carton) Group() ([]*bind.YBoundBox, error) {
 	return nil, nil
 }
 
-// Available returns true if at least one of N units is started or unreachable.
+// Available returns true if at least one of N boxes which is started
 func (c *Carton) Available() bool {
 	for _, box := range *c.Boxes {
 		if box.Available() {
@@ -92,31 +115,34 @@ func (c *Carton) Available() bool {
 	return false
 }
 
-// Start starts the app calling the provisioner.Start method and
-// changing the units state to StatusStarted.
+// starts the box calling the provisioner.
+// changing the boxes state to StatusStarted.
 func (c *Carton) Start() error {
 	for _, box := range *c.Boxes {
 		err := Provisioner.Start(&box, "")
 		if err != nil {
-			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
+			log.Errorf("Unable to start the box  %s", err)
 			return err
 		}
 	}
 	return nil
 }
 
+// stops the box calling the provisioner.
+// changing the boxes state to StatusStopped.
 func (c *Carton) Stop() error {
 	for _, box := range *c.Boxes {
 		err := Provisioner.Stop(&box, "")
 		if err != nil {
-			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
+			log.Errorf("Unable to stop the box %s", err)
 			return err
 		}
 	}
 	return nil
 }
 
-// Restart runs the restart hook for the app, writing its output to w.
+// restarts the box calling the provisioner.
+// changing the boxes state to StatusStarted.
 func (c *Carton) Restart() error {
 	for _, box := range *c.Boxes {
 		err := Provisioner.Restart(&box, "", nil)
@@ -125,6 +151,18 @@ func (c *Carton) Restart() error {
 			return err
 		}
 	}
+	return nil
+}
+
+// moves the state to the desired state
+// changing the boxes state to StatusStateup.
+func (c *Carton) Stateup() error {
+	return nil
+}
+
+// moves the state down to the desired state
+// changing the boxes state to StatusStatedown.
+func (c *Carton) Statedown() error {
 	return nil
 }
 
@@ -152,79 +190,3 @@ func (c *Carton) GetHDD() int64 {
 func (c *Carton) GetEnvs() []bind.EnvVar {
 	return c.Envs
 }
-
-/* AddCName adds a CName to box. It updates the attribute,
-// calls the SetCName function on the provisioner and saves
-// the box in the database, returning an error when it cannot save the change
-// in the database or add the CName on the provisioner.
-func (b *provision.Box) AddCName(cnames ...string) error {
-	for _, cname := range cnames {
-		if cname != "" && !cnameRegexp.MatchString(cname) {
-			return stderr.New("Invalid cname")
-		}
-
-		if s, ok := Provisioner.(provision.CNameManager); ok {
-			if err := s.SetCName(app, cname); err != nil {
-				return err
-			}
-		}
-		//Riak: append the ip/cname in the component.
-		//here (or) can be handled as an action.
-	}
-	return nil
-}
-
-func (c *Carton) RemoveCName(cnames ...string) error {
-	for _, cname := range cnames {
-		count := 0
-		for _, appCname := range app.CName {
-			if cname == appCname {
-				count += 1
-			}
-		}
-		if count == 0 {
-			return stderr.New("cname not exists!")
-		}
-		if s, ok := Provisioner.(provision.CNameManager); ok {
-			if err := s.UnsetCName(app, cname); err != nil {
-				return err
-			}
-		}
-		//Riak: append the ip/cname in the component available in the box.
-		//or handle it as an action
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// Log adds a log message to the app. Specifying a good source is good so the
-// user can filter where the message come from.
-func (box *provision.Box) Log(message, source, unit string) error {
-	messages := strings.Split(message, "\n")
-	logs := make([]interface{}, 0, len(messages))
-	for _, msg := range messages {
-		if msg != "" {
-			l := Applog{
-				Date:    time.Now().In(time.UTC),
-				Message: msg,
-				Source:  source,
-				AppName: app.Name,
-				Unit:    unit,
-			}
-			logs = append(logs, l)
-		}
-	}
-	if len(logs) > 0 {
-		notify(app.Name, logs)
-		conn, err := db.LogConn()
-		if err != nil {
-			return err
-		}
-		defer conn.Close()
-		return conn.Logs(app.Name).Insert(logs...)
-	}
-	return nil
-}
-*/
