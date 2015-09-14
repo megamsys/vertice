@@ -54,7 +54,7 @@ We are glad to help if you have questions, or request for new features..
 | **Author:**          | Rajthilak (<rajthilak@megam.ion>)
 | 	                   | KishorekumarNeelamegam (<nkishore@megam.io>)
 |                      | Yeshwanth Kumar (<getyesh@megam.io>)
-| **Copyright:**       | Copyright (c) 2012-2015 Megam Systems.
+| **Copyright:**       | Copyright (c) 2013-2015 Megam Systems.
 | **License:**         | Apache License, Version 2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
