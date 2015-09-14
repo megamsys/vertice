@@ -67,12 +67,13 @@ bzr:
 	$(if $(shell bzr), , $(error $(BZR_ERROR)))
 
 get-code:
-	go get $(GO_EXTRAFLAGS) -u -d  ./...
+	go get $(GO_EXTRAFLAGS) -u -d   ./...
 
 godep:
+	@echo "--- godep start"
 	go get $(GO_EXTRAFLAGS) github.com/tools/godep
 	godep restore ./...
-    
+
 _go_test:
 	go clean $(GO_EXTRAFLAGS) ./...
 	go test $(GO_EXTRAFLAGS) ./...
@@ -80,7 +81,7 @@ _go_test:
 _megamd:
 	rm -f megamd
 	go build $(GO_EXTRAFLAGS) -o megamd ./cmd/megamd
-	
+
 
 _megamdr:
 	sudo ./megamd start
@@ -97,4 +98,28 @@ _install_deadcode: git
 deadcode: _install_deadcode
 	@go list ./... | sed -e 's;github.com/megamsys/megamd/;;' | xargs deadcode
 
-deadc0de: deadcode
+
+# do_build builds the code. The version and commit must be passed in.
+#do_build()
+#    for b in ${BINS[*]}; do
+#        rm -f $GOPATH_INSTALL/bin/$b
+#    done
+#    go get -u -f -d ./...
+#    if [ $? -ne 0 ]; then
+#        echo "WARNING: failed to 'go get' packages."
+#    fi
+#    git checkout $TARGET_BRANCH # go get switches to master, so ensure we're back.
+#    version=$1
+#    commit=`git rev-parse HEAD`
+#    branch=`current_branch`
+#    if [ $? -ne 0 ]; then
+#        echo "Unable to retrieve current commit -- aborting"
+#        cleanup_exit 1
+#    fi
+#    go install -a -ldflags="-X main.version $version -X main.branch $branch -X main.commit $commit" ./...
+#    if [ $? -ne 0 ]; then
+#        echo "Build failed, unable to create package -- aborting"
+#        cleanup_exit 1
+#    fi
+#    echo "Build completed successfully."
+#}
