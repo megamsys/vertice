@@ -13,32 +13,24 @@
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
 */
-package main
+package carton
 
 import (
-	"github.com/megamsys/libgo/cmd"
+	"errors"
 	"gopkg.in/check.v1"
+	"testing"
 )
 
+func Test(t *testing.T) {
+	check.TestingT(t)
+}
 
 type S struct{}
 
 var _ = check.Suite(&S{})
 
-
-func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
-	baseManager := cmd.BuildBaseManager("megamd", version, header)
-	manager := buildManager("megamd")
-	for name, instance := range baseManager.Commands {
-		command, ok := manager.Commands[name]
-		c.Assert(ok, check.Equals, true)
-		c.Assert(command, check.FitsTypeOf, instance)
-	}
-}
-
-func (s *S) TestStartIsRegistered(c *check.C) {
-	manager := buildManager("megamd")
-	create, ok := manager.Commands["start"]
-	c.Assert(ok, check.Equals, true)
-	c.Assert(create, check.FitsTypeOf, &StartD{})
+func (s *S) TestAppLifecycleError(c *check.C) {
+	e := AppLifecycleError{app: "myapp", Err: errors.New("failure in app")}
+	expected := `gulpd failed to apply the lifecle to the app "myapp": failure in app`
+	c.Assert(e.Error(), check.Equals, expected)
 }

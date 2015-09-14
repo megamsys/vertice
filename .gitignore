@@ -3,6 +3,8 @@
 *.a
 *.so
 megamd
+cpuprof
+memprof
 
 # Folders
 _obj
