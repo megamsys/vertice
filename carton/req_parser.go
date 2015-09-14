@@ -23,19 +23,24 @@ import (
 )
 
 var (
-	STATE   = "state"
-	CONTROL = "control"
-	POLICY  = "policy"
 
+	//the state actions available are.
+	STATE     = "state"
 	CREATE    = "create"
 	DELETE    = "delete"
-	STOP      = "stop"
-	START     = "start"
-	RESTART   = "restart"
 	STATEUP   = "stateup"
 	STATEDOWN = "statedown"
-	BIND      = "bind"
-	UNBIND    = "unbind"
+
+	//the control actions available are.
+	CONTROL = "control"
+	STOP    = "stop"
+	START   = "start"
+	RESTART = "restart"
+
+	//the policy actions available are
+	POLICY = "policy"
+	BIND   = "bind"
+	UNBIND = "unbind"
 )
 
 type ReqParser struct {

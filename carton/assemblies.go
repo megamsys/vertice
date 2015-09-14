@@ -16,11 +16,11 @@
 package carton
 
 import (
-	"strings"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
+	"strings"
 )
 
 var Provisioner provision.Provisioner
@@ -31,6 +31,13 @@ type JsonPairs []*JsonPair
 type JsonPair struct {
 	K string `json:"key"`
 	V string `json:"value"`
+}
+
+func NewJsonPair(k string, v string) *JsonPair {
+	return &JsonPair{
+		K: k,
+		V: v,
+	}
 }
 
 type Assemblies struct {

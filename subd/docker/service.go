@@ -87,7 +87,7 @@ func (s *Service) setProvisioner() {
 	}
 	fmt.Printf("Using %q provisioner.\n", s.Meta.Provider)
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize()
+		err = initializableProvisioner.Initialize(s.Dockerd.toMap())
 		if err != nil {
 			//			fatal(err)
 			fmt.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)

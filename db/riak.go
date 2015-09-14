@@ -3,8 +3,23 @@ package db
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/db"
+	"github.com/megamsys/libgo/hc"
+
 	"github.com/megamsys/megamd/meta"
 )
+
+func init() {
+	hc.AddChecker("Riak", healthCheck)
+}
+
+func healthCheck() error {
+	conn, err := newConn("test")
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	return nil
+}
 
 //A global function which helps to avoid passing config of riak everywhere.
 func newConn(bkt string) (*db.Storage, error) {

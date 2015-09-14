@@ -21,6 +21,12 @@ import (
 	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 	"strconv"
+	"time"
+)
+
+const (
+	DOMAIN = "DOMAIN"
+	BUCKET = "components"
 )
 
 type Operations struct {
@@ -61,7 +67,7 @@ func (a *Component) String() string {
 **/
 func NewComponent(id string) (*Component, error) {
 	c := &Component{Id: id}
-	if err := db.Fetch("components", id, c); err != nil {
+	if err := db.Fetch(BUCKET, id, c); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -74,7 +80,7 @@ func (c *Component) mkBox() (provision.Box, error) {
 	return provision.Box{
 		ComponentId: c.Id,
 		Name:        c.Name,
-		DomainName:  c.Inputs.match(provision.DOMAIN),
+		DomainName:  c.Inputs.match(DOMAIN),
 		Tosca:       c.ToscaType,
 		Commit:      "",
 		Image:       "",
@@ -82,6 +88,26 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:    c.Inputs.match(provision.PROVIDER),
 		Ip:          "",
 	}, nil
+}
+
+func (c *Component) SetStatus(status provision.Status) {
+	LastStatusUpdate := time.Now().In(time.UTC)
+
+	if c.Status == provision.StatusDeploying.String() || //do we need this status check ?
+		c.Status == provision.StatusCreating.String() ||
+		c.Status == provision.StatusCreated.String() ||
+		c.Status == provision.StatusStateup.String() {
+		c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
+		c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
+	}
+
+	//	defer db.Close()
+	if err := db.Store(BUCKET, c.Id, c); err != nil {
+		//return err
+	}
+
+	//return nil
+
 }
 
 func (c *Component) NewRepo(ci string) repository.Repo {

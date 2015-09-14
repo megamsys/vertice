@@ -37,7 +37,7 @@ func (s *Service) Open() error {
 		return err
 	}
 
-	log.Infof("Listening on HTTP:", listener.Addr().String())
+	log.Infof("Listening on http://%s", listener.Addr().String())
 	s.ln = listener
 
 	// Begin listening for requests in a separate goroutine.

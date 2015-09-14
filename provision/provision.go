@@ -24,17 +24,15 @@ import (
 )
 
 const (
-	DOMAIN   = "domain"
-	PROVIDER = "provider"
-	CPU      = "cpu"
-	RAM      = "ram"
+	PROVIDER        = "provider"
+	PROVIDER_ONE    = "one"
+	PROVIDER_DOCKER = "docker"
 )
 
 var (
-	ErrInvalidStatus  = errors.New("invalid status")
-	ErrEmptyApp       = errors.New("no units for this app")
-	ErrUnitNotFound   = errors.New("unit not found")
-	ErrOpTypeNotFound = errors.New("op type not found")
+	ErrInvalidStatus = errors.New("invalid status")
+	ErrEmptyCarton   = errors.New("no boxs for this carton")
+	ErrBoxNotFound   = errors.New("box not found")
 )
 
 // Status represents the status of a unit in megamd
@@ -46,62 +44,54 @@ func (s Status) String() string {
 
 func ParseStatus(status string) (Status, error) {
 	switch status {
-	case "created":
-		return StatusCreated, nil
-	case "building":
-		return StatusBuilding, nil
+	case "deploying":
+		return StatusDeploying, nil
+	case "creating":
+		return StatusCreating, nil
 	case "error":
 		return StatusError, nil
-	case "started":
-		return StatusStarted, nil
-	case "starting":
-		return StatusStarting, nil
-	case "stopped":
-		return StatusStopped, nil
 	}
 	return Status(""), ErrInvalidStatus
 }
 
 const (
-	// StatusCreated is the initial status of a unit in the database,
+	// StatusDeploying is the initial status of a box in the database
 	// it should transition shortly to a more specific status
+	StatusDeploying = Status("deploying")
+
+	// StatusCreating is the status for box being provisioned by the
+	// provisioner, like in the deployment.
+	StatusCreating = Status("creating")
+
+	// StatusCreated is the status for box after being provisioned by the
+	// provisioner, updated by gulp
 	StatusCreated = Status("created")
 
-	// StatusBuilding is the status for units being provisioned by the
-	// provisioner, like in the deployment.
-	StatusBuilding = Status("building")
+	// Stateup is the status for box being statefully moved to a different state.
+	// Sent by megamd to gulpd when it received StatusCreated.
+	StatusStateup = Status("stateup")
+
 
 	// StatusError is the status for units that failed to start, because of
-	// an application error.
+	// a box error.
 	StatusError = Status("error")
-
-	// StatusStarting is set when the container is started in docker.
-	StatusStarting = Status("starting")
-
-	// StatusStarted is for cases where the unit is up and running, and bound
-	// to the proper status, it's set by RegisterUnit and SetUnitStatus.
-	StatusStarted = Status("started")
-
-	// StatusStopped is for cases where the unit has been stopped.
-	StatusStopped = Status("stopped")
 )
-
 
 // Named is something that has a name, providing the GetName method.
 type Named interface {
 	GetName() string
 }
 
-// App represents a megamd app.
+// Carton represents a deployment entity in megamd.
 //
-// It contains only relevant information for provisioning.
+// It contains boxes to provision and only relevant information for provisioning.
 type Carton interface {
 	Named
 
 	Bind(*Box) error
 	Unbind(*Box) error
 
-	// Log should be used to log messages in the app.
+	// Log should be used to log messages in the box.
 	Log(message, source, unit string) error
 
 	Boxes() []*Box
@@ -118,19 +108,19 @@ type Carton interface {
 	GetCpuShare() int
 }
 
-// CNameManager represents a provisioner that supports cname on applications.
+// CNameManager represents a provisioner that supports cname on box.
 type CNameManager interface {
 	SetCName(b *Box, cname string) error
 	UnsetCName(b *Box, cname string) error
 }
 
-// GitDeployer is a provisioner that can deploy the application from a Git
+// GitDeployer is a provisioner that can deploy the box from a Git
 // repository.
 type GitDeployer interface {
 	GitDeploy(b *Box, w io.Writer) (string, error)
 }
 
-// ImageDeployer is a provisioner that can deploy the application from a
+// ImageDeployer is a provisioner that can deploy the box from a
 // previously generated image.
 type ImageDeployer interface {
 	ImageDeploy(b *Box, image string, w io.Writer) (string, error)
@@ -139,44 +129,37 @@ type ImageDeployer interface {
 // Provisioner is the basic interface of this package.
 //
 // Any megamd provisioner must implement this interface in order to provision
-// megamd apps.
+// megamd cartons.
 type Provisioner interface {
 	// Destroy is called when megamd is destroying the box.
 	Destroy(*Box, io.Writer) error
 
-	// SetBoxStatus changes the status of a unit.
+	// SetBoxStatus changes the status of a box.
 	SetBoxStatus(*Box, Status) error
-
-	// ExecuteCommand runs a command in all boxes of the carton.
-	ExecuteCommand(stdout, stderr io.Writer, c Carton, cmd string, args ...string) error
 
 	// ExecuteCommandOnce runs a command in one box of the carton.
 	ExecuteCommandOnce(stdout, stderr io.Writer, c Carton, cmd string, args ...string) error
 
-	// Restart restarts the units of the application, with an optional
-	// string parameter represeting the name of the process to start. When
-	// the process is empty, Restart will restart all units of the
-	// application.
+	// Restart restarts the boxes of the carton, with an optional
+	// string parameter represeting the name of the process to start.
 	Restart(*Box, string, io.Writer) error
 
-	// Start starts the units of the application, with an optional string
-	// parameter represeting the name of the process to start. When the
-	// process is empty, Start will start all units of the application.
+	// Start starts the boxes of the application, with an optional string
+	// parameter represeting the name of the process to start.
 	Start(*Box, string) error
 
-	// Stop stops the units of the application, with an optional string
-	// parameter represeting the name of the process to start. When the
-	// process is empty, Stop will stop all units of the application.
+	// Stop stops the boxes of the application, with an optional string
+	// parameter represeting the name of the process to stop.
 	Stop(*Box, string) error
 
-	// Addr returns the address for an app.
+	// Addr returns the address for an box.
 	//
 	// megamd will use this method to get the IP (although it might not be
 	// an actual IP, collector calls it "IP") of the app from the
 	// provisioner.
 	Addr(Carton) (string, error)
 
-	// Returns the metric backend environs for the app.
+	// Returns the metric backend environs for the npx.
 	MetricEnvs(Carton) map[string]string
 }
 
@@ -185,9 +168,10 @@ type MessageProvisioner interface {
 }
 
 // InitializableProvisioner is a provisioner that provides an initialization
-// method that should be called when the app is started
+// method that should be called when the carton is started,
+//additionally provide a map of configuration info.
 type InitializableProvisioner interface {
-	Initialize() error
+	Initialize(m map[string]string) error
 }
 
 // ExtensibleProvisioner is a provisioner where administrators can manage
@@ -238,27 +222,4 @@ func (e *Error) Error() string {
 		err = e.Reason
 	}
 	return err
-}
-
-type MegamdYamlRestartHooks struct {
-	Before []string
-	After  []string
-}
-
-type MegamdYamlHooks struct {
-	Restart MegamdYamlRestartHooks
-	Build   []string
-}
-
-type MegamdYamlHealthcheck struct {
-	Path            string
-	Method          string
-	Status          int
-	Match           string
-	AllowedFailures int `json:"allowed_failures" bson:"allowed_failures"`
-}
-
-type MegamdYamlData struct {
-	Hooks       MegamdYamlHooks
-	Healthcheck MegamdYamlHealthcheck
 }

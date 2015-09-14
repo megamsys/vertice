@@ -20,8 +20,15 @@ import (
 	"gopkg.in/yaml.v2"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	CPU = "cpu"
+	RAM = "ram"
+	HDD = "hdd"
 )
 
 var cnameRegexp = regexp.MustCompile(`^(\*\.)?[a-zA-Z0-9][\w-.]+$`)
@@ -35,13 +42,55 @@ type Boxlog struct {
 	Unit    string
 }
 
+type BoxCompute struct {
+	Cpushare string
+	Memory   string
+	Swap     string
+	HDD      string
+}
+
+func (bc *BoxCompute) numCpushare() int64 {
+	if cs, err := strconv.ParseInt(bc.Cpushare, 10, 64); err != nil {
+		return 0
+	} else {
+		return cs
+	}
+}
+
+func (bc *BoxCompute) numMemory() int64 {
+	if cp, err := strconv.ParseInt(bc.Memory, 10, 64); err != nil {
+		return 0
+	} else {
+		return cp
+	}
+
+}
+
+func (bc *BoxCompute) numHDD() int64 {
+	if cp, err := strconv.ParseInt(bc.HDD, 10, 64); err != nil {
+		return 10
+	} else {
+		return cp
+	}
+}
+
+func (bc *BoxCompute) String() string {
+	return "[" + strings.Join([]string{
+		CPU + ":" + bc.Cpushare,
+		RAM + ":" + bc.Memory,
+		HDD + ":" + bc.HDD},
+		",") + " ]"
+}
+
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
 	ComponentId string
+	AssemblyId  string
 	Name        string
 	DomainName  string
 	Tosca       string
+	Compute     BoxCompute
 	Commit      string
 	Image       string
 	Repo        repository.Repository
@@ -78,8 +127,8 @@ func (b *Box) GetIp() string {
 // whenever the unit itself is available, even when the application process is
 // not.
 func (b *Box) Available() bool {
-	return b.Status == StatusStarted ||
-		b.Status == StatusStarting ||
+	return b.Status == StatusDeploying ||
+		b.Status == StatusCreating ||
 		b.Status == StatusError
 }
 
@@ -129,6 +178,10 @@ func (b *Box) RemoveCName(cnames ...string) error {
 	return nil
 }
 
+func (box *Box) GetRouter() (string, error) {
+	return "route53", nil //dns.LoadConfig()
+}
+
 // Log adds a log message to the app. Specifying a good source is good so the
 // user can filter where the message come from.
 func (box *Box) Log(message, source, unit string) error {
@@ -147,8 +200,7 @@ func (box *Box) Log(message, source, unit string) error {
 		}
 	}
 	if len(logs) > 0 {
-		/*notify(bl.Name, logs)
-		*/
+		//notify(bl.Name, logs)
 	}
 	return nil
 }

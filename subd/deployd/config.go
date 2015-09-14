@@ -2,9 +2,14 @@ package deployd
 
 import (
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/provision"
 )
 
 const (
+	ONE_ENDPOINT = "one_endpoint"
+	ONE_USERID   = "one_userid"
+	ONE_PASSWORD = "one_password"
+	ONE_TEMPLATE = "one_template"
 	// Default provisioning provider for vms is OpenNebula.
 	// This is just an endpoint for Megam. We could have openstack, chef, salt, puppet etc.
 	DefaultProvider = "one"
@@ -34,18 +39,6 @@ type Config struct {
 	Certificate string `toml:"certificate"`
 }
 
-func (c Config) String() string {
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Deployd", "green", "", "")})
-	table.AddRow(cmd.Row{"Provider", c.Provider})
-	table.AddRow(cmd.Row{"Endpoint", c.OneEndPoint})
-	table.AddRow(cmd.Row{"Userid", c.OneUserid})
-	table.AddRow(cmd.Row{"Password", c.OnePassword})
-	table.AddRow(cmd.Row{"Template", c.OneTemplate})
-	table.AddRow(cmd.Row{"", ""})
-	return table.String()
-}
-
 func NewConfig() *Config {
 	return &Config{
 		Provider:    DefaultProvider,
@@ -56,4 +49,26 @@ func NewConfig() *Config {
 		OneZone:     DefaultOneZone,
 		Certificate: "/var/lib/megam/megamd/id_rsa.pub",
 	}
+}
+
+func (c Config) String() string {
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Deployd", "green", "", "")})
+	table.AddRow(cmd.Row{provision.PROVIDER, c.Provider})
+	table.AddRow(cmd.Row{ONE_ENDPOINT, c.OneEndPoint})
+	table.AddRow(cmd.Row{ONE_USERID, c.OneUserid})
+	table.AddRow(cmd.Row{ONE_PASSWORD, c.OnePassword})
+	table.AddRow(cmd.Row{ONE_TEMPLATE, c.OneTemplate})
+	table.AddRow(cmd.Row{"", ""})
+	return table.String()
+}
+
+//convert the config to just a map.
+func (c Config) toMap() map[string]string {
+	m := make(map[string]string)
+	m[ONE_ENDPOINT] = c.OneEndPoint
+	m[ONE_USERID] = c.OneUserid
+	m[ONE_PASSWORD] = c.OnePassword
+	m[ONE_TEMPLATE] = c.OneTemplate
+	return m
 }

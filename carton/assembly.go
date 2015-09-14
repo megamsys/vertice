@@ -21,7 +21,6 @@ import (
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
-	"strconv"
 	"strings"
 )
 
@@ -63,6 +62,15 @@ func (a *Assembly) String() string {
 	}
 }
 
+func (a *Assembly) NewCompute() provision.BoxCompute {
+	return provision.BoxCompute{
+		Cpushare: a.getCpushare(),
+		Memory:   a.getMemory(),
+		Swap:     a.getSwap(),
+		HDD:      a.getHDD(),
+	}
+}
+
 //mkAssemblies into a carton. Just use what you need inside this carton
 //a carton comprises of self contained boxes (actually a "colored component") externalized
 //with what we need.
@@ -78,14 +86,11 @@ func mkCarton(id string) (*Carton, error) {
 	}
 
 	c := &Carton{
-		Name:     a.Name,
-		Tosca:    a.ToscaType,
-		Cpushare: a.getCpushare(),
-		Memory:   a.getMemory(),
-		Swap:     a.getSwap(),
-		HDD:      a.getHDD(),
-		Envs:     a.envs(),
-		Boxes:    &b,
+		AssemblyId: id,
+		Name:       a.Name,
+		Tosca:      a.ToscaType,
+		Envs:       a.envs(),
+		Boxes:      &b,
 	}
 
 	return c, nil
@@ -126,6 +131,8 @@ func (a *Assembly) mkBoxes() ([]provision.Box, error) {
 			if b, err := comp.mkBox(); err != nil {
 				return nil, err
 			} else {
+				b.AssemblyId = a.Id
+				b.Compute = a.NewCompute()
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -143,20 +150,12 @@ func (a *Assembly) envs() []bind.EnvVar {
 	return envs
 }
 
-func (a *Assembly) getCpushare() int64 {
-	if cp, err := strconv.ParseInt(a.Inputs.match(provision.CPU), 10, 64); err != nil {
-		return 0
-	} else {
-		return cp
-	}
+func (a *Assembly) getCpushare() string {
+	return a.Inputs.match(provision.CPU)
 }
 
-func (a *Assembly) getMemory() int64 {
-	if cp, err := strconv.ParseInt(a.Inputs.match(provision.RAM), 10, 64); err != nil {
-		return 0
-	} else {
-		return cp
-	}
+func (a *Assembly) getMemory() string {
+	return a.Inputs.match(provision.RAM)
 
 }
 
@@ -164,6 +163,7 @@ func (a *Assembly) getSwap() string {
 	return ""
 }
 
-func (a *Assembly) getHDD() int64 {
-	return 10
+//The default HDD is 10.
+func (a *Assembly) getHDD() string {
+	return a.Inputs.match(provision.HDD)
 }

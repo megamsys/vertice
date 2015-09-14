@@ -40,16 +40,30 @@ func NewService(c *meta.Config, d *Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Infof("Starting deployd service")
+	log.Debug("starting deployd service")
 
 	p, err := amqp.NewRabbitMQ(s.Meta.AMQP, QUEUE)
 	if err != nil {
 		log.Errorf("Couldn't establish an amqp (%s): %s", s.Meta.AMQP, err.Error())
 	}
 
-	ch, err := p.Sub()
+	drain, err := p.Sub()
+	if err != nil {
+		return fmt.Errorf("Couldn't subscribe to amqp (%s): %s", s.Meta.AMQP, err.Error())
+	}
 
-	for raw := range ch {
+	s.setProvisioner()
+
+	go s.processQueue(drain)
+
+	return nil
+}
+
+// processQueue continually drains the given queue  and processes the queue request
+// to the appropriate handlers..
+func (s *Service) processQueue(drain chan []byte) error {
+	//defer s.wg.Done()
+	for raw := range drain {
 		p, err := carton.NewPayload(raw)
 		if err != nil {
 			return err
@@ -61,27 +75,8 @@ func (s *Service) Open() error {
 		}
 		go s.Handler.serveAMQP(pc)
 	}
-
 	return nil
 }
-
-/* processBatches continually drains the given batcher and writes the batches to the database.
-func (s *Service) processBatches(batcher *RequestsBatcher) {
-	defer s.wg.Done()
-	for raw := range ch {
-		p, err := carton.NewPayload(raw)
-		if err != nil {
-			return err
-		}
-
-		pc, err := p.Convert()
-		if err != nil {
-			return err
-		}
-		s.Handler.serveAMQP(pc)
-	}
-}
-*/
 
 // Close closes the underlying subscribe channel.
 func (s *Service) Close() error {
@@ -102,25 +97,29 @@ func (s *Service) Err() <-chan error { return s.err }
 func (s *Service) setProvisioner() {
 	a, err := provision.Get(s.Meta.Provider)
 
-	carton.Provisioner = a
-
 	if err != nil {
-		//fatal(err)
 		fmt.Errorf("fatal error, couldn't located the provisioner %s", s.Meta.Provider)
 	}
-	fmt.Printf("Using %q provisioner.\n", s.Meta.Provider)
-	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize()
-		if err != nil {
-			//			fatal(err)
-			fmt.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)
+	carton.Provisioner = a
 
+	log.Debugf("Using %q provisioner. %q", s.Meta.Provider, a)
+	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
+		log.Debugf("Before initialization.")
+		err = initializableProvisioner.Initialize(s.Deployd.toMap())
+		if err != nil {
+			log.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)
+		} else {
+			log.Debugf("%s Initialized", s.Meta.Provider)
 		}
 	}
+	log.Debugf("After initialization.")
+
 	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {
 		startupMessage, err := messageProvisioner.StartupMessage()
 		if err == nil && startupMessage != "" {
-			fmt.Print(startupMessage)
+			log.Debugf(startupMessage)
+		} else {
+			log.Debugf("------> " + err.Error())
 		}
 	}
 }

@@ -2,18 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package io
+package machine
 
-import (
-	"testing"
-
-	"gopkg.in/check.v1"
-)
-
-type S struct{}
-
-var _ = check.Suite(&S{})
-
-func Test(t *testing.T) {
-	check.TestingT(t)
+type BoxLocker interface {
+	Lock(appName string) bool
+	Unlock(appName string)
 }

@@ -9,6 +9,13 @@ import (
 )
 
 const (
+	DOCKER_REGISTRY  = "dock_registry"
+	DOCKER_SWARM     = "dock_swarm"
+	DOCKER_MEMSIZE   = "dock_mem"
+	DOCKER_SWAPSIZE  = "dock_swap"
+	DOCKER_CPUPERIOD = "dock_cpuperiod"
+	DOCKER_CPUQUOTA  = "dock_cpuquota"
+
 	// DefaultRegistry is the default registry for docker (public)
 	DefaultRegistry = "https://hub.docker.com"
 
@@ -29,34 +36,15 @@ const (
 )
 
 type Config struct {
-	Enabled   bool     `toml:"enabled"`
-	Registry  string   `toml:"registry"`
-	Namespace string   `toml:"namespace"`
-	Master    []string `toml:"master"`
+	Enabled   bool   `toml:"enabled"`
+	Registry  string `toml:"registry"`
+	Namespace string `toml:"namespace"`
+	Swarm     string `toml:"swarm"`
 	Bridges   map[string]string
 	MemSize   int           `toml:"mem_size"`
 	SwapSize  int           `toml:"swap_size"`
 	CPUPeriod toml.Duration `toml:"cpu_period"`
 	CPUQuota  toml.Duration `toml:"cpu_quota"`
-}
-
-func (c Config) String() string {
-	bs := make([]string, len(c.Bridges))
-	for k, v := range c.Bridges {
-		bs = append(bs, k, v, "\n")
-	}
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Docker", "green", "", "")})
-	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
-	table.AddRow(cmd.Row{"Registry", c.Registry})
-	table.AddRow(cmd.Row{"Master", strings.Join(c.Master, ", ")})
-	table.AddRow(cmd.Row{"Bridges", strings.Join(bs, ", ")})
-	table.AddRow(cmd.Row{"MemSize", strconv.Itoa(c.MemSize)})
-	table.AddRow(cmd.Row{"SwapSize", strconv.Itoa(c.SwapSize)})
-	table.AddRow(cmd.Row{"CPUPeriod", c.CPUPeriod.String()})
-	table.AddRow(cmd.Row{"CPUQuota", c.CPUQuota.String()})
-	table.AddRow(cmd.Row{"", ""})
-	return table.String()
 }
 
 func NewConfig() *Config {
@@ -69,4 +57,35 @@ func NewConfig() *Config {
 		CPUPeriod: toml.Duration(DefaultCPUPeriod),
 		CPUQuota:  toml.Duration(DefaultCPUQuota),
 	}
+}
+
+func (c Config) String() string {
+	bs := make([]string, len(c.Bridges))
+	for k, v := range c.Bridges {
+		bs = append(bs, k, v, "\n")
+	}
+	table := cmd.NewTable()
+	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Docker", "green", "", "")})
+	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
+	table.AddRow(cmd.Row{DOCKER_REGISTRY, c.Registry})
+	table.AddRow(cmd.Row{DOCKER_SWARM, c.Swarm})
+	table.AddRow(cmd.Row{"Bridges", strings.Join(bs, ", ")})
+	table.AddRow(cmd.Row{DOCKER_MEMSIZE, strconv.Itoa(c.MemSize)})
+	table.AddRow(cmd.Row{DOCKER_SWAPSIZE, strconv.Itoa(c.SwapSize)})
+	table.AddRow(cmd.Row{DOCKER_CPUPERIOD, c.CPUPeriod.String()})
+	table.AddRow(cmd.Row{DOCKER_CPUQUOTA, c.CPUQuota.String()})
+	table.AddRow(cmd.Row{"", ""})
+	return table.String()
+}
+
+//convert the config to just a map.
+func (c Config) toMap() map[string]string {
+	m := make(map[string]string)
+	m[DOCKER_REGISTRY] = c.Registry
+	m[DOCKER_SWARM] = c.Swarm
+	m[DOCKER_MEMSIZE] = strconv.Itoa(c.MemSize)
+	m[DOCKER_SWAPSIZE] = strconv.Itoa(c.SwapSize)
+	m[DOCKER_CPUPERIOD] = c.CPUPeriod.String()
+	m[DOCKER_CPUQUOTA] = c.CPUQuota.String()
+	return m
 }

@@ -30,7 +30,7 @@ func (gitlabManager) client() (*gitlab.Client, error) {
 	return &client, nil
 }
 
-func (m gandalfManager) CreateHook(owner string, trigger string) error {
+func (m gitlabManager) CreateHook(owner string, trigger string) error {
 	client, err := m.client()
 	if err != nil {
 		return err
@@ -44,7 +44,7 @@ func (m gandalfManager) CreateHook(owner string, trigger string) error {
 
 }
 
-func (m gandalfManager) RemoveHook(username string) error {
+func (m gitlabManager) RemoveHook(username string) error {
 	client, err := m.client()
 	if err != nil {
 		return err

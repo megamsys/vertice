@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-
 type BoxLevel int
 
 const (
@@ -19,14 +18,11 @@ const (
 )
 
 type Carton struct {
-	Name     string
-	Tosca    string
-	Cpushare int64
-	Memory   int64
-	Swap     string
-	HDD      int64
-	Envs     []bind.EnvVar
-	Boxes    *[]provision.Box
+	Name       string
+	AssemblyId string
+	Tosca      string
+	Envs       []bind.EnvVar
+	Boxes      *[]provision.Box
 }
 
 func (a *Carton) String() string {
@@ -50,7 +46,13 @@ func (c *Carton) lvl() BoxLevel {
 func (c *Carton) toBox() error {
 	switch c.lvl() {
 	case BoxZero:
-		//mkBox return nil
+		c.Boxes = &[]provision.Box{provision.Box{
+			AssemblyId: c.AssemblyId,
+			Name:       c.Name,
+			DomainName: "",
+			Tosca:      c.Tosca,
+		},
+		}
 	}
 	return nil
 }
@@ -171,20 +173,6 @@ func (c *Carton) GetTosca() string {
 	return c.Tosca
 }
 
-// GetMemory returns the memory limit (in bytes) for the carton.
-func (c *Carton) GetMemory() int64 {
-	return c.Memory
-}
-
-// GetCpuShare returns the cpu share for the carton.
-func (c *Carton) GetCpuShare() int64 {
-	return c.Cpushare
-}
-
-// GetMemory returns the memory limit (in bytes) for the carton.
-func (c *Carton) GetHDD() int64 {
-	return c.HDD
-}
 
 // Envs returns a map representing the apps environment variables.
 func (c *Carton) GetEnvs() []bind.EnvVar {
