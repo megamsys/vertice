@@ -17,11 +17,11 @@ func Test(t *testing.T) {
 var _ = check.Suite(&S{})
 
 type S struct {
-	p      *fakeDockerProvisioner
-	server *dtesting.DockerServer
+//	p      *fakeDockerProvisioner
+//	server *dtesting.DockerServer
 	user   string
 }
-
+/*
 func (s *S) SetUpSuite(c *check.C) {
 	s.user = "root"
 	config.Set("database:url", "127.0.0.1:27017?maxPoolSize=100")
@@ -112,3 +112,4 @@ func (s *S) newContainer(opts newContainerOpts, p *fakeDockerProvisioner) (*Cont
 	}
 	return &container, nil
 }
+*/

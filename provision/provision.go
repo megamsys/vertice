@@ -71,6 +71,13 @@ const (
 	// Sent by megamd to gulpd when it received StatusCreated.
 	StatusStateup = Status("stateup")
 
+	// StatusDestroying the status for box being deleted by the
+	// provisioner.
+	StatusDestroying = Status("destroying")
+
+	// StatusNuked is the status for box after being deleted(nuked) by the
+	// provisioner
+	StatusNuked = Status("nuked")
 
 	// StatusError is the status for units that failed to start, because of
 	// a box error.
@@ -135,10 +142,10 @@ type Provisioner interface {
 	Destroy(*Box, io.Writer) error
 
 	// SetBoxStatus changes the status of a box.
-	SetBoxStatus(*Box, Status) error
+	SetBoxStatus(*Box, io.Writer, Status) error
 
 	// ExecuteCommandOnce runs a command in one box of the carton.
-	ExecuteCommandOnce(stdout, stderr io.Writer, c Carton, cmd string, args ...string) error
+	ExecuteCommandOnce(stdout, stderr io.Writer, box *Box, cmd string, args ...string) error
 
 	// Restart restarts the boxes of the carton, with an optional
 	// string parameter represeting the name of the process to start.
@@ -146,18 +153,18 @@ type Provisioner interface {
 
 	// Start starts the boxes of the application, with an optional string
 	// parameter represeting the name of the process to start.
-	Start(*Box, string) error
+	Start(*Box, string, io.Writer) error
 
 	// Stop stops the boxes of the application, with an optional string
 	// parameter represeting the name of the process to stop.
-	Stop(*Box, string) error
+	Stop(*Box, string, io.Writer) error
 
 	// Addr returns the address for an box.
 	//
 	// megamd will use this method to get the IP (although it might not be
 	// an actual IP, collector calls it "IP") of the app from the
 	// provisioner.
-	Addr(Carton) (string, error)
+	Addr(*Box) (string, error)
 
 	// Returns the metric backend environs for the npx.
 	MetricEnvs(Carton) map[string]string

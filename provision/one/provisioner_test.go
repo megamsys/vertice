@@ -17,19 +17,17 @@
 package one
 
 import (
-	"bytes"
-	"encoding/json"
+/*	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"sort"
-	"strings"
 	"sync/atomic"
-	"time"
+	"time"*/
 
 )
-
+/*
 func (s *S) TestShouldBeRegistered(c *check.C) {
 	p, err := provision.Get("one")
 	c.Assert(err, check.IsNil)
@@ -874,7 +872,7 @@ func (s *S) TestDryMode(c *check.C) {
 	s.p.Provision(appInstance)
 	imageId, err := appCurrentImageName(appInstance.GetName())
 	c.Assert(err, check.IsNil)
-	_, err = addContainersWithHost(&changeUnitsPipelineArgs{
+	_, err = addContainersWithHost(&runMachineActionsArgs){
 		toHost:      "127.0.0.1",
 		toAdd:       map[string]*containersToAdd{"web": {Quantity: 5}},
 		app:         appInstance,
@@ -908,3 +906,4 @@ func (s *S) TestMetricEnvs(c *check.C) {
 	}
 	c.Assert(envs, check.DeepEquals, expected)
 }
+*/

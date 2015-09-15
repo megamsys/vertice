@@ -64,7 +64,7 @@ type Repository interface {
 
 // RepositoryManager represents a manager of application repositories.
 type RepositoryManager interface {
-	CreateHook(username string) error
+	CreateHook(username string, trigger string) error
 	RemoveHook(username string) error
 }
 

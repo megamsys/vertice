@@ -5,11 +5,9 @@
 package router
 
 import (
-	"errors"
-
-	"gopkg.in/check.v1"
+//	"gopkg.in/check.v1"
 )
-
+/*
 func (s *S) TestRegisterAndGet(c *check.C) {
 	var r Router
 	var prefixes []string
@@ -146,3 +144,4 @@ func (s *S) TestRouteError(c *check.C) {
 	err = &RouterError{Op: "del", Err: errors.New("Fatal error.")}
 	c.Assert(err.Error(), check.Equals, "[router del] Fatal error.")
 }
+*/

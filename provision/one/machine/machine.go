@@ -5,58 +5,54 @@
 package machine
 
 import (
-	"crypto"
 	"fmt"
 	"io"
-	"math/rand"
-	"net"
-	"net/url"
-	"strconv"
-	"strings"
-	"time"
 
-	"github.com/megamsys/megamd/db"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/opennebula-go"
+	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/opennebula-go/compute"
 )
+
+type OneProvisioner interface {
+	Cluster() *api.Rpc
+}
 
 type Machine struct {
 	Name          string
-	Compute       BoxCompute
 	ComponentId   string
-	BoxEnvs       string
 	Image         string
-	Envs          string
+	Routable      bool
 	BuildingImage provision.Status
 }
 
 func (m *Machine) Available() bool {
-	return c.Status == provision.StatusStarted.String() ||
-		c.Status == provision.StatusStarting.String()
+	return m.BuildingImage.String() == provision.StatusDeploying.String() ||
+		m.BuildingImage.String() == provision.StatusCreating.String()
 }
 
 type CreateArgs struct {
-	ImageID          string
-	Commands         []string
-	Box              provision.Box
-	Deploy           bool
-	Provisioner      OneProvisioner
-	DestinationHosts []string
+	Commands    []string
+	Box         *provision.Box
+	Compute     provision.BoxCompute
+	Deploy      bool
+	Provisioner OneProvisioner
 }
 
 func (m *Machine) Create(args *CreateArgs) error {
-	log.Debugf("creating machine %s in one with %s", m.Name, *args.ImageID)
+	log.Debugf("creating machine %s in one with %s", m.Name, m.Image)
 
 	vm := compute.VirtualMachine{
 		Name:         m.Name,
 		TemplateName: m.Image,
-		Cpu:          m.Compute.Cpushare,
-		Memory:       m.Compute.Memory,
-		Assembly_id:  m.box.AssemblyId,
-		Client:       &p.client,
+		Cpu:          args.Compute.Cpushare,
+		Memory:       args.Compute.Memory,
+		Assembly_id:  args.Box.AssemblyId,
+		Client:       args.Provisioner.Cluster(),
 	}
 
-	m.addEnvsToConfig(m.BoxEnvs, &vm)
+	//m.addEnvsToContext(m.BoxEnvs, &vm)
 
 	_, err := vm.Create()
 
@@ -82,13 +78,14 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 func (m *Machine) SetStatus(status provision.Status) error {
 	log.Debugf("setting status of machine %s to %s", m.Name, status.String())
 
-	comp := carton.NewComponent(m.ComponentId)
-	comp.SetStatus(status.String())
+	comp, err := carton.NewComponent(m.ComponentId)
+	comp.SetStatus(status)
 
 	if err != nil {
 		log.Errorf("error on updating machine into riak %s - %s", m.ComponentId, err)
-		return nil, err
+		return err
 	}
+	return nil
 
 }
 
@@ -97,7 +94,7 @@ func (m *Machine) Remove(p OneProvisioner) error {
 
 	vm := compute.VirtualMachine{
 		Name:   m.Name,
-		Client: &p.client,
+		Client: p.Cluster(),
 	}
 
 	_, err := vm.Delete()
