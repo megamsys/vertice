@@ -5,13 +5,13 @@
 package carton
 
 import (
-	"sync"
-	"time"
+//	"sync"
+//	"time"
 
-	"gopkg.in/check.v1"
+//	"gopkg.in/check.v1"
 )
 
-func (s *S) TestNewLogListener(c *check.C) {
+/*func (s *S) TestNewLogListener(c *check.C) {
 	app := App{Name: "myapp"}
 	l, err := NewLogListener(&app, Applog{})
 	defer l.Close()
@@ -218,3 +218,4 @@ func (s *S) TestLogRemoveByApp(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(count, check.Equals, 1)
 }
+*/

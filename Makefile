@@ -67,10 +67,9 @@ bzr:
 	$(if $(shell bzr), , $(error $(BZR_ERROR)))
 
 get-code:
-	go get $(GO_EXTRAFLAGS) -u -d   ./...
+	go get $(GO_EXTRAFLAGS) -u -d -t -insecure ./...
 
 godep:
-	@echo "--- godep start"
 	go get $(GO_EXTRAFLAGS) github.com/tools/godep
 	godep restore ./...
 

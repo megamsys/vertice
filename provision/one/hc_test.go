@@ -17,14 +17,14 @@
 package one
 
 import (
-	"net/http"
+/*	"net/http"
 	"net/http/httptest"
 	"net/url"
 
 	"github.com/megamsys/libgo/hc"
-	"gopkg.in/check.v1"
+	"gopkg.in/check.v1"*/
 )
-
+/*
 func (s *S) TestHealthCheckDockerRegistryV2(c *check.C) {
 	var request *http.Request
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -172,3 +172,4 @@ func (s *S) TestHealthCheckDockerFailure(c *check.C) {
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "ping failed - API error (500): something went wrong")
 }
+*/

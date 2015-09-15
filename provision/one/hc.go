@@ -17,7 +17,6 @@
 package one
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,29 +29,23 @@ import (
 var httpRegexp = regexp.MustCompile(`^https?://`)
 
 func init() {
-	hc.AddChecker("one-xmlrpc", healthCheckOne)
+	hc.AddChecker("one", healthCheckOne)
 }
 
 func healthCheckOne() error {
-	onerpc, _ :=  "http://192.168.1.100/xmlrpc" //We need to hookup deployd.OneEndPoint
+	onerpc := "http://192.168.1.100/xmlrpc" //We need to hookup deployd.OneEndPoint
 	if onerpc == "" {
 		return hc.ErrDisabledComponent
 	}
 	if !httpRegexp.MatchString(onerpc) {
 		onerpc = "http://" + onerpc
 	}
-	onerpc = strings.TrimRight(registry, "/")
-	v2URL := onerpc + "/v2/"
-	resp, err := http.Get(v2URL)
+	onerpc = strings.TrimRight(onerpc, "/")
+	resp, err := http.Get(onerpc)
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode == http.StatusNotFound {
-		resp, err = http.Get(v1URL)
-		if err != nil {
-			return err
-		}
-	}
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

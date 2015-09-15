@@ -10,7 +10,7 @@ func init() {
 
 type nopManager struct{}
 
-func (nopManager) CreateHook(username string) error {
+func (nopManager) CreateHook(username string, trigger string) error {
 	return nil
 }
 

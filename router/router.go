@@ -9,10 +9,6 @@ package router
 import (
 	"errors"
 	"fmt"
-	"net/url"
-	"sort"
-	"strings"
-
 )
 
 type routerFactory func(string) (Router, error)
@@ -34,7 +30,7 @@ func Register(name string, r routerFactory) {
 
 // Get gets the named router from the registry.
 func Get(name string) (Router, error) {
-	prefix := "routers:" + name
+	/*prefix := "routers:" + name
 	routerType, err := config.GetString(prefix + ":type")
 	if err != nil {
 		msg := fmt.Sprintf("config key '%s:type' not found", prefix)
@@ -54,13 +50,13 @@ func Get(name string) (Router, error) {
 		return nil, err
 	}
 	return r, nil
+	*/
+	return nil, nil
 }
 
 // Router is the basic interface of this package. It provides methods for
 // managing backends and routes. Each backend can have multiple routes.
 type Router interface {
-	AddRoute(name string, address *url.URL) error
-	RemoveRoute(name string, address *url.URL) error
 	SetCName(cname, name string) error
 	UnsetCName(cname, name string) error
 	Addr(name string) (string, error)
@@ -79,15 +75,8 @@ func (e *RouterError) Error() string {
 	return fmt.Sprintf("[router %s] %s", e.Op, e.Err)
 }
 
-func collection() (*storage.Collection, error) {
-	conn, err := db.Conn()
-	if err != nil {
-		return nil, err
-	}
-	return conn.Collection("routers"), nil
-}
 
-// Store stores the app name related with the
+/* Store stores the app name related with the
 // router name.
 func Store(appName, routerName, kind string) error {
 	coll, err := collection()
@@ -144,3 +133,4 @@ func Remove(appName string) error {
 func ValidCName(cname, domain string) bool {
 	return !strings.HasSuffix(cname, domain)
 }
+*/
