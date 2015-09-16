@@ -1,3 +1,5 @@
+
+
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
@@ -5,6 +7,9 @@
 megamd
 cpuprof
 memprof
+
+# Unignore all dirs
+!*/megamd
 
 # Folders
 _obj
