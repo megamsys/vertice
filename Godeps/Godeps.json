@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/megamsys/megamd",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
 	],
@@ -36,28 +36,28 @@
 			"Rev": "0826b98aaa29c0766956cb40d45cf7482a597671"
 		},
 		{
+			"ImportPath": "github.com/megamsys/libgo/action",
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+		},
+		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
-		},
-		{
-			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "5bfd835db0063d481bcf729a37b7e1a70206c1b2"
+			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
@@ -80,6 +80,14 @@
 			"Rev": "930958dc06ef2f84b93c81cc1c9f09459731e288"
 		},
 		{
+			"ImportPath": "github.com/plouc/go-gitlab-client",
+			"Rev": "27450b744db29424ea7ae46928694b985e431bd9"
+		},
+		{
+			"ImportPath": "github.com/sajari/fuzzy",
+			"Rev": "74a5fdec1a94b45e04659eb7f609291424065a7c"
+		},
+		{
 			"ImportPath": "github.com/streadway/amqp",
 			"Rev": "f4879ba28fffbb576743b03622a9ff20461826b2"
 		},
@@ -87,6 +95,14 @@
 			"ImportPath": "github.com/tj/go-spin",
 			"Comment": "1.0.0-9-g4bd47d3",
 			"Rev": "4bd47d3603b5c0460028794fbbf207f881088c08"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "db8e4de5b2d6653f66aea53094624468caad15d2"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "52dcf3469009ac5e96920593e8b3e7bef5fa7f81"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
