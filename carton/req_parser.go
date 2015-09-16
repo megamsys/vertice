@@ -127,8 +127,10 @@ func (e *ParseError) Error() string {
 type Requests struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
-	CatId     string `json:"cat_id"`
-	CatType   string `json:"cattype"`
+	CatId     string `json:"cat_id"`                    // assemblies_id
+	CatType   string `json:"cattype"`				    // 
+	Action    string `json:"action"`					// start, stop ...
+	Category  string `json:"category"`					// state, control, policy
 	CreatedAt string `json:"created_at"`
 }
 

@@ -58,11 +58,11 @@ func (c *Carton) toBox() error {
 }
 
 // Deploy carton, which basically deploys the boxes.
-func (c *Carton) Deploy() error {
+func (c *Carton) Create() error {
 	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box})
+		err := Create(&DeployOpts{B: &box})
 		if err != nil {
-			log.Errorf("Unable to deploy box", err)
+			log.Errorf("Unable to create box", err)
 		}
 	}
 	return nil
@@ -159,7 +159,12 @@ func (c *Carton) Restart() error {
 // moves the state to the desired state
 // changing the boxes state to StatusStateup.
 func (c *Carton) Stateup() error {
-	return nil
+	for _, box := range *c.Boxes {
+		err := Deploy(&DeployOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to deploy box", err)
+		}
+	}
 }
 
 // moves the state down to the desired state
