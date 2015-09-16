@@ -1,20 +1,22 @@
 package deployd
 
 import (
-	"github.com/megamsys/megamd/meta"
 	"gopkg.in/check.v1"
 )
 
 type S struct {
-	service *deployd.Service
+	service *Service
 }
 
 var _ = check.Suite(&S{})
 
 func (s *S) SetUpSuite(c *check.C) {
-	srv, err := &NewService(deployd.Config{
-		BindAddress: "127.0.0.1:0",
-	})
+	srv := NewService(nil,
+//		Config{
+//		BindAddress: "127.0.0.1:0",
+//	}
+ nil)
 	s.service = srv
-	c.Assert(err, check.IsNil)
+	c.Assert(srv, check.NotNil)
+
 }

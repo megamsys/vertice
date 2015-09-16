@@ -1,35 +1,25 @@
 package httpd
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"regexp"
-	"time"
+	"gopkg.in/check.v1"
 
-	"github.com/megamsys/megamd/meta"
 )
 
-
 // NewHandler represents a test wrapper for httpd.Handler.
-type Handler struct {
-	*httpd.Handler
+type THh struct {
+	th *Handler
 }
 
 // NewHandler returns a new instance of Handler.
-func NewHandler() *Handler {
-	h := &Handler{
-		Handler: httpd.NewHandler(),
+func NewTHh() *THh {
+	t := &THh{
+		th: NewHandler(),
 	}
-	h.Handler.Version = "0.0.0"
-	return h
+	t.th.Version = "0.0.0"
+	return t
 }
 
 func (s *S) SetUpSuite(c *check.C) {
-	h := NewHAndler()
-	c.Assert(err, h.IsNil)
+	h := NewTHh()
+	c.Assert(h, check.NotNil)
 }

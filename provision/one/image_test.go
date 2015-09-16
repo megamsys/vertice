@@ -17,11 +17,13 @@
 package one
 
 import (
-	"net/http"
+/*	"net/http"
 	"sort"
 
-	"gopkg.in/check.v1"
+	"gopkg.in/check.v1"*/
 )
+
+/*
 
 func (s *S) TestMigrateImages(c *check.C) {
 	var requests []*http.Request
@@ -378,3 +380,4 @@ func (s *S) TestGetImageWebProcessName(c *check.C) {
 	c.Check(err, check.IsNil)
 	c.Check(web5, check.Equals, "")
 }
+*/

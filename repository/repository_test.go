@@ -5,9 +5,9 @@
 package repository
 
 import (
-	"gopkg.in/check.v1"
+//	"gopkg.in/check.v1"
 )
-
+/*
 func (s *S) TestRegister(c *check.C) {
 	mngr := nopManager{}
 	Register("nope", mngr)
@@ -53,3 +53,4 @@ func (s *S) TestManagerUnknown(c *check.C) {
 	current := Manager()
 	c.Assert(current, check.FitsTypeOf, nopManager{})
 }
+*/

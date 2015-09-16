@@ -10,10 +10,10 @@
 package github
 
 import (
-	"encoding/json"
-	log "github.com/Sirupsen/logrus"
-	git "github.com/google/go-github/github"
-	"strings"
+	//log "github.com/Sirupsen/logrus"
+	"github.com/google/go-github/github"
+	"github.com/megamsys/megamd/repository"
+	"golang.org/x/oauth2"
 )
 
 func init() {
@@ -24,21 +24,23 @@ const endpointConfig = "git:api-server"
 
 type githubManager struct{}
 
-func (githubManager) client() (*gitlab.Client, error) {
-	t := &oauth.Transport{
-		Token: &oauth.Token{AccessToken: pair_token.Value},
-	}
-	client := git.NewClient(t.Client())
-	return &client, nil
+func (githubManager) client() (*github.Client, error) {
+	token := ""
+
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	return github.NewClient(oauth2.NewClient(oauth2.NoContext, ts)), nil //there is no error trap here ?
+
 }
 
 func (m githubManager) CreateHook(owner string, trigger string) error {
-	client, err := m.client()
+	/*client, err := m.client()
 	if err != nil {
 		return err
 	}
 
-	/*trigger_url := api_host + "/assembly/build/" + asm.Id + "/" + com.Id
+	trigger_url := api_host + "/assembly/build/" + asm.Id + "/" + com.Id
 
 	byt12 := []byte(`{"url": "","content_type": "json"}`)
 	var postData map[string]interface{}
@@ -76,9 +78,10 @@ func (m githubManager) CreateHook(owner string, trigger string) error {
 }
 
 func (m githubManager) RemoveHook(username string) error {
-	client, err := m.client()
+	/*client, err := m.client()
 	if err != nil {
 		return err
 	}
+	*/
 	return nil
 }

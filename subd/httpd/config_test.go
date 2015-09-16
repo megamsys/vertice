@@ -5,16 +5,22 @@ import (
 	"gopkg.in/check.v1"
 )
 
+type S struct {
+	service *Service
+}
+
+var _ = check.Suite(&S{})
+
 // Ensure the configuration can be parsed.
-func (s *S) TestConfig_Parse(c *check.C) {
+func (s *S) TestHttpdConfig_Parse(c *check.C) {
 	// Parse configuration.
-	var c httpd.Config
+	var cm Config
 	if _, err := toml.Decode(`
 enabled = true
 bind_address = ":8080"
-`, &c); err != nil {
-		t.Fatal(err)
+`, &cm); err != nil {
+		c.Fatal(err)
 	}
 
-	c.Assert(c.BindAddress, check.Equals, "locahost")
+	c.Assert(cm.BindAddress, check.Equals, "locahost")
 }

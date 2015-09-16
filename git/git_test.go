@@ -153,26 +153,3 @@ func (s *S) TestOpenRepository(c *check.C) {
 		}
 	}
 }
-
-func (s *S) TestGetRemoteURL(c *check.C) {
-	var data = []struct {
-		name     string
-		expected string
-		err      error
-	}{
-		{"origin", "git@github.com:"github.com/megamsys/megamd/"github.com/megamsys/megamd-django-sample.git", nil},
-		{"github.com/megamsys/megamd", "git@"github.com/megamsys/megamdhost.com:gopher.git", nil},
-		{"wut", "", errors.New(`Remote "wut" not found.`)},
-	}
-	repo, err := OpenRepository(s.repoPath)
-	c.Assert(err, check.IsNil)
-	for _, d := range data {
-		got, err := repo.RemoteURL(d.name)
-		if got != d.expected {
-			c.Errorf("RemoteURL(%q): Want %q. Got %q.", d.name, d.expected, got)
-		}
-		if !reflect.DeepEqual(d.err, err) {
-			c.Errorf("RemoteURL(%q): Want error %q. Got %q.", d.name, d.err, err)
-		}
-	}
-}
