@@ -16,13 +16,18 @@
 package carton
 
 import (
+	"strings"
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
 )
 
 type Payload struct {
-	Id string `json:"id"`
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	CatId     string `json:"cat_id"`
+	CatType   string `json:"cattype"`
+	CreatedAt string `json:"created_at"`
 }
 
 type PayloadConvertor interface {
@@ -43,13 +48,29 @@ func NewPayload(b []byte) (*Payload, error) {
 **fetch the request json from riak and parse the json to struct
 **/
 func (p *Payload) Convert() (*Requests, error) {
-	log.Infof("get requests %s", p.Id)
+	if len(strings.TrimSpace(p.Id)) > 1 {
+		return listReqsById(p.Id)
+	} else {
+		return &Requests{
+			Name:      p.Name,
+			CatId:     p.CatId,
+			CatType:   p.CatType,
+			CreatedAt: p.CreatedAt,
+		}, nil
+	}
+
+}
+
+//The payload in the queue can be just a pointer or a value.
+//pointer means just the id will be available and rest is blank.
+//value means the id is blank and others are available.
+func listReqsById(id string) (*Requests, error) {
+	log.Debugf("list requests %s", id)
 	r := &Requests{}
-	if err := db.Fetch("requests", p.Id, r); err != nil {
+	if err := db.Fetch("requests", id, r); err != nil {
 		return nil, err
 	}
 
 	log.Debugf("Requests %v", r)
 	return r, nil
-
 }

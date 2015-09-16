@@ -27,7 +27,7 @@ type S struct{}
 var _ = check.Suite(&S{})
 
 func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
-	baseManager := cmd.NewManager("megamd", "0.9.1", "supported", os.Stdout, os.Stderr, os.Stdin)
+	baseManager := cmd.NewManager("megamd", "0.9.1",  os.Stdout, os.Stderr, os.Stdin, nil, nil)
 	manager := cmdRegistry("megamd")
 
 	for name, instance := range baseManager.Commands {

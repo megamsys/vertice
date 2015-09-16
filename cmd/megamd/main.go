@@ -32,14 +32,17 @@ var (
 )
 
 func init() {
-	// Only log the debug or above
-  log.SetLevel(log.DebugLevel)  // level is configurable via cli option.
 	// Output to stderr instead of stdout, could also be a file.
-  log.SetOutput(os.Stdout)
+	log.SetOutput(os.Stdout)
 }
 
+// Only log debug level when the -v flag is passed.
 func cmdRegistry(name string) *cmd.Manager {
-	m := cmd.BuildBaseManager(name, version, header)
+	m := cmd.BuildBaseManager(name, version, nil, func(modelvl int) {
+		if modelvl >= 1 {
+			log.SetLevel(log.DebugLevel)
+		}
+	})
 	m.Register(&run.Start{})
 	return m
 }
