@@ -19,7 +19,8 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	return (c.Meta.String() +
+	return ("\n" +
+		c.Meta.String() +
 		c.Deployd.String() + "\n" +
 		c.HTTPD.String() + "\n" +
 		c.Docker.String())

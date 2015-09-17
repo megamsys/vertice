@@ -16,17 +16,18 @@
 package carton
 
 import (
-	"strings"
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
+	"strings"
 )
 
 type Payload struct {
 	Id        string `json:"id"`
-	Name      string `json:"name"`
+	Action    string `json:"action"`
 	CatId     string `json:"cat_id"`
 	CatType   string `json:"cattype"`
+	Category  string `json:category`
 	CreatedAt string `json:"created_at"`
 }
 
@@ -52,9 +53,9 @@ func (p *Payload) Convert() (*Requests, error) {
 		return listReqsById(p.Id)
 	} else {
 		return &Requests{
-			Name:      p.Name,
+			Action:    p.Action,
+			Category:  p.Category,
 			CatId:     p.CatId,
-			CatType:   p.CatType,
 			CreatedAt: p.CreatedAt,
 		}, nil
 	}

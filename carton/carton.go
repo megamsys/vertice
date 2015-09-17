@@ -7,23 +7,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type BoxLevel int
-
-const (
-	// BoxAny indicates that there is atleast one box to deploy or delete.
-	BoxAny BoxLevel = iota
-
-	// BoxZero indicates that there are no boxes to deploy or delete.
-	BoxZero
-)
-
 type Carton struct {
+	Id         string //assemblyid
 	Name       string
-	AssemblyId string
+	CartonId   string
 	Tosca      string
+	Image      string
+	Compute    provision.BoxCompute
+	DomainName string
+	Provider   string
 	Envs       []bind.EnvVar
 	Boxes      *[]provision.Box
 }
+
+var Provisioner provision.Provisioner
 
 func (a *Carton) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
@@ -33,23 +30,27 @@ func (a *Carton) String() string {
 	}
 }
 
-//If there are boxes, then it set the enum BoxAny or its BoxZero
-func (c *Carton) lvl() BoxLevel {
+//If there are boxes, then it set the enum BoxSome or its BoxZero
+func (c *Carton) lvl() provision.BoxLevel {
 	if len(*c.Boxes) > 0 {
-		return BoxAny
+		return provision.BoxSome
 	} else {
-		return BoxZero
+		return provision.BoxNone
 	}
 }
 
 //Converts a carton to a box, if there are no boxes below.
 func (c *Carton) toBox() error {
 	switch c.lvl() {
-	case BoxZero:
+	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			AssemblyId: c.AssemblyId,
+			Id:         c.Id,    //this is a hack for torpedo
+			Level:      c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			Name:       c.Name,
-			DomainName: "",
+			DomainName: c.DomainName,
+			Compute:    c.Compute,
+			Image:      c.Image,
+			Provider:   c.Provider,
 			Tosca:      c.Tosca,
 		},
 		}
@@ -59,10 +60,11 @@ func (c *Carton) toBox() error {
 
 // Deploy carton, which basically deploys the boxes.
 func (c *Carton) Deploy() error {
+
 	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box})
+		err := Deploy(&DeployOpts{B: &box, Image: box.Image})
 		if err != nil {
-			log.Errorf("Unable to deploy box", err)
+			log.Errorf("Unable to deploy box: %s", err)
 		}
 	}
 	return nil

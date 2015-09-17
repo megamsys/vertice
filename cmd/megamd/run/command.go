@@ -132,9 +132,9 @@ func (c *Start) Flags() *gnuflag.FlagSet {
 // ParseConfig parses the config at path.
 // Returns a demo configuration if path is blank.
 func (c *Start) ParseConfig(path string) (*Config, error) {
-	// Use  configuration from the path, if path is specified.
+	// Use configuration from the path, if path is specified.
 	if path != "" {
-		log.Warn("Using configuration at: %s\n", path)
+		log.Warnf("Using configuration at: %s", path)
 	}
 
 	config := NewConfig()
@@ -143,6 +143,5 @@ func (c *Start) ParseConfig(path string) (*Config, error) {
 	}
 
 	log.Debug(config)
-
 	return config, nil
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
+	_ "github.com/megamsys/megamd/provision/one"
 
 	"sync"
 	"time"
@@ -69,11 +70,11 @@ func (s *Service) processQueue(drain chan []byte) error {
 			return err
 		}
 
-		pc, err := p.Convert()
+		re, err := p.Convert()
 		if err != nil {
 			return err
 		}
-		go s.Handler.serveAMQP(pc)
+		go s.Handler.serveAMQP(re)
 	}
 	return nil
 }
@@ -95,16 +96,17 @@ func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
 func (s *Service) setProvisioner() {
-	a, err := provision.Get(s.Meta.Provider)
+
+	var err error
+
+	carton.Provisioner, err = provision.Get(s.Meta.Provider)
 
 	if err != nil {
 		fmt.Errorf("fatal error, couldn't located the provisioner %s", s.Meta.Provider)
 	}
-	carton.Provisioner = a
 
-	log.Debugf("Using %q provisioner. %q", s.Meta.Provider, a)
+	log.Debugf("Using %s provisioner %s.", s.Meta.Provider, carton.Provisioner)
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		log.Debugf("Before initialization.")
 		err = initializableProvisioner.Initialize(s.Deployd.toMap())
 		if err != nil {
 			log.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)
@@ -112,7 +114,6 @@ func (s *Service) setProvisioner() {
 			log.Debugf("%s Initialized", s.Meta.Provider)
 		}
 	}
-	log.Debugf("After initialization.")
 
 	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {
 		startupMessage, err := messageProvisioner.StartupMessage()

@@ -204,7 +204,7 @@ func startProfile(cpuprofile, memprofile string) {
 		}
 		log.Infof("writing mem profile to: %s\n", memprofile)
 		prof.mem = f
-		runtime.MemProfileRate = 100
+		runtime.MemProfileRate = 4096
 	}
 
 }

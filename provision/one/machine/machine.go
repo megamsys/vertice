@@ -20,16 +20,11 @@ type OneProvisioner interface {
 }
 
 type Machine struct {
-	Name          string
-	ComponentId   string
-	Image         string
-	Routable      bool
-	BuildingImage provision.Status
-}
-
-func (m *Machine) Available() bool {
-	return m.BuildingImage.String() == provision.StatusDeploying.String() ||
-		m.BuildingImage.String() == provision.StatusCreating.String()
+	Name     string
+	Id       string
+	Level    provision.BoxLevel
+	Image    string
+	Routable bool
 }
 
 type CreateArgs struct {
@@ -48,7 +43,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		TemplateName: m.Image,
 		Cpu:          args.Compute.Cpushare,
 		Memory:       args.Compute.Memory,
-		Assembly_id:  args.Box.AssemblyId,
+		Assembly_id:  args.Box.CartonId,
 		Client:       args.Provisioner.Cluster(),
 	}
 
@@ -75,18 +70,30 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 	*/
 }
 
+//it possible to have a Notifier interface that does this, duck typed by Assembly, Components.
 func (m *Machine) SetStatus(status provision.Status) error {
-	log.Debugf("setting status of machine %s to %s", m.Name, status.String())
+	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
 
-	comp, err := carton.NewComponent(m.ComponentId)
-	comp.SetStatus(status)
-
-	if err != nil {
-		log.Errorf("error on updating machine into riak %s - %s", m.ComponentId, err)
-		return err
+	switch m.Level {
+	case provision.BoxSome:
+		if comp, err := carton.NewComponent(m.Id); err != nil {
+			return err
+		} else if err = comp.SetStatus(status); err != nil {
+			return nil
+		}
+		return nil
+	case provision.BoxNone:
+		if asm, err := carton.NewAssembly(m.Id); err != nil {
+			return err
+		} else if err = asm.SetStatus(status); err != nil {
+			return nil
+		}
+		return nil
+	default:
+		return nil
 	}
-	return nil
 
+	return nil
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
