@@ -1,11 +1,13 @@
 package meta
 
 import (
-	// /"fmt"
+	"bytes"
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/megamsys/libgo/cmd"
@@ -60,17 +62,20 @@ type Config struct {
 var MC *Config
 
 func (c Config) String() string {
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Meta", "green", "", "")})
-	table.AddRow(cmd.Row{"Home", c.Home})
-	table.AddRow(cmd.Row{"Dir", c.Dir})
-	table.AddRow(cmd.Row{"Riak", strings.Join(c.Riak, ",")})
-	table.AddRow(cmd.Row{"API", c.Api})
-	table.AddRow(cmd.Row{"AMQP", c.AMQP})
-	table.AddRow(cmd.Row{"Hostname", c.Hostname})
-	table.AddRow(cmd.Row{"", ""})
-	return table.String()
-
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+		cmd.Colorfy("Meta", "green", "", "") + "\n"))
+	b.Write([]byte("Home" + "\t" + c.Home + "\n"))
+	b.Write([]byte("Dir" + "\t" + c.Dir + "\n"))
+	b.Write([]byte("Riak" + "\t" + strings.Join(c.Riak, ",") + "\n"))
+	b.Write([]byte("API" + "\t" + c.Api + "\n"))
+	b.Write([]byte("AMQP" + "\t" + c.AMQP + "\n"))
+	b.Write([]byte("Hostname" + "\t" + c.Hostname + "\n"))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String()
 }
 
 func NewConfig() *Config {

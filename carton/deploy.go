@@ -26,9 +26,9 @@ import (
 )
 
 type DeployOpts struct {
-	B      *provision.Box
-	Image 	string
-//	Config deployd.Config
+	B     *provision.Box
+	Image string
+	//	Config deployd.Config
 }
 
 // Deploy runs a deployment of an application. It will first try to run an
@@ -61,21 +61,22 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
 }
 
-func saveDeployData(opts *DeployOpts, imageId, log string, duration time.Duration, deployError error) error {
-/*	comp := Components{
-		App:       opts.Box.Name,
-		Timestamp: time.Now(),
-		Duration:  duration,
-		Commit:    opts.Commit,
-		Image:     imageId,
-		Log:       log,
-		User:      opts.User,
-	}
+func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Duration, deployError error) error {
+	log.Debugf("%s %s %s", imageId, duration, dlog)
+	/*	comp := Components{
+			App:       opts.Box.Name,
+			Timestamp: time.Now(),
+			Duration:  duration,
+			Commit:    opts.Commit,
+			Image:     imageId,
+			Log:       log,
+			User:      opts.User,
+		}
 
-	if deployError != nil {
-		deploy.Error = deployError.Error()
-	}
-*/
+		if deployError != nil {
+			deploy.Error = deployError.Error()
+		}
+	*/
 	//Riak: code to save the status of a deploy (created.)
 	return nil
 }

@@ -1,11 +1,15 @@
 package docker
 
 import (
-	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/toml"
+	"bytes"
+	"fmt"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 	"time"
+
+	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/toml"
 )
 
 const (
@@ -64,18 +68,23 @@ func (c Config) String() string {
 	for k, v := range c.Bridges {
 		bs = append(bs, k, v, "\n")
 	}
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Docker", "green", "", "")})
-	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
-	table.AddRow(cmd.Row{DOCKER_REGISTRY, c.Registry})
-	table.AddRow(cmd.Row{DOCKER_SWARM, c.Swarm})
-	table.AddRow(cmd.Row{"Bridges", strings.Join(bs, ", ")})
-	table.AddRow(cmd.Row{DOCKER_MEMSIZE, strconv.Itoa(c.MemSize)})
-	table.AddRow(cmd.Row{DOCKER_SWAPSIZE, strconv.Itoa(c.SwapSize)})
-	table.AddRow(cmd.Row{DOCKER_CPUPERIOD, c.CPUPeriod.String()})
-	table.AddRow(cmd.Row{DOCKER_CPUQUOTA, c.CPUQuota.String()})
-	table.AddRow(cmd.Row{"", ""})
-	return table.String()
+
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+		cmd.Colorfy("docker", "green", "", "") + "\n"))
+	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte(DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
+	b.Write([]byte(DOCKER_SWARM + "\t" + c.Swarm + "\n"))
+	b.Write([]byte("Bridges" + "\t" + strings.Join(bs, ", ") + "\n"))
+	b.Write([]byte(DOCKER_MEMSIZE + "\t" + strconv.Itoa(c.MemSize) + "\n"))
+	b.Write([]byte(DOCKER_SWAPSIZE + "\t" + strconv.Itoa(c.SwapSize) + "\n"))
+	b.Write([]byte(DOCKER_CPUPERIOD + "\t" + c.CPUPeriod.String() + "\n"))
+	b.Write([]byte(DOCKER_CPUQUOTA + "\t" + c.CPUQuota.String() + "\n"))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String()
 }
 
 //convert the config to just a map.

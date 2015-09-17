@@ -29,9 +29,18 @@ const (
 	CPU = "cpu"
 	RAM = "ram"
 	HDD = "hdd"
+
+	// BoxSome indicates that there is atleast one box to deploy or delete.
+	BoxSome BoxLevel = iota
+
+	// BoxNone indicates that there are no boxes to deploy or delete but its parent can be.
+	BoxNone
 )
 
 var cnameRegexp = regexp.MustCompile(`^(\*\.)?[a-zA-Z0-9][\w-.]+$`)
+
+// Boxlevel represents the deployment level.
+type BoxLevel int
 
 // Boxlog represents a log entry.
 type Boxlog struct {
@@ -85,19 +94,20 @@ func (bc *BoxCompute) String() string {
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	ComponentId string
-	AssemblyId  string
-	Name        string
-	DomainName  string
-	Tosca       string
-	Compute     BoxCompute
-	Commit      string
-	Image       string
-	Repo        repository.Repository
-	Status      Status
-	Provider    string
-	Address     *url.URL
-	Ip          string
+	Id         string
+	CartonId   string
+	Level      BoxLevel
+	Name       string
+	DomainName string
+	Tosca      string
+	Compute    BoxCompute
+	Image      string
+	Repo       repository.Repository
+	Status     Status
+	Provider   string
+	Commit     string
+	Address    *url.URL
+	Ip         string
 }
 
 func (b *Box) String() string {
@@ -110,7 +120,7 @@ func (b *Box) String() string {
 
 // GetName returns the name of the box.
 func (b *Box) GetFullName() string {
-	return b.Name + b.DomainName
+	return b.Name + "." + b.DomainName
 }
 
 // GetTosca returns the tosca type of the box.
@@ -194,7 +204,7 @@ func (box *Box) Log(message, source, unit string) error {
 				Message: msg,
 				Source:  source,
 				Name:    box.Name,
-				Unit:    box.ComponentId,
+				Unit:    box.Id,
 			}
 			logs = append(logs, bl)
 		}

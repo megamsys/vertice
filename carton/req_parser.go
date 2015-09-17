@@ -18,7 +18,6 @@ package carton
 import (
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"io"
 	"strings"
 )
 
@@ -44,16 +43,19 @@ var (
 )
 
 type ReqParser struct {
+	name string
 }
 
 // NewParser returns a new instance of Parser.
-func NewReqParser(r io.Reader) *ReqParser {
-	return &ReqParser{}
+func NewReqParser(n string) *ReqParser {
+	return &ReqParser{name: n}
 }
 
-// ParseStatement parses a statement string and returns its AST representation.
-func ParseRequest(s string) (MegdProcessor, error) {
-	return NewReqParser(strings.NewReader(s)).ParseRequest(s, "")
+// ParseRequest parses a request string and returns its MegdProcess representation.
+// eg: (state, create) => CreateProcess{}
+// After figuring out the process, we operate on it.
+func ParseRequest(n, s, a string) (MegdProcessor, error) {
+	return NewReqParser(n).ParseRequest(s, a)
 }
 
 func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor, error) {
@@ -72,26 +74,38 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 	switch action {
 	case CREATE:
-		return CreateProcess{}, nil
+		return CreateProcess{
+			Name: p.name,
+		}, nil
 	case STATEUP:
-		return StateupProcess{}, nil
+		return StateupProcess{
+			Name: p.name,
+		}, nil
 	case STATEDOWN:
-		return StateupProcess{}, nil
+		return StateupProcess{
+			Name: p.name,
+		}, nil
 	default:
-		return nil, newParseError([]string{STATE, action}, []string{STATEUP, STATEDOWN})
+		return nil, newParseError([]string{STATE, action}, []string{CREATE, STATEUP, STATEDOWN})
 	}
 }
 
 func (p *ReqParser) parseControl(action string) (MegdProcessor, error) {
 	switch action {
 	case START:
-		return StartProcess{}, nil
+		return StartProcess {
+			Name: p.name,
+		}, nil
 	case STOP:
-		return StopProcess{}, nil
+		return StopProcess{
+			Name: p.name,
+		}, nil
 	case RESTART:
-		return RestartProcess{}, nil
+		return RestartProcess{
+			Name: p.name,
+		}, nil
 	default:
-		return nil, newParseError([]string{CONTROL, action}, []string{STATEUP, STATEDOWN})
+		return nil, newParseError([]string{CONTROL, action}, []string{START, STOP, RESTART})
 	}
 }
 
@@ -99,12 +113,12 @@ func (p *ReqParser) parsePolicy(action string) (MegdProcessor, error) {
 	switch action {
 	case BIND:
 		//	return BindPolicy{}
-		return StartProcess{}, nil
+		return StartProcess{Name: p.name}, nil
 	case UNBIND:
-		return StopProcess{}, nil
+		return StopProcess{Name: p.name}, nil
 	//	return UnBindPolicy{}
 	default:
-		return nil, newParseError([]string{POLICY, action}, []string{STATEUP, STATEDOWN})
+		return nil, newParseError([]string{POLICY, action}, []string{BIND, UNBIND})
 	}
 }
 
@@ -126,9 +140,9 @@ func (e *ParseError) Error() string {
 
 type Requests struct {
 	Id        string `json:"id"`
-	Name      string `json:"name"`
 	CatId     string `json:"cat_id"`
-	CatType   string `json:"cattype"`
+	Action    string `json:"action"`
+	Category  string `json:category`
 	CreatedAt string `json:"created_at"`
 }
 
