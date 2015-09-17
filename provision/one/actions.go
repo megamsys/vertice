@@ -72,9 +72,9 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
-			log.Errorf("error on create container for app %s - %s", args.box.GetFullName(), err)
 			return nil, err
 		}
+		args.machineStatus = provision.StatusCreating
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -84,7 +84,7 @@ var createMachine = action.Action{
 
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Failed to remove the container %q: %s", c.Name, c.Id, err)
+			log.Errorf("Failed to remove the machine %q: %s", c.Name, c.Id, err)
 		}
 	},
 }
