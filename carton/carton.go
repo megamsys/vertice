@@ -64,7 +64,7 @@ func (c *Carton) Deploy() error {
 	for _, box := range *c.Boxes {
 		err := Deploy(&DeployOpts{B: &box, Image: box.Image})
 		if err != nil {
-			log.Errorf("Unable to deploy box: %s", err)
+			return err
 		}
 	}
 	return nil

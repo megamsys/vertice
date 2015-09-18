@@ -63,7 +63,7 @@ var createMachine = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("create machine for box %s, based on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("create machine for box %s, on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
@@ -72,9 +72,9 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
-			log.Errorf("error on create container for app %s - %s", args.box.GetFullName(), err)
 			return nil, err
 		}
+		args.machineStatus = provision.StatusCreating
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -84,7 +84,7 @@ var createMachine = action.Action{
 
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Failed to remove the container %q: %s", c.Name, c.Id, err)
+			log.Errorf("Failed to remove the machine %q: %s", c.Name, c.Id, err)
 		}
 	},
 }
@@ -104,7 +104,7 @@ var removeOldMachine = action.Action{
 		if err != nil {
 			log.Errorf("Ignored error trying to remove old machine %q: %s", mach.Id, err)
 		}
-		fmt.Fprintf(writer, " ---> Removed old machine %s [%s]\n", mach.Id, mach.Name)
+		fmt.Fprintf(writer, "\n---- Removed old machine %s [%s]\n", mach.Id, mach.Name)
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {

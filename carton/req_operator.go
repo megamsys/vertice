@@ -16,6 +16,7 @@
 package carton
 
 import (
+	"github.com/megamsys/libgo/cmd"
 	log "github.com/Sirupsen/logrus"
 )
 
@@ -38,7 +39,7 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 
 	md := *r
 
-	log.Debugf(md.String())
+	log.Debugf(cmd.Colorfy(md.String(),"cyan","","bold"))
 
 	return md.Process(c)
 }
