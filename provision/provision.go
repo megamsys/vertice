@@ -121,11 +121,18 @@ type ImageDeployer interface {
 	ImageDeploy(b *Box, image string, w io.Writer) (string, error)
 }
 
+// StateChanger changes the state of a deployed box
+// A deployed box is termed as a machine or a container
+type StateChanger interface {
+	SetState(*Box, io.Writer, Status) error
+}
+
 // Provisioner is the basic interface of this package.
 //
 // Any megamd provisioner must implement this interface in order to provision
 // megamd cartons.
 type Provisioner interface {
+
 	// Destroy is called when megamd is destroying the box.
 	Destroy(*Box, io.Writer) error
 

@@ -60,7 +60,6 @@ func (c *Carton) toBox() error {
 
 // Deploy carton, which basically deploys the boxes.
 func (c *Carton) Deploy() error {
-
 	for _, box := range *c.Boxes {
 		err := Deploy(&DeployOpts{B: &box, Image: box.Image})
 		if err != nil {
@@ -76,6 +75,18 @@ func (c *Carton) Delete() error {
 		err := Provisioner.Destroy(&box, nil)
 		if err != nil {
 			log.Errorf("Unable to destroy box", err)
+		}
+	}
+	return nil
+}
+
+// moves the state to the desired state
+// changing the boxes state to StatusStateup.
+func (c *Carton) Stateup() error {
+	for _, box := range *c.Boxes {
+		err := ChangeState(&StateChangeOpts{B: &box, Changed: provision.StatusStateup})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -103,6 +114,7 @@ func (c *Carton) Unbind(box *provision.Box) error {
 		}*/
 	return nil
 }
+
 
 // Group the related_components into BindInstances.
 func (c *Carton) Group() ([]*bind.YBoundBox, error) {
@@ -156,23 +168,6 @@ func (c *Carton) Restart() error {
 		}
 	}
 	return nil
-}
-
-// moves the state to the desired state
-// changing the boxes state to StatusStateup.
-func (c *Carton) Stateup() error {
-	return nil
-}
-
-// moves the state down to the desired state
-// changing the boxes state to StatusStatedown.
-func (c *Carton) Statedown() error {
-	return nil
-}
-
-// GetTosca returns the tosca type  of the carton.
-func (c *Carton) GetTosca() string {
-	return c.Tosca
 }
 
 // Envs returns a map representing the apps environment variables.
