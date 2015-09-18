@@ -52,7 +52,6 @@ func (m *Machine) Create(args *CreateArgs) error {
 	_, err := vm.Create()
 
 	if err != nil {
-		log.Errorf("error on creating machine in one %s - %s", m.Name, err)
 		return err
 	}
 	//do you want to update something.

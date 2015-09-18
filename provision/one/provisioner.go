@@ -86,7 +86,7 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("One", "white", "", "bold") + "\t" +
-		cmd.Colorfy("provisioner xmlrpc "+p.String(), "purple", "", "bold") + "\n"))
+		cmd.Colorfy("provisioner xmlrpc "+p.String(), "purple", "", "bold")))
 	fmt.Fprintln(w)
 	w.Flush()
 	return b.String(), nil
@@ -133,7 +133,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		log.Errorf("deploy pipeline for box %s\n%s", box.GetFullName(), err)
+		fmt.Fprintf(w,"deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
 		return "", err
 	}
 	return imageId, nil

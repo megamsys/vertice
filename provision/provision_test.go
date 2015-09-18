@@ -85,27 +85,6 @@ func (ProvisionSuite) TestStatuses(c *check.C) {
 	c.Check(StatusStarting.String(), check.Equals, "starting")
 }
 
-func (ProvisionSuite) TestParseStatus(c *check.C) {
-	var tests = []struct {
-		input  string
-		output Status
-		err    error
-	}{
-		{"created", StatusCreated, nil},
-		{"building", StatusBuilding, nil},
-		{"error", StatusError, nil},
-		{"started", StatusStarted, nil},
-		{"stopped", StatusStopped, nil},
-		{"starting", StatusStarting, nil},
-		{"something", Status(""), ErrInvalidStatus},
-		{"otherthing", Status(""), ErrInvalidStatus},
-	}
-	for _, t := range tests {
-		got, err := ParseStatus(t.input)
-		c.Check(got, check.Equals, t.output)
-		c.Check(err, check.Equals, t.err)
-	}
-}
 
 func (ProvisionSuite) TestBoxAvailable(c *check.C) {
 	var tests = []struct {

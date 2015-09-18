@@ -61,19 +61,19 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "e199be706699f8c2644dfaf57b029ad9a6e44392"
+			"Rev": "49ed786776ba8959094a6379acfef9b93c9b251b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "e199be706699f8c2644dfaf57b029ad9a6e44392"
+			"Rev": "49ed786776ba8959094a6379acfef9b93c9b251b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "e199be706699f8c2644dfaf57b029ad9a6e44392"
+			"Rev": "49ed786776ba8959094a6379acfef9b93c9b251b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "e199be706699f8c2644dfaf57b029ad9a6e44392"
+			"Rev": "49ed786776ba8959094a6379acfef9b93c9b251b"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",

@@ -26,6 +26,7 @@ var (
 	//the state actions available are.
 	STATE     = "state"
 	CREATE    = "create"
+	CREATED   = "created"
 	DELETE    = "delete"
 	STATEUP   = "stateup"
 	STATEDOWN = "statedown"
@@ -77,7 +78,7 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 		return CreateProcess{
 			Name: p.name,
 		}, nil
-	case STATEUP:
+	case CREATED:
 		return StateupProcess{
 			Name: p.name,
 		}, nil
@@ -93,7 +94,7 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 func (p *ReqParser) parseControl(action string) (MegdProcessor, error) {
 	switch action {
 	case START:
-		return StartProcess {
+		return StartProcess{
 			Name: p.name,
 		}, nil
 	case STOP:
