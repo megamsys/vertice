@@ -5,11 +5,15 @@
 package machine
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/carton"
+	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
@@ -50,11 +54,9 @@ func (m *Machine) Create(args *CreateArgs) error {
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 
 	_, err := vm.Create()
-
 	if err != nil {
 		return err
 	}
-	//do you want to update something.
 	return nil
 }
 
@@ -74,24 +76,22 @@ func (m *Machine) SetStatus(status provision.Status) error {
 	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
 
 	switch m.Level {
-	case provision.BoxSome:
+	case provision.BoxSome: //this is ugly ! duckling
 		if comp, err := carton.NewComponent(m.Id); err != nil {
 			return err
 		} else if err = comp.SetStatus(status); err != nil {
-			return nil
+			return err
 		}
 		return nil
 	case provision.BoxNone:
 		if asm, err := carton.NewAssembly(m.Id); err != nil {
 			return err
 		} else if err = asm.SetStatus(status); err != nil {
-			return nil
+			return err
 		}
 		return nil
 	default:
-		return nil
 	}
-
 	return nil
 }
 
@@ -104,14 +104,39 @@ func (m *Machine) Remove(p OneProvisioner) error {
 	}
 
 	_, err := vm.Delete()
-
 	if err != nil {
 		log.Errorf("error on deleting machine in one %s - %s", m.Name, err)
 		return err
 	}
 
-	//do you want to update something here ?
 	return nil
+}
+
+//just publish a message stateup to the machine.
+func (m *Machine) ChangeState(status provision.Status) error {
+	log.Debugf("change state of machine %s %s to %s", m.Id, m.Name, status.String())
+
+	p, err := amqp.NewRabbitMQ(meta.MC.AMQP, m.Name)
+	if err != nil {
+		return err
+	}
+
+	jsonMsg, err := json.Marshal(
+		carton.Requests{
+			Action:    status.String(),
+			Category:  carton.STATE,
+			CreatedAt: time.Now().String(),
+		})
+
+	if err != nil {
+		return err
+	}
+
+	if err := p.Pub(jsonMsg); err != nil {
+		return err
+	}
+	return nil
+
 }
 
 func (m *Machine) Exec(p OneProvisioner, stdout, stderr io.Writer, cmd string, args ...string) error {

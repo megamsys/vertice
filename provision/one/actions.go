@@ -48,7 +48,6 @@ var updateStatusInRiak = action.Action{
 			Name:  args.box.GetFullName(),
 			Image: args.imageId,
 		}
-
 		mach.SetStatus(args.machineStatus)
 		return mach, nil
 	},
@@ -113,20 +112,34 @@ var removeOldMachine = action.Action{
 	MinParams: 1,
 }
 
-var addNewRoutes = action.Action{
-	Name: "add-new-routes",
+var changeStateofMachine = action.Action{
+	Name: "change-state-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		log.Debugf("change state of machine %s", args.box.GetFullName())
+		mach := machine.Machine{
+			Id:    args.box.Id,
+			Level: args.box.Level,
+			Name:  args.box.GetFullName(),
+		}
+		mach.ChangeState(args.machineStatus)
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(provision.StatusError)
+	},
+}
+
+var addNewRoute = action.Action{
+	Name: "add-new-route",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.Previous.(machine.Machine)
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			return nil, err
+			return mach, err
 		}
-
-		if _, err := r.Addr(args.box.GetFullName()); err != nil {
-			log.Errorf("[WARNING] route attached: %s", err)
-		}
-
 		writer := args.writer
 		if writer == nil {
 			writer = ioutil.Discard
@@ -138,7 +151,7 @@ var addNewRoutes = action.Action{
 			return mach, err
 		}
 		mach.Routable = true
-		fmt.Fprintf(writer, " ---> Added route to machine %s [%s]\n", mach.Name, args.box.Ip)
+		fmt.Fprintf(writer, "---- Added route to machine %s [%s]\n", mach.Name, args.box.Ip)
 
 		return mach, nil
 	},
@@ -159,21 +172,20 @@ var addNewRoutes = action.Action{
 			if err != nil {
 				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
 			}
-			fmt.Fprintf(w, " ---> Removed route from machine %s [%s]\n", mach.Id, mach.Name)
+			fmt.Fprintf(w, "---- Removed route from machine %s [%s]\n", mach.Id, mach.Name)
 		}
 	},
 	OnError: rollbackNotice,
 }
 
-var removeOldRoutes = action.Action{
-	Name: "remove-old-routes",
+var removeOldRoute = action.Action{
+	Name: "remove-old-route",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.Previous.(machine.Machine)
 
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			log.Errorf("[remove-old-routes] Error geting router: %s", err.Error())
 			return mach, err
 		}
 		w := args.writer
@@ -186,7 +198,7 @@ var removeOldRoutes = action.Action{
 			if err != nil {
 				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
 			}
-			fmt.Fprintf(w, " ---> Removed route from unit %s [%s]\n", mach.Name, args.box.Ip)
+			fmt.Fprintf(w, "---- Removed route from unit %s [%s]\n", mach.Name, args.box.Ip)
 		}
 		return mach, nil
 	},
@@ -195,7 +207,7 @@ var removeOldRoutes = action.Action{
 		mach := ctx.FWResult.(machine.Machine)
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			log.Errorf("[remove-old-routes:Backward] Error geting router: %s", err.Error())
+			log.Errorf("[remove-old-route:Backward] Error geting router: %s", err.Error())
 		}
 		w := args.writer
 		if w == nil {
@@ -206,9 +218,9 @@ var removeOldRoutes = action.Action{
 
 			err = r.SetCName(mach.Name, args.box.Ip)
 			if err != nil {
-				log.Errorf("[remove-old-routes:Backward] Error adding back route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
+				log.Errorf("[remove-old-route:Backward] Error adding back route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
 			}
-			fmt.Fprintf(w, " ---> Added route to unit %s [%s]\n", mach.Name, args.box.Ip)
+			fmt.Fprintf(w, "---- Added route to machine %s [%s]\n", mach.Name, args.box.Ip)
 		}
 	},
 	OnError:   rollbackNotice,

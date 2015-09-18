@@ -1,12 +1,3 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package gandalf provides an implementation of the RepositoryManager, that
-// uses Gandalf (https://github.com/tsuru/gandalf). This package doesn't expose
-// any public types, in order to use it, users need to import the package and
-// then configure tsuru to use the "gandalf" repo-manager.
-//
 package github
 
 import (

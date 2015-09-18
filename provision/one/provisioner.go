@@ -41,7 +41,6 @@ var mainOneProvisioner *oneProvisioner
 
 func init() {
 	mainOneProvisioner = &oneProvisioner{}
-	log.Debugf("Registering one")
 	provision.Register("one", mainOneProvisioner)
 }
 
@@ -60,7 +59,7 @@ func (p *oneProvisioner) String() string {
 	if p.cluster == nil {
 		return "nil one cluster"
 	}
-	return "yeehaw! ready"
+	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "")
 }
 
 func (p *oneProvisioner) Initialize(m map[string]string) error {
@@ -133,7 +132,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w,"deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
+		fmt.Fprintf(w, "deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
 		return "", err
 	}
 	return imageId, nil
@@ -150,13 +149,37 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
-		&followLogs,
 		&updateStatusInRiak,
 		&removeOldMachine,
+		&removeOldRoute,
 		//		&removeBoxesInRiak,
 		//		&removeCartonsInRiak,
-		//		&provisionUnbindOldUnits,
-		&removeOldRoutes,
+		//		&provisionUnbindOldBoxes,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto provision.Status) error {
+	fmt.Fprintf(w, "\n---- stateto %s ----\n", box.GetFullName())
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: changeto,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&changeStateofMachine,
+		&addNewRoute,
+		//&addRepoHook,
 	}
 
 	pipeline := action.NewPipeline(actions...)
