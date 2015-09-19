@@ -102,7 +102,7 @@ type Box struct {
 	Tosca      string
 	Compute    BoxCompute
 	Image      string
-	Repo       repository.Repository
+	Repo       repository.Repo
 	Status     Status
 	Provider   string
 	Commit     string

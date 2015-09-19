@@ -119,6 +119,8 @@ func (a *Assembly) mkBoxes() ([]provision.Box, error) {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
+				b.Repo.CartonId = a.Id
+				b.Repo.BoxId = comp.Id
 				b.Compute = a.newCompute()
 				newBoxs = append(newBoxs, b)
 			}

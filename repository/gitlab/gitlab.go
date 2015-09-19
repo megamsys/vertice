@@ -9,30 +9,28 @@ func init() {
 	repository.Register("gitlab", gitlabManager{})
 }
 
-const endpointConfig = "git:api-server"
-
 type gitlabManager struct{}
 
+//http://base_url/api_path/projects?private_token=token")
 func (gitlabManager) client() (*gogitlab.Gitlab, error) {
-	url, version, token := "", "", ""
+	url, version, token := "http://base_url", "api_path", "token"
 	return gogitlab.NewGitlab(url, version, token), nil
 }
 
-func (m gitlabManager) CreateHook(owner string, trigger string) error {
+func (m gitlabManager) CreateHook(r repository.Repository) (string, error) {
 	client, err := m.client()
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	err = client.AddProjectHook(owner, trigger, false, false, false)
+	err = client.AddProjectHook(r.GetUserName(), r.Trigger(), false, false, false)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return "", nil
 
 }
 
-func (m gitlabManager) RemoveHook(owner string) error {
+func (m gitlabManager) RemoveHook(r repository.Repository) error {
 	/*client, err := m.client()
 	if err != nil {
 		return err
