@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -40,11 +39,10 @@ const (
 )
 
 type Config struct {
-	Enabled   bool   `toml:"enabled"`
-	Registry  string `toml:"registry"`
-	Namespace string `toml:"namespace"`
-	Swarm     string `toml:"swarm"`
-	Bridges   map[string]string
+	Enabled   bool          `toml:"enabled"`
+	Registry  string        `toml:"registry"`
+	Namespace string        `toml:"namespace"`
+	Swarm     string        `toml:"swarm"`
 	MemSize   int           `toml:"mem_size"`
 	SwapSize  int           `toml:"swap_size"`
 	CPUPeriod toml.Duration `toml:"cpu_period"`
@@ -64,11 +62,6 @@ func NewConfig() *Config {
 }
 
 func (c Config) String() string {
-	bs := make([]string, len(c.Bridges))
-	for k, v := range c.Bridges {
-		bs = append(bs, k, v, "\n")
-	}
-
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
@@ -77,7 +70,6 @@ func (c Config) String() string {
 	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte(DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
 	b.Write([]byte(DOCKER_SWARM + "\t" + c.Swarm + "\n"))
-	b.Write([]byte("Bridges" + "\t" + strings.Join(bs, ", ") + "\n"))
 	b.Write([]byte(DOCKER_MEMSIZE + "\t" + strconv.Itoa(c.MemSize) + "\n"))
 	b.Write([]byte(DOCKER_SWAPSIZE + "\t" + strconv.Itoa(c.SwapSize) + "\n"))
 	b.Write([]byte(DOCKER_CPUPERIOD + "\t" + c.CPUPeriod.String() + "\n"))

@@ -11,12 +11,7 @@ func (s *S) TestDockerConfig_Parse(c *check.C) {
 	var cm Config
 	if _, err := toml.Decode(`
 	enabled = false
-	swarm = [ http://192.168.1.241:2375 ]
-
-	[docker.public]
-		name="megdock_pub"
-		network = 103.56.93.1/24
-		gateway = 103.56.92.1
+	swarm = "http://192.168.1.241:2375"
 
 	`, &cm); err != nil {
 		c.Fatal(err)

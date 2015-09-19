@@ -94,17 +94,18 @@ func (c *Component) mkBox() (provision.Box, error) {
 
 func (c *Component) SetStatus(status provision.Status) error {
 	LastStatusUpdate := time.Now().In(time.UTC)
-
-	/*
-	   //masking this check for now. why do we need this status check ?
-	   if c.Status == provision.StatusDeploying.String() ||
-	   		c.Status == provision.StatusCreating.String() ||
-	   		c.Status == provision.StatusCreated.String() ||
-	   		c.Status == provision.StatusStateup.String() {
-	*/
 	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
 	c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
-	//	}
+
+	if err := db.Store(BUCKET, c.Id, c); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Component) setDeployData(dd DeployData) error {
+	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", ""))
+	c.Inputs = append(c.Inputs, NewJsonPair("status", ""))
 
 	if err := db.Store(BUCKET, c.Id, c); err != nil {
 		return err
@@ -120,10 +121,11 @@ func (c *Component) NewRepo(ci string) repository.Repo {
 		enabled, _ := strconv.ParseBool(o.OperationRequirements.match(repository.CI_ENABLED))
 
 		return repository.Repo{
-			Enabled:     enabled,
-			Token:       o.OperationRequirements.match(repository.CI_TOKEN),
-			Git:         o.OperationRequirements.match(repository.CI_SCM),
-			UserName:    o.OperationRequirements.match(repository.CI_USER),			
+			Enabled:  enabled,
+			Token:    o.OperationRequirements.match(repository.CI_TOKEN),
+			SCM:      o.OperationRequirements.match(repository.CI_SCM),
+			UserName: o.OperationRequirements.match(repository.CI_USER),
+			Git:      o.OperationRequirements.match(repository.CI_URL),
 		}
 
 	}

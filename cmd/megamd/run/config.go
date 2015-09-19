@@ -15,6 +15,7 @@ type Config struct {
 	Deployd *deployd.Config `toml:"deployd"`
 	HTTPD   *httpd.Config   `toml:"http"`
 	Docker  *docker.Config  `toml:"docker"`
+	Bridges *docker.Bridges `toml:bridges`
 	DNS     *dns.Config     `toml:"dns"`
 }
 
@@ -23,18 +24,19 @@ func (c Config) String() string {
 		c.Meta.String() +
 		c.Deployd.String() + "\n" +
 		c.HTTPD.String() + "\n" +
-		c.Docker.String())
+		c.Docker.String() + "\n" +
+		c.Bridges.String())
+
 }
 
 // NewConfig returns an instance of Config with reasonable defaults.
 func NewConfig() *Config {
 	c := &Config{}
 	c.Meta = meta.NewConfig()
-
 	c.Deployd = deployd.NewConfig()
 	c.HTTPD = httpd.NewConfig()
 	c.Docker = docker.NewConfig()
-
+	c.Bridges = docker.NewBridgeConfig()
 	c.DNS = dns.NewConfig()
 	return c
 }

@@ -27,6 +27,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/router"
+	_ "github.com/megamsys/megamd/router/route53"
 	"github.com/megamsys/opennebula-go/api"
 )
 
@@ -92,7 +93,7 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
-	return "nada", nil
+	return p.deployPipeline(box, box.Repo.Git, w)
 }
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
@@ -179,7 +180,6 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 	actions := []*action.Action{
 		&changeStateofMachine,
 		&addNewRoute,
-		//&addRepoHook,
 	}
 
 	pipeline := action.NewPipeline(actions...)

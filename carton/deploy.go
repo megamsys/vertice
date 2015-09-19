@@ -26,6 +26,19 @@ import (
 	"github.com/megamsys/megamd/provision"
 )
 
+type DeployData struct {
+	BoxName     string
+	HookId      string
+	PrivateIp   string
+	PublicIp    string
+	Timestamp   time.Time
+	Duration    time.Duration
+	Commit      string
+	Image       string
+	Origin      string
+	CanRollback bool
+}
+
 type DeployOpts struct {
 	B     *provision.Box
 	Image string //why this image ?
@@ -71,6 +84,27 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	// deploy :
 	//     name:
 	//     status:
+
+	/*deploy := DeployData {
+		App:       opts.App.Name,
+		Timestamp: time.Now(),
+		Duration:  duration,
+		Commit:    opts.Commit,
+		Image:     imageId,
+		Log:       log,
+	}
+	if opts.Commit != "" {
+		deploy.Origin = "git"
+	} else if opts.Image != "" {
+		deploy.Origin = "rollback"
+	} else {
+		deploy.Origin = "app-deploy"
+	}
+	if deployError != nil {
+		deploy.Error = deployError.Error()
+	}
+	return db.Store(compid or assmid, &struct)
+	*/
 	return nil
 }
 
