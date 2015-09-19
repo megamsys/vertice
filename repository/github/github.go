@@ -1,8 +1,14 @@
 package github
 
 import (
-	//log "github.com/Sirupsen/logrus"
+  "strconv"
+  "net/http"
+  "net/http/httputil"
+	"time"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/google/go-github/github"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/repository"
 	"golang.org/x/oauth2"
 )
@@ -11,68 +17,64 @@ func init() {
 	repository.Register("github", githubManager{})
 }
 
-const endpointConfig = "git:api-server"
-
 type githubManager struct{}
 
-func (githubManager) client() (*github.Client, error) {
-	token := ""
+func (m githubManager) client(token string) *github.Client {
+	return github.NewClient(oauth2.NewClient(oauth2.NoContext,
+		oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		)))
+}
 
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	return github.NewClient(oauth2.NewClient(oauth2.NoContext, ts)), nil //there is no error trap here ?
+//https://developer.github.com/v3/repos/hooks/#create-a-hook
+func (m githubManager) CreateHook(r repository.Repository) (string, error) {
+	client := m.client(r.GetToken())
+  t := time.Now()
+	n := "web"
+	a := true
+
+	h := github.Hook{
+		CreatedAt:  &t,
+		UpdatedAt: &t,
+		Name:      &n,
+		Events:    []string{"push"},
+		Config:     map[string]interface{}{
+			"url":     r.Trigger(),
+			"content_type": "json",
+		},
+		Active: &a,
+	}
+
+	repoName, err := r.GetShortName()
+
+	if err != nil {
+		return "", err
+	}
+
+	hk, response, err := client.Repositories.CreateHook(r.GetUserName(),repoName, &h)
+	if err != nil {
+		return "", err
+	}
+
+  m.debugResp(response.Response)
+
+	log.Debugf("[github] created webhook [%s,%s] successfully.",  r.Gitr(), strconv.Itoa(*hk.ID))
+	//We need to save the hook id.
+	return strconv.Itoa(*hk.ID), nil
 
 }
 
-func (m githubManager) CreateHook(owner string, trigger string) error {
-	/*client, err := m.client()
-	if err != nil {
-		return err
-	}
-
-	trigger_url := api_host + "/assembly/build/" + asm.Id + "/" + com.Id
-
-	byt12 := []byte(`{"url": "","content_type": "json"}`)
-	var postData map[string]interface{}
-	if err := json.Unmarshal(byt12, &postData); err != nil {
-		return err
-	}
-	postData["url"] = trigger_url
-
-	byt1 := []byte(`{"name": "web", "active": true, "events": [ "push" ]}`)
-	postHook := git.Hook{Config: postData}
-	if err := json.Unmarshal(byt1, &postHook); err != nil {
-		return err
-	}
-
-	pair_source, err := global.ParseKeyValuePair(com.Inputs, "source")
-	if err != nil {
-		log.Errorf("Failed to get the source value : %s", err.Error())
-	}
-
-	pair_owner, err := global.ParseKeyValuePair(ci.OperationRequirements, "ci-owner")
-	if err != nil {
-		log.Errorf("Failed to get the ci-owner value : %s", err.Error())
-	}
-
-	source := strings.Split(pair_source.Value, "/")
-	_, _, err := client.Repositories.CreateHook(pair_owner.Value, strings.TrimRight(source[len(source)-1], ".git"), &postHook)
-
-	if err != nil {
-		return err
-	}
-	log.Debugf("[gitlab] created webhook %s successfully.", source)
-	*/
+func (m githubManager) RemoveHook(r repository.Repository) error {
+	//get  a single hook saved id and remove the hook.
 	return nil
-
 }
 
-func (m githubManager) RemoveHook(username string) error {
-	/*client, err := m.client()
+func (m githubManager) debugResp(resp *http.Response) {
+  log.Debugf(cmd.Colorfy("--- git --", "yellow", "",""))
+	responseDump, err := httputil.DumpResponse(resp, true)
 	if err != nil {
-		return err
+		return
 	}
-	*/
-	return nil
+
+	log.Debugf("%v",responseDump)
 }

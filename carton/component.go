@@ -120,12 +120,10 @@ func (c *Component) NewRepo(ci string) repository.Repo {
 		enabled, _ := strconv.ParseBool(o.OperationRequirements.match(repository.CI_ENABLED))
 
 		return repository.Repo{
-			Enabled:  enabled,
-			Token:    o.OperationRequirements.match(repository.CI_TOKEN),
-			Git:      o.OperationRequirements.match(repository.CI_SCM),
-			GitURL:   o.OperationRequirements.match(repository.CI_URL),
-			UserName: o.OperationRequirements.match(repository.CI_USER),
-			Version:  o.OperationRequirements.match(repository.CI_APIVERSION),
+			Enabled:     enabled,
+			Token:       o.OperationRequirements.match(repository.CI_TOKEN),
+			Git:         o.OperationRequirements.match(repository.CI_SCM),
+			UserName:    o.OperationRequirements.match(repository.CI_USER),			
 		}
 
 	}

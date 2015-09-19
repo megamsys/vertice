@@ -1,10 +1,11 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package repository contains types and functions for git repository
-// interaction.
 package repository
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/megamsys/megamd/meta"
+)
 
 const (
 	defaultManager = "github"
@@ -19,14 +20,14 @@ const (
 
 var managers map[string]RepositoryManager
 
-/* Repository represents a repository in the manager. */
+/* Repository represents a repository managed by the manager. */
 type Repo struct {
 	Enabled  bool
 	Token    string
 	Git      string
-	GitURL   string
 	UserName string
-	Version  string
+	CartonId string
+	BoxId    string
 }
 
 func (r Repo) IsEnabled() bool {
@@ -37,35 +38,39 @@ func (r Repo) GetToken() string {
 	return r.Token
 }
 
-func (r Repo) GetGit() string {
+func (r Repo) Gitr() string {
 	return r.Git
 }
 
-func (r Repo) GetGitURL() string {
-	return r.GitURL
+func (r Repo) Trigger() string {
+	return meta.MC.Api + "/assembly/build/" + r.CartonId + "/" + r.BoxId
 }
 
 func (r Repo) GetUserName() string {
 	return r.UserName
 }
 
-func (r Repo) GetVersion() string {
-	return r.Version
+func (r Repo) GetShortName(fullgit_url string) (string, error) {
+	i := strings.LastIndex(fullgit_url, "/")
+	if i < 0 {
+		return "", fmt.Errorf("unable to parse output of git")
+	}
+	return fullgit_url[i+1:], nil
 }
 
 type Repository interface {
 	IsEnabled() bool
 	GetToken() string
-	//GetGit() string
-	//GetGitURL() string
+	Gitr() string
+	Trigger() string
 	GetUserName() string
-	GetVersion() string
+	GetShortName() (string, error)
 }
 
 // RepositoryManager represents a manager of application repositories.
 type RepositoryManager interface {
-	CreateHook(username string, trigger string) error
-	RemoveHook(username string) error
+	CreateHook(r Repository) (string, error)
+	RemoveHook(r Repository) error
 }
 
 // Manager returns the current configured manager, as defined in the
