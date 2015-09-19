@@ -51,6 +51,7 @@ type Boxlog struct {
 	Unit    string
 }
 
+
 type BoxCompute struct {
 	Cpushare string
 	Memory   string
@@ -89,6 +90,15 @@ func (bc *BoxCompute) String() string {
 		RAM + ":" + bc.Memory,
 		HDD + ":" + bc.HDD},
 		",") + " ]"
+}
+
+// Boxlog represents a log entry.
+type BoxDeploy struct {
+	Date    time.Time
+	HookId  string
+	ImageId string
+	Name    string
+	Unit    string
 }
 
 // Box represents a provision unit. Can be a machine, container or anything

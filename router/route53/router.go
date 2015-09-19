@@ -2,9 +2,11 @@ package route53
 
 import (
 	"fmt"
+	"strings"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/karlentwistle/route53"
 	"github.com/megamsys/megamd/router"
-	"strings"
 )
 
 const (
@@ -31,6 +33,7 @@ func createRouter(name string) (router.Router, error) {
 			SecretKey: "secretkey",
 		},
 	}
+	log.Debugf("%s ready", routerName)
 	return vRouter, nil
 }
 
@@ -75,7 +78,7 @@ func (r route53Router) Addr(cname string) (string, error) {
 
 	rr, err := r.zone.ResourceRecordSets(r.client)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	for i := range rr.ResourceRecordSets {

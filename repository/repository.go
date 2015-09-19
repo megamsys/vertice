@@ -24,6 +24,7 @@ var managers map[string]RepositoryManager
 type Repo struct {
 	Enabled  bool
 	Token    string
+  SCM      string
 	Git      string
 	UserName string
 	CartonId string
@@ -33,6 +34,12 @@ type Repo struct {
 func (r Repo) IsEnabled() bool {
 	return r.Enabled
 }
+
+
+func (r Repo) GetSCM() string {
+	return r.SCM
+}
+
 
 func (r Repo) GetToken() string {
 	return r.Token
@@ -50,17 +57,18 @@ func (r Repo) GetUserName() string {
 	return r.UserName
 }
 
-func (r Repo) GetShortName(fullgit_url string) (string, error) {
-	i := strings.LastIndex(fullgit_url, "/")
+func (r Repo) GetShortName() (string, error) {
+	i := strings.LastIndex(r.Gitr(), "/")
 	if i < 0 {
 		return "", fmt.Errorf("unable to parse output of git")
 	}
-	return fullgit_url[i+1:], nil
+	return r.Gitr()[i+1:], nil
 }
 
 type Repository interface {
 	IsEnabled() bool
 	GetToken() string
+	GetSCM() string
 	Gitr() string
 	Trigger() string
 	GetUserName() string

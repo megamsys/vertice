@@ -12,6 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
 )
 
 type StateChangeOpts struct {
@@ -42,7 +43,7 @@ func ChangeState(opts *StateChangeOpts) error {
 func moveState(opts *StateChangeOpts, writer io.Writer) error {
 	if &opts.Changed != nil {
 		if changer, ok := Provisioner.(provision.StateChanger); ok {
-			return changer.SetState(opts.B,  writer, opts.Changed)
+			return changer.SetState(opts.B, writer, opts.Changed)
 		}
 	}
 	return nil
@@ -53,11 +54,27 @@ func saveStateData(opts *StateChangeOpts, slog string, duration time.Duration, c
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
 		cmd.Colorfy(duration.String(), "green", "", "bold"),
 		cmd.Colorfy(slog, "yellow", "", ""))
-	//if there are state changes to track as follows in outputs: {} then do it here.
-	//Riak: code to save the status of a deploy (created.)
-	// state :
-	//     name:
-	//     status:
+
+	if opts.B.Level == provision.BoxSome {
+		hookId, err := repository.Manager(opts.B.Repo.GetSCM()).CreateHook(opts.B.Repo)
+		if err != nil {
+			return nil
+		}
+
+		comp, err := NewComponent(opts.B.Id)
+
+		if err != nil {
+			return err
+		}
+
+			if err = comp.setDeployData(DeployData{
+				Timestamp: time.Now(),
+				Duration:  duration,
+				HookId:    hookId,
+			}); err != nil {
+				return err
+			}
+	}
 	return nil
 }
 
