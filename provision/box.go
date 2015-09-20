@@ -220,7 +220,7 @@ func (box *Box) Log(message, source, unit string) error {
 		}
 	}
 	if len(logs) > 0 {
-		//notify(bl.Name, logs)
+		_ = notify(box.Name, logs)
 	}
 	return nil
 }

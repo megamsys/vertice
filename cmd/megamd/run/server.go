@@ -79,7 +79,6 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 	}
 	srv := httpd.NewService(c)
 	//	srv.Handler.QueryExecutor = s.QueryExecutor
-	srv.Handler.Version = s.version
 
 	s.Services = append(s.Services, srv)
 }

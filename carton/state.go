@@ -1,7 +1,3 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package carton
 
 import (
@@ -55,25 +51,24 @@ func saveStateData(opts *StateChangeOpts, slog string, duration time.Duration, c
 		cmd.Colorfy(duration.String(), "green", "", "bold"),
 		cmd.Colorfy(slog, "yellow", "", ""))
 
-	if opts.B.Level == provision.BoxSome {
+	if opts.B.Level == provision.BoxSome && opts.B.Repo.Enabled {
 		hookId, err := repository.Manager(opts.B.Repo.GetSCM()).CreateHook(opts.B.Repo)
 		if err != nil {
 			return nil
 		}
 
 		comp, err := NewComponent(opts.B.Id)
-
 		if err != nil {
 			return err
 		}
 
-			if err = comp.setDeployData(DeployData{
-				Timestamp: time.Now(),
-				Duration:  duration,
-				HookId:    hookId,
-			}); err != nil {
-				return err
-			}
+		if err = comp.setDeployData(DeployData{
+			Timestamp: time.Now(),
+			Duration:  duration,
+			HookId:    hookId,
+		}); err != nil {
+			return err
+		}
 	}
 	return nil
 }

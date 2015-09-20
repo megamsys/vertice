@@ -54,7 +54,6 @@ func (s *Service) Open() error {
 		if err = s.setProvisioner(); err != nil {
 			return err
 		}
-
 		go s.processQueue(swt)
 	}
 
