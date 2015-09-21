@@ -18,9 +18,11 @@ func (s *S) TestHttpdConfig_Parse(c *check.C) {
 	if _, err := toml.Decode(`
 enabled = true
 bind_address = ":8080"
+use_tls =  false
 `, &cm); err != nil {
 		c.Fatal(err)
 	}
 
 	c.Assert(cm.BindAddress, check.Equals, "locahost")
+	c.Assert(cm.UseTls, check.Equals, false)
 }
