@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
+var ErrInvalidToken = errors.New("Invalid token")
+
 type Token interface {
 	GetValue() string
-	GetAppName() string
-	GetUserName() string
-	IsAppToken() bool
-	User() (*User, error)
-}
 
-var ErrInvalidToken = errors.New("Invalid token")
+	User() (*User, error)
+
+	GetUserName() string
+}
 
 // ParseToken extracts token from a header:
 // 'type token' or 'token'

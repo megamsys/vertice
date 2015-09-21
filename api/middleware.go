@@ -15,7 +15,7 @@ import (
 )
 
 func validate(token string, r *http.Request) (auth.Token, error) {
-	t, err := auth.APIAuth(token)
+	t, err := Auth(token)
 	if err != nil {
 		return nil, err
 	}

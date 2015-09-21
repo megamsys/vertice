@@ -110,6 +110,7 @@ func (s *S) TestAuthTokenMiddlewareWithToken(c *check.C) {
 	authTokenMiddleware(recorder, request, h)
 	c.Assert(log.called, check.Equals, true)
 	t := context.GetAuthToken(request)
+	c.Assert(t, check.NotNil)
 	c.Assert(t.GetValue(), check.Equals, s.token.GetValue())
 	c.Assert(t.GetUserName(), check.Equals, s.token.GetUserName())
 }
