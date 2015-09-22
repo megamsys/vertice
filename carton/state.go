@@ -52,7 +52,7 @@ func saveStateData(opts *StateChangeOpts, slog string, duration time.Duration, c
 		cmd.Colorfy(slog, "yellow", "", ""))
 
 	if opts.B.Level == provision.BoxSome && opts.B.Repo.Enabled {
-		hookId, err := repository.Manager(opts.B.Repo.GetSCM()).CreateHook(opts.B.Repo)
+		hookId, err := repository.Manager(opts.B.Repo.GetSource()).CreateHook(opts.B.Repo)
 		if err != nil {
 			return nil
 		}

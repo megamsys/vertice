@@ -93,7 +93,7 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
-	return p.deployPipeline(box, box.Repo.Git, w)
+	return p.deployPipeline(box, box.Repo.Gitr(), w)
 }
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {

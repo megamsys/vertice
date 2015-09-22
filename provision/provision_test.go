@@ -77,7 +77,7 @@ func (ProvisionSuite) TestStatusString(c *check.C) {
 }
 
 func (ProvisionSuite) TestStatuses(c *check.C) {
-	c.Check(StatusCreated.String(), check.Equals, "created")
+	c.Check(StatusBootstrapped.String(), check.Equals, "bootstrapped")
 	c.Check(StatusBuilding.String(), check.Equals, "building")
 	c.Check(StatusError.String(), check.Equals, "error")
 	c.Check(StatusStarted.String(), check.Equals, "started")
@@ -91,7 +91,7 @@ func (ProvisionSuite) TestBoxAvailable(c *check.C) {
 		input    Status
 		expected bool
 	}{
-		{StatusCreated, false},
+		{StatusBootstrapped, false},
 		{StatusStarting, true},
 		{StatusStarted, true},
 		{StatusBuilding, false},

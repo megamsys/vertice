@@ -4,16 +4,17 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 )
 
 type Carton struct {
 	Id         string //assemblyid
 	Name       string
-	CartonId   string
+	CartonsId  string
 	Tosca      string
-	Image      string
 	Compute    provision.BoxCompute
+	Repo       repository.Repo
 	DomainName string
 	Provider   string
 	Envs       []bind.EnvVar
@@ -40,16 +41,18 @@ func (c *Carton) lvl() provision.BoxLevel {
 }
 
 //Converts a carton to a box, if there are no boxes below.
-func (c *Carton) toBox() error {
+func (c *Carton) toBox() error { //assemblies id.
 	switch c.lvl() {
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			Id:         c.Id,    //this is a hack for torpedo
+			CartonId:   c.Id,    //this isn't needed.
+			Id:         c.Id,    //assembly id sent in ContextMap
+			CartonsId:  c.CartonsId,      //assembliesId,
 			Level:      c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			Name:       c.Name,
 			DomainName: c.DomainName,
 			Compute:    c.Compute,
-			Image:      c.Image,
+			Repo:       c.Repo,
 			Provider:   c.Provider,
 			Tosca:      c.Tosca,
 		},
@@ -61,7 +64,7 @@ func (c *Carton) toBox() error {
 // Deploy carton, which basically deploys the boxes.
 func (c *Carton) Deploy() error {
 	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box, Image: box.Image})
+		err := Deploy(&DeployOpts{B: &box})
 		if err != nil {
 			return err
 		}
@@ -114,7 +117,6 @@ func (c *Carton) Unbind(box *provision.Box) error {
 		}*/
 	return nil
 }
-
 
 // Group the related_components into BindInstances.
 func (c *Carton) Group() ([]*bind.YBoundBox, error) {

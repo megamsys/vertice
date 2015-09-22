@@ -43,8 +43,9 @@ func (m *Machine) Create(args *CreateArgs) error {
 		TemplateName: m.Image,
 		Cpu:          args.Compute.Cpushare,
 		Memory:       args.Compute.Memory,
-		Assembly_id:  args.Box.CartonId,
-		Client:       args.Provisioner.Cluster(),
+		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
+			compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		Client: args.Provisioner.Cluster(),
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
