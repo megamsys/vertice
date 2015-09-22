@@ -24,12 +24,12 @@ import (
 var (
 
 	//the state actions available are.
-	STATE     = "state"
-	CREATE    = "create"
-	CREATED   = "created"
-	DELETE    = "delete"
-	STATEUP   = "stateup"
-	STATEDOWN = "statedown"
+	STATE        = "state"
+	CREATE       = "create"
+	BOOTSTRAPPED = "bootstrapped"
+	DELETE       = "delete"
+	STATEUP      = "stateup"
+	STATEDOWN    = "statedown"
 
 	//the control actions available are.
 	CONTROL = "control"
@@ -78,7 +78,7 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 		return CreateProcess{
 			Name: p.name,
 		}, nil
-	case CREATED:
+	case BOOTSTRAPPED:
 		return StateupProcess{
 			Name: p.name,
 		}, nil

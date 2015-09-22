@@ -10,12 +10,18 @@ import (
 const (
 	defaultManager = "github"
 	CI             = "CI"
-	CI_ENABLED     = "ci-enabled"
-	CI_TOKEN       = "ci-token"
-	CI_SCM         = "ci-scm"
-	CI_USER        = "ci-user"
-	CI_URL         = "ci-url"
-	CI_APIVERSION  = "ci-apiversion"
+	CI_ENABLED     = "enabled"
+	CI_TOKEN       = "token"
+	CI_SOURCE      = "source"
+	CI_USER        = "username"
+	CI_URL         = "url"
+	CI_TYPE        = "type"
+
+	// IMAGE indicates that the repo is an image
+	IMAGE = "image"
+
+	// Git indicates that the repo is a GIT
+	GIT = "git"
 )
 
 var managers map[string]RepositoryManager
@@ -23,9 +29,10 @@ var managers map[string]RepositoryManager
 /* Repository represents a repository managed by the manager. */
 type Repo struct {
 	Enabled  bool
+	Type     string
 	Token    string
-  SCM      string
-	Git      string
+	Source   string
+	GitURL   string
 	UserName string
 	CartonId string
 	BoxId    string
@@ -35,18 +42,20 @@ func (r Repo) IsEnabled() bool {
 	return r.Enabled
 }
 
-
-func (r Repo) GetSCM() string {
-	return r.SCM
+func (r Repo) GetType() string {
+	return r.Type
 }
 
+func (r Repo) GetSource() string {
+	return r.Source
+}
 
 func (r Repo) GetToken() string {
 	return r.Token
 }
 
 func (r Repo) Gitr() string {
-	return r.Git
+	return r.GitURL
 }
 
 func (r Repo) Trigger() string {
@@ -65,10 +74,13 @@ func (r Repo) GetShortName() (string, error) {
 	return r.Gitr()[i+1:], nil
 }
 
+
+
 type Repository interface {
 	IsEnabled() bool
 	GetToken() string
-	GetSCM() string
+	GetType() string
+	GetSource() string
 	Gitr() string
 	Trigger() string
 	GetUserName() string

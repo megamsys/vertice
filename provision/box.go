@@ -105,13 +105,13 @@ type BoxDeploy struct {
 // IP-addressable.
 type Box struct {
 	Id         string
+	CartonsId  string
 	CartonId   string
 	Level      BoxLevel
 	Name       string
 	DomainName string
 	Tosca      string
 	Compute    BoxCompute
-	Image      string
 	Repo       repository.Repo
 	Status     Status
 	Provider   string

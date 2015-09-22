@@ -22,6 +22,7 @@ import (
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
@@ -108,9 +109,40 @@ func (a *Assembly) dig() error {
 	return nil
 }
 
+//mkAssemblies into a carton. Just use what you need inside this carton
+//a carton comprises of self contained boxes (actually a "colored component") externalized
+//with what we need.
+func mkCarton(aies string, ay string) (*Carton, error) {
+	a, err := get(ay)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := a.mkBoxes(aies)
+	if err != nil {
+		return nil, err
+	}
+
+	repo := NewRepo(a.Operations, repository.CI)
+
+	c := &Carton{
+		Id:         ay,   //assembly id
+		CartonsId:  aies, //assemblies id
+		Name:       a.Name,
+		Tosca:      a.Tosca,
+		Envs:       a.envs(),
+		Repo:       repo,
+		DomainName: a.domain(),
+		Compute:    a.newCompute(),
+		Provider:   a.provider(),
+		Boxes:      &b,
+	}
+	return c, nil
+}
+
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
-func (a *Assembly) mkBoxes() ([]provision.Box, error) {
+func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 
 	for _, comp := range a.Components {
@@ -119,6 +151,7 @@ func (a *Assembly) mkBoxes() ([]provision.Box, error) {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
+				b.CartonsId = aies
 				b.Repo.CartonId = a.Id
 				b.Repo.BoxId = comp.Id
 				b.Compute = a.newCompute()
@@ -138,53 +171,12 @@ func (a *Assembly) newCompute() provision.BoxCompute {
 	}
 }
 
-//mkAssemblies into a carton. Just use what you need inside this carton
-//a carton comprises of self contained boxes (actually a "colored component") externalized
-//with what we need.
-func mkCarton(id string) (*Carton, error) {
-	a, err := get(id)
-	if err != nil {
-		return nil, err
-	}
-
-	b, err := a.mkBoxes()
-	if err != nil {
-		return nil, err
-	}
-
-	c := &Carton{
-		Id:         id,
-		Name:       a.Name,
-		Tosca:      a.Tosca,
-		Envs:       a.envs(),
-		DomainName: a.domain(),
-		Compute:    a.newCompute(),
-		Image:      a.image(),
-		Provider:   a.provider(),
-		Boxes:      &b,
-	}
-	return c, nil
-}
-
 func (a *Assembly) domain() string {
 	return a.Inputs.match(DOMAIN)
 }
 
 func (a *Assembly) provider() string {
 	return a.Inputs.match(provision.PROVIDER)
-}
-
-// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
-// for docker return the Inputs[image]
-func (a *Assembly) image() string {
-	switch a.provider() {
-	case provision.PROVIDER_ONE:
-		return a.Tosca[strings.LastIndex(a.Tosca, ".")+1:]
-	case provision.PROVIDER_DOCKER:
-		return a.Inputs.match("image")
-	default:
-		return ""
-	}
 }
 
 //all the variables in the inputs shall be treated as ENV.
