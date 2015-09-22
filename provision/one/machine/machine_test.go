@@ -18,7 +18,7 @@ func (s *S) TestContainerAvailable(c *check.C) {
 		Expected bool
 	}{
 		{provision.StatusBuilding.String(), false},
-		{provision.StatusCreated.String(), false},
+		{provision.StatusBootstrapped.String(), false},
 		{provision.StatusError.String(), false},
 		{provision.StatusStarted.String(), true},
 		{provision.StatusStarting.String(), true},

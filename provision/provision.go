@@ -51,12 +51,12 @@ const (
 	// provisioner, like in the deployment.
 	StatusCreating = Status("creating")
 
-	// StatusCreated is the status for box after being provisioned by the
+	// StatusBootstrapped is the status for box after being provisioned by the
 	// provisioner, updated by gulp
-	StatusCreated = Status("created")
+	StatusBootstrapped = Status("boostrapped")
 
 	// Stateup is the status for box being statefully moved to a different state.
-	// Sent by megamd to gulpd when it received StatusCreated.
+	// Sent by megamd to gulpd when it received StatusBootstrapped.
 	StatusStateup = Status("stateup")
 
 	// StatusDestroying the status for box being deleted by the
