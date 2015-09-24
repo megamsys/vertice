@@ -21,11 +21,12 @@ import (
 	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 	"strconv"
+	"strings"
 	"time"
 )
 
 const (
-	DOMAIN = "DOMAIN"
+	DOMAIN = "domain"
 	BUCKET = "components"
 )
 
@@ -44,7 +45,7 @@ type Artifacts struct {
 type Component struct {
 	Id                string        `json:"id"`
 	Name              string        `json:"name"`
-	ToscaType         string        `json:"tosca_type"`
+	Tosca             string        `json:"tosca_type"`
 	Inputs            JsonPairs     `json:"inputs"`
 	Outputs           JsonPairs     `json:"outputs"`
 	Artifacts         *Artifacts    `json:"artifacts"`
@@ -78,35 +79,37 @@ func (c *Component) mkBox() (provision.Box, error) {
 	repo := c.NewRepo(repository.CI)
 
 	return provision.Box{
-		ComponentId: c.Id,
-		Name:        c.Name,
-		DomainName:  c.Inputs.match(DOMAIN),
-		Tosca:       c.ToscaType,
-		Commit:      "",
-		Image:       "",
-		Repo:        repo,
-		Provider:    c.Inputs.match(provision.PROVIDER),
-		Ip:          "",
+		Id:         c.Id,
+		Level:      provision.BoxSome,
+		Name:       c.Name,
+		DomainName: c.domain(),
+		Tosca:      c.Tosca,
+		Commit:     "",
+		Image:      c.image(),
+		Repo:       repo,
+		Provider:   c.provider(),
+		Ip:         "",
 	}, nil
 }
 
-func (c *Component) SetStatus(status provision.Status) {
+func (c *Component) SetStatus(status provision.Status) error {
 	LastStatusUpdate := time.Now().In(time.UTC)
 
-	if c.Status == provision.StatusDeploying.String() || //do we need this status check ?
-		c.Status == provision.StatusCreating.String() ||
-		c.Status == provision.StatusCreated.String() ||
-		c.Status == provision.StatusStateup.String() {
-		c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
-		c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
-	}
+	/*
+	   //masking this check for now. why do we need this status check ?
+	   if c.Status == provision.StatusDeploying.String() ||
+	   		c.Status == provision.StatusCreating.String() ||
+	   		c.Status == provision.StatusCreated.String() ||
+	   		c.Status == provision.StatusStateup.String() {
+	*/
+	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
+	c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
+	//	}
 
-	//	defer db.Close()
 	if err := db.Store(BUCKET, c.Id, c); err != nil {
-		//return err
+		return err
 	}
-
-	//return nil
+	return nil
 
 }
 
@@ -128,6 +131,27 @@ func (c *Component) NewRepo(ci string) repository.Repo {
 	}
 	return repository.Repo{}
 
+}
+
+func (c *Component) domain() string {
+	return c.Inputs.match(DOMAIN)
+}
+
+func (c *Component) provider() string {
+	return c.Inputs.match(provision.PROVIDER)
+}
+
+// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
+// for docker return the Inputs[image]
+func (c *Component) image() string {
+	switch c.provider() {
+	case provision.PROVIDER_ONE:
+		return c.Tosca[strings.LastIndex(c.Tosca, ".")+1:]
+	case provision.PROVIDER_DOCKER:
+		return c.Inputs.match("image")
+	default:
+		return ""
+	}
 }
 
 func parseOps(ops []*Operations, optype string) *Operations {

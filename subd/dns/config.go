@@ -1,8 +1,12 @@
 package dns
 
 import (
-	"github.com/megamsys/libgo/cmd"
+	"bytes"
+	"fmt"
 	"strconv"
+	"text/tabwriter"
+
+	"github.com/megamsys/libgo/cmd"
 )
 
 type Config struct {
@@ -12,12 +16,17 @@ type Config struct {
 }
 
 func (c Config) String() string {
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("DNS", "green", "", "")})
-	table.AddRow(cmd.Row{"Enabled", strconv.FormatBool(c.Enabled)})
-	table.AddRow(cmd.Row{"Accesskey", c.Route53AccessKey})
-	table.AddRow(cmd.Row{"Secretkey", c.Route53SecretKey})
-	return table.String()
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+		cmd.Colorfy("Route", "green", "", "") + "\n"))
+	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte("AccessKey" + "\t" + c.Route53AccessKey + "\n"))
+	b.Write([]byte("SecretKey" + "\t" + c.Route53SecretKey + "\n"))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String()
 }
 
 func NewConfig() *Config {

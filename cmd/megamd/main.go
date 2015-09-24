@@ -28,12 +28,13 @@ var (
 	version string = "0.9"
 	commit  string = "01"
 	branch  string = "master"
-	header  string = "supported"
 )
 
 func init() {
 	// Output to stderr instead of stdout, could also be a file.
 	log.SetOutput(os.Stdout)
+	log.SetLevel(log.DebugLevel)
+
 }
 
 // Only log debug level when the -v flag is passed.

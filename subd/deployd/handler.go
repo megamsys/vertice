@@ -15,10 +15,13 @@ func NewHandler(c *Config) *Handler {
 }
 
 func (h *Handler) serveAMQP(r *carton.Requests) error {
-	if _, err := carton.ParseRequest(r.Name); err != nil {
-		if rp := carton.NewReqOperator("nil"); rp != nil {
-			return rp.Accept(nil)
-		}
+	p, err := carton.ParseRequest(r.CatId, r.Category, r.Action)
+	if err != nil {
+		return err
+	}
+
+	if rp := carton.NewReqOperator(r.CatId); rp != nil {
+		return rp.Accept(&p)
 	}
 	return nil
 }

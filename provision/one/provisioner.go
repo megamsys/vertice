@@ -17,21 +17,31 @@
 package one
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"text/tabwriter"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/router"
-	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/opennebula-go/api"
+)
+
+const (
+	ONE_ENDPOINT = "one_endpoint"
+	ONE_USERID   = "one_userid"
+	ONE_PASSWORD = "one_password"
+	ONE_TEMPLATE = "one_template"
 )
 
 var mainOneProvisioner *oneProvisioner
 
 func init() {
 	mainOneProvisioner = &oneProvisioner{}
+	log.Debugf("Registering one")
 	provision.Register("one", mainOneProvisioner)
 }
 
@@ -46,13 +56,20 @@ func (p *oneProvisioner) Cluster() *api.Rpc {
 	return p.cluster
 }
 
+func (p *oneProvisioner) String() string {
+	if p.cluster == nil {
+		return "nil one cluster"
+	}
+	return "yeehaw! ready"
+}
+
 func (p *oneProvisioner) Initialize(m map[string]string) error {
 	return p.initOneCluster(m)
 }
 
 func (p *oneProvisioner) initOneCluster(m map[string]string) error {
-	client, err := api.NewRPCClient(m[deployd.ONE_ENDPOINT], m[deployd.ONE_USERID], m[deployd.ONE_PASSWORD])
-	p.cluster = &client
+	client, err := api.NewRPCClient(m[ONE_ENDPOINT], m[ONE_USERID], m[ONE_PASSWORD])
+	p.cluster = client
 	return err
 }
 
@@ -65,12 +82,17 @@ func getRouterForBox(box *provision.Box) (router.Router, error) {
 }
 
 func (p *oneProvisioner) StartupMessage() (string, error) {
-	out := "One provisioner reports the following:\n"
-	out += fmt.Sprintf("    One xmlrpc initiated: %#v\n", p.Cluster())
-	return out, nil
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("One", "white", "", "bold") + "\t" +
+		cmd.Colorfy("provisioner xmlrpc "+p.String(), "purple", "", "bold")))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String(), nil
 }
 
-func (p *oneProvisioner) GitDeploy(box *provision.Box, version string, w io.Writer) (string, error) {
+func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
 	return "nada", nil
 }
 
@@ -91,7 +113,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Riak - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "\n---- Create %s box %s %s ----\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, "\n---- create %s box %s ----\n", box.GetFullName(), imageId)
 	actions := []*action.Action{
 		&updateStatusInRiak,
 		&createMachine,
@@ -111,14 +133,14 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		log.Errorf("error on execute deploy pipeline for box %s - %s", box.GetFullName(), err)
+		fmt.Fprintf(w,"deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
 		return "", err
 	}
 	return imageId, nil
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- Removing %s ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n---- removing %s ----\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,

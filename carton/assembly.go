@@ -16,6 +16,8 @@
 package carton
 
 import (
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
@@ -38,7 +40,7 @@ type ambly struct {
 	Id           string        `json:"id"`
 	Name         string        `json:"name"`
 	JsonClaz     string        `json:"json_claz"`
-	ToscaType    string        `json:"tosca_type"`
+	Tosca        string        `json:"tosca_type"`
 	Requirements JsonPairs     `json:"requirements"`
 	Policies     []*Policy     `json:"policies"`
 	Inputs       JsonPairs     `json:"inputs"`
@@ -62,38 +64,23 @@ func (a *Assembly) String() string {
 	}
 }
 
-func (a *Assembly) NewCompute() provision.BoxCompute {
-	return provision.BoxCompute{
-		Cpushare: a.getCpushare(),
-		Memory:   a.getMemory(),
-		Swap:     a.getSwap(),
-		HDD:      a.getHDD(),
-	}
+//for now, create a newcompute which is used during a SetStatus.
+//We can add a Notifier interface which can be passed in the Box ?
+func NewAssembly(id string) (*Assembly, error) {
+	return get(id)
 }
 
-//mkAssemblies into a carton. Just use what you need inside this carton
-//a carton comprises of self contained boxes (actually a "colored component") externalized
-//with what we need.
-func mkCarton(id string) (*Carton, error) {
-	a, err := get(id)
-	if err != nil {
-		return nil, err
-	}
+func (a *Assembly) SetStatus(status provision.Status) error {
+	LastStatusUpdate := time.Now().In(time.UTC)
 
-	b, err := a.mkBoxes()
-	if err != nil {
-		return nil, err
-	}
+	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
+	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
 
-	c := &Carton{
-		AssemblyId: id,
-		Name:       a.Name,
-		Tosca:      a.ToscaType,
-		Envs:       a.envs(),
-		Boxes:      &b,
+	if err := db.Store(BUCKET, a.Id, a); err != nil {
+		return err
 	}
+	return nil
 
-	return c, nil
 }
 
 //get the assebmly and its full detail of a component. we only store the
@@ -131,13 +118,71 @@ func (a *Assembly) mkBoxes() ([]provision.Box, error) {
 			if b, err := comp.mkBox(); err != nil {
 				return nil, err
 			} else {
-				b.AssemblyId = a.Id
-				b.Compute = a.NewCompute()
+				b.CartonId = a.Id
+				b.Compute = a.newCompute()
 				newBoxs = append(newBoxs, b)
 			}
 		}
 	}
 	return newBoxs, nil
+}
+
+func (a *Assembly) newCompute() provision.BoxCompute {
+	return provision.BoxCompute{
+		Cpushare: a.getCpushare(),
+		Memory:   a.getMemory(),
+		Swap:     a.getSwap(),
+		HDD:      a.getHDD(),
+	}
+}
+
+//mkAssemblies into a carton. Just use what you need inside this carton
+//a carton comprises of self contained boxes (actually a "colored component") externalized
+//with what we need.
+func mkCarton(id string) (*Carton, error) {
+	a, err := get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := a.mkBoxes()
+	if err != nil {
+		return nil, err
+	}
+
+	c := &Carton{
+		Id:         id,
+		Name:       a.Name,
+		Tosca:      a.Tosca,
+		Envs:       a.envs(),
+		DomainName: a.domain(),
+		Compute:    a.newCompute(),
+		Image:      a.image(),
+		Provider:   a.provider(),
+		Boxes:      &b,
+	}
+	return c, nil
+}
+
+func (a *Assembly) domain() string {
+	return a.Inputs.match(DOMAIN)
+}
+
+func (a *Assembly) provider() string {
+	return a.Inputs.match(provision.PROVIDER)
+}
+
+// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
+// for docker return the Inputs[image]
+func (a *Assembly) image() string {
+	switch a.provider() {
+	case provision.PROVIDER_ONE:
+		return a.Tosca[strings.LastIndex(a.Tosca, ".")+1:]
+	case provision.PROVIDER_DOCKER:
+		return a.Inputs.match("image")
+	default:
+		return ""
+	}
 }
 
 //all the variables in the inputs shall be treated as ENV.

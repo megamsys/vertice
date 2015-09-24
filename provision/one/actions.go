@@ -40,16 +40,16 @@ var updateStatusInRiak = action.Action{
 	Name: "update-status-riak",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("update status for machine %s, based on image %s for %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("update status for machine %s image %s for %s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		mach := machine.Machine{
-			Name:          args.box.GetFullName(),
-			Image:         args.imageId,
-			ComponentId:   args.box.ComponentId,
-			BuildingImage: args.machineStatus,
+			Id:    args.box.Id,
+			Level: args.box.Level,
+			Name:  args.box.GetFullName(),
+			Image: args.imageId,
 		}
 
-		mach.SetStatus(mach.BuildingImage)
+		mach.SetStatus(args.machineStatus)
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -63,7 +63,7 @@ var createMachine = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("create machine for box %s, based on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("create machine for box %s, on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
@@ -72,9 +72,9 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
-			log.Errorf("error on create container for app %s - %s", args.box.GetFullName(), err)
 			return nil, err
 		}
+		args.machineStatus = provision.StatusCreating
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -84,7 +84,7 @@ var createMachine = action.Action{
 
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Failed to remove the container %q: %s", c.Name, c.ComponentId, err)
+			log.Errorf("Failed to remove the machine %q: %s", c.Name, c.Id, err)
 		}
 	},
 }
@@ -102,9 +102,9 @@ var removeOldMachine = action.Action{
 
 		err := mach.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Ignored error trying to remove old machine %q: %s", mach.ComponentId, err)
+			log.Errorf("Ignored error trying to remove old machine %q: %s", mach.Id, err)
 		}
-		fmt.Fprintf(writer, " ---> Removed old machine %s [%s]\n", mach.ComponentId, mach.Name)
+		fmt.Fprintf(writer, "\n---- Removed old machine %s [%s]\n", mach.Id, mach.Name)
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -159,7 +159,7 @@ var addNewRoutes = action.Action{
 			if err != nil {
 				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
 			}
-			fmt.Fprintf(w, " ---> Removed route from machine %s [%s]\n", mach.ComponentId, mach.Name)
+			fmt.Fprintf(w, " ---> Removed route from machine %s [%s]\n", mach.Id, mach.Name)
 		}
 	},
 	OnError: rollbackNotice,

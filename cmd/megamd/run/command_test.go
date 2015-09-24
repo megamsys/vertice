@@ -12,35 +12,31 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
- */
-package main
+*/
+package run
 
 import (
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/cmd/megamd/run"
 	"gopkg.in/check.v1"
-	"os"
 )
 
 type S struct{}
 
 var _ = check.Suite(&S{})
 
-func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
-	baseManager := cmd.NewManager("megamd", "0.9.1", os.Stdout, os.Stderr, os.Stdin, nil, nil)
-	manager := cmdRegistry("megamd")
+func (s *S) TestMegamStartInfo(c *check.C) {
+	desc := `starts the megamd daemon.
 
-	for name, instance := range baseManager.Commands {
-		command, ok := manager.Commands[name]
-		c.Assert(ok, check.Equals, true)
-		c.Assert(command, check.FitsTypeOf, instance)
+If you use the '--dry' flag megamd will do a dry run(parse conf/jsons) and exit.
+
+`
+
+	expected := &cmd.Info{
+		Name:    "start",
+		Usage:   `start [--dry] [--config]`,
+		Desc:    desc,
+		MinArgs: 0,
 	}
-
-}
-
-func (s *S) TestStartIsRegistered(c *check.C) {
-	manager := cmdRegistry("megamd")
-	create, ok := manager.Commands["start"]
-	c.Assert(ok, check.Equals, true)
-	c.Assert(create, check.FitsTypeOf, &run.Start{})
+	command := Start{}
+	c.Assert(command.Info(), check.DeepEquals, expected)
 }

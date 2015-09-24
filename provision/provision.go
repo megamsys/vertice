@@ -42,18 +42,6 @@ func (s Status) String() string {
 	return string(s)
 }
 
-func ParseStatus(status string) (Status, error) {
-	switch status {
-	case "deploying":
-		return StatusDeploying, nil
-	case "creating":
-		return StatusCreating, nil
-	case "error":
-		return StatusError, nil
-	}
-	return Status(""), ErrInvalidStatus
-}
-
 const (
 	// StatusDeploying is the initial status of a box in the database
 	// it should transition shortly to a more specific status

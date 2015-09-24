@@ -1,15 +1,16 @@
 package deployd
 
 import (
+	"bytes"
+	"fmt"
+	"text/tabwriter"
+
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/one"
 )
 
 const (
-	ONE_ENDPOINT = "one_endpoint"
-	ONE_USERID   = "one_userid"
-	ONE_PASSWORD = "one_password"
-	ONE_TEMPLATE = "one_template"
 	// Default provisioning provider for vms is OpenNebula.
 	// This is just an endpoint for Megam. We could have openstack, chef, salt, puppet etc.
 	DefaultProvider = "one"
@@ -52,23 +53,26 @@ func NewConfig() *Config {
 }
 
 func (c Config) String() string {
-	table := cmd.NewTable()
-	table.AddRow(cmd.Row{cmd.Colorfy("Config:", "white", "", "bold"), cmd.Colorfy("Deployd", "green", "", "")})
-	table.AddRow(cmd.Row{provision.PROVIDER, c.Provider})
-	table.AddRow(cmd.Row{ONE_ENDPOINT, c.OneEndPoint})
-	table.AddRow(cmd.Row{ONE_USERID, c.OneUserid})
-	table.AddRow(cmd.Row{ONE_PASSWORD, c.OnePassword})
-	table.AddRow(cmd.Row{ONE_TEMPLATE, c.OneTemplate})
-	table.AddRow(cmd.Row{"", ""})
-	return table.String()
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+		cmd.Colorfy("Deployd", "green", "", "") + "\n"))
+	b.Write([]byte(provision.PROVIDER + "\t" + c.Provider + "\n"))
+	b.Write([]byte(one.ONE_ENDPOINT + "\t" + c.OneEndPoint + "\n"))
+	b.Write([]byte(one.ONE_USERID + "\t" + c.OneUserid + "\n"))
+	b.Write([]byte(one.ONE_PASSWORD + "\t" + c.OnePassword))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String()
 }
 
 //convert the config to just a map.
 func (c Config) toMap() map[string]string {
 	m := make(map[string]string)
-	m[ONE_ENDPOINT] = c.OneEndPoint
-	m[ONE_USERID] = c.OneUserid
-	m[ONE_PASSWORD] = c.OnePassword
-	m[ONE_TEMPLATE] = c.OneTemplate
+	m[one.ONE_ENDPOINT] = c.OneEndPoint
+	m[one.ONE_USERID] = c.OneUserid
+	m[one.ONE_PASSWORD] = c.OnePassword
+	m[one.ONE_TEMPLATE] = c.OneTemplate
 	return m
 }

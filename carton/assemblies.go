@@ -18,12 +18,10 @@ package carton
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
-	"github.com/megamsys/megamd/provision"
+	//	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
-
-var Provisioner provision.Provisioner
 
 type Cartons []*Carton
 type JsonPairs []*JsonPair
@@ -77,6 +75,7 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 			if b, err := mkCarton(ai); err != nil {
 				return nil, err
 			} else {
+				b.toBox() //carton to box if the BoxLevel is BoxZero
 				newCs = append(newCs, b)
 			}
 		}

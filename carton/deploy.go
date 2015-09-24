@@ -22,13 +22,13 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 )
 
 type DeployOpts struct {
-	B      *provision.Box
-	Image 	string
-//	Config deployd.Config
+	B     *provision.Box
+	Image string //why this image ?
 }
 
 // Deploy runs a deployment of an application. It will first try to run an
@@ -61,26 +61,20 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
 }
 
-func saveDeployData(opts *DeployOpts, imageId, log string, duration time.Duration, deployError error) error {
-/*	comp := Components{
-		App:       opts.Box.Name,
-		Timestamp: time.Now(),
-		Duration:  duration,
-		Commit:    opts.Commit,
-		Image:     imageId,
-		Log:       log,
-		User:      opts.User,
-	}
-
-	if deployError != nil {
-		deploy.Error = deployError.Error()
-	}
-*/
+func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Duration, deployError error) error {
+	log.Debugf("%s in (%s)\n%s",
+		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
+		cmd.Colorfy(duration.String(), "green", "", "bold"),
+		cmd.Colorfy(dlog, "yellow", "", ""))
+	//if there are deployments to track as follows in outputs: {} then do it here.
 	//Riak: code to save the status of a deploy (created.)
+	// deploy :
+	//     name:
+	//     status:
 	return nil
 }
 
 func markDeploysAsRemoved(boxName string) error {
-	//Riak: code to nuke a box out (component)
+	//Riak: code to nuke deploys out of a box
 	return nil
 }
