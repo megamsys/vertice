@@ -44,13 +44,12 @@ type BoxLevel int
 
 // Boxlog represents a log entry.
 type Boxlog struct {
-	Date    time.Time
-	Message string
-	Source  string
-	Name    string
-	Unit    string
+	Timestamp time.Time
+	Message   string
+	Source    string
+	Name      string
+	Unit      string
 }
-
 
 type BoxCompute struct {
 	Cpushare string
@@ -104,20 +103,21 @@ type BoxDeploy struct {
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	Id         string
-	CartonsId  string
-	CartonId   string
-	Level      BoxLevel
-	Name       string
-	DomainName string
-	Tosca      string
-	Compute    BoxCompute
-	Repo       repository.Repo
-	Status     Status
-	Provider   string
-	Commit     string
-	Address    *url.URL
-	Ip         string
+	Id           string
+	CartonsId    string
+	CartonId     string
+	Level        BoxLevel
+	Name         string
+	DomainName   string
+	Tosca        string
+	ImageVersion string
+	Compute      BoxCompute
+	Repo         repository.Repo
+	Status       Status
+	Provider     string
+	Commit       string
+	Address      *url.URL
+	Ip           string
 }
 
 func (b *Box) String() string {
@@ -210,11 +210,11 @@ func (box *Box) Log(message, source, unit string) error {
 	for _, msg := range messages {
 		if msg != "" {
 			bl := Boxlog{
-				Date:    time.Now().In(time.UTC),
-				Message: msg,
-				Source:  source,
-				Name:    box.Name,
-				Unit:    box.Id,
+				Timestamp: time.Now().In(time.UTC),
+				Message:   msg,
+				Source:    source,
+				Name:      box.Name,
+				Unit:      box.Id,
 			}
 			logs = append(logs, bl)
 		}

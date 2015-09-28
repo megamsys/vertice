@@ -8,20 +8,21 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// A carton represents a real world assembly.
+// This struct provides and easy way to manage information about an assembly, instead passing it around
 type Carton struct {
-	Id         string //assemblyid
-	Name       string
-	CartonsId  string
-	Tosca      string
-	Compute    provision.BoxCompute
-	Repo       repository.Repo
-	DomainName string
-	Provider   string
-	Envs       []bind.EnvVar
-	Boxes      *[]provision.Box
+	Id           string //assemblyid
+	Name         string
+	CartonsId    string
+	Tosca        string
+	ImageVersion string
+	Compute      provision.BoxCompute
+	Repo         repository.Repo
+	DomainName   string
+	Provider     string
+	Envs         []bind.EnvVar
+	Boxes        *[]provision.Box
 }
-
-var Provisioner provision.Provisioner
 
 func (a *Carton) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
@@ -30,6 +31,11 @@ func (a *Carton) String() string {
 		return string(d)
 	}
 }
+
+//A global provisioner set by the subd daemon.
+//A BUG, the Provisioner can't be a global variable as
+//this will be overwritten if multiple subd daemons set something.
+var Provisioner provision.Provisioner
 
 //If there are boxes, then it set the enum BoxSome or its BoxZero
 func (c *Carton) lvl() provision.BoxLevel {
@@ -40,21 +46,22 @@ func (c *Carton) lvl() provision.BoxLevel {
 	}
 }
 
-//Converts a carton to a box, if there are no boxes below.
+//Converts a carton to a box, (applicable in torpedo case)
 func (c *Carton) toBox() error { //assemblies id.
 	switch c.lvl() {
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			CartonId:   c.Id,    //this isn't needed.
-			Id:         c.Id,    //assembly id sent in ContextMap
-			CartonsId:  c.CartonsId,      //assembliesId,
-			Level:      c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
-			Name:       c.Name,
-			DomainName: c.DomainName,
-			Compute:    c.Compute,
-			Repo:       c.Repo,
-			Provider:   c.Provider,
-			Tosca:      c.Tosca,
+			CartonId:     c.Id,        //this isn't needed.
+			Id:           c.Id,        //assembly id sent in ContextMap
+			CartonsId:    c.CartonsId, //assembliesId,
+			Level:        c.lvl(),     //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
+			Name:         c.Name,
+			ImageVersion: c.ImageVersion,
+			DomainName:   c.DomainName,
+			Compute:      c.Compute,
+			Repo:         c.Repo,
+			Provider:     c.Provider,
+			Tosca:        c.Tosca,
 		},
 		}
 	}

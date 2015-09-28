@@ -13,7 +13,7 @@ func (s *S) TestDeploydConfig_Parse(c *check.C) {
 		one_endpoint = "http://opennebula:3000/xmlrpc2"
 		one_userid   = "oneadmin"
 		one_password = "password"
-		one_template = "megam_trusty"
+		one_template = "megam"
 		one_zone     = "plano01"
 		certificate = "/etc/ssl/cert.pem"
 
@@ -22,6 +22,8 @@ func (s *S) TestDeploydConfig_Parse(c *check.C) {
 	}
 
 	c.Assert(cm.OneEndPoint, check.Equals, "locahost")
-	c.Assert(cm.OneUserid, check.Equals, "locahost")
-	c.Assert(cm.OnePassword, check.Equals, "locahost")
+	c.Assert(cm.OneUserid, check.Equals, "oneadmin")
+	c.Assert(cm.OnePassword, check.Equals, "password")
+	c.Assert(cm.OneTemplate, check.Equals, "megam")
+
 }
