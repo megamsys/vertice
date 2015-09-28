@@ -18,7 +18,7 @@ package run
 
 import (
 	"fmt"
-	"os/user"
+	"os"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -41,9 +41,8 @@ var _ = check.Suite(&S{})
 // NewTestConfig returns the default config with temporary paths.
 func NewTestConfig() *Config {
 	cm := NewConfig()
-	u, _ := user.Current()
-	if _, err := toml.DecodeFile(u.HomeDir+"/code/megam/go/src/github.com/megamsys/megamd/conf/megamd.conf", cm); err != nil {
-		//if _, err := toml.DecodeFile(u.HomeDir+"./conf/megamd.conf", cm); err != nil {
+	u, _ := os.Getwd()
+	if _, err := toml.DecodeFile(u+"/megamd.conf", &cm); err != nil {
 		fmt.Println(err.Error())
 		return nil
 	}
