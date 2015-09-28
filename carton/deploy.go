@@ -18,9 +18,10 @@ package carton
 
 import (
 	"bytes"
+	"fmt"
 	"io"
-	"time"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
@@ -75,6 +76,19 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
 }
 
+// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
+// for docker return the Inputs[image]
+func image(b *provision.Box) string {
+	switch b.Provider {
+	case provision.PROVIDER_ONE:
+		return fmt.Sprintf("%s_%s", b.Tosca[strings.LastIndex(b.Tosca, ".")+1:], b.ImageVersion)
+	case provision.PROVIDER_DOCKER:
+		return b.Repo.Gitr()
+	default:
+		return ""
+	}
+}
+
 func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Duration, deployError error) error {
 	log.Debugf("%s in (%s)\n%s",
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
@@ -112,17 +126,4 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 func markDeploysAsRemoved(boxName string) error {
 	//Riak: code to nuke deploys out of a box
 	return nil
-}
-
-// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
-// for docker return the Inputs[image]
-func image(b *provision.Box) string {
-	switch b.Provider {
-	case provision.PROVIDER_ONE:
-		return b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
-	case provision.PROVIDER_DOCKER:
-		return b.Repo.Gitr()
-	default:
-		return ""
-	}
 }
