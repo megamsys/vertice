@@ -12,7 +12,7 @@
 ** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
-*/
+ */
 package run
 
 import (
@@ -20,14 +20,10 @@ import (
 	"gopkg.in/check.v1"
 )
 
-type S struct{}
-
-var _ = check.Suite(&S{})
-
 func (s *S) TestMegamStartInfo(c *check.C) {
-	desc := `starts the megamd daemon.
+	desc := `starts megamd.
 
-If you use the '--dry' flag megamd will do a dry run(parse conf/jsons) and exit.
+If you use the '--dry' flag megamd will do a dry run(parse conf) and exit.
 
 `
 

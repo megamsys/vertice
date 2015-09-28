@@ -51,12 +51,12 @@ const (
 	// provisioner, like in the deployment.
 	StatusCreating = Status("creating")
 
-	// StatusCreated is the status for box after being provisioned by the
+	// StatusBootstrapped is the status for box after being provisioned by the
 	// provisioner, updated by gulp
-	StatusCreated = Status("created")
+	StatusBootstrapped = Status("boostrapped")
 
 	// Stateup is the status for box being statefully moved to a different state.
-	// Sent by megamd to gulpd when it received StatusCreated.
+	// Sent by megamd to gulpd when it received StatusBootstrapped.
 	StatusStateup = Status("stateup")
 
 	// StatusDestroying the status for box being deleted by the
@@ -121,11 +121,18 @@ type ImageDeployer interface {
 	ImageDeploy(b *Box, image string, w io.Writer) (string, error)
 }
 
+// StateChanger changes the state of a deployed box
+// A deployed box is termed as a machine or a container
+type StateChanger interface {
+	SetState(*Box, io.Writer, Status) error
+}
+
 // Provisioner is the basic interface of this package.
 //
 // Any megamd provisioner must implement this interface in order to provision
 // megamd cartons.
 type Provisioner interface {
+
 	// Destroy is called when megamd is destroying the box.
 	Destroy(*Box, io.Writer) error
 

@@ -23,6 +23,7 @@ import (
 	"strings"
 )
 
+
 type Cartons []*Carton
 type JsonPairs []*JsonPair
 
@@ -68,15 +69,16 @@ func Get(id string) (*Assemblies, error) {
 	return a, nil
 }
 
+//make carton from assemblies.
 func (a *Assemblies) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, len(a.AssemblysId))
-	for _, ai := range a.AssemblysId {
-		if len(strings.TrimSpace(ai)) > 1 {
-			if b, err := mkCarton(ai); err != nil {
+	for _, ay := range a.AssemblysId {
+		if len(strings.TrimSpace(ay)) > 1 {
+			if ca, err := mkCarton(a.Id, ay); err != nil {
 				return nil, err
 			} else {
-				b.toBox() //carton to box if the BoxLevel is BoxZero
-				newCs = append(newCs, b)
+				ca.toBox() //on success, If BoxLevel is BoxZero
+				newCs = append(newCs, ca) //on success append carton
 			}
 		}
 	}

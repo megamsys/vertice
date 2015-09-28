@@ -1,13 +1,3 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// Package gandalf provides an implementation of the RepositoryManager, that
-// uses Gandalf (https://github.com/tsuru/gandalf). This package doesn't expose
-// any public types, in order to use it, users need to import the package and
-// then configure tsuru to use the "gandalf" repo-manager.
-//
-//     import _ "github.com/tsuru/tsuru/repository/gandalf"
 package gitlab
 
 import (
@@ -19,30 +9,28 @@ func init() {
 	repository.Register("gitlab", gitlabManager{})
 }
 
-const endpointConfig = "git:api-server"
-
 type gitlabManager struct{}
 
-func (gitlabManager) client() (*gogitlab.Gitlab, error) {
-	url, version, token := "", "", ""
-	return gogitlab.NewGitlab(url, version, token), nil
+//http://base_url/api_path/projects?private_token=token")
+func (gitlabManager) client(tok string) (*gogitlab.Gitlab, error) {
+	url, version := "http://gitlab.com", "api_path"
+	return gogitlab.NewGitlab(url, version, tok), nil
 }
 
-func (m gitlabManager) CreateHook(owner string, trigger string) error {
-	client, err := m.client()
+func (m gitlabManager) CreateHook(r repository.Repository) (string, error) {
+	client, err := m.client(r.GetToken())
 	if err != nil {
-		return err
+		return "", err
 	}
-
-	err = client.AddProjectHook(owner, trigger, false, false, false)
+	err = client.AddProjectHook(r.GetUserName(), r.Trigger(), false, false, false)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return "", nil
 
 }
 
-func (m gitlabManager) RemoveHook(owner string) error {
+func (m gitlabManager) RemoveHook(r repository.Repository) error {
 	/*client, err := m.client()
 	if err != nil {
 		return err

@@ -1,7 +1,3 @@
-// Copyright 2015 tsuru authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package repository
 
 func init() {
@@ -10,10 +6,10 @@ func init() {
 
 type nopManager struct{}
 
-func (nopManager) CreateHook(username string, trigger string) error {
-	return nil
+func (nopManager) CreateHook(r Repository) (string, error) {
+	return "", nil
 }
 
-func (nopManager) RemoveHook(username string) error {
+func (nopManager) RemoveHook(r Repository) error {
 	return nil
 }

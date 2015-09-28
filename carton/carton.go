@@ -4,16 +4,17 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 )
 
 type Carton struct {
 	Id         string //assemblyid
 	Name       string
-	CartonId   string
+	CartonsId  string
 	Tosca      string
-	Image      string
 	Compute    provision.BoxCompute
+	Repo       repository.Repo
 	DomainName string
 	Provider   string
 	Envs       []bind.EnvVar
@@ -40,16 +41,18 @@ func (c *Carton) lvl() provision.BoxLevel {
 }
 
 //Converts a carton to a box, if there are no boxes below.
-func (c *Carton) toBox() error {
+func (c *Carton) toBox() error { //assemblies id.
 	switch c.lvl() {
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			Id:         c.Id,    //this is a hack for torpedo
+			CartonId:   c.Id,    //this isn't needed.
+			Id:         c.Id,    //assembly id sent in ContextMap
+			CartonsId:  c.CartonsId,      //assembliesId,
 			Level:      c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			Name:       c.Name,
 			DomainName: c.DomainName,
 			Compute:    c.Compute,
-			Image:      c.Image,
+			Repo:       c.Repo,
 			Provider:   c.Provider,
 			Tosca:      c.Tosca,
 		},
@@ -60,9 +63,8 @@ func (c *Carton) toBox() error {
 
 // Deploy carton, which basically deploys the boxes.
 func (c *Carton) Deploy() error {
-
 	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box, Image: box.Image})
+		err := Deploy(&DeployOpts{B: &box})
 		if err != nil {
 			return err
 		}
@@ -76,6 +78,18 @@ func (c *Carton) Delete() error {
 		err := Provisioner.Destroy(&box, nil)
 		if err != nil {
 			log.Errorf("Unable to destroy box", err)
+		}
+	}
+	return nil
+}
+
+// moves the state to the desired state
+// changing the boxes state to StatusStateup.
+func (c *Carton) Stateup() error {
+	for _, box := range *c.Boxes {
+		err := ChangeState(&StateChangeOpts{B: &box, Changed: provision.StatusStateup})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
@@ -156,28 +170,6 @@ func (c *Carton) Restart() error {
 		}
 	}
 	return nil
-}
-
-// moves the state to the desired state
-// changing the boxes state to StatusStateup.
-func (c *Carton) Stateup() error {
-	for _, box := range *c.Boxes {
-		err := Deploy(&DeployOpts{B: &box})
-		if err != nil {
-			log.Errorf("Unable to deploy box", err)
-		}
-	}
-}
-
-// moves the state down to the desired state
-// changing the boxes state to StatusStatedown.
-func (c *Carton) Statedown() error {
-	return nil
-}
-
-// GetTosca returns the tosca type  of the carton.
-func (c *Carton) GetTosca() string {
-	return c.Tosca
 }
 
 // Envs returns a map representing the apps environment variables.

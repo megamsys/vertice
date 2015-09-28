@@ -20,15 +20,29 @@ import (
 	"bytes"
 	"io"
 	"time"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/repository"
 )
 
+type DeployData struct {
+	BoxName     string
+	HookId      string
+	PrivateIp   string
+	PublicIp    string
+	Timestamp   time.Time
+	Duration    time.Duration
+	Commit      string
+	Image       string
+	Origin      string
+	CanRollback bool
+}
+
 type DeployOpts struct {
-	B     *provision.Box
-	Image string //why this image ?
+	B *provision.Box
 }
 
 // Deploy runs a deployment of an application. It will first try to run an
@@ -53,9 +67,9 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
-	if opts.Image != "" {
+	if opts.B.Repo.Type == repository.IMAGE {
 		if deployer, ok := Provisioner.(provision.ImageDeployer); ok {
-			return deployer.ImageDeploy(opts.B, opts.Image, writer)
+			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
 	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
@@ -71,10 +85,44 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	// deploy :
 	//     name:
 	//     status:
+
+	/*deploy := DeployData {
+		App:       opts.App.Name,
+		Timestamp: time.Now(),
+		Duration:  duration,
+		Commit:    opts.Commit,
+		Image:     imageId,
+		Log:       log,
+	}
+	if opts.Commit != "" {
+		deploy.Origin = "git"
+	} else if opts.Image != "" {
+		deploy.Origin = "rollback"
+	} else {
+		deploy.Origin = "app-deploy"
+	}
+	if deployError != nil {
+		deploy.Error = deployError.Error()
+	}
+	return db.Store(compid or assmid, &struct)
+	*/
 	return nil
 }
 
 func markDeploysAsRemoved(boxName string) error {
 	//Riak: code to nuke deploys out of a box
 	return nil
+}
+
+// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
+// for docker return the Inputs[image]
+func image(b *provision.Box) string {
+	switch b.Provider {
+	case provision.PROVIDER_ONE:
+		return b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
+	case provision.PROVIDER_DOCKER:
+		return b.Repo.Gitr()
+	default:
+		return ""
+	}
 }

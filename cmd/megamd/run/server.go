@@ -2,10 +2,10 @@ package run
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"net"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -79,7 +79,6 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 	}
 	srv := httpd.NewService(c)
 	//	srv.Handler.QueryExecutor = s.QueryExecutor
-	srv.Handler.Version = s.version
 
 	s.Services = append(s.Services, srv)
 }
@@ -93,11 +92,11 @@ func (s *Server) Open() error {
 		// Start profiling, if set.
 		startProfile(s.CPUProfile, s.MemProfile)
 
-	/*	host, port, err := s.hostAddr()
-		if err != nil {
-			return err
-		}
-*/
+		/*	host, port, err := s.hostAddr()
+			if err != nil {
+				return err
+			}
+		*/
 		//		go s.monitorErrorChan(s.?.Err())
 
 		for _, service := range s.Services {
@@ -125,7 +124,9 @@ func (s *Server) Close() error {
 		service.Close()
 	}
 
-	close(s.closing)
+	if s.closing != nil {
+		close(s.closing)
+	}
 	return nil
 }
 

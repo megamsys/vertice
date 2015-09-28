@@ -20,8 +20,6 @@ import (
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -76,7 +74,7 @@ func NewComponent(id string) (*Component, error) {
 
 //make a box with the details for a provisioner.
 func (c *Component) mkBox() (provision.Box, error) {
-	repo := c.NewRepo(repository.CI)
+	repo := NewRepo(c.Operations, repository.CI)
 
 	return provision.Box{
 		Id:         c.Id,
@@ -85,7 +83,6 @@ func (c *Component) mkBox() (provision.Box, error) {
 		DomainName: c.domain(),
 		Tosca:      c.Tosca,
 		Commit:     "",
-		Image:      c.image(),
 		Repo:       repo,
 		Provider:   c.provider(),
 		Ip:         "",
@@ -94,42 +91,23 @@ func (c *Component) mkBox() (provision.Box, error) {
 
 func (c *Component) SetStatus(status provision.Status) error {
 	LastStatusUpdate := time.Now().In(time.UTC)
-
-	/*
-	   //masking this check for now. why do we need this status check ?
-	   if c.Status == provision.StatusDeploying.String() ||
-	   		c.Status == provision.StatusCreating.String() ||
-	   		c.Status == provision.StatusCreated.String() ||
-	   		c.Status == provision.StatusStateup.String() {
-	*/
 	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
 	c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
-	//	}
 
 	if err := db.Store(BUCKET, c.Id, c); err != nil {
 		return err
 	}
 	return nil
-
 }
 
-func (c *Component) NewRepo(ci string) repository.Repo {
-	o := parseOps(c.Operations, ci)
+func (c *Component) setDeployData(dd DeployData) error {
+	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", ""))
+	c.Inputs = append(c.Inputs, NewJsonPair("status", ""))
 
-	if o != nil {
-		enabled, _ := strconv.ParseBool(o.OperationRequirements.match(repository.CI_ENABLED))
-
-		return repository.Repo{
-			Enabled:  enabled,
-			Token:    o.OperationRequirements.match(repository.CI_TOKEN),
-			Git:      o.OperationRequirements.match(repository.CI_SCM),
-			GitURL:   o.OperationRequirements.match(repository.CI_URL),
-			UserName: o.OperationRequirements.match(repository.CI_USER),
-			Version:  o.OperationRequirements.match(repository.CI_APIVERSION),
-		}
-
+	if err := db.Store(BUCKET, c.Id, c); err != nil {
+		return err
 	}
-	return repository.Repo{}
+	return nil
 
 }
 
@@ -139,27 +117,4 @@ func (c *Component) domain() string {
 
 func (c *Component) provider() string {
 	return c.Inputs.match(provision.PROVIDER)
-}
-
-// for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
-// for docker return the Inputs[image]
-func (c *Component) image() string {
-	switch c.provider() {
-	case provision.PROVIDER_ONE:
-		return c.Tosca[strings.LastIndex(c.Tosca, ".")+1:]
-	case provision.PROVIDER_DOCKER:
-		return c.Inputs.match("image")
-	default:
-		return ""
-	}
-}
-
-func parseOps(ops []*Operations, optype string) *Operations {
-	for _, o := range ops {
-		switch o.OperationType {
-		case repository.CI:
-			return o
-		}
-	}
-	return nil
 }

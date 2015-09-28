@@ -51,6 +51,7 @@ type Boxlog struct {
 	Unit    string
 }
 
+
 type BoxCompute struct {
 	Cpushare string
 	Memory   string
@@ -91,18 +92,27 @@ func (bc *BoxCompute) String() string {
 		",") + " ]"
 }
 
+// Boxlog represents a log entry.
+type BoxDeploy struct {
+	Date    time.Time
+	HookId  string
+	ImageId string
+	Name    string
+	Unit    string
+}
+
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
 	Id         string
+	CartonsId  string
 	CartonId   string
 	Level      BoxLevel
 	Name       string
 	DomainName string
 	Tosca      string
 	Compute    BoxCompute
-	Image      string
-	Repo       repository.Repository
+	Repo       repository.Repo
 	Status     Status
 	Provider   string
 	Commit     string
@@ -210,7 +220,7 @@ func (box *Box) Log(message, source, unit string) error {
 		}
 	}
 	if len(logs) > 0 {
-		//notify(bl.Name, logs)
+		_ = notify(box.Name, logs)
 	}
 	return nil
 }
