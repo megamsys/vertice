@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/karlentwistle/route53"
 	"github.com/megamsys/megamd/router"
+	"github.com/megamsys/megamd/subd/dns"
 )
 
 const (
@@ -29,8 +30,8 @@ type route53Router struct {
 func createRouter(name string) (router.Router, error) {
 	vRouter := route53Router{
 		client: route53.AccessIdentifiers{
-			AccessKey: "accesskey",
-			SecretKey: "secretkey",
+			AccessKey: dns.R53.AccessKey,
+			SecretKey: dns.R53.SecretKey,
 		},
 	}
 	log.Debugf("%s ready", routerName)

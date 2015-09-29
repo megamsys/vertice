@@ -18,7 +18,6 @@ package carton
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"strings"
 	"time"
@@ -81,7 +80,11 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 func image(b *provision.Box) string {
 	switch b.Provider {
 	case provision.PROVIDER_ONE:
-		return fmt.Sprintf("%s_%s", b.Tosca[strings.LastIndex(b.Tosca, ".")+1:], b.ImageVersion)
+		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
+		if len(strings.TrimSpace(b.ImageVersion)) > 1 {
+			return img + "_" + b.ImageVersion
+		}
+		return img
 	case provision.PROVIDER_DOCKER:
 		return b.Repo.Gitr()
 	default:
