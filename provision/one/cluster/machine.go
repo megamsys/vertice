@@ -65,6 +65,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	if err != nil {
 		return "", err
 	}
+	opts.TemplateName = node.template
 	opts.Client = node.Client
 
 	_, err = opts.Create()
@@ -91,6 +92,8 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
+	opts.Client = node.Client
+
 	_, err = opts.Delete()
 	if err != nil {
 		return wrapError(node, err)
