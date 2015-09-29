@@ -22,6 +22,7 @@ type OneProvisioner interface {
 type Machine struct {
 	Name     string
 	Id       string
+	CartonId string
 	Level    provision.BoxLevel
 	Image    string
 	Routable bool
@@ -73,22 +74,18 @@ func (m *Machine) Remove(p OneProvisioner) error {
 func (m *Machine) SetStatus(status provision.Status) error {
 	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
 
-	switch m.Level {
-	case provision.BoxSome: //this is ugly ! duckling
+	if asm, err := carton.NewAssembly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.SetStatus(status); err != nil {
+		return err
+	}
+
+	if m.Level == provision.BoxSome {
 		if comp, err := carton.NewComponent(m.Id); err != nil {
 			return err
 		} else if err = comp.SetStatus(status); err != nil {
 			return err
 		}
-		return nil
-	case provision.BoxNone:
-		if asm, err := carton.NewAssembly(m.Id); err != nil {
-			return err
-		} else if err = asm.SetStatus(status); err != nil {
-			return err
-		}
-		return nil
-	default:
 	}
 	return nil
 }

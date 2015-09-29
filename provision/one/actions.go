@@ -43,10 +43,11 @@ var updateStatusInRiak = action.Action{
 		log.Debugf("update status for machine %s image %s for %s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		mach := machine.Machine{
-			Id:    args.box.Id,
-			Level: args.box.Level,
-			Name:  args.box.GetFullName(),
-			Image: args.imageId,
+			Id:       args.box.Id,
+			CartonId: args.box.CartonId,
+			Level:    args.box.Level,
+			Name:     args.box.GetFullName(),
+			Image:    args.imageId,
 		}
 		mach.SetStatus(args.machineStatus)
 		return mach, nil
@@ -118,9 +119,10 @@ var changeStateofMachine = action.Action{
 		args := ctx.Params[0].(runMachineActionsArgs)
 		log.Debugf("change state of machine %s", args.box.GetFullName())
 		mach := machine.Machine{
-			Id:    args.box.Id,
-			Level: args.box.Level,
-			Name:  args.box.GetFullName(),
+			Id:       args.box.Id,
+			CartonId: args.box.CartonId,
+			Level:    args.box.Level,
+			Name:     args.box.GetFullName(),
 		}
 		mach.ChangeState(args.machineStatus)
 		return mach, nil
