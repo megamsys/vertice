@@ -44,7 +44,7 @@ func (a *Assemblies) String() string {
 	}
 }
 
-/** A plublic function which pulls the assemblies for deployment.
+/** A public function which pulls the assemblies for deployment.
 and any others we do. **/
 func Get(id string) (*Assemblies, error) {
 	a := &Assemblies{}

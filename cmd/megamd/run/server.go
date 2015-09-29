@@ -2,17 +2,16 @@ package run
 
 import (
 	"fmt"
-	"net"
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/megamd/subd/docker"
 	"github.com/megamsys/megamd/subd/httpd"
+	"github.com/megamsys/megamd/subd/dns"
 )
 
 // Server represents a container for the metadata and storage data and services.
@@ -38,10 +37,9 @@ type Server struct {
 func NewServer(c *Config, version string) (*Server, error) {
 	// Construct base meta store and data store.
 	s := &Server{
-		version: version,
-		err:     make(chan error),
-		closing: make(chan struct{}),
-
+		version:     version,
+		err:         make(chan error),
+		closing:     make(chan struct{}),
 		Hostname:    c.Meta.Hostname,
 		BindAddress: c.Meta.BindAddress,
 	}
@@ -51,6 +49,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker)
 	//s.appendEventsTransporter(c.Meta)
+	s.selfieDNS(c.DNS)
 	return s, nil
 }
 
@@ -78,9 +77,12 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 		return
 	}
 	srv := httpd.NewService(c)
-	//	srv.Handler.QueryExecutor = s.QueryExecutor
-
 	s.Services = append(s.Services, srv)
+}
+
+//we are just making the DNS config global
+func (s *Server) selfieDNS(c *dns.Config) {
+	c.MkGlobal()
 }
 
 // Err returns an error channel that multiplexes all out of band errors received from all services.
@@ -89,23 +91,15 @@ func (s *Server) Err() <-chan error { return s.err }
 // Open opens the meta and data store and all services.
 func (s *Server) Open() error {
 	if err := func() error {
-		// Start profiling, if set.
+		//Start profiling, if set.
 		startProfile(s.CPUProfile, s.MemProfile)
-
-		/*	host, port, err := s.hostAddr()
-			if err != nil {
-				return err
-			}
-		*/
-		//		go s.monitorErrorChan(s.?.Err())
-
+		//go s.monitorErrorChan(s.?.Err())
 		for _, service := range s.Services {
 			if err := service.Open(); err != nil {
 				return fmt.Errorf("open service: %s", err)
 			}
 		}
 		log.Debug("services started")
-
 		return nil
 
 	}(); err != nil {
@@ -143,35 +137,6 @@ func (s *Server) monitorErrorChan(ch <-chan error) {
 			return
 		}
 	}
-}
-
-// hostAddr returns the host and port that remote nodes will use to reach this
-// node.
-func (s *Server) hostAddr() (string, string, error) {
-	// Resolve host to address.
-	_, port, err := net.SplitHostPort(s.BindAddress)
-	if err != nil {
-		return "", "", fmt.Errorf("split bind address: %s", err)
-	}
-
-	host := s.Hostname
-
-	// See if we might have a port that will override the BindAddress port
-	if host != "" && host[len(host)-1] >= '0' && host[len(host)-1] <= '9' && strings.Contains(host, ":") {
-		hostArg, portArg, err := net.SplitHostPort(s.Hostname)
-		if err != nil {
-			return "", "", err
-		}
-
-		if hostArg != "" {
-			host = hostArg
-		}
-
-		if portArg != "" {
-			port = portArg
-		}
-	}
-	return host, port, nil
 }
 
 // Service represents a service attached to the server.

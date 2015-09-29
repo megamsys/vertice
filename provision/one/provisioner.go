@@ -72,10 +72,10 @@ func (p *oneProvisioner) initOneCluster(m map[string]string) error {
 			return err
 		}
 	}
-	var nodes []cluster.Node
-	nodes[0] = cluster.Node{
+	var nodes []cluster.Node = []cluster.Node{cluster.Node{
 		Address:  m[api.ENDPOINT],
 		Metadata: m,
+	},
 	}
 	//register nodes using the map.
 	p.cluster, err = cluster.New(p.storage, nodes...)

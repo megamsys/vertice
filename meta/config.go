@@ -108,6 +108,6 @@ func NewConfig() *Config {
 	}
 }
 
-func (c *Config) MC() {
+func (c *Config) MkGlobal() {
 	MC = c
 }
