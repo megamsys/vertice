@@ -1,7 +1,6 @@
 package route53
 
 import (
-	"fmt"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -120,5 +119,5 @@ func (r *route53Router) createOrNuke(action string) error {
 }
 
 func (r *route53Router) StartupMessage() (string, error) {
-	return fmt.Sprintf("route53 router => %s", r.cname), nil
+	return "R53 router => ok!", nil
 }
