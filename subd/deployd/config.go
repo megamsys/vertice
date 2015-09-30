@@ -14,6 +14,7 @@ const (
 	// Default provisioning provider for vms is OpenNebula.
 	// This is just an endpoint for Megam. We could have openstack, chef, salt, puppet etc.
 	DefaultProvider = "one"
+	DefaultImage = "megam"
 	// DefaultOneEndpoint is the default address that the service binds to an IaaS (OpenNebula).
 	DefaultOneEndpoint = "http://localhost:2633/RPC2"
 
@@ -38,6 +39,7 @@ type Config struct {
 	OneTemplate string `toml:"one_template"`
 	OneZone     string `toml:"one_zone"`
 	Certificate string `toml:"certificate"`
+	Image       string `toml:"image"`
 }
 
 func NewConfig() *Config {
@@ -49,6 +51,7 @@ func NewConfig() *Config {
 		OneTemplate: DefaultOneTemplate,
 		OneZone:     DefaultOneZone,
 		Certificate: "/var/lib/megam/megamd/id_rsa.pub",
+		Image:       DefaultImage,
 	}
 }
 
@@ -62,6 +65,7 @@ func (c Config) String() string {
 	b.Write([]byte(api.ENDPOINT + "\t" + c.OneEndPoint + "\n"))
 	b.Write([]byte(api.USERID + "\t" + c.OneUserid + "\n"))
 	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate+ "\n"))
+	b.Write([]byte(api.IMAGE + "\t" + c.Image+ "\n"))
 	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -75,5 +79,6 @@ func (c Config) toMap() map[string]string {
 	m[api.USERID] = c.OneUserid
 	m[api.PASSWORD] = c.OnePassword
 	m[api.TEMPLATE] = c.OneTemplate
+	m[api.IMAGE] = c.Image
 	return m
 }
