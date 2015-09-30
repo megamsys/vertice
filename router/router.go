@@ -50,7 +50,7 @@ type MessageRouter interface {
 func ChopDomain(cname string) (string, error) {
 	sdoms := splitDomainName(cname)
 	if sdoms != nil && len(sdoms) >= 2 {
-		return strings.Join(sdoms[:len(sdoms)-2], "."), nil
+		return strings.Join(sdoms[(len(sdoms)-2):], "."), nil
 	}
 	return "", ErrInvalidCName
 }
