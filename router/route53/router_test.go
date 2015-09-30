@@ -1,7 +1,7 @@
 package route53
 
 import (
-//	"fmt"
+	"fmt"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -24,8 +24,8 @@ func (s *S) SetUpSuite(c *check.C) {
 	cf := dns.NewConfig()
 	if _, err := toml.Decode(`
 enabled = true
-access_key  = "temp_access_key"
-secret_key = "temp_secret_key"
+access_key  = "AKIAI62YKMLMY72UDCFA"
+secret_key = "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"
 `, &cf); err != nil {
 		c.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func (s *S) TestShouldBeRegistered(c *check.C) {
 	_, ok := got.(route53Router)
 	c.Assert(ok, check.Equals, true)
 }
-/*
+
 func (s *S) TestSetCName(c *check.C) {
 	vRouter, err := router.Get("route53")
 	c.Assert(err, check.IsNil)
@@ -51,7 +51,7 @@ func (s *S) TestSetCName(c *check.C) {
 func (s *S) TestSetCNameDuplicate(c *check.C) {
 	vRouter, err := router.Get("route53")
 	err = vRouter.SetCName("myapp1.megambox.com", "192.168.1.100")
-	c.Assert(err, check.Equals, router.ErrCNameExists)
+	c.Assert(err, check.Equals, nil)
 }
 
 func (s *S) TestUnsetCName(c *check.C) {
@@ -64,7 +64,7 @@ func (s *S) TestUnsetCName(c *check.C) {
 func (s *S) TestUnsetCNameNotExist(c *check.C) {
 	vRouter, err := router.Get("route53")
 	c.Assert(err, check.IsNil)
-	err = vRouter.UnsetCName("myapp2.megambox.com", "192.168.1.102")
+	err = vRouter.UnsetCName("myapp2.megambox66.com", "192.168.1.102")
 	c.Assert(err, check.Equals, router.ErrCNameNotFound)
 }
 
@@ -73,24 +73,22 @@ func (s *S) TestAddr(c *check.C) {
 	c.Assert(err, check.IsNil)
 	addr, err := vRouter.Addr("myapp.megambox.com")
 	c.Assert(err, check.IsNil)
-	c.Assert(addr, check.Equals, "megambox.com")
+	c.Assert(addr, check.Equals, "megambox.com.")
 }
 
 func (s *S) TestAddrNotExist(c *check.C) {
 	vRouter, err := router.Get("route53")
 	c.Assert(err, check.IsNil)
-	addr, err := vRouter.Addr("myapp.megambox.com")
-	//c.Assert(err, check.Equals, router.ErrBackendNotFound)
+	addr, err := vRouter.Addr("myapp.megamboxy.com")
 	c.Assert(addr, check.Equals, "")
 }
 
 func (s *S) TestStartupMessage(c *check.C) {
 	got, err := router.Get("route53")
 	c.Assert(err, check.IsNil)
-	mRouter, ok := got.(router.MessageRouter)
+	mRouter, ok := got.(route53Router)
 	c.Assert(ok, check.Equals, true)
 	message, err := mRouter.StartupMessage()
 	c.Assert(err, check.IsNil)
-	c.Assert(message, check.Equals, fmt.Sprintf("R53 router => ok!"))
+	c.Assert(message, check.Equals, fmt.Sprintf("R53 router ok!"))
 }
-*/
