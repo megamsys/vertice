@@ -72,6 +72,7 @@ func (p *oneProvisioner) initOneCluster(m map[string]string) error {
 			return err
 		}
 	}
+	p.defaultImage = m[api.IMAGE]
 	var nodes []cluster.Node = []cluster.Node{cluster.Node{
 		Address:  m[api.ENDPOINT],
 		Metadata: m,
@@ -296,7 +297,7 @@ func (p *oneProvisioner) PlatformRemove(name string) error {
 // getBuildImage returns the image name from box or tosca.
 func (p *oneProvisioner) getBuildImage(re repository.Repo, version string) string {
 	if p.usePlatformImage(re) {
-		return p.defaultImage + "_" + version
+		return p.defaultImage
 	}
 	return "" //error
 }
