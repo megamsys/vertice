@@ -50,51 +50,51 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "96cc1ea56ef5165200d9c69b6f9d74c3f74c0fe3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "27efbf9ddcdde968a019808089865a2737b1904c"
+			"Rev": "d1601805555efd5b0f38b16729b2946b2a801cbf"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "27efbf9ddcdde968a019808089865a2737b1904c"
+			"Rev": "d1601805555efd5b0f38b16729b2946b2a801cbf"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "27efbf9ddcdde968a019808089865a2737b1904c"
+			"Rev": "d1601805555efd5b0f38b16729b2946b2a801cbf"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "27efbf9ddcdde968a019808089865a2737b1904c"
+			"Rev": "d1601805555efd5b0f38b16729b2946b2a801cbf"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",

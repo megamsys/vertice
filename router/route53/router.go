@@ -68,10 +68,15 @@ func (r route53Router) UnsetCName(cname string, ip string) error {
 }
 
 func (r route53Router) Addr(cname string) (string, error) {
+	chdom, err := router.ChopDomain(cname)
+	if err != nil {
+		return "", err
+	}
+
 	zones := r.client.Zones().HostedZones
 
 	for i := range zones {
-		if strings.Compare(zones[i].Name, cname) == 0 {
+		if strings.Compare(zones[i].Name, chdom) == 0 {
 			r.zone = zones[i]
 			break
 		}
@@ -83,7 +88,7 @@ func (r route53Router) Addr(cname string) (string, error) {
 	}
 
 	for i := range rr.ResourceRecordSets {
-		if strings.Compare(strings.TrimSpace(rr.ResourceRecordSets[i].Name), cname) == 0 {
+		if strings.Compare(strings.TrimSpace(rr.ResourceRecordSets[i].Name), chdom) == 0 {
 			return rr.ResourceRecordSets[i].Name, nil
 		}
 	}
@@ -91,6 +96,8 @@ func (r route53Router) Addr(cname string) (string, error) {
 }
 
 func (r *route53Router) createOrNuke(action string) error {
+	log.Debugf("%s (cname, ip)", action)
+
 	var u = route53.ChangeResourceRecordSetsRequest{
 		ZoneID:  r.zone.HostedZoneId(),
 		Comment: "",
