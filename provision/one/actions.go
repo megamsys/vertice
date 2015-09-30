@@ -147,7 +147,7 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, "\n---- Adding route to new machine ----\n")
+		fmt.Fprintf(writer, "\n---- Adding route to machine %s [%s]\n", mach.Name, args.box.Ip)
 		err = r.SetCName(mach.Name, args.box.Ip)
 		if err != nil {
 			return mach, err
@@ -168,7 +168,7 @@ var addNewRoute = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		fmt.Fprintf(w, "\n---- Removing routes from created machine ----\n")
+		fmt.Fprintf(w, "\n---- Removing routes from created machine  %s [%s]\n", mach.Id, mach.Name)
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.Ip)
 			if err != nil {
@@ -200,7 +200,7 @@ var removeOldRoute = action.Action{
 			if err != nil {
 				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
 			}
-			fmt.Fprintf(w, "---- Removed route from unit %s [%s]\n", mach.Name, args.box.Ip)
+			fmt.Fprintf(w, "---- Removed route from machine %s [%s]\n", mach.Name, args.box.Ip)
 		}
 		return mach, nil
 	},
