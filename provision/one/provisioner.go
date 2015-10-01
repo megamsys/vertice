@@ -138,7 +138,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Riak - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "\n---- create %s box %s ----\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
 	actions := []*action.Action{
 		&updateStatusInRiak,
 		&createMachine,
@@ -165,7 +165,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- removing %s ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n---- removing box (%s) ----\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,

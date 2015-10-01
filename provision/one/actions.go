@@ -40,7 +40,7 @@ var updateStatusInRiak = action.Action{
 	Name: "update-status-riak",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("update status for machine %s image %s for %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("  update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 
 		mach := machine.Machine{
 			Id:       args.box.Id,
@@ -49,6 +49,7 @@ var updateStatusInRiak = action.Action{
 			Name:     args.box.GetFullName(),
 			Image:    args.imageId,
 		}
+
 		mach.SetStatus(args.machineStatus)
 		return mach, nil
 	},
@@ -63,7 +64,7 @@ var createMachine = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("create machine for box %s, on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("  create machine for box (%s, image:%s) / %s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
@@ -117,7 +118,7 @@ var changeStateofMachine = action.Action{
 	Name: "change-state-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("change state of machine %s", args.box.GetFullName())
+		log.Debugf("  change state of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 		mach := machine.Machine{
 			Id:       args.box.Id,
 			CartonId: args.box.CartonId,

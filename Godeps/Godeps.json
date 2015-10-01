@@ -22,7 +22,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "0c959e80d8acfedb1ecd50c9f14a58cee287dc95"
+			"Rev": "8081512d5bf6d07341a19043dac2396eec31bbe6"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -50,51 +50,51 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "98fffba34eb1395896d88cc4f544174119dbc7bb"
+			"Rev": "c0129b7baf9b76a8e44a72e538d75ba4e8b98891"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "393ec7991c2b3484c57d2c8216ad19ee15ec7bc6"
+			"Rev": "e98f388e7a8bbc1b0c9aa961065dee0d5d7412f3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "393ec7991c2b3484c57d2c8216ad19ee15ec7bc6"
+			"Rev": "e98f388e7a8bbc1b0c9aa961065dee0d5d7412f3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "393ec7991c2b3484c57d2c8216ad19ee15ec7bc6"
+			"Rev": "e98f388e7a8bbc1b0c9aa961065dee0d5d7412f3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "393ec7991c2b3484c57d2c8216ad19ee15ec7bc6"
+			"Rev": "e98f388e7a8bbc1b0c9aa961065dee0d5d7412f3"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -131,7 +131,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "3cab960fb9cdffabf543e8bae3a377f29e82b163"
+			"Rev": "2fbf3d7329d847b125188ad64b68cfb1f548938a"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
