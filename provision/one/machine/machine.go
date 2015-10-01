@@ -37,7 +37,7 @@ type CreateArgs struct {
 }
 
 func (m *Machine) Create(args *CreateArgs) error {
-	log.Debugf("creating machine %s in one with %s", m.Name, m.Image)
+	log.Debugf("  creating machine in one (%s, %s)", m.Name, m.Image)
 
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
@@ -58,7 +58,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
-	log.Debugf("removing machine %s in one", m.Name)
+	log.Debugf("  removing machine in one (%s)", m.Name)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
 	}
@@ -72,7 +72,7 @@ func (m *Machine) Remove(p OneProvisioner) error {
 
 //it possible to have a Notifier interface that does this, duck typed by Assembly, Components.
 func (m *Machine) SetStatus(status provision.Status) error {
-	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
+	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
 	if asm, err := carton.NewAssembly(m.CartonId); err != nil {
 		return err
@@ -81,6 +81,8 @@ func (m *Machine) SetStatus(status provision.Status) error {
 	}
 
 	if m.Level == provision.BoxSome {
+		log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
+
 		if comp, err := carton.NewComponent(m.Id); err != nil {
 			return err
 		} else if err = comp.SetStatus(status); err != nil {
@@ -92,7 +94,7 @@ func (m *Machine) SetStatus(status provision.Status) error {
 
 //just publish a message stateup to the machine.
 func (m *Machine) ChangeState(status provision.Status) error {
-	log.Debugf("change state of machine %s %s to %s", m.Id, m.Name, status.String())
+	log.Debugf("  change state of machine (%s, %s)", m.Name, status.String())
 
 	p, err := amqp.NewRabbitMQ(meta.MC.AMQP, m.Name)
 	if err != nil {
@@ -109,6 +111,7 @@ func (m *Machine) ChangeState(status provision.Status) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("  pub to machine (%s, %s)", m.Name, jsonMsg)
 
 	if err := p.Pub(jsonMsg); err != nil {
 		return err
@@ -119,8 +122,7 @@ func (m *Machine) ChangeState(status provision.Status) error {
 
 //if there is a file or something to be created, do it here.
 func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
-	log.Debugf("hook machine %s logs", m.Name)
-	fmt.Fprintf(w, "\nhook machine %s logs", m.Name)
+	fmt.Fprintf(w, "\nlogs nirvana ! machine %s ", m.Name)
 	return nil
 }
 
