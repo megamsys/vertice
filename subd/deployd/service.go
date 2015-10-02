@@ -2,15 +2,15 @@ package deployd
 
 import (
 	"fmt"
+	"sync"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
 	_ "github.com/megamsys/megamd/provision/one"
-
-	"sync"
-	"time"
 )
 
 const leaderWaitTimeout = 30 * time.Second
