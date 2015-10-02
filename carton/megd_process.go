@@ -42,20 +42,20 @@ func (s CreateProcess) Process(ca Cartons) error {
 }
 
 // DeleteProcs represents a command for delete cartons.
-type DeleteProcess struct {
+type DestroyProcess struct {
 	Name string
 }
 
-func (s DeleteProcess) String() string {
+func (s DestroyProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("DELETE CARTON ")
+	_, _ = buf.WriteString("DESTROY CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
 
-func (s DeleteProcess) Process(ca Cartons) error {
+func (s DestroyProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Delete(); err != nil {
+		if err := c.Destroy(); err != nil {
 			return err
 		}
 	}
