@@ -23,7 +23,6 @@ func healthCheck() error {
 
 //A global function which helps to avoid passing config of riak everywhere.
 func newConn(bkt string) (*db.Storage, error) {
-	log.Debug("New bucket: " + bkt)
 	r, err := db.NewRiakDB(meta.MC.Riak, bkt)
 
 	if err != nil {
@@ -39,6 +38,8 @@ func Fetch(bkt string, key string, data interface{}) error {
 		return err
 	}
 	defer s.Close()
+	log.Debugf("  [riak] fetch (%s,%s)", bkt, key)
+
 	if err = s.FetchStruct(key, data); err != nil {
 		return err
 	}
@@ -51,6 +52,8 @@ func Store(bkt string, key string, data interface{}) error {
 		return err
 	}
 	defer s.Close()
+	log.Debugf("  [riak] store (%s,%s)", bkt, key)
+
 	if err = s.StoreStruct(key, data); err != nil {
 		return err
 	}

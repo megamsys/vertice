@@ -204,7 +204,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 
 	actions := []*action.Action{
 		&changeStateofMachine,
-		&addNewRoute,
+		//&addNewRoute,
 	}
 
 	pipeline := action.NewPipeline(actions...)

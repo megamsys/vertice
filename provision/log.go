@@ -60,7 +60,7 @@ func (l *LogListener) Close() (err error) {
 }
 
 func notify(boxName string, messages []interface{}) error {
-	log.Debugf("notify %s", logQueue(boxName))
+	log.Debugf("  notify %s", logQueue(boxName))
 	pubSubQ, err := amqp.NewRabbitMQ(meta.MC.AMQP, logQueue(boxName))
 	if err != nil {
 		return err

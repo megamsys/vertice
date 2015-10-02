@@ -9,6 +9,8 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
+	_ "github.com/megamsys/megamd/repository/github"
+	_ "github.com/megamsys/megamd/repository/gitlab"
 )
 
 type StateChangeOpts struct {
