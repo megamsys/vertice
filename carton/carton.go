@@ -79,12 +79,12 @@ func (c *Carton) Deploy() error {
 	return nil
 }
 
-// Deletes a carton, which deletes its boxes.
-func (c *Carton) Delete() error {
+// Destroys a carton, which deletes its boxes.
+func (c *Carton) Destroy() error {
 	for _, box := range *c.Boxes {
-		err := Provisioner.Destroy(&box, nil)
+		err := Destroy(&DestroyOpts{B: &box})
 		if err != nil {
-			log.Errorf("Unable to destroy box", err)
+			return err
 		}
 	}
 	return nil
