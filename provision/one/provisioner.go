@@ -176,7 +176,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
-		&removeOldMachine,
+	//	&removeOldMachine,
 		&removeOldRoute,
 		//		&removeBoxesInRiak,
 		//		&removeCartonsInRiak,

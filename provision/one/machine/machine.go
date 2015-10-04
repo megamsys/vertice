@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -26,6 +27,7 @@ type Machine struct {
 	Level    provision.BoxLevel
 	Image    string
 	Routable bool
+	Status   provision.Status
 }
 
 type CreateArgs struct {
@@ -141,6 +143,10 @@ func (m *Machine) Exec(p OneProvisioner, stdout, stderr io.Writer, cmd string, a
 
 	return nil
 
+}
+
+func (m *Machine) SetRoutable(ip string) {
+	m.Routable = (len(strings.TrimSpace(ip)) > 0)
 }
 
 func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {

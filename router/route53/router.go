@@ -41,6 +41,9 @@ func createRouter(name string) (router.Router, error) {
 //cname is the fullname eg: test.megambox.com
 func (r route53Router) SetCName(cname, ip string) error {
 	r.cname = cname
+	if len(strings.TrimSpace(r.cname)) <= 0 || len(strings.TrimSpace(ip)) <= 0 {
+		return router.ErrCNameMissingArgs
+	}
 	if _, err := r.Addr(cname); err != nil {
 		return err
 	}
@@ -55,6 +58,10 @@ func (r route53Router) SetCName(cname, ip string) error {
 //unset cname for a fullname : test.megambox.com
 func (r route53Router) UnsetCName(cname string, ip string) error {
 	r.cname = cname
+	if len(strings.TrimSpace(r.cname)) <= 0 {
+		return router.ErrCNameMissingArgs
+	}
+
 	if _, err := r.Addr(cname); err != nil {
 		return err
 	}
@@ -72,7 +79,7 @@ func (r route53Router) Addr(cname string) (string, error) {
 		return "", err
 	}
 	if err := r.zoneMatch(chp); err != nil {
-		return "", router.ErrCNameNotFound
+		return "", err
 	}
 
 	rr, err := r.zone.ResourceRecordSets(r.client)
@@ -143,7 +150,7 @@ func (r *route53Router) zoneMatch(chop string) error {
 		}
 	}
 	if noMatch {
-		return router.ErrCNameNotFound
+		return router.ErrDomainNotFound
 	}
 	return nil
 }

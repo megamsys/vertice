@@ -80,17 +80,16 @@ func (c Config) String() string {
 
 func NewConfig() *Config {
 	var homeDir string
-	// By default, store logs, meta and load conf files in current users home directory
+	// By default, store logs, meta and load conf files in MEGAM_HOME directory
 	if os.Getenv("MEGAM_HOME") != "" {
 		homeDir = os.Getenv("MEGAM_HOME")
 	} else if u, err := user.Current(); err == nil {
 		homeDir = u.HomeDir
 	} else {
 		return nil
-		//fmt.Errorf("failed to determine home directory")
 	}
 
-	defaultDir := filepath.Join(homeDir, "megamd/meta")
+	defaultDir := filepath.Join(homeDir, "megamd/")
 
 	// Config represents the configuration format for the megamd.
 	return &Config{

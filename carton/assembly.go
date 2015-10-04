@@ -88,6 +88,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
 		Provider:     a.provider(),
+		PublicIp:     a.publicIp(),
 		Boxes:        &b,
 	}
 	return c, nil
@@ -178,6 +179,10 @@ func (a *Assembly) provider() string {
 	return a.Inputs.match(provision.PROVIDER)
 }
 
+func (a *Assembly) publicIp() string {
+	return a.Outputs.match(PUBLICIP)
+}
+
 func (a *Assembly) imageVersion() string {
 	return a.Inputs.match(IMAGE_VERSION)
 }
@@ -205,7 +210,10 @@ func (a *Assembly) getSwap() string {
 	return ""
 }
 
-//The default HDD is 10.
+//The default HDD is 10. we should configure it in the megamd.conf
 func (a *Assembly) getHDD() string {
+	if len(strings.TrimSpace(a.Inputs.match(provision.HDD))) <= 0 {
+		return "10"
+	}
 	return a.Inputs.match(provision.HDD)
 }

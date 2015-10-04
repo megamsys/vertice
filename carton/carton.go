@@ -20,6 +20,7 @@ type Carton struct {
 	Repo         repository.Repo
 	DomainName   string
 	Provider     string
+	PublicIp     string
 	Envs         []bind.EnvVar
 	Boxes        *[]provision.Box
 }
@@ -61,6 +62,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Compute:      c.Compute,
 			Repo:         c.Repo,
 			Provider:     c.Provider,
+			PublicIp:     c.PublicIp,
 			Tosca:        c.Tosca,
 		},
 		}
