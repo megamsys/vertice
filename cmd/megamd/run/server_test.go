@@ -18,7 +18,6 @@ package run
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -41,13 +40,12 @@ var _ = check.Suite(&S{})
 // NewTestConfig returns the default config with temporary paths.
 func NewTestConfig() *Config {
 	cm := NewConfig()
-	u, _ := os.Getwd()
-	if _, err := toml.DecodeFile(u+"/megamd.conf", &cm); err != nil {
+	path := cm.Meta.Dir + "/megamd.conf"
+	if _, err := toml.DecodeFile(path, cm); err != nil {
 		fmt.Println(err.Error())
 		return nil
 	}
-
-	return cm
+  return cm
 }
 
 // OpenServer opens a test server.

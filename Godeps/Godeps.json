@@ -22,7 +22,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "0c959e80d8acfedb1ecd50c9f14a58cee287dc95"
+			"Rev": "3d2510a4dd961caffa2ae781669c628d82db700a"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -38,7 +38,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "49c024275504f0341e5a9971eb7ba7fa3dc7af40"
+			"Rev": "ad4d7a5882b961e07e2626045eb995c022ac6664"
 		},
 		{
 			"ImportPath": "github.com/karlentwistle/route53",
@@ -82,19 +82,23 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "a0351355bf94ac892a74b231c20664fd59a48f5c"
+			"Rev": "606dd293445d919ebd9521e61bf01b6eb2fda1cc"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "a0351355bf94ac892a74b231c20664fd59a48f5c"
+			"Rev": "606dd293445d919ebd9521e61bf01b6eb2fda1cc"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "a0351355bf94ac892a74b231c20664fd59a48f5c"
+			"Rev": "606dd293445d919ebd9521e61bf01b6eb2fda1cc"
+		},
+		{
+			"ImportPath": "github.com/megamsys/opennebula-go/testing",
+			"Rev": "606dd293445d919ebd9521e61bf01b6eb2fda1cc"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "a0351355bf94ac892a74b231c20664fd59a48f5c"
+			"Rev": "606dd293445d919ebd9521e61bf01b6eb2fda1cc"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -110,7 +114,7 @@
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "79beb307dcf5904fb8cb061276f1c14f222012c2"
+			"Rev": "b4f3ceab0337f013208d31348b578d83c0064744"
 		},
 		{
 			"ImportPath": "github.com/tj/go-spin",
@@ -119,15 +123,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "c2528b2dd8352441850638a8bb678c2ad056fd3e"
+			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
 		},
 		{
 			"ImportPath": "golang.org/x/net/netutil",
-			"Rev": "c2528b2dd8352441850638a8bb678c2ad056fd3e"
+			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "c2528b2dd8352441850638a8bb678c2ad056fd3e"
+			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",

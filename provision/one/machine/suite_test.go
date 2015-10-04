@@ -3,6 +3,9 @@ package machine
 import (
 	"testing"
 
+//	"github.com/megamsys/megamd/provision"
+//	"github.com/megamsys/opennebula-go/compute"
+	otesting "github.com/megamsys/opennebula-go/testing"
 	"gopkg.in/check.v1"
 )
 
@@ -13,30 +16,18 @@ func Test(t *testing.T) {
 var _ = check.Suite(&S{})
 
 type S struct {
-//	p      *fakeDockerProvisioner
-//	server *dtesting.DockerServer
-	user   string
+	p      *fakeOneProvisioner
+	server *otesting.OneServer
 }
 /*
 func (s *S) SetUpSuite(c *check.C) {
-	s.user = "root"
-	config.Set("database:url", "127.0.0.1:27017?maxPoolSize=100")
-	config.Set("database:name", "docker_provision_container_tests")
-	config.Set("docker:cluster:mongo-url", "127.0.0.1:27017")
-	config.Set("docker:cluster:mongo-database", "docker_provision_container_tests_cluster_stor")
-	config.Set("docker:run-cmd:port", "8888")
-	config.Set("docker:user", s.user)
-	config.Set("docker:repository-namespace", "tsuru")
 }
 
 func (s *S) SetUpTest(c *check.C) {
-	conn, err := db.Conn()
+	server, err := otesting.NewServer("127.0.0.1:0")
 	c.Assert(err, check.IsNil)
-	defer conn.Close()
-	dbtest.ClearAllCollections(conn.Apps().Database)
-	s.server, err = dtesting.NewServer("127.0.0.1:0", nil, nil)
-	c.Assert(err, check.IsNil)
-	s.p, err = newFakeDockerProvisioner(s.server.URL())
+	s.server = server
+	s.p, err = newFakeOneProvisioner(s.server.URL())
 	c.Assert(err, check.IsNil)
 }
 
@@ -44,68 +35,25 @@ func (s *S) TestTearDownTest(c *check.C) {
 	s.server.Stop()
 }
 
-func (s *S) removeTestContainer(c *Container) error {
-	routertest.FakeRouter.RemoveBackend(c.AppName)
-	return c.Remove(s.p)
-}
-
-type newContainerOpts struct {
-	AppName     string
-	Image       string
-	ProcessName string
-}
-
-func (s *S) newContainer(opts newContainerOpts, p *fakeDockerProvisioner) (*Container, error) {
+func (s *S) newMachine(opts compute.VirtualMachine, p *fakeOneProvisioner) (*Machine, error) {
 	if p == nil {
 		p = s.p
 	}
-	container := Container{
-		ID:          "id",
-		IP:          "10.10.10.10",
-		HostPort:    "3333",
-		HostAddr:    "127.0.0.1",
-		ProcessName: opts.ProcessName,
-		Image:       opts.Image,
-		AppName:     opts.AppName,
+
+	mach := Machine{
+		Name:     "screwapp.megambox.com",
+		Id:       "CMP010101010101",
+		CartonId: "ASM010101010101",
+		Level:    provision.BoxSome,
+		Image:    "figureoutimage",
+		Routable: false,
+		Status:   provision.StatusDeploying,
 	}
-	if container.AppName == "" {
-		container.AppName = "container"
-	}
-	if container.ProcessName == "" {
-		container.ProcessName = "web"
-	}
-	if container.Image == "" {
-		container.Image = "tsuru/python:latest"
-	}
-	routertest.FakeRouter.AddBackend(container.AppName)
-	routertest.FakeRouter.AddRoute(container.AppName, container.Address())
-	port, err := getPort()
+
+	_, _, err := p.Cluster().CreateVM(opts)
 	if err != nil {
 		return nil, err
 	}
-	ports := map[docker.Port]struct{}{
-		docker.Port(port + "/tcp"): {},
-	}
-	config := docker.Config{
-		Image:        container.Image,
-		Cmd:          []string{"ps"},
-		ExposedPorts: ports,
-	}
-	err = p.Cluster().PullImage(docker.PullImageOptions{Repository: container.Image}, docker.AuthConfiguration{})
-	if err != nil {
-		return nil, err
-	}
-	_, c, err := p.Cluster().CreateContainer(docker.CreateContainerOptions{Config: &config})
-	if err != nil {
-		return nil, err
-	}
-	container.ID = c.ID
-	coll := p.Collection()
-	defer coll.Close()
-	err = coll.Insert(container)
-	if err != nil {
-		return nil, err
-	}
-	return &container, nil
+	return &mach, nil
 }
 */

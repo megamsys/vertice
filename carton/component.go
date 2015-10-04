@@ -24,8 +24,9 @@ import (
 )
 
 const (
-	DOMAIN = "domain"
-	BUCKET = "components"
+	DOMAIN        = "domain"
+	PUBLICIP      = "publicip"
+	BUCKET        = "components"
 	IMAGE_VERSION = "version"
 )
 
@@ -86,7 +87,7 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Commit:     "",
 		Repo:       repo,
 		Provider:   c.provider(),
-		Ip:         "",
+		PublicIp:   c.publicIp(),
 	}, nil
 }
 
@@ -118,4 +119,8 @@ func (c *Component) domain() string {
 
 func (c *Component) provider() string {
 	return c.Inputs.match(provision.PROVIDER)
+}
+
+func (c *Component) publicIp() string {
+	return c.Outputs.match(PUBLICIP)
 }

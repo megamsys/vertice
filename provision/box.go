@@ -115,9 +115,9 @@ type Box struct {
 	Repo         repository.Repo
 	Status       Status
 	Provider     string
+	PublicIp           string
 	Commit       string
 	Address      *url.URL
-	Ip           string
 }
 
 func (b *Box) String() string {
@@ -140,7 +140,7 @@ func (b *Box) GetTosca() string {
 
 // GetIp returns the Unit.IP.
 func (b *Box) GetIp() string {
-	return b.Ip
+	return b.PublicIp
 }
 
 // Available returns true if the unit is available. It will return true
