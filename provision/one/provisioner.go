@@ -26,16 +26,11 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/one/cluster"
+	"github.com/megamsys/megamd/repository"
 	"github.com/megamsys/megamd/router"
 	_ "github.com/megamsys/megamd/router/route53"
 	"github.com/megamsys/opennebula-go/api"
-)
-
-const (
-	ONE_ENDPOINT = "one_endpoint"
-	ONE_USERID   = "one_userid"
-	ONE_PASSWORD = "one_password"
-	ONE_TEMPLATE = "one_template"
 )
 
 var mainOneProvisioner *oneProvisioner
@@ -46,10 +41,12 @@ func init() {
 }
 
 type oneProvisioner struct {
-	cluster *api.Rpc
+	defaultImage string
+	cluster      *cluster.Cluster
+	storage      cluster.Storage
 }
 
-func (p *oneProvisioner) Cluster() *api.Rpc {
+func (p *oneProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
 		panic("nil one cluster")
 	}
@@ -68,9 +65,28 @@ func (p *oneProvisioner) Initialize(m map[string]string) error {
 }
 
 func (p *oneProvisioner) initOneCluster(m map[string]string) error {
-	client, err := api.NewRPCClient(m[ONE_ENDPOINT], m[ONE_USERID], m[ONE_PASSWORD])
-	p.cluster = client
-	return err
+	var err error
+	if p.storage == nil {
+		p.storage, err = buildClusterStorage()
+		if err != nil {
+			return err
+		}
+	}
+	var nodes []cluster.Node = []cluster.Node{cluster.Node{
+		Address:  m[api.ENDPOINT],
+		Metadata: m,
+	},
+	}
+	//register nodes using the map.
+	p.cluster, err = cluster.New(p.storage, nodes...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func buildClusterStorage() (cluster.Storage, error) {
+	return &cluster.MapStorage{}, nil
 }
 
 func getRouterForBox(box *provision.Box) (router.Router, error) {
@@ -93,7 +109,15 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
-	return p.deployPipeline(box, box.Repo.Gitr(), w)
+	imageId, err := p.gitDeploy(box.Repo, box.ImageVersion, w)
+	if err != nil {
+		return "", err
+	}
+	return p.deployPipeline(box, imageId, w)
+}
+
+func (p *oneProvisioner) gitDeploy(re repository.Repo, version string, w io.Writer) (string, error) {
+	return p.getBuildImage(re, version), nil
 }
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
@@ -240,23 +264,6 @@ func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status pr
 	return nil
 }
 
-func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
-	/*if boxs, err := p.listRunnableMachinesByBox(box.GetName()); err ! =nil {
-					return err
-	    }
-
-		if err := nil; err != nil {
-			return err
-		}
-		if len(boxs) == 0 {
-			return provision.ErrBoxNotFound
-		}
-		box := boxs[0]
-		return box.Exec(p, stdout, stderr, cmd, args...)
-	*/
-	return nil
-}
-
 func (p *oneProvisioner) SetCName(box *provision.Box, cname string) error {
 	r, err := getRouterForBox(box)
 	if err != nil {
@@ -283,6 +290,35 @@ func (p *oneProvisioner) PlatformUpdate(name string, args map[string]string, w i
 }
 
 func (p *oneProvisioner) PlatformRemove(name string) error {
+	return nil
+}
+
+// getBuildImage returns the image name from box or tosca.
+func (p *oneProvisioner) getBuildImage(re repository.Repo, version string) string {
+	if p.usePlatformImage(re) {
+		return p.defaultImage + "_" + version
+	}
+	return "" //error
+}
+
+func (p *oneProvisioner) usePlatformImage(re repository.Repo) bool {
+	return re.Type == repository.GIT || false
+}
+
+func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
+	/*if boxs, err := p.listRunnableMachinesByBox(box.GetName()); err ! =nil {
+					return err
+	    }
+
+		if err := nil; err != nil {
+			return err
+		}
+		if len(boxs) == 0 {
+			return provision.ErrBoxNotFound
+		}
+		box := boxs[0]
+		return box.Exec(p, stdout, stderr, cmd, args...)
+	*/
 	return nil
 }
 

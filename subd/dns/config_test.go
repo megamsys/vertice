@@ -17,12 +17,12 @@ func (s *S) TestDnsConfig_Parse(c *check.C) {
 	var cm Config
 	if _, err := toml.Decode(`
 enabled = true
-route53_access_key  = ":9000"
-route53_secrete_key = "xxx"
+access_key  = ":9000"
+secrete_key = "xxx"
 `, &cm); err != nil {
 		c.Fatal(err)
 	}
 
-	c.Assert(cm.Route53SecretKey, check.Equals, "locahost")
-	c.Assert(cm.Route53AccessKey, check.Equals, "locahost")
+	c.Assert(cm.SecretKey, check.Equals, "xxx")
+	c.Assert(cm.AccessKey, check.Equals, ":9000")
 }

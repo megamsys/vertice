@@ -27,16 +27,13 @@ import (
 	"strings"
 )
 
-// Carton is the main type in megam. A carton represents a real world assembly.
-// An assembly comprises of various components.
-// This struct provides and easy way to manage information about an assembly, instead passing it around
-
 type Policy struct {
 	Name    string   `json:"name"`
 	Ptype   string   `json:"ptype"`
 	Members []string `json:"members"`
 }
 
+//An assembly comprises of various components.
 type ambly struct {
 	Id           string        `json:"id"`
 	Name         string        `json:"name"`
@@ -65,53 +62,8 @@ func (a *Assembly) String() string {
 	}
 }
 
-//for now, create a newcompute which is used during a SetStatus.
-//We can add a Notifier interface which can be passed in the Box ?
-func NewAssembly(id string) (*Assembly, error) {
-	return get(id)
-}
-
-func (a *Assembly) SetStatus(status provision.Status) error {
-	LastStatusUpdate := time.Now().In(time.UTC)
-
-	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
-	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
-
-	if err := db.Store(BUCKET, a.Id, a); err != nil {
-		return err
-	}
-	return nil
-
-}
-
-//get the assebmly and its full detail of a component. we only store the
-//componentid, hence you see that we have a components map to cater to that need.
-func get(id string) (*Assembly, error) {
-	a := &Assembly{Components: make(map[string]*Component)}
-	if err := db.Fetch("assembly", id, a); err != nil {
-		return nil, err
-	}
-	a.dig()
-	return a, nil
-}
-
-func (a *Assembly) dig() error {
-	for _, cid := range a.ComponentIds {
-		if len(strings.TrimSpace(cid)) > 1 {
-			if comp, err := NewComponent(cid); err != nil {
-				log.Errorf("Failed to get component %s from riak: %s.", cid, err.Error())
-				return err
-			} else {
-				a.Components[cid] = comp
-			}
-		}
-	}
-	return nil
-}
-
-//mkAssemblies into a carton. Just use what you need inside this carton
-//a carton comprises of self contained boxes (actually a "colored component") externalized
-//with what we need.
+//Assembly into a carton.
+//a carton comprises of self contained boxes
 func mkCarton(aies string, ay string) (*Carton, error) {
 	a, err := get(ay)
 	if err != nil {
@@ -126,22 +78,24 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 	repo := NewRepo(a.Operations, repository.CI)
 
 	c := &Carton{
-		Id:         ay,   //assembly id
-		CartonsId:  aies, //assemblies id
-		Name:       a.Name,
-		Tosca:      a.Tosca,
-		Envs:       a.envs(),
-		Repo:       repo,
-		DomainName: a.domain(),
-		Compute:    a.newCompute(),
-		Provider:   a.provider(),
-		Boxes:      &b,
+		Id:           ay,   //assembly id
+		CartonsId:    aies, //assemblies id
+		Name:         a.Name,
+		Tosca:        a.Tosca,
+		ImageVersion: a.imageVersion(),
+		Envs:         a.envs(),
+		Repo:         repo,
+		DomainName:   a.domain(),
+		Compute:      a.newCompute(),
+		Provider:     a.provider(),
+		Boxes:        &b,
 	}
 	return c, nil
 }
 
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
+//A "colored component" externalized with what we need.
 func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 
@@ -171,12 +125,61 @@ func (a *Assembly) newCompute() provision.BoxCompute {
 	}
 }
 
+//Temporary hack to create an assembly from its id.
+//This is used by SetStatus.
+//We need add a Notifier interface duck typed by Box and Carton ?
+func NewAssembly(id string) (*Assembly, error) {
+	return get(id)
+}
+
+func (a *Assembly) SetStatus(status provision.Status) error {
+	LastStatusUpdate := time.Now().In(time.UTC)
+
+	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
+	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
+
+	if err := db.Store(BUCKET, a.Id, a); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+//get the assebmly and its children (component). we only store the
+//componentid, hence you see that we have a components map to cater to that need.
+func get(id string) (*Assembly, error) {
+	a := &Assembly{Components: make(map[string]*Component)}
+	if err := db.Fetch("assembly", id, a); err != nil {
+		return nil, err
+	}
+	a.dig()
+	return a, nil
+}
+
+func (a *Assembly) dig() error {
+	for _, cid := range a.ComponentIds {
+		if len(strings.TrimSpace(cid)) > 1 {
+			if comp, err := NewComponent(cid); err != nil {
+				log.Errorf("Failed to get component %s from riak: %s.", cid, err.Error())
+				return err
+			} else {
+				a.Components[cid] = comp
+			}
+		}
+	}
+	return nil
+}
+
 func (a *Assembly) domain() string {
 	return a.Inputs.match(DOMAIN)
 }
 
 func (a *Assembly) provider() string {
 	return a.Inputs.match(provision.PROVIDER)
+}
+
+func (a *Assembly) imageVersion() string {
+	return a.Inputs.match(IMAGE_VERSION)
 }
 
 //all the variables in the inputs shall be treated as ENV.

@@ -44,13 +44,12 @@ type BoxLevel int
 
 // Boxlog represents a log entry.
 type Boxlog struct {
-	Date    time.Time
-	Message string
-	Source  string
-	Name    string
-	Unit    string
+	Timestamp time.Time
+	Message   string
+	Source    string
+	Name      string
+	Unit      string
 }
-
 
 type BoxCompute struct {
 	Cpushare string
@@ -92,7 +91,7 @@ func (bc *BoxCompute) String() string {
 		",") + " ]"
 }
 
-// Boxlog represents a log entry.
+// BoxDeploy represents a log entry.
 type BoxDeploy struct {
 	Date    time.Time
 	HookId  string
@@ -104,20 +103,21 @@ type BoxDeploy struct {
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	Id         string
-	CartonsId  string
-	CartonId   string
-	Level      BoxLevel
-	Name       string
-	DomainName string
-	Tosca      string
-	Compute    BoxCompute
-	Repo       repository.Repo
-	Status     Status
-	Provider   string
-	Commit     string
-	Address    *url.URL
-	Ip         string
+	Id           string
+	CartonsId    string
+	CartonId     string
+	Level        BoxLevel
+	Name         string
+	DomainName   string
+	Tosca        string
+	ImageVersion string
+	Compute      BoxCompute
+	Repo         repository.Repo
+	Status       Status
+	Provider     string
+	Commit       string
+	Address      *url.URL
+	Ip           string
 }
 
 func (b *Box) String() string {
@@ -152,52 +152,6 @@ func (b *Box) Available() bool {
 		b.Status == StatusError
 }
 
-// AddCName adds a CName to box. It updates the attribute,
-// calls the SetCName function on the provisioner and saves
-// the box in the database, returning an error when it cannot save the change
-// in the database or add the CName on the provisioner.
-func (b *Box) AddCName(cnames ...string) error {
-	/*	for _, cname := range cnames {
-		if cname != "" && !cnameRegexp.MatchString(cname) {
-			return stderr.New("Invalid cname")
-		}
-
-		if s, ok := Provisioner.(provision.CNameManager); ok {
-			if err := s.SetCName(app, cname); err != nil {
-				return err
-			}
-		}
-		//Riak: append the ip/cname in the component.
-		//here (or) can be handled as an action.
-	}*/
-	return nil
-}
-
-func (b *Box) RemoveCName(cnames ...string) error {
-	/*for _, cname := range cnames {
-		count := 0
-		for _, appCname := range app.CName {
-			if cname == appCname {
-				count += 1
-			}
-		}
-		if count == 0 {
-			return stderr.New("cname not exists!")
-		}
-		if s, ok := Provisioner.(provision.CNameManager); ok {
-			if err := s.UnsetCName(app, cname); err != nil {
-				return err
-			}
-		}
-		//Riak: append the ip/cname in the component available in the box.
-		//or handle it as an action
-		if err != nil {
-			return err
-		}
-	}*/
-	return nil
-}
-
 func (box *Box) GetRouter() (string, error) {
 	return "route53", nil //dns.LoadConfig()
 }
@@ -210,11 +164,11 @@ func (box *Box) Log(message, source, unit string) error {
 	for _, msg := range messages {
 		if msg != "" {
 			bl := Boxlog{
-				Date:    time.Now().In(time.UTC),
-				Message: msg,
-				Source:  source,
-				Name:    box.Name,
-				Unit:    box.Id,
+				Timestamp: time.Now().In(time.UTC),
+				Message:   msg,
+				Source:    source,
+				Name:      box.Name,
+				Unit:      box.Id,
 			}
 			logs = append(logs, bl)
 		}

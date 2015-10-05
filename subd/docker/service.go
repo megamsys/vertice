@@ -82,16 +82,13 @@ func (s *Service) setProvisioner() {
 	carton.Provisioner = a
 
 	if err != nil {
-		//fatal(err)
 		fmt.Errorf("fatal error, couldn't located the provisioner %s", s.Meta.Provider)
 	}
 	fmt.Printf("Using %q provisioner.\n", s.Meta.Provider)
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Dockerd.toMap())
 		if err != nil {
-			//			fatal(err)
 			fmt.Errorf("fatal error, couldn't initialize the provisioner %s", s.Meta.Provider)
-
 		}
 	}
 	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {

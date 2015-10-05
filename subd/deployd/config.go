@@ -7,7 +7,7 @@ import (
 
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/one"
+	"github.com/megamsys/opennebula-go/api"
 )
 
 const (
@@ -59,9 +59,10 @@ func (c Config) String() string {
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Deployd", "green", "", "") + "\n"))
 	b.Write([]byte(provision.PROVIDER + "\t" + c.Provider + "\n"))
-	b.Write([]byte(one.ONE_ENDPOINT + "\t" + c.OneEndPoint + "\n"))
-	b.Write([]byte(one.ONE_USERID + "\t" + c.OneUserid + "\n"))
-	b.Write([]byte(one.ONE_PASSWORD + "\t" + c.OnePassword))
+	b.Write([]byte(api.ENDPOINT + "\t" + c.OneEndPoint + "\n"))
+	b.Write([]byte(api.USERID + "\t" + c.OneUserid + "\n"))
+	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate+ "\n"))
+	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword))
 	fmt.Fprintln(w)
 	w.Flush()
 	return b.String()
@@ -70,9 +71,9 @@ func (c Config) String() string {
 //convert the config to just a map.
 func (c Config) toMap() map[string]string {
 	m := make(map[string]string)
-	m[one.ONE_ENDPOINT] = c.OneEndPoint
-	m[one.ONE_USERID] = c.OneUserid
-	m[one.ONE_PASSWORD] = c.OnePassword
-	m[one.ONE_TEMPLATE] = c.OneTemplate
+	m[api.ENDPOINT] = c.OneEndPoint
+	m[api.USERID] = c.OneUserid
+	m[api.PASSWORD] = c.OnePassword
+	m[api.TEMPLATE] = c.OneTemplate
 	return m
 }

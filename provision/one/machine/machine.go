@@ -11,17 +11,18 @@ import (
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/megamd/provision/one/cluster"
 	"github.com/megamsys/opennebula-go/compute"
 )
 
 type OneProvisioner interface {
-	Cluster() *api.Rpc
+	Cluster() *cluster.Cluster
 }
 
 type Machine struct {
 	Name     string
 	Id       string
+	CartonId string
 	Level    provision.BoxLevel
 	Image    string
 	Routable bool
@@ -38,74 +39,54 @@ type CreateArgs struct {
 func (m *Machine) Create(args *CreateArgs) error {
 	log.Debugf("creating machine %s in one with %s", m.Name, m.Image)
 
-	vm := compute.VirtualMachine{
-		Name:         m.Name,
-		TemplateName: m.Image,
-		Cpu:          args.Compute.Cpushare,
-		Memory:       args.Compute.Memory,
+	opts := compute.VirtualMachine{
+		Name:   m.Name,
+		Image:  m.Image,
+		Cpu:    args.Compute.Cpushare,
+		Memory: args.Compute.Memory,
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId},
-		Client: args.Provisioner.Cluster(),
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 
-	_, err := vm.Create()
+	_, _, err := args.Provisioner.Cluster().CreateVM(opts)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
-	/*
-		for _, envData := range envs {
-			cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
-		}
-			cfg.Env = append(cfg.Env, []string{
-				fmt.Sprintf("%s=%s", "MEGAM_HOST", host),
-			}...)
-	*/
-}
-
-//it possible to have a Notifier interface that does this, duck typed by Assembly, Components.
-func (m *Machine) SetStatus(status provision.Status) error {
-	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
-
-	switch m.Level {
-	case provision.BoxSome: //this is ugly ! duckling
-		if comp, err := carton.NewComponent(m.Id); err != nil {
-			return err
-		} else if err = comp.SetStatus(status); err != nil {
-			return err
-		}
-		return nil
-	case provision.BoxNone:
-		if asm, err := carton.NewAssembly(m.Id); err != nil {
-			return err
-		} else if err = asm.SetStatus(status); err != nil {
-			return err
-		}
-		return nil
-	default:
 	}
 	return nil
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("removing machine %s in one", m.Name)
-
-	vm := compute.VirtualMachine{
-		Name:   m.Name,
-		Client: p.Cluster(),
+	opts := compute.VirtualMachine{
+		Name: m.Name,
 	}
 
-	_, err := vm.Delete()
+	err := p.Cluster().DestroyVM(opts)
 	if err != nil {
-		log.Errorf("error on deleting machine in one %s - %s", m.Name, err)
+		return err
+	}
+	return nil
+}
+
+//it possible to have a Notifier interface that does this, duck typed by Assembly, Components.
+func (m *Machine) SetStatus(status provision.Status) error {
+	log.Debugf("setting status of machine %s %s to %s", m.Id, m.Name, status.String())
+
+	if asm, err := carton.NewAssembly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.SetStatus(status); err != nil {
 		return err
 	}
 
+	if m.Level == provision.BoxSome {
+		if comp, err := carton.NewComponent(m.Id); err != nil {
+			return err
+		} else if err = comp.SetStatus(status); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -136,6 +117,13 @@ func (m *Machine) ChangeState(status provision.Status) error {
 
 }
 
+//if there is a file or something to be created, do it here.
+func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
+	log.Debugf("hook machine %s logs", m.Name)
+	fmt.Fprintf(w, "\nhook machine %s logs", m.Name)
+	return nil
+}
+
 func (m *Machine) Exec(p OneProvisioner, stdout, stderr io.Writer, cmd string, args ...string) error {
 	cmds := []string{"/bin/bash", "-lc", cmd}
 	cmds = append(cmds, args...)
@@ -153,9 +141,13 @@ func (m *Machine) Exec(p OneProvisioner, stdout, stderr io.Writer, cmd string, a
 
 }
 
-func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
-	log.Debugf("hook machine %s logs", m.Name)
-	fmt.Fprintf(w, "\nhook machine %s logs", m.Name)
-	//if there is a file or something to be created, do it here.
-	return nil
+func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
+	/*
+		for _, envData := range envs {
+			cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
+		}
+			cfg.Env = append(cfg.Env, []string{
+				fmt.Sprintf("%s=%s", "MEGAM_HOST", host),
+			}...)
+	*/
 }

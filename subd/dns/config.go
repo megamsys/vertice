@@ -11,9 +11,11 @@ import (
 
 type Config struct {
 	Enabled          bool   `toml:"enabled"`
-	Route53AccessKey string `toml:"route53_access_key"`
-	Route53SecretKey string `toml:"route53_secret_key"`
+	AccessKey string `toml:"access_key"`
+	SecretKey string `toml:"secret_key"`
 }
+
+var R53 *Config
 
 func (c Config) String() string {
 	w := new(tabwriter.Writer)
@@ -22,8 +24,8 @@ func (c Config) String() string {
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Route", "green", "", "") + "\n"))
 	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
-	b.Write([]byte("AccessKey" + "\t" + c.Route53AccessKey + "\n"))
-	b.Write([]byte("SecretKey" + "\t" + c.Route53SecretKey + "\n"))
+	b.Write([]byte("AccessKey" + "\t" + c.AccessKey + "\n"))
+	b.Write([]byte("SecretKey" + "\t" + c.SecretKey + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return b.String()
@@ -33,4 +35,8 @@ func NewConfig() *Config {
 	return &Config{
 		Enabled: true,
 	}
+}
+
+func (c *Config) MkGlobal() {
+	R53 = c
 }

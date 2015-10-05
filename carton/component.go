@@ -26,6 +26,7 @@ import (
 const (
 	DOMAIN = "domain"
 	BUCKET = "components"
+	IMAGE_VERSION = "version"
 )
 
 type Operations struct {

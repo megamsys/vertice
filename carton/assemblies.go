@@ -18,27 +18,14 @@ package carton
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
-	//	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
 
-
+//bunch Assemblys
 type Cartons []*Carton
-type JsonPairs []*JsonPair
 
-type JsonPair struct {
-	K string `json:"key"`
-	V string `json:"value"`
-}
-
-func NewJsonPair(k string, v string) *JsonPair {
-	return &JsonPair{
-		K: k,
-		V: v,
-	}
-}
-
+//The grand elephant for megam cloud platform.
 type Assemblies struct {
 	Id          string      `json:"id"`
 	AccountsId  string      `json:"accounts_id"`
@@ -57,7 +44,7 @@ func (a *Assemblies) String() string {
 	}
 }
 
-/** This is a plublic function as this is the  entry for the app deployment
+/** A public function which pulls the assemblies for deployment.
 and any others we do. **/
 func Get(id string) (*Assemblies, error) {
 	a := &Assemblies{}
@@ -69,7 +56,7 @@ func Get(id string) (*Assemblies, error) {
 	return a, nil
 }
 
-//make carton from assemblies.
+//make cartons from assemblies.
 func (a *Assemblies) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, len(a.AssemblysId))
 	for _, ay := range a.AssemblysId {
@@ -77,7 +64,7 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 			if ca, err := mkCarton(a.Id, ay); err != nil {
 				return nil, err
 			} else {
-				ca.toBox() //on success, If BoxLevel is BoxZero
+				ca.toBox() //on success, make a carton2box if BoxLevel is BoxZero
 				newCs = append(newCs, ca) //on success append carton
 			}
 		}
@@ -86,7 +73,24 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 	return newCs, nil
 }
 
-//match for a value in the JSONPair and send the value
+
+//a hash in json representing {name: "", value: ""}
+type JsonPairs []*JsonPair
+
+type JsonPair struct {
+	K string `json:"key"`
+	V string `json:"value"`
+}
+
+//create a new hash pair in json  by providing a key, value
+func NewJsonPair(k string, v string) *JsonPair {
+	return &JsonPair{
+		K: k,
+		V: v,
+	}
+}
+
+//match for a value in the JSONPair arrays and send the value
 func (p *JsonPairs) match(k string) string {
 	for _, j := range *p {
 		if j.K == k {
