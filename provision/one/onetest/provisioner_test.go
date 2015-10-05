@@ -3,8 +3,8 @@ package onetest
 import (
 	"testing"
 
-	//"github.com/megamsys/megamd/provision/one/cluster"
-	//otesting "github.com/megamsys/opennebula-go/testing"
+	"github.com/megamsys/megamd/provision/one/cluster"
+	otesting "github.com/megamsys/opennebula-go/testing"
 	"gopkg.in/check.v1"
 )
 
@@ -15,7 +15,7 @@ func Test(t *testing.T) {
 var _ = check.Suite(&S{})
 
 type S struct{}
-/*
+
 func (s *S) TestNewFakeOneProvisioner(c *check.C) {
 	server, err := otesting.NewServer("127.0.0.1:0")
 	c.Assert(err, check.IsNil)
@@ -26,13 +26,17 @@ func (s *S) TestNewFakeOneProvisioner(c *check.C) {
 	c.Assert(err, check.IsNil)
 }
 
+
+/*
 func (s *S) TestStartMultipleServersCluster(c *check.C) {
 	p, err := StartMultipleServersCluster()
 	c.Assert(err, check.IsNil)
 	nodes, err := p.Cluster().Nodes()
 	c.Assert(err, check.IsNil)
 	c.Assert(nodes, check.HasLen, 1)
+	defer p.Destroy()
 }
+
 
 func (s *S) TestDestroy(c *check.C) {
 	p, err := StartMultipleServersCluster()
@@ -59,8 +63,7 @@ func (s *S) TestCluster(c *check.C) {
 	p.cluster = cluster
 	c.Assert(p.Cluster(), check.Equals, cluster)
 }
-
+*/
 func buildClusterStorage() (cluster.Storage, error) {
 	return &cluster.MapStorage{}, nil
 }
-*/

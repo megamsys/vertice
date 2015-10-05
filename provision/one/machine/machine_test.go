@@ -12,6 +12,7 @@ func (s *S) TestMachineName(c *check.C) {
 	c.Check(mach.Name, check.Equals, "alpha.megambox.com")
 }
 /*
+
 func (s *S) TestMachineCreate(c *check.C) {
 	carton := provisiontest.NewFakeCarton("dabba.megambox.com", "tosca.torpedo.ubuntu", provision.BoxSome, 0)
 

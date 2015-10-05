@@ -19,10 +19,10 @@ type S struct {
 	p      *fakeOneProvisioner
 	server *otesting.OneServer
 }
-/*
+
 func (s *S) SetUpSuite(c *check.C) {
 }
-
+/*
 func (s *S) SetUpTest(c *check.C) {
 	server, err := otesting.NewServer("127.0.0.1:0")
 	c.Assert(err, check.IsNil)
