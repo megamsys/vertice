@@ -1,9 +1,10 @@
 package github
 
 import (
-  "strconv"
-  "net/http"
-  "net/http/httputil"
+	"fmt"
+	"net/http"
+	"net/http/httputil"
+	"strconv"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -29,36 +30,39 @@ func (m githubManager) client(token string) *github.Client {
 //https://developer.github.com/v3/repos/hooks/#create-a-hook
 func (m githubManager) CreateHook(r repository.Repository) (string, error) {
 	client := m.client(r.GetToken())
-  t := time.Now()
+	log.Debugf("  [github] client (%s)", r.GetToken())
+
+	t := time.Now()
 	n := "web"
 	a := true
 
 	h := github.Hook{
-		CreatedAt:  &t,
+		CreatedAt: &t,
 		UpdatedAt: &t,
 		Name:      &n,
 		Events:    []string{"push"},
-		Config:     map[string]interface{}{
-			"url":     r.Trigger(),
+		Config: map[string]interface{}{
+			"url":          r.Trigger(),
 			"content_type": "json",
 		},
 		Active: &a,
 	}
 
 	repoName, err := r.GetShortName()
+	log.Debugf("  [github] creating hook(%s, %s)", r.GetUserName(), repoName)
 
 	if err != nil {
 		return "", err
 	}
 
-	hk, response, err := client.Repositories.CreateHook(r.GetUserName(),repoName, &h)
+	hk, response, err := client.Repositories.CreateHook(r.GetUserName(), repoName, &h)
+	m.debugResp(response.Response)
+
 	if err != nil {
 		return "", err
 	}
 
-  m.debugResp(response.Response)
-
-	log.Debugf("[github] created webhook [%s,%s] successfully.",  r.Gitr(), strconv.Itoa(*hk.ID))
+	log.Debugf("  [github] created webhook [%s,%s] successfully.", r.Gitr(), strconv.Itoa(*hk.ID))
 	//We need to save the hook id.
 	return strconv.Itoa(*hk.ID), nil
 
@@ -70,11 +74,11 @@ func (m githubManager) RemoveHook(r repository.Repository) error {
 }
 
 func (m githubManager) debugResp(resp *http.Response) {
-  log.Debugf(cmd.Colorfy("--- git --", "yellow", "",""))
+	log.Debugf(cmd.Colorfy("--- git ---", "yellow", "", ""))
 	responseDump, err := httputil.DumpResponse(resp, true)
 	if err != nil {
 		return
 	}
 
-	log.Debugf("%v",responseDump)
+	log.Debugf(cmd.Colorfy(fmt.Sprintf("%v", responseDump), "yellow", "", ""))
 }

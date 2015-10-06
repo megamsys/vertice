@@ -27,7 +27,7 @@ var (
 	STATE        = "state"
 	CREATE       = "create"
 	BOOTSTRAPPED = "bootstrapped"
-	DELETE       = "delete"
+	DESTROY      = "destroy"
 	STATEUP      = "stateup"
 	STATEDOWN    = "statedown"
 
@@ -78,6 +78,11 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 		return CreateProcess{
 			Name: p.name,
 		}, nil
+	case DESTROY:
+		fmt.Println("----- destroying ....")
+		return DestroyProcess{
+			Name: p.name,
+		}, nil
 	case BOOTSTRAPPED:
 		return StateupProcess{
 			Name: p.name,
@@ -87,7 +92,7 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 			Name: p.name,
 		}, nil
 	default:
-		return nil, newParseError([]string{STATE, action}, []string{CREATE, STATEUP, STATEDOWN})
+		return nil, newParseError([]string{STATE, action}, []string{CREATE, DESTROY, STATEUP, STATEDOWN})
 	}
 }
 

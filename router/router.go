@@ -9,10 +9,10 @@ import (
 type routerFactory func(string) (Router, error)
 
 var (
-	ErrInvalidCName    = errors.New("CName invalid. eg: megam.megambox.com, www.google.com, typo.com")
-	ErrCNameExists     = errors.New("CName already exists")
-	ErrCNameNotFound   = errors.New("CName not found")
-	ErrCNameNotAllowed = errors.New("CName as router subdomain not allowed")
+	ErrInvalidCName    = errors.New("CNAME is invalid. [valid examples are: megam.megambox.com, www.google.com, typo.com]")
+	ErrDomainNotFound  = errors.New("Domain not found")
+	ErrCNameNotFound   = errors.New("CNAME not found")
+	ErrCNameMissingArgs = errors.New("CNAME missing args. [cname (and/or) ip] needed.")
 )
 
 var routers = make(map[string]routerFactory)
@@ -50,7 +50,7 @@ type MessageRouter interface {
 func ChopDomain(cname string) (string, error) {
 	sdoms := splitDomainName(cname)
 	if sdoms != nil && len(sdoms) >= 2 {
-		return strings.Join(sdoms[:len(sdoms)-2], "."), nil
+		return strings.Join(sdoms[(len(sdoms)-2):], "."), nil
 	}
 	return "", ErrInvalidCName
 }

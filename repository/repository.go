@@ -71,7 +71,7 @@ func (r Repo) GetShortName() (string, error) {
 	if i < 0 {
 		return "", fmt.Errorf("unable to parse output of git")
 	}
-	return r.Gitr()[i+1:], nil
+	return strings.TrimRight(r.Gitr()[i+1:],".git"), nil
 }
 
 

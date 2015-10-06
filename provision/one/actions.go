@@ -36,20 +36,29 @@ type runMachineActionsArgs struct {
 	provisioner   *oneProvisioner
 }
 
+//If there is a previous machine created and it has a status, we use that.
+// eg: if it we have deployed, then make it created after a machine is created in ONE.
 var updateStatusInRiak = action.Action{
 	Name: "update-status-riak",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("update status for machine %s image %s for %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("  update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 
-		mach := machine.Machine{
-			Id:       args.box.Id,
-			CartonId: args.box.CartonId,
-			Level:    args.box.Level,
-			Name:     args.box.GetFullName(),
-			Image:    args.imageId,
+		var mach machine.Machine
+		mach = ctx.Previous.(machine.Machine)
+
+		if &mach == nil {
+			mach = machine.Machine{
+				Id:       args.box.Id,
+				CartonId: args.box.CartonId,
+				Level:    args.box.Level,
+				Name:     args.box.GetFullName(),
+				Status:   args.machineStatus,
+				Image:    args.imageId,
+			}
 		}
-		mach.SetStatus(args.machineStatus)
+
+		mach.SetStatus(mach.Status)
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -63,7 +72,7 @@ var createMachine = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("create machine for box %s, on image %s, with %s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf("  create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)
 
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
@@ -74,17 +83,17 @@ var createMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		args.machineStatus = provision.StatusCreating
+		mach.Status = provision.StatusCreating
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		fmt.Fprintf(args.writer, "\n---- Removing %d old machine %s ----\n", c.Name)
+		fmt.Fprintf(args.writer, "\n---- Removing old machine %s ----\n", c.Name)
 
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Failed to remove the machine %q: %s", c.Name, c.Id, err)
+			log.Errorf("---- [create-machine:Backward]\n     %s", err.Error())
 		}
 	},
 }
@@ -102,9 +111,9 @@ var removeOldMachine = action.Action{
 
 		err := mach.Remove(args.provisioner)
 		if err != nil {
-			log.Errorf("Ignored error trying to remove old machine %q: %s", mach.Id, err)
+			return nil, err
 		}
-		fmt.Fprintf(writer, "\n---- Removed old machine %s [%s]\n", mach.Id, mach.Name)
+		fmt.Fprintf(writer, "\n---- Removed old machine (%s, %s)\n", mach.Id, mach.Name)
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -117,7 +126,7 @@ var changeStateofMachine = action.Action{
 	Name: "change-state-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
-		log.Debugf("change state of machine %s", args.box.GetFullName())
+		log.Debugf("  change state of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 		mach := machine.Machine{
 			Id:       args.box.Id,
 			CartonId: args.box.CartonId,
@@ -125,6 +134,7 @@ var changeStateofMachine = action.Action{
 			Name:     args.box.GetFullName(),
 		}
 		mach.ChangeState(args.machineStatus)
+		mach.Status = args.machineStatus
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -147,13 +157,13 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, "\n---- Adding route to machine %s [%s]\n", mach.Name, args.box.Ip)
-		err = r.SetCName(mach.Name, args.box.Ip)
+		fmt.Fprintf(writer, "\n---- Adding route to machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+		err = r.SetCName(mach.Name, args.box.PublicIp)
 		if err != nil {
 			return mach, err
 		}
-		mach.Routable = true
-		fmt.Fprintf(writer, "---- Added route to machine %s [%s]\n", mach.Name, args.box.Ip)
+		mach.SetRoutable(args.box.PublicIp)
+		fmt.Fprintf(writer, "---- Added route to machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 
 		return mach, nil
 	},
@@ -162,19 +172,19 @@ var addNewRoute = action.Action{
 		mach := ctx.FWResult.(machine.Machine)
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			log.Errorf("[add-new-routes:Backward] Error geting router: %s", err.Error())
+			log.Errorf("---- [add-new-routes:Backward]\n     %s", err.Error())
 		}
 		w := args.writer
 		if w == nil {
 			w = ioutil.Discard
 		}
-		fmt.Fprintf(w, "\n---- Removing routes from created machine  %s [%s]\n", mach.Id, mach.Name)
+		fmt.Fprintf(w, "\n---- Removing routes from created machine  (%s, %s)\n", mach.Id, mach.Name)
 		if mach.Routable {
-			err = r.UnsetCName(mach.Name, args.box.Ip)
+			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
+				log.Errorf("---- [add-new-routes:Backward] (%s, %s)\n    %s", mach.Name, args.box.PublicIp, err.Error())
 			}
-			fmt.Fprintf(w, "---- Removed route from machine %s [%s]\n", mach.Id, mach.Name)
+			fmt.Fprintf(w, "\n---- Removed route from machine (%s, %s)\n", mach.Id, mach.Name)
 		}
 	},
 	OnError: rollbackNotice,
@@ -194,13 +204,17 @@ var removeOldRoute = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
+		mach.SetRoutable(args.box.PublicIp)
+
 		fmt.Fprintf(w, "\n---- Removing routes from created machine ----\n")
 		if mach.Routable {
-			err = r.UnsetCName(mach.Name, args.box.Ip)
+			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				log.Errorf("[add-new-routes:Backward] Error removing route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
+				log.Errorf("[add-new-routes:Backward] Error removing route for (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
 			}
-			fmt.Fprintf(w, "---- Removed route from machine %s [%s]\n", mach.Name, args.box.Ip)
+			fmt.Fprintf(w, "\n---- Removed route from machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+		} else {
+			fmt.Fprintf(w, "\n---- Skip - removing routes from created machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 		}
 		return mach, nil
 	},
@@ -209,7 +223,7 @@ var removeOldRoute = action.Action{
 		mach := ctx.FWResult.(machine.Machine)
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			log.Errorf("[remove-old-route:Backward] Error geting router: %s", err.Error())
+			log.Errorf("---- [remove-old-route:Backward]\n     %s", err.Error())
 		}
 		w := args.writer
 		if w == nil {
@@ -217,12 +231,11 @@ var removeOldRoute = action.Action{
 		}
 		fmt.Fprintf(w, "\n---- Adding back routes to old machines ----\n")
 		if mach.Routable {
-
-			err = r.SetCName(mach.Name, args.box.Ip)
+			err = r.SetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				log.Errorf("[remove-old-route:Backward] Error adding back route for %s [%s]: %s", mach.Name, args.box.Ip, err.Error())
+				log.Errorf("[remove-old-route:Backward] (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
 			}
-			fmt.Fprintf(w, "---- Added route to machine %s [%s]\n", mach.Name, args.box.Ip)
+			fmt.Fprintf(w, "---- Added route to machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 		}
 	},
 	OnError:   rollbackNotice,
@@ -253,6 +266,6 @@ var followLogs = action.Action{
 var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
-		fmt.Fprintf(args.writer, "\n**** ROLLING BACK AFTER FAILURE ****\n ---> %s <---\n", err)
+		fmt.Fprintf(args.writer, "\n===> ROLLBACK     \n---> %s\n", err)
 	}
 }

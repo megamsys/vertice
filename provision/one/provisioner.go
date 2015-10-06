@@ -72,6 +72,7 @@ func (p *oneProvisioner) initOneCluster(m map[string]string) error {
 			return err
 		}
 	}
+	p.defaultImage = m[api.IMAGE]
 	var nodes []cluster.Node = []cluster.Node{cluster.Node{
 		Address:  m[api.ENDPOINT],
 		Metadata: m,
@@ -137,7 +138,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Riak - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "\n---- create %s box %s ----\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
 	actions := []*action.Action{
 		&updateStatusInRiak,
 		&createMachine,
@@ -164,7 +165,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- removing %s ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n---- removing box (%s) ----\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -175,7 +176,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
-		&removeOldMachine,
+	//	&removeOldMachine,
 		&removeOldRoute,
 		//		&removeBoxesInRiak,
 		//		&removeCartonsInRiak,
@@ -203,7 +204,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 
 	actions := []*action.Action{
 		&changeStateofMachine,
-		&addNewRoute,
+		//&addNewRoute,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -296,7 +297,7 @@ func (p *oneProvisioner) PlatformRemove(name string) error {
 // getBuildImage returns the image name from box or tosca.
 func (p *oneProvisioner) getBuildImage(re repository.Repo, version string) string {
 	if p.usePlatformImage(re) {
-		return p.defaultImage + "_" + version
+		return p.defaultImage
 	}
 	return "" //error
 }

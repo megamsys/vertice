@@ -20,6 +20,7 @@ type Carton struct {
 	Repo         repository.Repo
 	DomainName   string
 	Provider     string
+	PublicIp     string
 	Envs         []bind.EnvVar
 	Boxes        *[]provision.Box
 }
@@ -61,6 +62,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Compute:      c.Compute,
 			Repo:         c.Repo,
 			Provider:     c.Provider,
+			PublicIp:     c.PublicIp,
 			Tosca:        c.Tosca,
 		},
 		}
@@ -79,12 +81,12 @@ func (c *Carton) Deploy() error {
 	return nil
 }
 
-// Deletes a carton, which deletes its boxes.
-func (c *Carton) Delete() error {
+// Destroys a carton, which deletes its boxes.
+func (c *Carton) Destroy() error {
 	for _, box := range *c.Boxes {
-		err := Provisioner.Destroy(&box, nil)
+		err := Destroy(&DestroyOpts{B: &box})
 		if err != nil {
-			log.Errorf("Unable to destroy box", err)
+			return err
 		}
 	}
 	return nil

@@ -131,11 +131,11 @@ func (c *Start) Flags() *gnuflag.FlagSet {
 
 // ParseConfig parses the config at path.
 func (c *Start) ParseConfig(path string) (*Config, error) {
-	if path != "" {
-		log.Warnf("Using configuration at: %s", path)
-	}
-
 	config := NewConfig()
+	if path == "" {
+		path = config.Meta.Dir + "/megamd.conf"
+	}
+	log.Warnf("Using configuration at: %s", path)
 	if _, err := toml.DecodeFile(path, &config); err != nil {
 		return nil, err
 	}
