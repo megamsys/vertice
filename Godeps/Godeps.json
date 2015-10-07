@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.7",
-			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
+			"Comment": "v0.8.7-12-gfe72f59",
+			"Rev": "fe72f59ae7a90258fd2be14419e4d066dc0840e2"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -82,23 +82,23 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "2cf60cf3bc4d2c87272bd76662bb5294112ca1e2"
+			"Rev": "fd846163ca91894a2507d76bc5a7a516fe55d018"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "2cf60cf3bc4d2c87272bd76662bb5294112ca1e2"
+			"Rev": "fd846163ca91894a2507d76bc5a7a516fe55d018"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "2cf60cf3bc4d2c87272bd76662bb5294112ca1e2"
+			"Rev": "fd846163ca91894a2507d76bc5a7a516fe55d018"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "2cf60cf3bc4d2c87272bd76662bb5294112ca1e2"
+			"Rev": "fd846163ca91894a2507d76bc5a7a516fe55d018"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "2cf60cf3bc4d2c87272bd76662bb5294112ca1e2"
+			"Rev": "fd846163ca91894a2507d76bc5a7a516fe55d018"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -123,15 +123,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
+			"Rev": "47990a1ba55743e6ef1affd3a14e5bac8553615d"
 		},
 		{
 			"ImportPath": "golang.org/x/net/netutil",
-			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
+			"Rev": "47990a1ba55743e6ef1affd3a14e5bac8553615d"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "01256db42e5106196a3473ec1620727a383500e8"
+			"Rev": "47990a1ba55743e6ef1affd3a14e5bac8553615d"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
