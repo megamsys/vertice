@@ -105,6 +105,7 @@ func (m *Machine) ChangeState(status provision.Status) error {
 
 	jsonMsg, err := json.Marshal(
 		carton.Requests{
+			CatId:	   m.CartonId,
 			Action:    status.String(),
 			Category:  carton.STATE,
 			CreatedAt: time.Now().String(),
