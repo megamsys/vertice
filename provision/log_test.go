@@ -6,22 +6,23 @@ import (
 
 //	"gopkg.in/check.v1"
 )
+/*
 
-/*func (s *S) TestNewLogListener(c *check.C) {
-	app := App{Name: "myapp"}
-	l, err := NewLogListener(&app, Applog{})
+func (s *S) TestNewLogListener(c *check.C) {
+	box := Box{Name: "myapp"}
+	l, err := NewLogListener(&box, Boxlog{})
 	defer l.Close()
 	c.Assert(err, check.IsNil)
 	c.Assert(l.q, check.NotNil)
 	c.Assert(l.C, check.NotNil)
-	notify("myapp", []interface{}{Applog{Message: "123"}})
+	notify("mybox", []interface{}{Boxlog{Message: "123"}})
 	logMsg := <-l.C
 	c.Assert(logMsg.Message, check.Equals, "123")
 }
 
 func (s *S) TestNewLogListenerClosingChannel(c *check.C) {
-	app := App{Name: "myapp"}
-	l, err := NewLogListener(&app, Applog{})
+	box := Box{Name: "mybox"}
+	l, err := NewLogListener(&box, Boxlog{})
 	c.Assert(err, check.IsNil)
 	c.Assert(l.q, check.NotNil)
 	c.Assert(l.C, check.NotNil)
@@ -31,23 +32,13 @@ func (s *S) TestNewLogListenerClosingChannel(c *check.C) {
 }
 
 func (s *S) TestLogListenerClose(c *check.C) {
-	app := App{Name: "myapp"}
-	l, err := NewLogListener(&app, Applog{})
+	box := Box{Name: "myapp"}
+	l, err := NewLogListener(&box, Boxlog{})
 	c.Assert(err, check.IsNil)
 	err = l.Close()
 	c.Assert(err, check.IsNil)
 	_, ok := <-l.C
 	c.Assert(ok, check.Equals, false)
-}
-
-func (s *S) TestLogListenerDoubleClose(c *check.C) {
-	app := App{Name: "yourapp"}
-	l, err := NewLogListener(&app, Applog{})
-	c.Assert(err, check.IsNil)
-	err = l.Close()
-	c.Assert(err, check.IsNil)
-	err = l.Close()
-	c.Assert(err, check.NotNil)
 }
 
 func (s *S) TestNotify(c *check.C) {
