@@ -45,9 +45,10 @@ var updateStatusInRiak = action.Action{
 		log.Debugf("  update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 
 		var mach machine.Machine
-		mach = ctx.Previous.(machine.Machine)
 
-		if &mach == nil {
+		if ctx.Previous != nil {
+			mach = ctx.Previous.(machine.Machine)
+		} else {
 			mach = machine.Machine{
 				Id:       args.box.Id,
 				CartonId: args.box.CartonId,

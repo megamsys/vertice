@@ -3,8 +3,8 @@ package machine
 import (
 	"testing"
 
-//	"github.com/megamsys/megamd/provision"
-//	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/opennebula-go/compute"
 	otesting "github.com/megamsys/opennebula-go/testing"
 	"gopkg.in/check.v1"
 )
@@ -19,12 +19,12 @@ type S struct {
 	p      *fakeOneProvisioner
 	server *otesting.OneServer
 }
-/*
+
 func (s *S) SetUpSuite(c *check.C) {
 }
 
-func (s *S) SetUpTest(c *check.C) {
-	server, err := otesting.NewServer("127.0.0.1:0")
+/*func (s *S) SetUpTest(c *check.C) {
+	server, err := otesting.NewServer("127.0.0.1:5555")
 	c.Assert(err, check.IsNil)
 	s.server = server
 	s.p, err = newFakeOneProvisioner(s.server.URL())
@@ -33,7 +33,7 @@ func (s *S) SetUpTest(c *check.C) {
 
 func (s *S) TestTearDownTest(c *check.C) {
 	s.server.Stop()
-}
+}*/
 
 func (s *S) newMachine(opts compute.VirtualMachine, p *fakeOneProvisioner) (*Machine, error) {
 	if p == nil {
@@ -56,4 +56,3 @@ func (s *S) newMachine(opts compute.VirtualMachine, p *fakeOneProvisioner) (*Mac
 	}
 	return &mach, nil
 }
-*/

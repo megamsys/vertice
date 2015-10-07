@@ -42,7 +42,6 @@ func StartMultipleServersCluster() (*FakeOneProvisioner, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	p, err := NewFakeOneProvisioner(server1.URL())
 	if err != nil {
 		return nil, err
