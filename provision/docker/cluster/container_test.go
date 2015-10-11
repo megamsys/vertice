@@ -1,26 +1,6 @@
-// Copyright 2014 docker-cluster authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+package cluster
 
-package swarmc
-
-import (
-	"bytes"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"reflect"
-	"sort"
-	"strings"
-	"testing"
-	"time"
-
-	"github.com/fsouza/go-dockerclient"
-	dtesting "github.com/fsouza/go-dockerclient/testing"
-	cstorage "github.com/"github.com/megamsys/megamd/docker-cluster/storage"
-	"github.com/"github.com/megamsys/megamd/"github.com/megamsys/megamd/safe"
-)
-
+/*
 func TestCreateContainer(t *testing.T) {
 	body := `{"Id":"e90302"}`
 	server1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -2068,3 +2048,4 @@ func TestInspectExec(t *testing.T) {
 		t.Errorf("InspectExec: should not send request to all servers, but did.")
 	}
 }
+*/

@@ -10,19 +10,24 @@ import (
 	"time"
 
 	"github.com/fsouza/go-dockerclient"
-	"github.com/fsouza/go-dockerclient/testing"
-	"github.com/megamsys/megamd/log"
 )
 
 var (
 	errStorageMandatory = errors.New("Storage parameter is mandatory")
 	errHealerInProgress = errors.New("Healer already running")
+
+	timeout10Client  = clientWithTimeout(10*time.Second, 1*time.Hour)
+	persistentClient = clientWithTimeout(10*time.Second, 0)
+	timeout10Dialer  = &net.Dialer{
+		Timeout:   10 * time.Second,
+		KeepAlive: 30 * time.Second,
+	}
 )
 
 type node struct {
-	addr             string
+	addr string
+	*docker.Client
 }
-
 
 // ContainerStorage provides methods to store and retrieve information about
 // the relation between the node and the container. It can be easily
@@ -36,6 +41,14 @@ type ContainerStorage interface {
 	RetrieveContainers() ([]Container, error)
 }
 
+// ImageStorage works like ContainerStorage, but stores information about
+// images and hosts.
+type ImageStorage interface {
+	StoreImage(repo, id, host string) error
+	RetrieveImage(repo string) (Image, error)
+	RemoveImage(repo, id, host string) error
+	RetrieveImages() ([]Image, error)
+}
 
 type NodeStorage interface {
 	StoreNode(node Node) error
@@ -51,6 +64,7 @@ type NodeStorage interface {
 
 type Storage interface {
 	ContainerStorage
+	ImageStorage
 	NodeStorage
 }
 
@@ -58,14 +72,9 @@ type Storage interface {
 // provide methods for interaction with those nodes, like CreateContainer,
 // which creates a container in one node of the cluster.
 type Cluster struct {
-	docker.Client     *docker.Client
-	stor              Storage
-	Healer            Healer
-	monitoringDone    chan bool
-	dryServer        *testing.DockerServer
-	pingClient       *http.Client
-	timeout10Client  *http.Client
-	persistentClient *http.Client
+	Healer         Healer
+	stor           Storage
+	monitoringDone chan bool
 }
 
 type DockerNodeError struct {
@@ -99,6 +108,7 @@ func wrapErrorWithCmd(n node, err error, cmd string) error {
 	return nil
 }
 
+
 // New creates a new Cluster, initially composed by the given nodes.
 //
 // The scheduler parameter defines the scheduling strategy. It defaults
@@ -112,9 +122,6 @@ func New(storage Storage, nodes ...Node) (*Cluster, error) {
 	if storage == nil {
 		return nil, errStorageMandatory
 	}
-	c.pingClient = clientWithTimeout(5*time.Second, 1*time.Minute)
-	c.timeout10Client = clientWithTimeout(10*time.Second, 1*time.Hour)
-	c.persistentClient = clientWithTimeout(10*time.Second, 0)
 	c.stor = storage
 	c.Healer = DefaultHealer{}
 
@@ -186,57 +193,6 @@ func (c *Cluster) NodesForMetadata(metadata map[string]string) ([]Node, error) {
 		return nil, err
 	}
 	return NodeList(nodes).filterDisabled(), nil
-}
-
-func (c *Cluster) StartActiveMonitoring(updateInterval time.Duration) {
-	c.monitoringDone = make(chan bool)
-	go c.runActiveMonitoring(updateInterval)
-}
-
-func (c *Cluster) StopActiveMonitoring() {
-	if c.monitoringDone != nil {
-		c.monitoringDone <- true
-	}
-}
-
-func (c *Cluster) runPingForHost(addr string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	client, err := c.getNodeByAddr(addr)
-	if err != nil {
-		log.Errorf("[active-monitoring]: error creating client: %s", err.Error())
-		return
-	}
-	client.HTTPClient = c.pingClient
-	err = client.Ping()
-	if err == nil {
-		c.handleNodeSuccess(addr)
-	} else {
-		log.Errorf("[active-monitoring]: error in ping: %s", err.Error())
-		c.handleNodeError(addr, err, true)
-	}
-}
-
-func (c *Cluster) runActiveMonitoring(updateInterval time.Duration) {
-	log.Debugf("[active-monitoring]: active monitoring enabled, pinging hosts every %d seconds", updateInterval/time.Second)
-	for {
-		var nodes []Node
-		var err error
-		nodes, err = c.UnfilteredNodes()
-		if err != nil {
-			log.Errorf("[active-monitoring]: error in UnfilteredNodes: %s", err.Error())
-		}
-		wg := sync.WaitGroup{}
-		for _, node := range nodes {
-			wg.Add(1)
-			go c.runPingForHost(node.Address, &wg)
-		}
-		wg.Wait()
-		select {
-		case <-c.monitoringDone:
-			return
-		case <-time.After(updateInterval):
-		}
-	}
 }
 
 func (c *Cluster) lockWithTimeout(addr string, isFailure bool) (func(), error) {
@@ -393,59 +349,11 @@ func clientWithTimeout(dialTimeout time.Duration, fullTimeout time.Duration) *ht
 	}
 }
 
-func (c *Cluster) StopDryMode() {
-	if c.dryServer != nil {
-		c.dryServer.Stop()
-		clients := []*http.Client{c.timeout10Client, c.persistentClient, c.pingClient}
-		for _, cli := range clients {
-			if trans, ok := cli.Transport.(*http.Transport); ok {
-				trans.CloseIdleConnections()
-			}
-		}
-	}
-}
-
-func (c *Cluster) DryMode() error {
-	var err error
-	c.dryServer, err = testing.NewServer("127.0.0.1:0", nil, nil)
-	if err != nil {
-		return err
-	}
-	oldStor := c.stor
-	c.stor = &MapStorage{}
-	nodes, err := oldStor.RetrieveNodes()
-	if err != nil {
-		return err
-	}
-	for _, node := range nodes {
-		err = c.storage().StoreNode(node)
-		if err != nil {
-			return err
-		}
-	}
-
-	containers, err := oldStor.RetrieveContainers()
-	if err != nil {
-		return err
-	}
-	for _, container := range containers {
-		err = c.storage().StoreContainer(container.Id, container.Host)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (c *Cluster) getNodeByAddr(address string) (node, error) {
-	if c.dryServer != nil {
-		address = c.dryServer.URL()
-	}
 	var n node
 	client, err := docker.NewClient(address)
 	if err != nil {
 		return n, err
 	}
-	client.HTTPClient = c.timeout10Client
-	return node{addr: address, Client: client, persistentClient: c.persistentClient}, nil
+	return node{addr: address, Client: client}, nil
 }

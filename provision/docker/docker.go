@@ -1,16 +1,11 @@
 package docker
 
 import (
-	"crypto"
-	"crypto/rand"
 	"fmt"
-	"io"
 	"net"
 	"net/url"
-	"time"
 
 	"github.com/fsouza/go-dockerclient"
-	"github.com/megamsys/megamd/provision/docker/cluster"
 )
 
 func urlToHost(urlStr string) string {

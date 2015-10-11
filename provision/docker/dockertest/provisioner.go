@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/megamsys/megamd/provision/one/testing"
-	"github.com/megamsys/megamd/cluster"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/docker"
+	"github.com/megamsys/megamd/provision/docker/cluster"
 	"github.com/megamsys/megamd/provision/docker/container"
 )
 

@@ -1,8 +1,4 @@
-// Copyright 2014 docker-cluster authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-package swarmc
+package cluster
 
 import (
 	"errors"
@@ -78,28 +74,4 @@ func (failingStorage) ExtendNodeLock(address string, timeout time.Duration) erro
 }
 func (failingStorage) UnlockNode(address string) error {
 	return errors.New("storage error")
-}
-
-type fakeScheduler struct{}
-
-func (fakeScheduler) Schedule(c *Cluster, opts docker.CreateContainerOptions, schedulerOpts SchedulerOptions) (Node, error) {
-	return Node{}, nil
-}
-
-type failingScheduler struct{}
-
-func (failingScheduler) Schedule(c *Cluster, opts docker.CreateContainerOptions, schedulerOpts SchedulerOptions) (Node, error) {
-	return Node{}, errors.New("Cannot schedule")
-}
-
-type optsScheduler struct {
-	roundRobin
-}
-
-func (s *optsScheduler) Schedule(c *Cluster, opts docker.CreateContainerOptions, schedulerOpts SchedulerOptions) (Node, error) {
-	optStr := schedulerOpts.(string)
-	if optStr != "myOpt" {
-		return Node{}, fmt.Errorf("Invalid option %s", optStr)
-	}
-	return s.roundRobin.Schedule(c, opts, schedulerOpts)
 }

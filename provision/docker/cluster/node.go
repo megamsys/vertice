@@ -5,7 +5,7 @@
 // Package cluster provides types and functions for management of Docker
 // clusters, scheduling container operations among hosts running Docker
 // (nodes).
-package swarmc
+package cluster
 
 import (
 	"encoding/json"
@@ -19,11 +19,13 @@ import (
 // (in the form <scheme>://<host>:<port>/) and map with arbritary
 // metadata.
 type Node struct {
-	Address        string `bson:"_id"`
+	Address        string
 	Healing        HealingData
 	Metadata       map[string]string
 	CreationStatus string
 }
+
+
 
 type HealingData struct {
 	LockedUntil time.Time
@@ -103,8 +105,15 @@ func (n *Node) ResetFailures() {
 }
 
 func (n *Node) Client() (*docker.Client, error) {
-	return docker.NewClient(n.Address)
+	client, err := docker.NewClient(n.Address)
+	if err != nil {
+		return nil, err
+	}
+	client.HTTPClient = timeout10Client
+	client.Dialer = timeout10Dialer
+	return client, nil
 }
+
 
 func (n *Node) updateError(lastErr error, incrementFailures bool) {
 	if n.Metadata == nil {

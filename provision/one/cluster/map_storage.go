@@ -1,9 +1,9 @@
 package cluster
 
 import (
+	"errors"
 	"sync"
 	"time"
-	"errors"
 )
 
 var (

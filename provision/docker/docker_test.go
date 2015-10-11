@@ -127,8 +127,6 @@ func (s *S) TestContainerGetAddress(c *check.C) {
 }
 
 func (s *S) TestContainerCreate(c *check.C) {
-	config.Set("host", "my.cool."github.com/megamsys/megamd.addr:8080")
-	defer config.Unset("host")
 	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
 	app.Memory = 15
 	app.Swap = 15
@@ -173,132 +171,9 @@ func (s *S) TestContainerCreate(c *check.C) {
 	c.Assert(container.Config.Env, check.DeepEquals, []string{
 		"A=myenva",
 		"ABCD=other env",
-		"github.com/megamsys/megamd_HOST=my.cool."github.com/megamsys/megamd.addr:8080",
+		"HOST=my.cool:8080",
 		"github.com/megamsys/megamd_PROCESSNAME=myprocess1",
 	})
-}
-
-func (s *S) TestContainerCreateSecurityOptions(c *check.C) {
-	config.Set("docker:security-opts", []string{"label:type:svirt_apache", "ptrace peer=@unsecure"})
-	defer config.Unset("docker:security-opts")
-	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
-	app.Memory = 15
-	app.Swap = 15
-	app.CpuShare = 50
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	s.p.getCluster().PullImage(
-		docker.PullImageOptions{Repository: "github.com/megamsys/megamd/brainfuck:latest"},
-		docker.AuthConfiguration{},
-	)
-	cont := container{Name: "myName", AppName: app.GetName(), Type: app.GetPlatform(), Status: "created"}
-	err := cont.create(runContainerActionsArgs{
-		app:         app,
-		imageID:     s.p.getBuildImage(app),
-		commands:    []string{"docker", "run"},
-		provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	dcli, _ := docker.NewClient(s.server.URL())
-	container, err := dcli.InspectContainer(cont.ID)
-	c.Assert(err, check.IsNil)
-	c.Assert(container.Config.SecurityOpts, check.DeepEquals, []string{"label:type:svirt_apache", "ptrace peer=@unsecure"})
-}
-
-func (s *S) TestContainerCreateAlocatesPort(c *check.C) {
-	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
-	app.Memory = 15
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	s.p.getCluster().PullImage(
-		docker.PullImageOptions{Repository: "github.com/megamsys/megamd/brainfuck:latest"},
-		docker.AuthConfiguration{},
-	)
-	cont := container{Name: "myName", AppName: app.GetName(), Type: app.GetPlatform(), Status: "created"}
-	err := cont.create(runContainerActionsArgs{
-		app:         app,
-		imageID:     s.p.getBuildImage(app),
-		commands:    []string{"docker", "run"},
-		provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	info, err := cont.networkInfo(s.p)
-	c.Assert(err, check.IsNil)
-	c.Assert(info.HTTPHostPort, check.Not(check.Equals), "")
-}
-
-func (s *S) TestContainerCreateDoesNotAlocatesPortForDeploy(c *check.C) {
-	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
-	app.Memory = 15
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	s.p.getCluster().PullImage(
-		docker.PullImageOptions{Repository: "github.com/megamsys/megamd/brainfuck:latest"},
-		docker.AuthConfiguration{},
-	)
-	cont := container{Name: "myName", AppName: app.GetName(), Type: app.GetPlatform(), Status: "created"}
-	err := cont.create(runContainerActionsArgs{
-		isDeploy:    true,
-		app:         app,
-		imageID:     s.p.getBuildImage(app),
-		commands:    []string{"docker", "run"},
-		provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	info, err := cont.networkInfo(s.p)
-	c.Assert(err, check.IsNil)
-	c.Assert(info.HTTPHostPort, check.Equals, "")
-}
-
-func (s *S) TestContainerCreateUndefinedUser(c *check.C) {
-	oldUser, _ := config.Get("docker:user")
-	defer config.Set("docker:user", oldUser)
-	config.Unset("docker:user")
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
-	c.Assert(err, check.IsNil)
-	app := provisiontest.NewFakeApp("app-name", "python", 1)
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	cont := container{Name: "myName", AppName: app.GetName(), Type: app.GetPlatform(), Status: "created"}
-	err = cont.create(runContainerActionsArgs{
-		app:         app,
-		imageID:     s.p.getBuildImage(app),
-		commands:    []string{"docker", "run"},
-		provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	dcli, _ := docker.NewClient(s.server.URL())
-	container, err := dcli.InspectContainer(cont.ID)
-	c.Assert(err, check.IsNil)
-	c.Assert(container.Config.User, check.Equals, "")
-}
-
-func (s *S) TestGetPort(c *check.C) {
-	port, err := getPort()
-	c.Assert(err, check.IsNil)
-	c.Assert(port, check.Equals, s.port)
-}
-
-func (s *S) TestGetPortUndefined(c *check.C) {
-	old, _ := config.Get("docker:run-cmd:port")
-	defer config.Set("docker:run-cmd:port", old)
-	config.Unset("docker:run-cmd:port")
-	port, err := getPort()
-	c.Assert(port, check.Equals, "")
-	c.Assert(err, check.NotNil)
-}
-
-func (s *S) TestGetPortInteger(c *check.C) {
-	old, _ := config.Get("docker:run-cmd:port")
-	defer config.Set("docker:run-cmd:port", old)
-	config.Set("docker:run-cmd:port", 8888)
-	port, err := getPort()
-	c.Assert(err, check.IsNil)
-	c.Assert(port, check.Equals, "8888")
 }
 
 func (s *S) TestContainerSetStatus(c *check.C) {

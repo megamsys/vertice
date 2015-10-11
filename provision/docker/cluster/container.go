@@ -1,4 +1,4 @@
-package swarmc
+package cluster
 
 import (
 	"errors"
@@ -7,11 +7,12 @@ import (
 	"net/url"
 	"sync"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 )
 
 type Container struct {
-	Id   string `bson:"_id"`
+	Id   string
 	Host string
 }
 
@@ -20,32 +21,21 @@ type Container struct {
 //
 // It returns the container, or an error, in case of failures.
 func (c *Cluster) CreateContainer(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
-	return c.CreateContainerSchedulerOpts(opts, nil, nodes...)
+	return c.CreateContainerSchedulerOpts(opts, nodes...)
 }
 
 // Similar to CreateContainer but allows arbritary options to be passed to
 // the scheduler.
-func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions, schedulerOpts SchedulerOptions, nodes ...string) (string, *docker.Container, error) {
+func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
 	var (
 		addr      string
 		container *docker.Container
 		err       error
 	)
-	useScheduler := len(nodes) == 0
+
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
-		if useScheduler {
-			node, scheduleErr := c.scheduler.Schedule(c, opts, schedulerOpts)
-			if scheduleErr != nil {
-				if err != nil {
-					scheduleErr = fmt.Errorf("Error in scheduler after previous errors (%s) trying to create container: %s", err.Error(), scheduleErr.Error())
-				}
-				return addr, nil, scheduleErr
-			}
-			addr = node.Address
-		} else {
-			addr = nodes[0]
-		}
+		addr = nodes[0]
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
@@ -67,9 +57,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 				}
 			}
 			c.handleNodeError(addr, err, shouldIncrementFailures)
-			if !useScheduler {
-				return addr, nil, err
-			}
+			return addr, nil, err
 		}
 	}
 	if err != nil {
@@ -225,7 +213,6 @@ func (c *Cluster) WaitContainer(id string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	node.setPersistentClient()
 	code, err := node.WaitContainer(id)
 	return code, wrapError(node, err)
 }
@@ -236,7 +223,6 @@ func (c *Cluster) AttachToContainer(opts docker.AttachToContainerOptions) error 
 	if err != nil {
 		return err
 	}
-	node.setPersistentClient()
 	return wrapError(node, node.AttachToContainer(opts))
 }
 
@@ -310,7 +296,6 @@ func (c *Cluster) StartExec(execId, containerId string, opts docker.StartExecOpt
 	if err != nil {
 		return err
 	}
-	node.setPersistentClient()
 	return wrapError(node, node.StartExec(execId, opts))
 }
 

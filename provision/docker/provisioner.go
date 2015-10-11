@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/url"
 	"strings"
-	"sync"
-	"time"
 )
 
 var mainDockerProvisioner *dockerProvisioner

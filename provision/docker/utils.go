@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
+/*func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
 	bits := bitCount(subnet)
 	bc := int(bits / 8)
 	partial := int(math.Mod(bits, float64(8)))
@@ -108,10 +108,7 @@ func setBit(a []byte, k uint) {
 }
 
 func setContainerNAL(container *global.Container) (string, error) {
-
-	/*
-	* generate the ip
-	 */
+	//generate the ip
 	subnetip, _ := config.GetString("docker:subnet")
 	_, subnet, _ := net.ParseCIDR(subnetip)
 	ip, pos, err := IPRequest(*subnet)
@@ -121,9 +118,8 @@ func setContainerNAL(container *global.Container) (string, error) {
 	}
 	client, _ := docker.NewClient("http://" + container.SwarmNode + ":2375")
 	ch := make(chan bool)
-	/*
-	* configure ip to container
-	 */
+
+//configure ip to container
 	go recv(container, ip.String(), client, ch)
 
 	err := updateIndex(ip.String(), pos)
@@ -133,11 +129,10 @@ func setContainerNAL(container *global.Container) (string, error) {
 	return ip.String(), nil
 }
 
-/*
-*
-* UpdateComponent updates the ipaddress that is bound to the container
-* It talks to riakdb and updates the respective component(s)
- */
+
+
+// UpdateComponent updates the ipaddress that is bound to the container
+//It talks to riakdb and updates the respective component(s)
 func updateContainerJSON(assembly *app.DeepAssembly, container *global.Container, endpoint string) {
 
 	log.Debugf("[docker] updating container")
@@ -201,10 +196,8 @@ func recv(container *global.Container, ip string, client *docker.Client, ch chan
 	log.Debugf("[docker] wait for the container to start 18000 ms")
 	time.Sleep(18000 * time.Millisecond)
 
-	/*
-	 * Inspect API is called to fetch the data about the launched container
-	 *
-	 */
+
+	 //Inspect API is called to fetch the data about the launched container
 	inscontainer, _ := client.InspectContainer(container.ContainerID)
 	contain := &docker.Container{}
 	mapC, _ := json.Marshal(inscontainer)
@@ -311,30 +304,5 @@ func updateIndex(ip string, pos uint) error {
 	return nil
 }
 
-/*
-* Register a hostname on AWS Route53 using megam seru -
-*        www.github.com/megamsys/seru
- */
-func setHostName(container *global.Container) error {
 
-	s := make([]string, 4)
-	s = strings.Split(container.ContainerName, ".")
-
-	accesskey, _ := config.GetString("aws:accesskey")
-	secretkey, _ := config.GetString("aws:secretkey")
-
-	seru := &main.NewSubdomain{
-		Accesskey: accesskey,
-		Secretid:  secretkey,
-		Domain:    fmt.Sprint(s[1], ".", s[2], "."),
-		Subdomain: s[0],
-		Ip:        container.IPAddress,
-	}
-
-	err := seru.ApiRun(&cmd.Context{})
-	if err != nil {
-		log.Errorf("Failed to set hostname using seru: %s", err.Error())
-	}
-
-	return nil
-}
+*/
