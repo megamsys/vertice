@@ -48,14 +48,14 @@ type oneProvisioner struct {
 
 func (p *oneProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
-		panic("nil one cluster")
+		panic("✗ one cluster")
 	}
 	return p.cluster
 }
 
 func (p *oneProvisioner) String() string {
 	if p.cluster == nil {
-		return "nil one cluster"
+		return "✗ one cluster"
 	}
 	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "")
 }
@@ -158,14 +158,14 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, "deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
+		fmt.Fprintf(w, "--- deploy pipeline for box (%s, image:%s) ---\n  --> %s", box.GetFullName(), imageId, err)
 		return "", err
 	}
 	return imageId, nil
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- removing box (%s) ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -176,17 +176,15 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
-	//	&removeOldMachine,
-		&removeOldRoute,
-		//		&removeBoxesInRiak,
-		//		&removeCartonsInRiak,
-		//		&provisionUnbindOldBoxes,
+		&destroyOldRoute,
+		&destroyOldMachine,
 	}
 
 	pipeline := action.NewPipeline(actions...)
 
 	err := pipeline.Execute(args)
 	if err != nil {
+		fmt.Fprintf(w, "--- destroying box (%s) ---\n  --> %s", box.GetFullName(), err)
 		return err
 	}
 
@@ -204,7 +202,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 
 	actions := []*action.Action{
 		&changeStateofMachine,
-		//&addNewRoute,
+		&addNewRoute,
 	}
 
 	pipeline := action.NewPipeline(actions...)

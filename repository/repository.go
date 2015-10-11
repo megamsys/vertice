@@ -9,6 +9,7 @@ import (
 
 const (
 	defaultManager = "github"
+
 	CI             = "CI"
 	CI_ENABLED     = "enabled"
 	CI_TOKEN       = "token"
@@ -17,11 +18,15 @@ const (
 	CI_URL         = "url"
 	CI_TYPE        = "type"
 
-	// IMAGE indicates that the repo is an image
+		// IMAGE indicates that the repo is an image
 	IMAGE = "image"
 
 	// Git indicates that the repo is a GIT
 	GIT = "git"
+
+	// oneclick indicates that an oneclick image exists
+	ONECLICK = "oneclick"
+
 )
 
 var managers map[string]RepositoryManager
@@ -71,10 +76,8 @@ func (r Repo) GetShortName() (string, error) {
 	if i < 0 {
 		return "", fmt.Errorf("unable to parse output of git")
 	}
-	return strings.TrimRight(r.Gitr()[i+1:],".git"), nil
+	return strings.TrimRight(r.Gitr()[i+1:], ".git"), nil
 }
-
-
 
 type Repository interface {
 	IsEnabled() bool

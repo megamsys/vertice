@@ -99,8 +99,8 @@ var createMachine = action.Action{
 	},
 }
 
-var removeOldMachine = action.Action{
-	Name: "remove-old-machine",
+var destroyOldMachine = action.Action{
+	Name: "destroy-old-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -108,16 +108,17 @@ var removeOldMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n---- Removing old machine %s ----\n", mach.Name)
+		fmt.Fprintf(writer, "\n---- Destroying old machine %s ----\n", mach.Name)
 
 		err := mach.Remove(args.provisioner)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, "\n---- Removed old machine (%s, %s)\n", mach.Id, mach.Name)
+		fmt.Fprintf(writer, "\n---- Destroyed old machine (%s, %s)\n", mach.Id, mach.Name)
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -179,20 +180,20 @@ var addNewRoute = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		fmt.Fprintf(w, "\n---- Removing routes from created machine  (%s, %s)\n", mach.Id, mach.Name)
+		fmt.Fprintf(w, "\n---- Destroying routes from created machine  (%s, %s)\n", mach.Id, mach.Name)
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
 				log.Errorf("---- [add-new-routes:Backward] (%s, %s)\n    %s", mach.Name, args.box.PublicIp, err.Error())
 			}
-			fmt.Fprintf(w, "\n---- Removed route from machine (%s, %s)\n", mach.Id, mach.Name)
+			fmt.Fprintf(w, "\n---- Destroyed route from machine (%s, %s)\n", mach.Id, mach.Name)
 		}
 	},
 	OnError: rollbackNotice,
 }
 
-var removeOldRoute = action.Action{
-	Name: "remove-old-route",
+var destroyOldRoute = action.Action{
+	Name: "destroy-old-route",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.Previous.(machine.Machine)
@@ -207,15 +208,15 @@ var removeOldRoute = action.Action{
 		}
 		mach.SetRoutable(args.box.PublicIp)
 
-		fmt.Fprintf(w, "\n---- Removing routes from created machine ----\n")
+		fmt.Fprintf(w, "\n---- Destroying routes from created machine ----\n")
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				log.Errorf("[add-new-routes:Backward] Error removing route for (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
+				log.Errorf("[add-new-routes:Backward] Error destroying route for (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
 			}
-			fmt.Fprintf(w, "\n---- Removed route from machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+			fmt.Fprintf(w, "\n---- Destroyed route from machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 		} else {
-			fmt.Fprintf(w, "\n---- Skip - removing routes from created machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+			fmt.Fprintf(w, "\n---- Skip destroying routes from created machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 		}
 		return mach, nil
 	},
@@ -224,7 +225,7 @@ var removeOldRoute = action.Action{
 		mach := ctx.FWResult.(machine.Machine)
 		r, err := getRouterForBox(args.box)
 		if err != nil {
-			log.Errorf("---- [remove-old-route:Backward]\n     %s", err.Error())
+			log.Errorf("---- [destroy-old-route:Backward]\n     %s", err.Error())
 		}
 		w := args.writer
 		if w == nil {
@@ -234,7 +235,7 @@ var removeOldRoute = action.Action{
 		if mach.Routable {
 			err = r.SetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				log.Errorf("[remove-old-route:Backward] (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
+				log.Errorf("[destroy-old-route:Backward] (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
 			}
 			fmt.Fprintf(w, "---- Added route to machine (%s, %s)\n", mach.Name, args.box.PublicIp)
 		}
@@ -267,6 +268,6 @@ var followLogs = action.Action{
 var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
-		fmt.Fprintf(args.writer, "\n===> ROLLBACK     \n---> %s\n", err)
+		fmt.Fprintf(args.writer, "\n---> ROLLBACK     \n  %s\n", err)
 	}
 }

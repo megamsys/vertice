@@ -1,0 +1,379 @@
+package docker
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/url"
+	"strings"
+	"sync"
+	"time"
+)
+
+var mainDockerProvisioner *dockerProvisioner
+
+func init() {
+	mainDockerProvisioner = &dockerProvisioner{}
+	provision.Register("docker", mainDockerProvisioner)
+}
+
+type dockerProvisioner struct {
+	cluster        *cluster.Cluster
+	collectionName string
+	storage        cluster.Storage
+}
+
+func (p *dockerProvisioner) Cluster() *cluster.Cluster {
+	if p.cluster == nil {
+		panic("✗ docker cluster")
+	}
+	return p.cluster
+}
+
+func (p *dockerProvisioner) String() string {
+	if p.cluster == nil {
+		return "✗ docker cluster"
+	}
+	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "bold")
+}
+
+func (p *dockerProvisioner) Initialize() error {
+	return p.initDockerCluster()
+}
+
+func (p *dockerProvisioner) initDockerCluster() error {
+	var err error
+	if p.storage == nil {
+		p.storage, err = buildClusterStorage()
+		if err != nil {
+			return err
+		}
+	}
+
+	var nodes []cluster.Node = []cluster.Node{cluster.Node{
+		Address:  m["test"], //api.ENDPOINT
+		Metadata: m,
+	},
+	}
+	//register nodes using the map.
+	p.cluster, err = cluster.New(p.storage, nodes...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func buildClusterStorage() (cluster.Storage, error) {
+	return &cluster.MapStorage{}, nil
+}
+
+func getRouterForBox(box *provision.Box) (router.Router, error) {
+	routerName, err := box.GetRouter()
+	if err != nil {
+		return nil, err
+	}
+	return router.Get(routerName)
+}
+
+func (p *dockerProvisioner) StartupMessage() (string, error) {
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 0, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("Docker", "white", "", "bold") + "\t" +
+		cmd.Colorfy("provisioner swarm "+p.String(), "purple", "", "bold")))
+	fmt.Fprintln(w)
+	w.Flush()
+	return b.String(), nil
+}
+
+func (p *dockerProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
+	imageId, err := p.gitDeploy(box.Repo, box.ImageVersion, w)
+	if err != nil {
+		return "", err
+	}
+	return p.deployPipeline(box, imageId, w)
+}
+
+func (p *dockerProvisioner) gitDeploy(re repository.Repo, version string, w io.Writer) (string, error) {
+	return p.getBuildImage(re, version), nil
+}
+
+func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
+	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
+	if err != nil {
+		return "", err
+	}
+	if !isValid {
+		return "", fmt.Errorf("invalid image for box %s: %s", box.GetFullName(), imageId)
+	}
+	return p.deployPipeline(box, imageId, w)
+}
+
+func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, commands []string, w io.Writer) (string, error) {
+	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
+
+	actions := []*action.Action{
+		&updateContainerInRiak,
+		&createContainer,
+		&startContainer,
+		&updateContainerInRiak,
+		&setNetworkInfo,
+		&followLogsAndCommit,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	args := runContainerActionsArgs{
+		box:           box,
+		imageId:       imageId,
+		commands:      commands,
+		writer:        w,
+		isDeploy:      true,
+		BuildingImage: imageId,
+		provisioner:   p,
+	}
+	err = pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, "deploy pipeline for box (%s)\n --> %s", box.GetFullName(), err)
+		return "", err
+	}
+	return imageId, nil
+}
+
+func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
+	containers, err := p.listContainersByBox(app.GetName())
+	if err != nil {
+		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+		return err
+	}
+	args := changeUnitsPipelineArgs{
+		box:         box,
+		toRemove:    containers,
+		writer:      ioutil.Discard,
+		provisioner: p,
+		appDestroy:  true,
+	}
+	pipeline := action.NewPipeline(
+		&removeOldContainers,
+		&removeOldRoutes,
+	)
+	err = pipeline.Execute(args)
+	if err != nil {
+		return err
+	}
+	images, err := listBoxImages(box.GetFullName())
+	if err != nil {
+		fmt.Fprintf(w, "Failed to get image ids for box (%s)\n --> %s", box.GetFullName(), err)
+	}
+	cluster := p.Cluster()
+	for _, imageId := range images {
+		err := cluster.RemoveImage(imageId)
+		if err != nil {
+			fmt.Fprintf(w, "Failed to remove image (%s)\n --> %s", imageId, err)
+		}
+		err = cluster.RemoveFromRegistry(imageId)
+		if err != nil {
+			fmt.Fprintf(w, "Failed to remove image (%s) from registry\n --> %s", imageId, err)
+		}
+	}
+	return nil
+}
+
+func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
+	containers, err := p.listContainersByBox(app.GetName())
+	if err != nil {
+		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+	}
+	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
+		err := c.Start(&container.StartArgs{
+			Provisioner: p,
+			App:         app,
+		})
+		if err != nil {
+			return err
+		}
+		c.SetBoxStatus(p, provision.StatusStarting.String(), true)
+		if info, err := c.NetworkInfo(p); err == nil {
+			p.fixContainer(c, info)
+		}
+		return nil
+	}, nil, true)
+}
+
+func (p *dockerProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
+	containers, err := p.listContainersByBox(app.GetName())
+	if err != nil {
+		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+	}
+	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
+		err := c.Stop(p)
+		if err != nil {
+			log.Errorf("Failed to stop %q: %s", app.GetName(), err)
+		}
+		return err
+	}, nil, true)
+}
+
+func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
+	r, err := getRouterForBox(box)
+	if err != nil {
+		log.Errorf("Failed to get router: %s", err)
+		return "", err
+	}
+	addr, err := r.Addr(box.GetFullName())
+	if err != nil {
+		log.Errorf("Failed to obtain box %s address: %s", box.GetFullName(), err)
+		return "", err
+	}
+	return addr, nil
+}
+
+func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
+	fmt.Fprintf(w, "\n---- status %s box %s %s ----\n", box.GetFullName(), status.String())
+	actions := []*action.Action{
+		&updateStatusInRiak,
+	}
+	pipeline := action.NewPipeline(actions...)
+
+	args := runContainerActionsArgs{
+		box:             box,
+		writer:          w,
+		containerStatus: status,
+		provisioner:     p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		log.Errorf("error on execute status pipeline for box %s - %s", box.GetFullName(), err)
+		return err
+	}
+	return nil
+}
+
+func (p *dockerProvisioner) SetCName(box *provision.Box, cname string) error {
+	r, err := getRouterForBox(box)
+	if err != nil {
+		return err
+	}
+	return r.SetCName(cname, box.GetFullName())
+}
+
+func (p *dockerProvisioner) UnsetCName(box *provision.Box, cname string) error {
+	r, err := getRouterForBox(box)
+	if err != nil {
+		return err
+	}
+	return r.UnsetCName(cname, box.GetFullName())
+}
+
+
+// PlatformAdd build and push a new docker platform to register
+func (p *dockerProvisioner) PlatformAdd(name string, args map[string]string, w io.Writer) error {
+	if args["dockerfile"] == "" {
+		return errors.New("Dockerfile is required.")
+	}
+	if _, err := url.ParseRequestURI(args["dockerfile"]); err != nil {
+		return errors.New("dockerfile parameter should be an url.")
+	}
+	imageName := platformImageName(name)
+	cluster := p.Cluster()
+	buildOptions := docker.BuildImageOptions{
+		Name:           imageName,
+		NoCache:        true,
+		RmTmpContainer: true,
+		Remote:         args["dockerfile"],
+		InputStream:    nil,
+		OutputStream:   w,
+	}
+	err := cluster.BuildImage(buildOptions)
+	if err != nil {
+		return err
+	}
+	parts := strings.Split(imageName, ":")
+	var tag string
+	if len(parts) > 2 {
+		imageName = strings.Join(parts[:len(parts)-1], ":")
+		tag = parts[len(parts)-1]
+	} else if len(parts) > 1 {
+		imageName = parts[0]
+		tag = parts[1]
+	} else {
+		imageName = parts[0]
+		tag = "latest"
+	}
+	return p.PushImage(imageName, tag)
+}
+
+func (p *dockerProvisioner) PlatformUpdate(name string, args map[string]string, w io.Writer) error {
+	return p.PlatformAdd(name, args, w)
+}
+
+func (p *dockerProvisioner) PlatformRemove(name string) error {
+	err := p.Cluster().RemoveImage(platformImageName(name))
+	if err != nil && err == docker.ErrNoSuchImage {
+		log.Errorf("error on remove image %s from docker.", name)
+		return nil
+	}
+	return err
+}
+
+func (p *dockerProvisioner) Shell(opts provision.ShellOptions) error {
+	var (
+		c   *container.Container
+		err error
+	)
+	if opts.Unit != "" {
+		c, err = p.GetContainer(opts.Unit)
+	} else {
+		c, err = p.getOneContainerByAppName(opts.App.GetName())
+	}
+	if err != nil {
+		return err
+	}
+	return c.Shell(p, opts.Conn, opts.Conn, opts.Conn, container.Pty{Width: opts.Width, Height: opts.Height, Term: opts.Term})
+}
+
+
+func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
+	/*containers, err := p.listRunnableContainersByBox(box.GetName())
+	if err != nil {
+		return err
+	}
+	if len(boxs) == 0 {
+		return provision.ErrBoxNotFound
+	}
+	box := boxs[0]
+	container := containers[0]
+	return container.Exec(p, stdout, stderr, cmd, args...)
+	*/
+	return nil
+}
+
+/*func (p *dockerProvisioner) Collection() *storage.Collection {
+	dbf, err := db.Fetch("platforms")
+	if err != nil {
+		log.Errorf("Failed to connect to the database: %s", err)
+	}
+	return NewPlatforms(dbf)
+}*/
+
+func (p *dockerProvisioner) MetricEnvs(app provision.App) map[string]string {
+	envMap := map[string]string{}
+	//gadvConf, err := gadvisor.LoadConfig()
+	//if err != nil {
+	//	return envMap
+	//}
+	//if envs, err := []string{};  err != nil {  //gadvConf.MetrisList
+	//  return err
+	//}
+	/*for _, env := range envs {
+		if strings.HasPrefix(env, "METRICS_") {
+			slice := strings.SplitN(env, "=", 2)
+			envMap[slice[0]] = slice[1]
+		}
+	}*/
+	return envMap
+}
