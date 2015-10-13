@@ -413,7 +413,7 @@ func (s *S) TestAddBoxsToHostForwardWithoutHost(c *check.C) {
 	isValid := reflect.DeepEqual(addrs, []string{"127.0.0.1", "localhost", "localhost"}) ||
 		reflect.DeepEqual(addrs, []string{"127.0.0.1", "127.0.0.1", "localhost"})
 	if !isValid {
-		clusterNodes, _ := p.getCluster().UnfilteredNodes()
+		clusterNodes, _ := p.Cluster().UnfilteredNodes()
 		c.Fatalf("Expected multiple hosts, got: %#v\nAvailable nodes: %#v", containers, clusterNodes)
 	}
 	count, err := coll.Find(bson.M{"appname": app.GetName()}).Count()
@@ -438,7 +438,7 @@ func (s *S) TestAddBoxsToHostBackward(c *check.C) {
 	context := action.BWContext{FWResult: []container{cont}, Params: []interface{}{args}}
 	addBoxsToHost.Backward(context)
 	_, err = s.p.getContainer(cont.ID)
-	c.Assert(err, check.Equals, provision.ErrUnitNotFound)
+	c.Assert(err, check.Equals, provision.ErrBoxNotFound)
 }
 
 func (s *S) TestProvisionRemoveOldUnitsName(c *check.C) {
@@ -529,10 +529,10 @@ func (s *S) TestFollowLogsAndCommitForward(c *check.C) {
 	err = coll.Find(bson.M{"id": cont.ID}).One(&dbCont)
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "not found")
-	_, err = s.p.getCluster().InspectContainer(cont.ID)
+	_, err = s.p.Cluster().InspectContainer(cont.ID)
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Matches, "No such container.*")
-	err = s.p.getCluster().RemoveImage("github.com/megamsys/megamd/app-mightyapp:v1")
+	err = s.p.Cluster().RemoveImage("github.com/megamsys/megamd/app-mightyapp:v1")
 	c.Assert(err, check.IsNil)
 }
 

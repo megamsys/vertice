@@ -59,7 +59,9 @@ var updateStatusInRiak = action.Action{
 			}
 		}
 
-		mach.SetStatus(mach.Status)
+		if err := mach.SetStatus(mach.Status); err!=nil{
+			return err, nil
+		}
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {

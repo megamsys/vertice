@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/fsouza/go-dockerclient"

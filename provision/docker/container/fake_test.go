@@ -2,7 +2,6 @@ package container
 
 import (
 	"github.com/megamsys/megamd/provision/docker/cluster"
-	"github.com/megamsys/megamd/db"
 )
 
 type push struct {
@@ -27,7 +26,7 @@ func newFakeDockerProvisioner(servers ...string) (*fakeDockerProvisioner, error)
 	for i, server := range servers {
 		nodes[i] = cluster.Node{Address: server}
 	}
-	p.cluster, err = cluster.New(nil, p.storage, nodes...)
+	p.cluster, err = cluster.New(p.storage, nodes...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,14 +41,6 @@ func (p *fakeDockerProvisioner) failPush(errs ...error) {
 
 func (p *fakeDockerProvisioner) Cluster() *cluster.Cluster {
 	return p.cluster
-}
-
-func (p *fakeDockerProvisioner) Collection() *storage.Collection {
-	conn, err := db.Conn()
-	if err != nil {
-		panic(err)
-	}
-	return conn.Collection("fake_docker_provisioner")
 }
 
 func (p *fakeDockerProvisioner) PushImage(name, tag string) error {

@@ -2,7 +2,8 @@ package docker
 
 import (
 	"fmt"
-	"strings"
+
+	"github.com/megamsys/megamd/repository"
 )
 
 type boxImages struct {
@@ -19,15 +20,15 @@ func boxImageName(appName string) string {
 	return fmt.Sprintf("%s", appName)
 }
 
+//can we list the marketplaces items for dockerimages
+//we need add a  db.FetchCollection to list all from the bucket.
 func listBoxImages(appName string) ([]string, error) {
-	//call marketplaces bucket
-	//we need to improve db.FetchCollection code to list all from the bucket.
 	return []string{}, nil
 }
 
 //list all the tosca images from marketplace and figure out if this is valid.
 func isValidBoxImage(appName, imageId string) (bool, error) {
-	images, err := listBoxImages(appName)
+	/*images, err := listBoxImages(appName)
 
 	if err != nil {
 		return false, err
@@ -37,51 +38,39 @@ func isValidBoxImage(appName, imageId string) (bool, error) {
 			return true, nil
 		}
 	}
-	//return false, nil
+	return false, nil
+	*/
 	return true, nil
 
 }
 
-
 // getBuildImage returns the image name from box or plaftorm.
-func (p *dockerProvisioner) getBuildImage(box *provision.Box) string {
-	if p.usePlatformImage(box) {
-		return platformImageName(box.GetPlatform())
+func (p *dockerProvisioner) getBuildImage(re repository.Repo, version string) string {
+	if p.usePlatformImage(re) {
+		return platformImageName(re.Gitr())
 	}
-	return box.GetFullName()
+	return fmt.Sprintf("%s:%s", re.Gitr(), version)
 }
-
 
 func platformImageName(platformName string) string {
-	return fmt.Sprintf("%s/%s:latest", basicImageName(), platformName)
+	return fmt.Sprintf("%s:latest", platformName)
 }
 
-func basicImageName() string {
-	parts := make([]string, 0, 2)
-	registry, _ := "registry.dockerhub.com"
-	if registry != "" {
-		parts = append(parts, registry)
-	}
-	repoNamespace, _ := "megam"
-	parts = append(parts, repoNamespace)
-	return strings.Join(parts, "/")
-}
-
-func (p *dockerProvisioner) usePlatformImage(app provision.App) bool {
-	return false
+func (p *dockerProvisioner) usePlatformImage(re repository.Repo) bool {
+	return true
 }
 
 func (p *dockerProvisioner) cleanImage(appName, imgName string) {
-	shouldRemove := true
+//	shouldRemove := true
 	err := p.Cluster().RemoveImage(imgName)
 	if err != nil {
-		shouldRemove = false
+	//	shouldRemove = false
 		//log.Errorf("Ignored error removing old image %q: %s. Image kept on list to retry later.",
 		//	imgName, err.Error())
 	}
 	err = p.Cluster().RemoveFromRegistry(imgName)
 	if err != nil {
-		shouldRemove = false
+		//shouldRemove = false
 		//log.Errorf("Ignored error removing old image from registry %q: %s. Image kept on list to retry later.",
 		//	imgName, err.Error())
 	}

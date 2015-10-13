@@ -1,17 +1,8 @@
 package docker
 
 import (
-	"bytes"
-	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"sort"
-	"strings"
-	"sync/atomic"
-	"time"
-
+	"github.com/megamsys/megamd/provision"
+	"gopkg.in/check.v1"
 )
 
 func (s *S) TestShouldBeRegistered(c *check.C) {
@@ -1033,7 +1024,7 @@ func (s *S) TestProvisionSetUnitStatusNoAppName(c *check.C) {
 
 func (s *S) TestProvisionerSetUnitStatusUnitNotFound(c *check.C) {
 	err := s.p.SetUnitStatus(provision.Unit{Name: "mycontainer", AppName: "myapp"}, provision.StatusError)
-	c.Assert(err, check.Equals, provision.ErrUnitNotFound)
+	c.Assert(err, check.Equals, provision.ErrBoxNotFound)
 }
 
 func (s *S) TestProvisionerExecuteCommand(c *check.C) {

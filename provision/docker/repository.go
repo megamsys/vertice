@@ -1,51 +1,27 @@
 package docker
 
 import (
-	"errors"
-
-	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/docker/container"
 )
 
-var errAmbiguousContainer error = errors.New("ambiguous container name")
+//this is essentially converting box to a container.
+func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Container, error) {
+	return &container.Container{
+		BoxId:       box.Id,
+		CartonId:    box.CartonId,
+		Name:        box.Name,
+		BoxName:     box.GetFullName(),
+		Level:       box.Level,
+		Status:      box.Status,
+	}, nil
 
-func (p *dockerProvisioner) GetContainer(id string) (*container.Container, error) {
-	var containers []container.Container
-	//stick something, so it returns the container
-	lenContainers := len(containers)
-	if lenContainers == 0 {
-		return nil, provision.ErrUnitNotFound
-	}
-	if lenContainers > 1 {
-		return nil, errAmbiguousContainer
-	}
-	return &containers[0], nil
 }
 
-func (p *dockerProvisioner) GetContainerByName(name string) (*container.Container, error) {
-	var containers []container.Container
-	//stick something, so it returns the container
-
-	lenContainers := len(containers)
-	if lenContainers == 0 {
-		return nil, provision.ErrUnitNotFound
-	}
-	if lenContainers > 1 {
-		return nil, errAmbiguousContainer
-	}
-	return &containers[0], nil
-}
-
-func (p *dockerProvisioner) listContainersByBox(boxName string) ([]container.Container, error) {
+func (p *dockerProvisioner) listContainersByBox(box *provision.Box) ([]container.Container, error) {
 	var list []container.Container
-	return list, err
-}
-
-func (p *dockerProvisioner) listBoxsForNodes(nodes []*cluster.Node) ([]string, error) {
-	//coll := p.Collection()
-	nodeNames := make([]string, len(nodes))
-	for i, n := range nodes {
-		nodeNames[i] = urlToHost(n.Address)
-	}
-	var appNames []string
-	return appNames, nil
+	//
+	//do a query on the name to riak, and call GetContainerByBox(box)
+	//
+	return list, nil
 }

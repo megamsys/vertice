@@ -59,6 +59,22 @@ const (
 	// Sent by megamd to gulpd when it received StatusBootstrapped.
 	StatusStateup = Status("stateup")
 
+	// StatusStarting the status for box being started by the
+	// provisioner.
+	StatusStarting = Status("starting")
+
+	// StatusDestroying the status for box after started  by the
+	// provisioner.
+	StatusStarted = Status("started")
+
+	// StatusStopping the status for box being stopped by the
+	// provisioner.
+	StatusStopping = Status("stopping")
+
+	// StatusStopped the status for box after stopped  by the
+	// provisioner.
+	StatusStopped = Status("stopped")
+
 	// StatusDestroying the status for box being deleted by the
 	// provisioner.
 	StatusDestroying = Status("destroying")
@@ -107,6 +123,17 @@ type Carton interface {
 type CNameManager interface {
 	SetCName(b *Box, cname string) error
 	UnsetCName(b *Box, cname string) error
+}
+
+// ShellOptions is the set of options that can be used when calling the method
+// Shell in the provisioner.
+type ShellOptions struct {
+	Box    *Box
+	Conn   io.ReadWriteCloser
+	Width  int
+	Height int
+	Unit   string
+	Term   string
 }
 
 // GitDeployer is a provisioner that can deploy the box from a Git

@@ -1,12 +1,12 @@
 package docker
 
 import (
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"sort"
-	"strings"
 	"testing"
+
+	dtesting "github.com/fsouza/go-dockerclient/testing"
+	"github.com/megamsys/libgo/safe"
+	"github.com/megamsys/megamd/provision"
+	"gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { check.TestingT(t) }
@@ -23,17 +23,13 @@ type S struct {
 	server         *dtesting.DockerServer
 	extraServer    *dtesting.DockerServer
 	targetRecover  []string
-	storage        *db.Storage
 	oldProvisioner provision.Provisioner
 	p              *dockerProvisioner
-	user           *auth.User
-	token          auth.Token
-	team           *auth.Team
-	clusterSess    *mgo.Session
 	logBuf         *safe.Buffer
 }
 
 var _ = check.Suite(&S{})
+
 /*
 func (s *S) SetUpSuite(c *check.C) {
 	s.collName = "docker_unit"

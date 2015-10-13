@@ -1,9 +1,12 @@
 package docker
 
-import ()
+import (
+	"github.com/megamsys/megamd/provision/docker/container"
+	log "github.com/Sirupsen/logrus"
+)
 
 func (p *dockerProvisioner) fixContainers() error {
-	containers, err := p.listAllContainers()
+	/*containers, err := p.listAllContainers()
 	if err != nil {
 		return err
 	}
@@ -14,6 +17,8 @@ func (p *dockerProvisioner) fixContainers() error {
 		log.Errorf("error checking containers for fixing: %s", err.Error())
 	}
 	return err
+	*/
+	return nil
 }
 
 func (p *dockerProvisioner) checkContainer(container *container.Container) error {
@@ -22,10 +27,10 @@ func (p *dockerProvisioner) checkContainer(container *container.Container) error
 		if err != nil {
 			return err
 		}
-		if info.HTTPHostPort != container.HostPort || info.IP != container.IP {
+		if info.HTTPHostPort != container.HostPort || info.IP != container.PublicIp {
 			err = p.fixContainer(container, info)
 			if err != nil {
-				log.Errorf("error on fix container hostport for [container %s]", container.ID)
+				log.Errorf("error on fix container hostport for (container %s)", container.Id)
 				return err
 			}
 		}
@@ -34,7 +39,7 @@ func (p *dockerProvisioner) checkContainer(container *container.Container) error
 }
 
 func (p *dockerProvisioner) fixContainer(container *container.Container, info container.NetworkInfo) error {
-	if info.HTTPHostPort == "" {
+	/*if info.HTTPHostPort == "" {
 		return nil
 	}
 	appInstance, err := app.GetByName(container.AppName)
@@ -54,8 +59,6 @@ func (p *dockerProvisioner) fixContainer(container *container.Container, info co
 	err = r.AddRoute(container.AppName, container.Address())
 	if err != nil && err != router.ErrRouteExists {
 		return err
-	}
-	coll := p.Collection()
-	defer coll.Close()
-	return coll.Update(bson.M{"id": container.ID}, container)
+	}*/
+  return nil
 }

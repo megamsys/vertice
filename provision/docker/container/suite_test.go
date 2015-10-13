@@ -5,7 +5,6 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	dtesting "github.com/fsouza/go-dockerclient/testing"
-	"github.com/megamsys/megamd/db"
 	"gopkg.in/check.v1"
 )
 
@@ -22,23 +21,13 @@ type S struct {
 }
 
 func (s *S) SetUpSuite(c *check.C) {
-	s.user = "root"
-	config.Set("database:url", "127.0.0.1:27017?maxPoolSize=100")
-	config.Set("database:name", "docker_provision_container_tests")
-	config.Set("docker:cluster:mongo-url", "127.0.0.1:27017")
-	config.Set("docker:cluster:mongo-database", "docker_provision_container_tests_cluster_stor")
-	config.Set("docker:run-cmd:port", "8888")
-	config.Set("docker:user", s.user)
-	config.Set("docker:repository-namespace", "tsuru")
+
 }
 
 func (s *S) SetUpTest(c *check.C) {
-	conn, err := db.Conn()
+	srv, err := dtesting.NewServer("127.0.0.1:0", nil, nil)
 	c.Assert(err, check.IsNil)
-	defer conn.Close()
-	dbtest.ClearAllCollections(conn.Apps().Database)
-	s.server, err = dtesting.NewServer("127.0.0.1:0", nil, nil)
-	c.Assert(err, check.IsNil)
+	s.server =  srv
 	s.p, err = newFakeDockerProvisioner(s.server.URL())
 	c.Assert(err, check.IsNil)
 }
@@ -48,12 +37,11 @@ func (s *S) TestTearDownTest(c *check.C) {
 }
 
 func (s *S) removeTestContainer(c *Container) error {
-	routertest.FakeRouter.RemoveBackend(c.AppName)
 	return c.Remove(s.p)
 }
 
 type newContainerOpts struct {
-	AppName     string
+	BoxName     string
 	Image       string
 	ProcessName string
 }
@@ -63,25 +51,20 @@ func (s *S) newContainer(opts newContainerOpts, p *fakeDockerProvisioner) (*Cont
 		p = s.p
 	}
 	container := Container{
-		ID:          "id",
-		IP:          "10.10.10.10",
+		Id:          "id",
+		PublicIp:          "10.10.10.10",
 		HostPort:    "3333",
 		HostAddr:    "127.0.0.1",
-		ProcessName: opts.ProcessName,
 		Image:       opts.Image,
-		AppName:     opts.AppName,
+  	BoxName:     opts.BoxName,
 	}
-	if container.AppName == "" {
-		container.AppName = "container"
+	if container.BoxName == "" {
+		container.BoxName = "container"
 	}
-	if container.ProcessName == "" {
-		container.ProcessName = "web"
-	}
+
 	if container.Image == "" {
-		container.Image = "tsuru/python:latest"
+		container.Image = "python:latest"
 	}
-	routertest.FakeRouter.AddBackend(container.AppName)
-	routertest.FakeRouter.AddRoute(container.AppName, container.Address())
 	port, err := getPort()
 	if err != nil {
 		return nil, err
@@ -102,12 +85,6 @@ func (s *S) newContainer(opts newContainerOpts, p *fakeDockerProvisioner) (*Cont
 	if err != nil {
 		return nil, err
 	}
-	container.ID = c.ID
-	coll := p.Collection()
-	defer coll.Close()
-	err = coll.Insert(container)
-	if err != nil {
-		return nil, err
-	}
+	container.Id = c.ID
 	return &container, nil
 }

@@ -1,11 +1,5 @@
 package docker
 
-import (
-	"sort"
-	"time"
-
-)
-
 /*func (s *S) getContainerCollection(appName string, containerIds ...string) func() {
 	coll := s.p.Collection()
 	for _, containerId := range containerIds {
@@ -213,7 +207,7 @@ func (s *S) TestGetContainerPartialIdNotFound(c *check.C) {
 	cleanupFunc := s.getContainerCollection("some-app", containerIds...)
 	defer cleanupFunc()
 	_, err := s.p.GetContainer("container-9")
-	c.Assert(err, check.Equals, provision.ErrUnitNotFound)
+	c.Assert(err, check.Equals, provision.ErrBoxNotFound)
 }
 
 func (s *S) TestGetContainerPartialId(c *check.C) {

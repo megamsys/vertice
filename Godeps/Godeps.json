@@ -21,8 +21,12 @@
 			"Rev": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b"
 		},
 		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Rev": "2bd40eb3ca54e74e8181ecbbc9b91902cb03d1df"
+		},
+		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "3d2510a4dd961caffa2ae781669c628d82db700a"
+			"Rev": "0c959e80d8acfedb1ecd50c9f14a58cee287dc95"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -50,35 +54,39 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "30813cc992a7524529b7a5cbf1fa36de3cb764f9"
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
+		},
+		{
+			"ImportPath": "github.com/megamsys/libgo/safe",
+			"Rev": "505148b61d2092611fc63997495f08cfba1b2bab"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
@@ -114,7 +122,7 @@
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "b4f3ceab0337f013208d31348b578d83c0064744"
+			"Rev": "79beb307dcf5904fb8cb061276f1c14f222012c2"
 		},
 		{
 			"ImportPath": "github.com/tj/go-spin",

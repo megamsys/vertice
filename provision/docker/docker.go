@@ -6,6 +6,8 @@ import (
 	"net/url"
 
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/safe"
+	log "github.com/Sirupsen/logrus"
 )
 
 func urlToHost(urlStr string) string {
@@ -36,10 +38,10 @@ func (p *dockerProvisioner) hostToNodeAddress(host string) (string, error) {
 // PushImage sends the given image to the registry server defined in the
 // configuration file.
 func (p *dockerProvisioner) PushImage(name, tag string) error {
-	registry := "pull it from box.Repo.Registry.ServerAddress"
+	//registry := "pull it from box.Repo.Registry.ServerAddress"
 	var buf safe.Buffer
 	pushOpts := docker.PushImageOptions{Name: name, Tag: tag, OutputStream: &buf}
-	err = p.Cluster().PushImage(pushOpts, p.RegistryAuthConfig())
+	err := p.Cluster().PushImage(pushOpts, p.RegistryAuthConfig())
 	if err != nil {
 		log.Errorf("[docker] Failed to push image %q (%s): %s", name, err, buf.String())
 		return err

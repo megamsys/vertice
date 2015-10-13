@@ -8,6 +8,18 @@ import (
 	"io/ioutil"
 	"net/url"
 	"strings"
+	"text/tabwriter"
+
+	log "github.com/Sirupsen/logrus"
+	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/action"
+	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/megamd/router"
+	_ "github.com/megamsys/megamd/router/route53"
 )
 
 var mainDockerProvisioner *dockerProvisioner
@@ -37,11 +49,11 @@ func (p *dockerProvisioner) String() string {
 	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "bold")
 }
 
-func (p *dockerProvisioner) Initialize() error {
-	return p.initDockerCluster()
+func (p *dockerProvisioner) Initialize(m map[string]string) error {
+	return p.initDockerCluster(m)
 }
 
-func (p *dockerProvisioner) initDockerCluster() error {
+func (p *dockerProvisioner) initDockerCluster(m map[string]string) error {
 	var err error
 	if p.storage == nil {
 		p.storage, err = buildClusterStorage()
@@ -50,10 +62,11 @@ func (p *dockerProvisioner) initDockerCluster() error {
 		}
 	}
 
-	var nodes []cluster.Node = []cluster.Node{cluster.Node{
-		Address:  m["test"], //api.ENDPOINT
-		Metadata: m,
-	},
+	var nodes []cluster.Node = []cluster.Node{
+		cluster.Node{
+			Address:  m["test"], //api.ENDPOINT
+			Metadata: m,
+		},
 	}
 	//register nodes using the map.
 	p.cluster, err = cluster.New(p.storage, nodes...)
@@ -109,14 +122,14 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 	return p.deployPipeline(box, imageId, w)
 }
 
-func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, commands []string, w io.Writer) (string, error) {
+func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
 
 	actions := []*action.Action{
-		&updateContainerInRiak,
+		&updateStatusInRiak,
 		&createContainer,
 		&startContainer,
-		&updateContainerInRiak,
+		&updateStatusInRiak,
 		&setNetworkInfo,
 		&followLogsAndCommit,
 	}
@@ -124,15 +137,15 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, c
 	pipeline := action.NewPipeline(actions...)
 
 	args := runContainerActionsArgs{
-		box:           box,
-		imageId:       imageId,
-		commands:      commands,
-		writer:        w,
-		isDeploy:      true,
-		BuildingImage: imageId,
-		provisioner:   p,
+		box:             box,
+		imageId:         imageId,
+		writer:          w,
+		isDeploy:        true,
+		buildingImage:   imageId,
+		containerStatus: provision.StatusDeploying,
+		provisioner:     p,
 	}
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "deploy pipeline for box (%s)\n --> %s", box.GetFullName(), err)
 		return "", err
@@ -142,7 +155,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, c
 
 func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
-	containers, err := p.listContainersByBox(app.GetName())
+	containers, err := p.listContainersByBox(box)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
 		return err
@@ -152,48 +165,33 @@ func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		toRemove:    containers,
 		writer:      ioutil.Discard,
 		provisioner: p,
-		appDestroy:  true,
+		boxDestroy:  true,
 	}
 	pipeline := action.NewPipeline(
-		&removeOldContainers,
+		&destroyOldContainers,
 		&removeOldRoutes,
 	)
 	err = pipeline.Execute(args)
 	if err != nil {
 		return err
 	}
-	images, err := listBoxImages(box.GetFullName())
-	if err != nil {
-		fmt.Fprintf(w, "Failed to get image ids for box (%s)\n --> %s", box.GetFullName(), err)
-	}
-	cluster := p.Cluster()
-	for _, imageId := range images {
-		err := cluster.RemoveImage(imageId)
-		if err != nil {
-			fmt.Fprintf(w, "Failed to remove image (%s)\n --> %s", imageId, err)
-		}
-		err = cluster.RemoveFromRegistry(imageId)
-		if err != nil {
-			fmt.Fprintf(w, "Failed to remove image (%s) from registry\n --> %s", imageId, err)
-		}
-	}
 	return nil
 }
 
 func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-	containers, err := p.listContainersByBox(app.GetName())
+	containers, err := p.listContainersByBox(box)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Start(&container.StartArgs{
 			Provisioner: p,
-			App:         app,
+			Box:         box,
 		})
 		if err != nil {
 			return err
 		}
-		c.SetBoxStatus(p, provision.StatusStarting.String(), true)
+		c.SetStatus(provision.StatusStarting)
 		if info, err := c.NetworkInfo(p); err == nil {
 			p.fixContainer(c, info)
 		}
@@ -202,17 +200,21 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 }
 
 func (p *dockerProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-	containers, err := p.listContainersByBox(app.GetName())
+	containers, err := p.listContainersByBox(box)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Stop(p)
 		if err != nil {
-			log.Errorf("Failed to stop %q: %s", app.GetName(), err)
+			log.Errorf("Failed to stop %q: %s", box.GetFullName(), err)
 		}
 		return err
 	}, nil, true)
+}
+
+func (p *dockerProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
+	return nil
 }
 
 func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
@@ -256,7 +258,7 @@ func (p *dockerProvisioner) SetCName(box *provision.Box, cname string) error {
 	if err != nil {
 		return err
 	}
-	return r.SetCName(cname, box.GetFullName())
+	return r.SetCName(cname, box.PublicIp)
 }
 
 func (p *dockerProvisioner) UnsetCName(box *provision.Box, cname string) error {
@@ -264,9 +266,8 @@ func (p *dockerProvisioner) UnsetCName(box *provision.Box, cname string) error {
 	if err != nil {
 		return err
 	}
-	return r.UnsetCName(cname, box.GetFullName())
+	return r.UnsetCName(cname, box.PublicIp)
 }
-
 
 // PlatformAdd build and push a new docker platform to register
 func (p *dockerProvisioner) PlatformAdd(name string, args map[string]string, w io.Writer) error {
@@ -323,42 +324,23 @@ func (p *dockerProvisioner) Shell(opts provision.ShellOptions) error {
 		c   *container.Container
 		err error
 	)
-	if opts.Unit != "" {
-		c, err = p.GetContainer(opts.Unit)
-	} else {
-		c, err = p.getOneContainerByAppName(opts.App.GetName())
-	}
+	c, err = p.GetContainerByBox(opts.Box)
+
 	if err != nil {
 		return err
 	}
 	return c.Shell(p, opts.Conn, opts.Conn, opts.Conn, container.Pty{Width: opts.Width, Height: opts.Height, Term: opts.Term})
 }
 
-
 func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
-	/*containers, err := p.listRunnableContainersByBox(box.GetName())
+	container, err := p.GetContainerByBox(box)
 	if err != nil {
 		return err
 	}
-	if len(boxs) == 0 {
-		return provision.ErrBoxNotFound
-	}
-	box := boxs[0]
-	container := containers[0]
 	return container.Exec(p, stdout, stderr, cmd, args...)
-	*/
-	return nil
 }
 
-/*func (p *dockerProvisioner) Collection() *storage.Collection {
-	dbf, err := db.Fetch("platforms")
-	if err != nil {
-		log.Errorf("Failed to connect to the database: %s", err)
-	}
-	return NewPlatforms(dbf)
-}*/
-
-func (p *dockerProvisioner) MetricEnvs(app provision.App) map[string]string {
+func (p *dockerProvisioner) MetricEnvs(carton provision.Carton) map[string]string {
 	envMap := map[string]string{}
 	//gadvConf, err := gadvisor.LoadConfig()
 	//if err != nil {

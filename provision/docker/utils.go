@@ -15,7 +15,7 @@
  */
 package docker
 
-import (
+/*import (
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -28,7 +28,7 @@ import (
 	"time"
 )
 
-/*func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
+func IPRequest(subnet net.IPNet) (net.IP, uint, error) {
 	bits := bitCount(subnet)
 	bc := int(bits / 8)
 	partial := int(math.Mod(bits, float64(8)))

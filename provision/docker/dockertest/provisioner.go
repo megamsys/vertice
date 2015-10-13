@@ -1,10 +1,6 @@
 package dockertest
-
+/*
 import (
-	"fmt"
-	"io"
-	"net"
-	"net/url"
 	"strings"
 	"sync"
 
@@ -16,8 +12,8 @@ import (
 )
 
 type FakeDockerProvisioner struct {
-	machines        map[string][]machine.Machine
-	machinesMut     sync.Mutex
+	containers        map[string][]container.Container
+	containersMut     sync.Mutex
 	storage         *cluster.MapStorage
 	cluster         *cluster.Cluster
 	pushes          []Push
@@ -224,3 +220,4 @@ func (p *FakeDockerProvisioner) StartContainers(args StartContainersArgs) ([]con
 	p.containers[hostAddr] = append(p.containers[hostAddr], createdContainers...)
 	return createdContainers, nil
 }
+*/
