@@ -38,16 +38,25 @@ func createRouter(name string) (router.Router, error) {
 	return vRouter, nil
 }
 
+func (r route53Router) String() string {
+	return "[" + dns.R53.AccessKey + "," + dns.R53.SecretKey + "]"
+}
+
 //cname is the fullname eg: test.megambox.com
 func (r route53Router) SetCName(cname, ip string) error {
 	r.cname = cname
 	if len(strings.TrimSpace(r.cname)) <= 0 || len(strings.TrimSpace(ip)) <= 0 {
 		return router.ErrCNameMissingArgs
 	}
-	if _, err := r.Addr(cname); err != nil {
+
+	rrec, err := r.Addr(cname)
+	if err != nil {
 		return err
 	}
+
 	r.ip = ip
+
+	log.Debugf("  R53 %s (%s, %s)", rrec, r.cname, r.ip)
 
 	if err := r.createOrNuke(CREATE); err != nil {
 		return err
@@ -100,7 +109,8 @@ func (r route53Router) Addr(cname string) (string, error) {
 }
 
 func (r *route53Router) createOrNuke(action string) error {
-	log.Debugf("%s (cname, ip)", action)
+	log.Debugf("  R53 %s (%s)", action, r.zone.HostedZoneId())
+	log.Debugf("  R53 %s (%s, %s)", action, r.cname, r.ip)
 
 	var u = route53.ChangeResourceRecordSetsRequest{
 		ZoneID:  r.zone.HostedZoneId(),

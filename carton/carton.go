@@ -4,7 +4,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
 )
 
@@ -17,7 +16,6 @@ type Carton struct {
 	Tosca        string
 	ImageVersion string
 	Compute      provision.BoxCompute
-	Repo         repository.Repo
 	DomainName   string
 	Provider     string
 	PublicIp     string
@@ -52,15 +50,15 @@ func (c *Carton) toBox() error { //assemblies id.
 	switch c.lvl() {
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			CartonId:     c.Id,        //this isn't needed.
-			Id:           c.Id,        //assembly id sent in ContextMap
+			Id:           c.Id,        //should be the component id, but in case of BoxNone there is no component id.
+			CartonId:     c.Id,        //We stick the assemlyid here.
 			CartonsId:    c.CartonsId, //assembliesId,
-			Level:        c.lvl(),     //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
+			CartonName:   c.Name,
 			Name:         c.Name,
-			ImageVersion: c.ImageVersion,
 			DomainName:   c.DomainName,
+			Level:        c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
+			ImageVersion: c.ImageVersion,
 			Compute:      c.Compute,
-			Repo:         c.Repo,
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
 			Tosca:        c.Tosca,

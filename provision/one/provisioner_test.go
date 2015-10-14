@@ -724,7 +724,7 @@ func (s *S) TestProvisionSetUnitStatusNoAppName(c *check.C) {
 
 func (s *S) TestProvisionerSetUnitStatusUnitNotFound(c *check.C) {
 	err := s.p.SetUnitStatus(provision.Unit{Name: "mycontainer", AppName: "myapp"}, provision.StatusError)
-	c.Assert(err, check.Equals, provision.ErrUnitNotFound)
+	c.Assert(err, check.Equals, provision.ErrBoxNotFound)
 }
 
 func (s *S) TestProvisionSetCName(c *check.C) {
@@ -864,28 +864,6 @@ func (s *S) TestRunRestartAfterHooks(c *check.C) {
 	})
 }
 
-func (s *S) TestDryMode(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/app-myapp", nil)
-	c.Assert(err, check.IsNil)
-	appInstance := provisiontest.NewFakeApp("myapp", "python", 0)
-	defer s.p.Destroy(appInstance)
-	s.p.Provision(appInstance)
-	imageId, err := appCurrentImageName(appInstance.GetName())
-	c.Assert(err, check.IsNil)
-	_, err = addContainersWithHost(&runMachineActionsArgs){
-		toHost:      "127.0.0.1",
-		toAdd:       map[string]*containersToAdd{"web": {Quantity: 5}},
-		app:         appInstance,
-		imageId:     imageId,
-		provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	newProv, err := s.p.dryMode(nil)
-	c.Assert(err, check.IsNil)
-	contsNew, err := newProv.listAllContainers()
-	c.Assert(err, check.IsNil)
-	c.Assert(contsNew, check.HasLen, 5)
-}
 
 func (s *S) TestMetricEnvs(c *check.C) {
 	err := bs.SaveEnvs(bs.EnvMap{}, bs.PoolEnvMap{

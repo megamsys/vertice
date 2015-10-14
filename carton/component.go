@@ -31,28 +31,29 @@ const (
 )
 
 type Operations struct {
-	OperationType         string    `json:"operation_type"`
-	Description           string    `json:"description"`
-	OperationRequirements JsonPairs `json:"operation_requirements"`
+	Type        string    `json:"operation_type"`
+	Description string    `json:"description"`
+	Properties  JsonPairs `json:"properties"`
 }
 
 type Artifacts struct {
-	ArtifactType         string    `json:"artifact_type"`
-	Content              string    `json:"content"`
-	ArtifactRequirements JsonPairs `json:"artifact_requirements"`
+	Type         string    `json:"artifact_type"`
+	Content      string    `json:"content"`
+	Requirements JsonPairs `json:"requirements"`
 }
 
 type Component struct {
-	Id                string        `json:"id"`
-	Name              string        `json:"name"`
-	Tosca             string        `json:"tosca_type"`
-	Inputs            JsonPairs     `json:"inputs"`
-	Outputs           JsonPairs     `json:"outputs"`
-	Artifacts         *Artifacts    `json:"artifacts"`
-	RelatedComponents []string      `json:"related_components"`
-	Operations        []*Operations `json:"operations"`
-	Status            string        `json:"status"`
-	CreatedAt         string        `json:"created_at"`
+	Id                string           `json:"id"`
+	Name              string           `json:"name"`
+	Tosca             string           `json:"tosca_type"`
+	Inputs            JsonPairs        `json:"inputs"`
+	Outputs           JsonPairs        `json:"outputs"`
+	Repo              *repository.Repo `json:"repo"`
+	Artifacts         *Artifacts       `json:"artifacts"`
+	RelatedComponents []string         `json:"related_components"`
+	Operations        []*Operations    `json:"operations"`
+	Status            string           `json:"status"`
+	CreatedAt         string           `json:"created_at"`
 }
 
 func (a *Component) String() string {
@@ -76,7 +77,7 @@ func NewComponent(id string) (*Component, error) {
 
 //make a box with the details for a provisioner.
 func (c *Component) mkBox() (provision.Box, error) {
-	repo := NewRepo(c.Operations, repository.CI)
+	c.ciProps(c.Operations)
 
 	return provision.Box{
 		Id:         c.Id,
@@ -85,10 +86,11 @@ func (c *Component) mkBox() (provision.Box, error) {
 		DomainName: c.domain(),
 		Tosca:      c.Tosca,
 		Commit:     "",
-		Repo:       repo,
+		Repo:       c.Repo,
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}, nil
+
 }
 
 func (c *Component) SetStatus(status provision.Status) error {
@@ -123,4 +125,25 @@ func (c *Component) provider() string {
 
 func (c *Component) publicIp() string {
 	return c.Outputs.match(PUBLICIP)
+}
+
+func (c *Component) ciProps(ops []*Operations) {
+	o := parseOps(ops)
+
+	if o != nil {
+		c.Repo.Enabled = true
+		c.Repo.Type = o.Properties.match(repository.TYPE)
+		c.Repo.Token = o.Properties.match(repository.TOKEN)
+		c.Repo.UserName = o.Properties.match(repository.USERNAME)
+	}
+}
+
+func parseOps(ops []*Operations) *Operations {
+	for _, o := range ops {
+		switch o.Type {
+		case repository.OPS_CI:
+			return o
+		}
+	}
+	return nil
 }

@@ -1,21 +1,69 @@
 package cluster
 
 import (
+
 	"errors"
 	"sync"
 	"time"
+
 )
 
 var (
 	ErrNoSuchNode            = errors.New("No such node in storage")
+	ErrNoSuchContainer       = errors.New("No such container in storage")
+	ErrNoSuchImage           = errors.New("No such image in storage")
 	ErrDuplicatedNodeAddress = errors.New("Node address shouldn't repeat")
 )
 
+
 type MapStorage struct {
+	cMap    map[string]string
+	iMap    map[string]*Image
 	nodes   []Node
 	nodeMap map[string]*Node
+	cMut    sync.Mutex
+	iMut    sync.Mutex
 	nMut    sync.Mutex
 }
+
+
+func (s *MapStorage) StoreContainer(containerID, hostID string) error {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	if s.cMap == nil {
+		s.cMap = make(map[string]string)
+	}
+	s.cMap[containerID] = hostID
+	return nil
+}
+
+func (s *MapStorage) RetrieveContainer(containerID string) (string, error) {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	host, ok := s.cMap[containerID]
+	if !ok {
+		return "", ErrNoSuchContainer
+	}
+	return host, nil
+}
+
+func (s *MapStorage) RemoveContainer(containerID string) error {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	delete(s.cMap, containerID)
+	return nil
+}
+
+func (s *MapStorage) RetrieveContainers() ([]Container, error) {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	entries := make([]Container, 0, len(s.cMap))
+	for k, v := range s.cMap {
+		entries = append(entries, Container{Id: k, Host: v})
+	}
+	return entries, nil
+}
+
 
 func (s *MapStorage) updateNodeMap() {
 	s.nodeMap = make(map[string]*Node)
@@ -86,6 +134,21 @@ func (s *MapStorage) UpdateNode(node Node) error {
 	return nil
 }
 
+func (s *MapStorage) RetrieveNodesByMetadata(metadata map[string]string) ([]Node, error) {
+	s.nMut.Lock()
+	defer s.nMut.Unlock()
+	filteredNodes := []Node{}
+	for _, node := range s.nodes {
+		for key, value := range metadata {
+			nodeVal, ok := node.Metadata[key]
+			if ok && nodeVal == value {
+				filteredNodes = append(filteredNodes, node)
+			}
+		}
+	}
+	return filteredNodes, nil
+}
+
 func (s *MapStorage) RemoveNode(addr string) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
@@ -100,27 +163,6 @@ func (s *MapStorage) RemoveNode(addr string) error {
 	}
 	copy(s.nodes[index:], s.nodes[index+1:])
 	s.nodes = s.nodes[:len(s.nodes)-1]
-	s.updateNodeMap()
-	return nil
-}
-
-func (s *MapStorage) RemoveNodes(addresses []string) error {
-	s.nMut.Lock()
-	defer s.nMut.Unlock()
-	addrMap := map[string]struct{}{}
-	for _, addr := range addresses {
-		addrMap[addr] = struct{}{}
-	}
-	dup := make([]Node, 0, len(s.nodes))
-	for _, node := range s.nodes {
-		if _, ok := addrMap[node.Address]; !ok {
-			dup = append(dup, node)
-		}
-	}
-	if len(dup) == len(s.nodes) {
-		return ErrNoSuchNode
-	}
-	s.nodes = dup
 	s.updateNodeMap()
 	return nil
 }
@@ -162,4 +204,72 @@ func (s *MapStorage) UnlockNode(address string) error {
 	}
 	n.Healing = HealingData{}
 	return nil
+}
+
+
+
+func (s *MapStorage) StoreImage(repo, id, host string) error {
+	s.iMut.Lock()
+	defer s.iMut.Unlock()
+	if s.iMap == nil {
+		s.iMap = make(map[string]*Image)
+	}
+	img, _ := s.iMap[repo]
+	if img == nil {
+		img = &Image{Repository: repo, History: []ImageHistory{}}
+		s.iMap[repo] = img
+	}
+	hasId := false
+	for _, entry := range img.History {
+		if entry.ImageId == id && entry.Node == host {
+			hasId = true
+			break
+		}
+	}
+	if !hasId {
+		img.History = append(img.History, ImageHistory{Node: host, ImageId: id})
+	}
+	img.LastNode = host
+	img.LastId = id
+	return nil
+}
+
+func (s *MapStorage) RetrieveImage(repo string) (Image, error) {
+	s.iMut.Lock()
+	defer s.iMut.Unlock()
+	image, ok := s.iMap[repo]
+	if !ok {
+		return Image{}, ErrNoSuchImage
+	}
+	if len(image.History) == 0 {
+		return Image{}, ErrNoSuchImage
+	}
+	return *image, nil
+}
+
+func (s *MapStorage) RemoveImage(repo, id, host string) error {
+	s.iMut.Lock()
+	defer s.iMut.Unlock()
+	image, ok := s.iMap[repo]
+	if !ok {
+		return ErrNoSuchImage
+	}
+	newHistory := []ImageHistory{}
+	for _, entry := range image.History {
+		if entry.ImageId != id || entry.Node != host {
+			newHistory = append(newHistory, entry)
+		}
+	}
+	image.History = newHistory
+	return nil
+}
+
+func (s *MapStorage) RetrieveImages() ([]Image, error) {
+	s.iMut.Lock()
+	defer s.iMut.Unlock()
+	images := make([]Image, 0, len(s.iMap))
+	for _, img := range s.iMap {
+		images = append(images, *img)
+	}
+	return images, nil
 }

@@ -72,7 +72,14 @@ func (bc *BoxCompute) numMemory() int64 {
 	} else {
 		return cp
 	}
+}
 
+func (bc *BoxCompute) numSwap() int64 {
+	if cs, err := strconv.ParseInt(bc.Swap, 10, 64); err != nil {
+		return 0
+	} else {
+		return cs
+	}
 }
 
 func (bc *BoxCompute) numHDD() int64 {
@@ -84,11 +91,11 @@ func (bc *BoxCompute) numHDD() int64 {
 }
 
 func (bc *BoxCompute) String() string {
-	return "[" + strings.Join([]string{
+	return "(" + strings.Join([]string{
 		CPU + ":" + bc.Cpushare,
 		RAM + ":" + bc.Memory,
 		HDD + ":" + bc.HDD},
-		",") + " ]"
+		",") + " )"
 }
 
 // BoxDeploy represents a log entry.
@@ -106,16 +113,17 @@ type Box struct {
 	Id           string
 	CartonsId    string
 	CartonId     string
-	Level        BoxLevel
+	CartonName   string
 	Name         string
+	Level        BoxLevel
 	DomainName   string
 	Tosca        string
 	ImageVersion string
 	Compute      BoxCompute
-	Repo         repository.Repo
+	Repo         *repository.Repo
 	Status       Status
 	Provider     string
-	PublicIp           string
+	PublicIp     string
 	Commit       string
 	Address      *url.URL
 }
@@ -128,9 +136,21 @@ func (b *Box) String() string {
 	}
 }
 
-// GetName returns the name of the box.
+func (b *Box) GetMemory() int64 {
+	return b.Compute.numMemory()
+}
+
+func (b *Box) GetSwap() int64 {
+	return b.Compute.numSwap()
+}
+
+func (b *Box) GetCpushare() int64 {
+	return b.Compute.numCpushare()
+}
+
+// GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.
 func (b *Box) GetFullName() string {
-	return b.Name + "." + b.DomainName
+	return b.CartonName + "." + b.DomainName
 }
 
 // GetTosca returns the tosca type of the box.
@@ -139,7 +159,7 @@ func (b *Box) GetTosca() string {
 }
 
 // GetIp returns the Unit.IP.
-func (b *Box) GetIp() string {
+func (b *Box) GetPublicIp() string {
 	return b.PublicIp
 }
 

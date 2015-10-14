@@ -48,14 +48,14 @@ type oneProvisioner struct {
 
 func (p *oneProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
-		panic("nil one cluster")
+		panic("✗ one cluster")
 	}
 	return p.cluster
 }
 
 func (p *oneProvisioner) String() string {
 	if p.cluster == nil {
-		return "nil one cluster"
+		return "✗ one cluster"
 	}
 	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "")
 }
@@ -117,7 +117,7 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 	return p.deployPipeline(box, imageId, w)
 }
 
-func (p *oneProvisioner) gitDeploy(re repository.Repo, version string, w io.Writer) (string, error) {
+func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
 	return p.getBuildImage(re, version), nil
 }
 
@@ -127,7 +127,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 		return "", err
 	}
 	if !isValid {
-		return "", fmt.Errorf("invalid image for box %s: %s", box.GetFullName(), imageId)
+		imageId = p.getBuildImage(box.Repo, box.ImageVersion)
 	}
 	return p.deployPipeline(box, imageId, w)
 }
@@ -158,14 +158,14 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, "deploy pipeline for box %s\n --> %s", box.GetFullName(), err)
+		fmt.Fprintf(w, "--- deploy pipeline for box (%s, image:%s) ---\n  --> %s", box.GetFullName(), imageId, err)
 		return "", err
 	}
 	return imageId, nil
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- removing box (%s) ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -176,17 +176,15 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
-	//	&removeOldMachine,
-		&removeOldRoute,
-		//		&removeBoxesInRiak,
-		//		&removeCartonsInRiak,
-		//		&provisionUnbindOldBoxes,
+		&destroyOldRoute,
+		&destroyOldMachine,
 	}
 
 	pipeline := action.NewPipeline(actions...)
 
 	err := pipeline.Execute(args)
 	if err != nil {
+		fmt.Fprintf(w, "--- destroying box (%s) ---\n  --> %s", box.GetFullName(), err)
 		return err
 	}
 
@@ -204,7 +202,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 
 	actions := []*action.Action{
 		&changeStateofMachine,
-		//&addNewRoute,
+		&addNewRoute,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -295,15 +293,15 @@ func (p *oneProvisioner) PlatformRemove(name string) error {
 }
 
 // getBuildImage returns the image name from box or tosca.
-func (p *oneProvisioner) getBuildImage(re repository.Repo, version string) string {
+func (p *oneProvisioner) getBuildImage(re *repository.Repo, version string) string {
 	if p.usePlatformImage(re) {
 		return p.defaultImage
 	}
-	return "" //error
+	return re.Gitr() //return the url
 }
 
-func (p *oneProvisioner) usePlatformImage(re repository.Repo) bool {
-	return re.Type == repository.GIT || false
+func (p *oneProvisioner) usePlatformImage(re *repository.Repo) bool {
+	return !re.IsOneClick()
 }
 
 func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {

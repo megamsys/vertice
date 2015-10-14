@@ -16,36 +16,33 @@
 package carton
 
 import (
+	"strings"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 type Policy struct {
 	Name    string   `json:"name"`
-	Ptype   string   `json:"ptype"`
+	Type    string   `json:"type"`
 	Members []string `json:"members"`
 }
 
 //An assembly comprises of various components.
 type ambly struct {
-	Id           string        `json:"id"`
-	Name         string        `json:"name"`
-	JsonClaz     string        `json:"json_claz"`
-	Tosca        string        `json:"tosca_type"`
-	Requirements JsonPairs     `json:"requirements"`
-	Policies     []*Policy     `json:"policies"`
-	Inputs       JsonPairs     `json:"inputs"`
-	Operations   []*Operations `json:"operations"`
-	Outputs      JsonPairs     `json:"outputs"`
-	Status       string        `json:"status"`
-	CreatedAt    string        `json:"created_at"`
+	Id        string           `json:"id"`
+	Name      string           `json:"name"`
+	JsonClaz  string           `json:"json_claz"`
+	Tosca     string           `json:"tosca_type"`
+	Inputs    JsonPairs        `json:"inputs"`
+	Outputs   JsonPairs        `json:"outputs"`
+	Policies  []*Policy        `json:"policies"`
+	Status    string           `json:"status"`
+	CreatedAt string           `json:"created_at"`
 }
 
 type Assembly struct {
@@ -75,8 +72,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		return nil, err
 	}
 
-	repo := NewRepo(a.Operations, repository.CI)
-
 	c := &Carton{
 		Id:           ay,   //assembly id
 		CartonsId:    aies, //assemblies id
@@ -84,7 +79,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Tosca:        a.Tosca,
 		ImageVersion: a.imageVersion(),
 		Envs:         a.envs(),
-		Repo:         repo,
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
 		Provider:     a.provider(),
@@ -107,7 +101,8 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 			} else {
 				b.CartonId = a.Id
 				b.CartonsId = aies
-				b.Repo.CartonId = a.Id
+				b.CartonName = a.Name
+				b.Repo.CartonId = a.Id //this is screwy, why do we need it.
 				b.Repo.BoxId = comp.Id
 				b.Compute = a.newCompute()
 				newBoxs = append(newBoxs, b)
@@ -115,15 +110,6 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 		}
 	}
 	return newBoxs, nil
-}
-
-func (a *Assembly) newCompute() provision.BoxCompute {
-	return provision.BoxCompute{
-		Cpushare: a.getCpushare(),
-		Memory:   a.getMemory(),
-		Swap:     a.getSwap(),
-		HDD:      a.getHDD(),
-	}
 }
 
 //Temporary hack to create an assembly from its id.
@@ -195,6 +181,15 @@ func (a *Assembly) envs() []bind.EnvVar {
 		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
 	}
 	return envs
+}
+
+func (a *Assembly) newCompute() provision.BoxCompute {
+	return provision.BoxCompute{
+		Cpushare: a.getCpushare(),
+		Memory:   a.getMemory(),
+		Swap:     a.getSwap(),
+		HDD:      a.getHDD(),
+	}
 }
 
 func (a *Assembly) getCpushare() string {
