@@ -3,48 +3,46 @@ package repository
 import (
 	"fmt"
 	"strings"
+  "strconv"
 
 	"github.com/megamsys/megamd/meta"
 )
 
 const (
-	defaultManager = "github"
+	//source flags
+	GITHUB      = "github"
+	GITLAB      = "gitlab"
+	DOCKERHUB   = "dockerhub"
+	MYDOCKERHUB = "mydockerhub"
 
-	CI             = "CI"
-	CI_ENABLED     = "enabled"
-	CI_TOKEN       = "token"
-	CI_SOURCE      = "source"
-	CI_USER        = "username"
-	CI_URL         = "url"
-	CI_TYPE        = "type"
+	defaultManager = GITHUB
 
-		// IMAGE indicates that the repo is an image
+	OPS_CI   = "CI"
+	TYPE     = "type"
+	TOKEN    = "token"
+	USERNAME = "username"
+
+	// IMAGE indicates that the repo is an image
 	IMAGE = "image"
-
 	// Git indicates that the repo is a GIT
 	GIT = "git"
-
 	// oneclick indicates that an oneclick image exists
 	ONECLICK = "oneclick"
-
 )
 
 var managers map[string]RepositoryManager
 
 /* Repository represents a repository managed by the manager. */
 type Repo struct {
+	Type     string `json:"type"`
+	Source   string `json:"source"`
+	OneClick string `json:"oneclick"`
+	URL      string `json:"url"`
 	Enabled  bool
-	Type     string
 	Token    string
-	Source   string
-	GitURL   string
 	UserName string
 	CartonId string
 	BoxId    string
-}
-
-func (r Repo) IsEnabled() bool {
-	return r.Enabled
 }
 
 func (r Repo) GetType() string {
@@ -55,20 +53,29 @@ func (r Repo) GetSource() string {
 	return r.Source
 }
 
+func (r Repo) IsEnabled() bool {
+	return r.Enabled
+}
+
+func (r Repo) IsOneClick() bool {
+	enabled, _ := strconv.ParseBool(r.OneClick)
+	return enabled
+}
+
+func (r Repo) Gitr() string {
+	return r.URL
+}
+
 func (r Repo) GetToken() string {
 	return r.Token
 }
 
-func (r Repo) Gitr() string {
-	return r.GitURL
+func (r Repo) GetUserName() string {
+	return r.UserName
 }
 
 func (r Repo) Trigger() string {
 	return meta.MC.Api + "/assembly/build/" + r.CartonId + "/" + r.BoxId
-}
-
-func (r Repo) GetUserName() string {
-	return r.UserName
 }
 
 func (r Repo) GetShortName() (string, error) {
@@ -79,14 +86,15 @@ func (r Repo) GetShortName() (string, error) {
 	return strings.TrimRight(r.Gitr()[i+1:], ".git"), nil
 }
 
+
 type Repository interface {
 	IsEnabled() bool
-	GetToken() string
-	GetType() string
 	GetSource() string
+	GetType() string
+	GetToken() string
+	GetUserName() string
 	Gitr() string
 	Trigger() string
-	GetUserName() string
 	GetShortName() (string, error)
 }
 

@@ -1,28 +1,37 @@
 package dockertest
-/*
+
 import (
+	"net"
+	"net/url"
 	"strings"
 	"sync"
 
-	"github.com/megamsys/megamd/db"
+	"github.com/fsouza/go-dockerclient"
+	"github.com/fsouza/go-dockerclient/testing"
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker"
 	"github.com/megamsys/megamd/provision/docker/cluster"
 	"github.com/megamsys/megamd/provision/docker/container"
+
 )
 
+type ContainerMoving struct {
+	ContainerID string
+	HostFrom    string
+	HostTo      string
+}
+
 type FakeDockerProvisioner struct {
-	containers        map[string][]container.Container
-	containersMut     sync.Mutex
+	containers      map[string][]container.Container
+	containersMut   sync.Mutex
 	storage         *cluster.MapStorage
 	cluster         *cluster.Cluster
+	authConfig      docker.AuthConfiguration
 	pushes          []Push
-	servers         []*testing.OneServer
+	servers         []*testing.DockerServer
 	pushErrors      chan error
 	moveErrors      chan error
 	preparedErrors  chan error
-	preparedResults chan []machine.Machine
-	movings         []MachineMoving
+	preparedResults chan []container.Container
 }
 
 func NewFakeDockerProvisioner(servers ...string) (*FakeDockerProvisioner, error) {
@@ -30,16 +39,15 @@ func NewFakeDockerProvisioner(servers ...string) (*FakeDockerProvisioner, error)
 	p := FakeDockerProvisioner{
 		storage:         &cluster.MapStorage{},
 		pushErrors:      make(chan error, 10),
-		moveErrors:      make(chan error, 10),
 		preparedErrors:  make(chan error, 10),
-		preparedResults: make(chan []machine.Machine, 10),
-		containers:      make(map[string][]machine.Machine),
+		preparedResults: make(chan []container.Container, 10),
+		containers:      make(map[string][]container.Container),
 	}
 	nodes := make([]cluster.Node, len(servers))
 	for i, server := range servers {
 		nodes[i] = cluster.Node{Address: server}
 	}
-	p.cluster, err = cluster.New(nil, p.storage, nodes...)
+	p.cluster, err = cluster.New(p.storage, nodes...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,14 +95,6 @@ func (p *FakeDockerProvisioner) FailPush(errs ...error) {
 
 func (p *FakeDockerProvisioner) Cluster() *cluster.Cluster {
 	return p.cluster
-}
-
-func (p *FakeDockerProvisioner) Collection() *storage.Collection {
-	conn, err := db.Conn()
-	if err != nil {
-		panic(err)
-	}
-	return conn.Collection("fake_docker_provisioner")
 }
 
 func (p *FakeDockerProvisioner) PushImage(name, tag string) error {
@@ -149,26 +149,9 @@ func (p *FakeDockerProvisioner) AllContainers() []container.Container {
 	return result
 }
 
-func (p *FakeDockerProvisioner) Movings() []ContainerMoving {
-	p.containersMut.Lock()
-	defer p.containersMut.Unlock()
-	return p.movings
-}
-
-func (p *FakeDockerProvisioner) FailMove(errs ...error) {
-	for _, err := range errs {
-		p.moveErrors <- err
-	}
-}
-
-func (p *FakeDockerProvisioner) GetContainer(id string) (*container.Container, error) {
-	container, _, err := p.findContainer(id)
-	return &container, err
-}
-
 type StartContainersArgs struct {
 	Endpoint  string
-	App       provision.App
+	Box       provision.Box
 	Amount    map[string]int
 	Image     string
 	PullImage bool
@@ -201,15 +184,11 @@ func (p *FakeDockerProvisioner) StartContainers(args StartContainersArgs) ([]con
 				return nil, err
 			}
 			createdContainers = append(createdContainers, container.Container{
-				ID:            cont.ID,
-				AppName:       args.App.GetName(),
-				ProcessName:   processName,
-				Type:          args.App.GetPlatform(),
-				Status:        provision.StatusCreated.String(),
+				Id:            cont.ID,
+				BoxName:       args.Box.GetFullName(),
+				Status:        provision.StatusCreating,
 				HostAddr:      hostAddr,
-				Version:       "v1",
 				Image:         args.Image,
-				User:          "root",
 				BuildingImage: args.Image,
 				Routable:      true,
 			})
@@ -220,4 +199,26 @@ func (p *FakeDockerProvisioner) StartContainers(args StartContainersArgs) ([]con
 	p.containers[hostAddr] = append(p.containers[hostAddr], createdContainers...)
 	return createdContainers, nil
 }
-*/
+
+func (p *FakeDockerProvisioner) findContainer(id string) (container.Container, int, error) {
+	for _, containers := range p.containers {
+		for i, container := range containers {
+			if container.Id == id {
+				return container, i, nil
+			}
+		}
+	}
+	return container.Container{}, -1, &docker.NoSuchContainer{ID: id}
+}
+
+func urlToHost(urlStr string) string {
+	url, _ := url.Parse(urlStr)
+	if url == nil || url.Host == "" {
+		return urlStr
+	}
+	host, _, _ := net.SplitHostPort(url.Host)
+	if host == "" {
+		return url.Host
+	}
+	return host
+}

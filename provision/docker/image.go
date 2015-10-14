@@ -45,7 +45,7 @@ func isValidBoxImage(appName, imageId string) (bool, error) {
 }
 
 // getBuildImage returns the image name from box or plaftorm.
-func (p *dockerProvisioner) getBuildImage(re repository.Repo, version string) string {
+func (p *dockerProvisioner) getBuildImage(re *repository.Repo, version string) string {
 	if p.usePlatformImage(re) {
 		return platformImageName(re.Gitr())
 	}
@@ -56,7 +56,7 @@ func platformImageName(platformName string) string {
 	return fmt.Sprintf("%s:latest", platformName)
 }
 
-func (p *dockerProvisioner) usePlatformImage(re repository.Repo) bool {
+func (p *dockerProvisioner) usePlatformImage(re *repository.Repo) bool {
 	return true
 }
 

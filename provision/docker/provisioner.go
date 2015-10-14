@@ -107,7 +107,7 @@ func (p *dockerProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, 
 	return p.deployPipeline(box, imageId, w)
 }
 
-func (p *dockerProvisioner) gitDeploy(re repository.Repo, version string, w io.Writer) (string, error) {
+func (p *dockerProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
 	return p.getBuildImage(re, version), nil
 }
 

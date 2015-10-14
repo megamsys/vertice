@@ -92,62 +92,6 @@ func (s *S) TestContainerAddress(c *check.C) {
 	})
 }
 
-func (s *S) TestContainerCreateSecurityOptions(c *check.C) {
-	config.Set("docker:security-opts", []string{"label:type:svirt_apache", "ptrace peer=@unsecure"})
-	defer config.Unset("docker:security-opts")
-	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
-	app.Memory = 15
-	app.Swap = 15
-	app.CpuShare = 50
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	img := "tsuru/brainfuck:latest"
-	s.p.Cluster().PullImage(docker.PullImageOptions{Repository: img}, docker.AuthConfiguration{})
-	cont := Container{
-		Name:    "myName",
-		AppName: app.GetName(),
-		Type:    app.GetPlatform(),
-		Status:  "created",
-	}
-	err := cont.Create(&CreateArgs{
-		App:         app,
-		ImageID:     img,
-		Commands:    []string{"docker", "run"},
-		Provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	dcli, _ := docker.NewClient(s.server.URL())
-	container, err := dcli.InspectContainer(cont.ID)
-	c.Assert(err, check.IsNil)
-	c.Assert(container.Config.SecurityOpts, check.DeepEquals, []string{"label:type:svirt_apache", "ptrace peer=@unsecure"})
-}
-
-func (s *S) TestContainerCreateAllocatesPort(c *check.C) {
-	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)
-	app.Memory = 15
-	routertest.FakeRouter.AddBackend(app.GetName())
-	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	img := "tsuru/brainfuck:latest"
-	s.p.Cluster().PullImage(docker.PullImageOptions{Repository: img}, docker.AuthConfiguration{})
-	cont := Container{
-		Name:    "myName",
-		AppName: app.GetName(),
-		Type:    app.GetPlatform(),
-		Status:  "created",
-	}
-	err := cont.Create(&CreateArgs{
-		App:         app,
-		ImageID:     img,
-		Commands:    []string{"docker", "run"},
-		Provisioner: s.p,
-	})
-	c.Assert(err, check.IsNil)
-	defer s.removeTestContainer(&cont)
-	info, err := cont.NetworkInfo(s.p)
-	c.Assert(err, check.IsNil)
-	c.Assert(info.HTTPHostPort, check.Not(check.Equals), "")
-}
 
 func (s *S) TestContainerCreateDoesNotAlocatesPortForDeploy(c *check.C) {
 	app := provisiontest.NewFakeApp("app-name", "brainfuck", 1)

@@ -117,7 +117,7 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 	return p.deployPipeline(box, imageId, w)
 }
 
-func (p *oneProvisioner) gitDeploy(re repository.Repo, version string, w io.Writer) (string, error) {
+func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
 	return p.getBuildImage(re, version), nil
 }
 
@@ -127,7 +127,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 		return "", err
 	}
 	if !isValid {
-		return "", fmt.Errorf("invalid image for box %s: %s", box.GetFullName(), imageId)
+		imageId = p.getBuildImage(box.Repo, box.ImageVersion)
 	}
 	return p.deployPipeline(box, imageId, w)
 }
@@ -293,15 +293,15 @@ func (p *oneProvisioner) PlatformRemove(name string) error {
 }
 
 // getBuildImage returns the image name from box or tosca.
-func (p *oneProvisioner) getBuildImage(re repository.Repo, version string) string {
+func (p *oneProvisioner) getBuildImage(re *repository.Repo, version string) string {
 	if p.usePlatformImage(re) {
 		return p.defaultImage
 	}
-	return "" //error
+	return re.Gitr() //return the url
 }
 
-func (p *oneProvisioner) usePlatformImage(re repository.Repo) bool {
-	return re.Type == repository.GIT || false
+func (p *oneProvisioner) usePlatformImage(re *repository.Repo) bool {
+	return !re.IsOneClick()
 }
 
 func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {

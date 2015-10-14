@@ -113,13 +113,14 @@ type Box struct {
 	Id           string
 	CartonsId    string
 	CartonId     string
-	Level        BoxLevel
+	CartonName   string
 	Name         string
+	Level        BoxLevel
 	DomainName   string
 	Tosca        string
 	ImageVersion string
 	Compute      BoxCompute
-	Repo         repository.Repo
+	Repo         *repository.Repo
 	Status       Status
 	Provider     string
 	PublicIp     string
@@ -147,9 +148,9 @@ func (b *Box) GetCpushare() int64 {
 	return b.Compute.numCpushare()
 }
 
-// GetName returns the name of the box.
+// GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.
 func (b *Box) GetFullName() string {
-	return b.Name + "." + b.DomainName
+	return b.CartonName + "." + b.DomainName
 }
 
 // GetTosca returns the tosca type of the box.

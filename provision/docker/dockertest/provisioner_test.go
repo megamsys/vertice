@@ -1,13 +1,16 @@
 package dockertest
-/*
+
 import (
 	"errors"
 	"testing"
 
 	"github.com/fsouza/go-dockerclient"
 	dtesting "github.com/fsouza/go-dockerclient/testing"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/megamd/provision/provisiontest"
 	"gopkg.in/check.v1"
-
 )
 
 func Test(t *testing.T) {
@@ -18,13 +21,6 @@ var _ = check.Suite(&S{})
 
 type S struct{}
 
-func (s *S) SetUpTest(c *check.C) {
-	conn, err := db.Conn()
-	c.Assert(err, check.IsNil)
-	defer conn.Close()
-	dbtest.ClearAllCollections(conn.Apps().Database)
-}
-
 func (s *S) TestNewFakeDockerProvisioner(c *check.C) {
 	server, err := dtesting.NewServer("127.0.0.1:0", nil, nil)
 	c.Assert(err, check.IsNil)
@@ -33,19 +29,19 @@ func (s *S) TestNewFakeDockerProvisioner(c *check.C) {
 	c.Assert(err, check.IsNil)
 	_, err = p.storage.RetrieveNode(server.URL())
 	c.Assert(err, check.IsNil)
-	opts := docker.PullImageOptions{Repository: "tsuru/bs"}
+	opts := docker.PullImageOptions{Repository: "megam/base"}
 	err = p.Cluster().PullImage(opts, p.RegistryAuthConfig())
 	c.Assert(err, check.IsNil)
 	client, err := docker.NewClient(server.URL())
 	c.Assert(err, check.IsNil)
-	_, err = client.InspectImage("tsuru/bs")
+	_, err = client.InspectImage("megam/base")
 	c.Assert(err, check.IsNil)
 }
 
 func (s *S) TestStartMultipleServersCluster(c *check.C) {
 	p, err := StartMultipleServersCluster()
 	c.Assert(err, check.IsNil)
-	err = p.Cluster().PullImage(docker.PullImageOptions{Repository: "tsuru/bs"}, p.RegistryAuthConfig())
+	err = p.Cluster().PullImage(docker.PullImageOptions{Repository: "megam/base"}, p.RegistryAuthConfig())
 	c.Assert(err, check.IsNil)
 	nodes, err := p.Cluster().Nodes()
 	c.Assert(err, check.IsNil)
@@ -57,7 +53,7 @@ func (s *S) TestDestroy(c *check.C) {
 	c.Assert(err, check.IsNil)
 	p.Destroy()
 	c.Assert(p.servers, check.IsNil)
-	err = p.Cluster().PullImage(docker.PullImageOptions{Repository: "tsuru/bs"}, p.RegistryAuthConfig())
+	err = p.Cluster().PullImage(docker.PullImageOptions{Repository: "megam/base"}, p.RegistryAuthConfig())
 	c.Assert(err, check.NotNil)
 	e, ok := err.(cluster.DockerNodeError)
 	c.Assert(ok, check.Equals, true)
@@ -75,18 +71,17 @@ func (s *S) TestServers(c *check.C) {
 
 func (s *S) TestCluster(c *check.C) {
 	var p FakeDockerProvisioner
-	cluster, err := cluster.New(nil, &cluster.MapStorage{})
+	cluster, err := cluster.New(&cluster.MapStorage{})
 	c.Assert(err, check.IsNil)
 	p.cluster = cluster
 	c.Assert(p.Cluster(), check.Equals, cluster)
 }
 
 func (s *S) TestPushImage(c *check.C) {
-
 	var p FakeDockerProvisioner
-	err := p.PushImage("tsuru/bs", "v1")
+	err := p.PushImage("megam/base", "v1")
 	c.Assert(err, check.IsNil)
-	expected := []Push{{Name: "tsuru/bs", Tag: "v1"}}
+	expected := []Push{{Name: "megam/base", Tag: "v1"}}
 	c.Assert(p.Pushes(), check.DeepEquals, expected)
 }
 
@@ -94,9 +89,9 @@ func (s *S) TestPushImageFailure(c *check.C) {
 	p := FakeDockerProvisioner{pushErrors: make(chan error, 1)}
 	prepErr := errors.New("fail to push")
 	p.FailPush(prepErr)
-	err := p.PushImage("tsuru/bs", "v1")
+	err := p.PushImage("megam/base", "v1")
 	c.Assert(err, check.Equals, prepErr)
-	expected := []Push{{Name: "tsuru/bs", Tag: "v1"}}
+	expected := []Push{{Name: "megam/base", Tag: "v1"}}
 	c.Assert(p.Pushes(), check.DeepEquals, expected)
 }
 
@@ -110,8 +105,8 @@ func (s *S) TestAllContainers(c *check.C) {
 	p, err := NewFakeDockerProvisioner()
 	c.Assert(err, check.IsNil)
 	defer p.Destroy()
-	cont1 := container.Container{ID: "cont1"}
-	cont2 := container.Container{ID: "cont2"}
+	cont1 := container.Container{Id: "cont1"}
+	cont2 := container.Container{Id: "cont2"}
 	p.SetContainers("localhost", []container.Container{cont1})
 	p.SetContainers("remotehost", []container.Container{cont2})
 	cont1.HostAddr = "localhost"
@@ -125,19 +120,20 @@ func (s *S) TestAllContainers(c *check.C) {
 }
 
 func (s *S) TestStartContainers(c *check.C) {
-	app := provisiontest.NewFakeApp("myapp", "python", 1)
+	carton := provisiontest.NewFakeCarton("myapp", "tosca.torpedo.ubuntu", provision.BoxNone, 1)
 	p, err := StartMultipleServersCluster()
 	c.Assert(err, check.IsNil)
 	defer p.Destroy()
+	boxs := *carton.Boxs()
+
 	containers, err := p.StartContainers(StartContainersArgs{
-		Amount:    map[string]int{"web": 2, "worker": 1},
-		Image:     "tsuru/python",
+		Amount:    map[string]int{"vm": 2, "monitor": 1},
+		Image:     "megam/riak",
 		PullImage: true,
 		Endpoint:  p.Servers()[0].URL(),
-		App:       app,
+		Box:       boxs[0],
 	})
 	c.Assert(err, check.IsNil)
 	c.Assert(containers, check.HasLen, 3)
 	c.Assert(p.Containers(urlToHost(p.Servers()[0].URL())), check.DeepEquals, containers)
 }
-*/

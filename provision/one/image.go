@@ -18,7 +18,7 @@ package one
 
 import (
 	"fmt"
-
+	"strings"
 )
 
 type boxImages struct {
@@ -53,7 +53,6 @@ func isValidBoxImage(appName, imageId string) (bool, error) {
 			return true, nil
 		}
 	}
-	//return false, nil
-	return true, nil
+	return (len(strings.TrimSpace(imageId)) > 0), nil
 
 }

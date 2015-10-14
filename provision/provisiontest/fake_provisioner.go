@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 
 	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
 )
 
 var uniqueIpCounter int32 = 0
@@ -19,7 +18,6 @@ type FakeCarton struct {
 	tosca        string
 	imageVersion string
 	Compute      provision.BoxCompute
-	repo         repository.Repo
 	domainName   string
 	provider     string
 	publicIp     string
@@ -53,7 +51,6 @@ func NewFakeCarton(name, tosca string, lvl provision.BoxLevel, units int) *FakeC
 				Memory:   "512",
 				HDD:      "",
 			},
-			Repo:     repository.Repo{},
 			Status:   provision.StatusDeploying,
 			Provider: "one",
 			PublicIp: "",
@@ -95,8 +92,8 @@ func (a *FakeCarton) GetName() string {
 	return a.name
 }
 
-func (a *FakeCarton) Boxs() (*[]provision.Box, error) {
-	return a.boxs, nil
+func (a *FakeCarton) Boxs() *[]provision.Box {
+	return a.boxs
 }
 
 func (a *FakeCarton) GetIp() string {
