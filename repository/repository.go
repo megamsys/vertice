@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
-  "strconv"
 
 	"github.com/megamsys/megamd/meta"
 )
@@ -17,7 +17,7 @@ const (
 
 	defaultManager = GITHUB
 
-	OPS_CI   = "CI"
+	CIHOOK   = "CI"
 	TYPE     = "type"
 	TOKEN    = "token"
 	USERNAME = "username"
@@ -34,10 +34,14 @@ var managers map[string]RepositoryManager
 
 /* Repository represents a repository managed by the manager. */
 type Repo struct {
-	Type     string `json:"type"`
-	Source   string `json:"source"`
-	OneClick string `json:"oneclick"`
-	URL      string `json:"url"`
+	Type     string
+	Source   string
+	OneClick string
+	URL      string
+	Hook     *Hook
+}
+
+type Hook struct {
 	Enabled  bool
 	Token    string
 	UserName string
@@ -53,10 +57,6 @@ func (r Repo) GetSource() string {
 	return r.Source
 }
 
-func (r Repo) IsEnabled() bool {
-	return r.Enabled
-}
-
 func (r Repo) IsOneClick() bool {
 	enabled, _ := strconv.ParseBool(r.OneClick)
 	return enabled
@@ -66,16 +66,22 @@ func (r Repo) Gitr() string {
 	return r.URL
 }
 
+func (r Repo) IsEnabled() bool {
+	return r.Hook!=nil &&	r.Hook.Enabled
+}
+
 func (r Repo) GetToken() string {
-	return r.Token
+	return r.Hook.Token
 }
 
 func (r Repo) GetUserName() string {
-	return r.UserName
+	return r.Hook.UserName
 }
 
 func (r Repo) Trigger() string {
-	return meta.MC.Api + "/assembly/build/" + r.CartonId + "/" + r.BoxId
+	//do a check on CartonId, BoxId and send back an exception ?
+
+	return meta.MC.Api + "/assembly/build/" + r.Hook.CartonId + "/" + r.Hook.BoxId
 }
 
 func (r Repo) GetShortName() (string, error) {
@@ -85,7 +91,6 @@ func (r Repo) GetShortName() (string, error) {
 	}
 	return strings.TrimRight(r.Gitr()[i+1:], ".git"), nil
 }
-
 
 type Repository interface {
 	IsEnabled() bool

@@ -18,6 +18,7 @@ package run
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -35,6 +36,8 @@ type S struct {
 	cf  *Config
 }
 
+var meg_home = os.Getenv("MEGAM_HOME")
+
 var _ = check.Suite(&S{})
 
 // NewTestConfig returns the default config with temporary paths.
@@ -45,7 +48,7 @@ func NewTestConfig() *Config {
 		fmt.Println(err.Error())
 		return nil
 	}
-  return cm
+	return cm
 }
 
 // OpenServer opens a test server.
@@ -56,6 +59,10 @@ func OpenServer(c *Config) *Server {
 }
 
 func (s *S) SetUpSuite(c *check.C) {
+	if _, err := os.Stat(meg_home + "/megamd/megamd.conf"); os.IsNotExist(err) {
+		c.Skip("-MEGAM_HOME/megamd/megamd.conf not provided")
+	}
+
 	s.cf = NewTestConfig()
 	c.Assert(s.cf, check.NotNil)
 	s.srv = OpenServer(s.cf)

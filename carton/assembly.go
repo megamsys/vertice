@@ -34,15 +34,15 @@ type Policy struct {
 
 //An assembly comprises of various components.
 type ambly struct {
-	Id        string           `json:"id"`
-	Name      string           `json:"name"`
-	JsonClaz  string           `json:"json_claz"`
-	Tosca     string           `json:"tosca_type"`
-	Inputs    JsonPairs        `json:"inputs"`
-	Outputs   JsonPairs        `json:"outputs"`
-	Policies  []*Policy        `json:"policies"`
-	Status    string           `json:"status"`
-	CreatedAt string           `json:"created_at"`
+	Id        string    `json:"id"`
+	Name      string    `json:"name"`
+	JsonClaz  string    `json:"json_claz"`
+	Tosca     string    `json:"tosca_type"`
+	Inputs    JsonPairs `json:"inputs"`
+	Outputs   JsonPairs `json:"outputs"`
+	Policies  []*Policy `json:"policies"`
+	Status    string    `json:"status"`
+	CreatedAt string    `json:"created_at"`
 }
 
 type Assembly struct {
@@ -102,8 +102,10 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.CartonId = a.Id
 				b.CartonsId = aies
 				b.CartonName = a.Name
-				b.Repo.CartonId = a.Id //this is screwy, why do we need it.
-				b.Repo.BoxId = comp.Id
+				if b.Repo.IsEnabled() {
+					b.Repo.Hook.CartonId = a.Id //this is screwy, why do we need it.
+					b.Repo.Hook.BoxId = comp.Id
+				}
 				b.Compute = a.newCompute()
 				newBoxs = append(newBoxs, b)
 			}
