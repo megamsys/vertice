@@ -67,7 +67,7 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
-	if opts.B.Repo ==nil || opts.B.Repo.Type == repository.IMAGE {
+	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE {
 		if deployer, ok := Provisioner.(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
@@ -79,13 +79,11 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 // for docker return the Inputs[image]
 func image(b *provision.Box) string {
 	if b.Repo == nil {
-		if len(strings.TrimSpace(b.Repo.Gitr())) <= 0 {
-			img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
-			if len(strings.TrimSpace(b.ImageVersion)) > 1 {
-				return img + "_" + b.ImageVersion
-			}
-			return img
+		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
+		if len(strings.TrimSpace(b.ImageVersion)) > 1 {
+			return img + "_" + b.ImageVersion
 		}
+		return img
 	}
 	return ""
 }
