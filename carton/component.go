@@ -18,7 +18,6 @@ package carton
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
