@@ -46,7 +46,7 @@ func (p *dockerProvisioner) String() string {
 	if p.cluster == nil {
 		return "✗ docker cluster"
 	}
-	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "bold")
+	return "swarm ready"
 }
 
 func (p *dockerProvisioner) Initialize(m map[string]string) error {
@@ -92,9 +92,9 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("Docker", "white", "", "bold") + "\t" +
-		cmd.Colorfy("provisioner swarm "+p.String(), "purple", "", "bold")))
-	fmt.Fprintln(w)
+	b.Write([]byte(cmd.Colorfy("docker ō͡≡o˞̶ ", "white", "", "bold") + "\t" +
+		cmd.Colorfy(p.String(), "cyan", "", "")))
+	fmt.Fprint(w)
 	w.Flush()
 	return b.String(), nil
 }

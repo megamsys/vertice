@@ -42,7 +42,7 @@ func NewService(c *Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Infof("Starting httpd service")
+	log.Infof("starting httpd service")
 	shutdownChan := make(chan bool)
 	shutdownTimeout := 10 * 60
 	idleTracker := newIdleTracker()
@@ -62,16 +62,16 @@ func (s *Service) Open() error {
 			idleTracker.trackConn(conn, state)
 		},
 		ShutdownInitiated: func() {
-			fmt.Println("megamd-httpd is shutting down, waiting for pending connections to finish.")
+			fmt.Println("httpd is shutting down, waiting for pending connections to finish.")
 			handlers := shutdown.All()
 			wg := sync.WaitGroup{}
 			for _, h := range handlers {
 				wg.Add(1)
 				go func(h shutdown.Shutdownable) {
 					defer wg.Done()
-					fmt.Printf("running shutdown handler for %v...\n", h)
+					log.Printf("httpd running shutdown handler %v\n", h)
 					h.Shutdown()
-					fmt.Printf("running shutdown handler for %v. DONE.\n", h)
+					log.Printf("httpd running shutdown handler %v done\n", h)
 				}(h)
 			}
 			wg.Wait()
@@ -102,14 +102,14 @@ func (s *Service) Err() <-chan error { return s.err }
 func (s *Service) serve() {
 	var err error
 	if s.tls {
-		fmt.Printf("HTTP/TLS server listening at %s...\n", s.addr)
+		log.Printf("httpd https://%s", s.addr)
 		err = s.ln.ListenAndServeTLS(s.certFile, s.keyFile)
 	} else {
-		fmt.Printf("HTTP server listening at %s...\n", s.addr)
+		log.Printf("httpd http://%s", s.addr)
 		err = s.ln.ListenAndServe()
 	}
 	if err != nil && !strings.Contains(err.Error(), "closed") {
-		s.err <- fmt.Errorf("listener failed: addr=%s, err=%s", s.addr, err)
+		s.err <- fmt.Errorf("httpd http://%s\n%s", s.addr, err)
 	}
 	<-s.shutdownChan
 }

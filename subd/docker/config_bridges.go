@@ -25,7 +25,7 @@ func (d DockerBridge) String() string {
 		cmd.Colorfy(d.Name, "blue", "", "") + "\n"))
 	b.Write([]byte("Network" + "\t" + d.Network + "\n"))
 	b.Write([]byte("Gateway" + "\t" + d.Gateway + "\n"))
-	fmt.Fprintln(w)
+	fmt.Fprint(w)
 	w.Flush()
 	return b.String()
 }
@@ -47,7 +47,7 @@ func (c Bridges) String() string {
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("bridges", "green", "", "") + "\n"))
 	b.Write([]byte(strings.Join(bs, "\n") + "\n"))
-	fmt.Fprintln(w)
+	fmt.Fprint(w)
 	w.Flush()
 	return b.String()
 }

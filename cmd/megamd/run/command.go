@@ -84,7 +84,7 @@ func (c *Start) Run(context *cmd.Context) error {
 	// Tell the server the build details.
 	cmd.Version = "0.91"
 	cmd.Commit = "0.1"
-	cmd.Branch = "0.2"
+	cmd.Branch = "master"
 
 	if err := cmd.Megd(config, cmd.Version); err != nil {
 		return fmt.Errorf("run: %s", err)
@@ -92,12 +92,11 @@ func (c *Start) Run(context *cmd.Context) error {
 
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	log.Debugf("Listening for signals")
 
 	// Block until one of the signals above is received
 	select {
 	case <-signalCh:
-		log.Info("Signal received, initializing clean shutdown...")
+		log.Info("signal received, initializing clean shutdown...")
 		go func() {
 			cmd.Close()
 		}()
@@ -105,7 +104,7 @@ func (c *Start) Run(context *cmd.Context) error {
 
 	// Block again until another signal is received, a shutdown timeout elapses,
 	// or the Command is gracefully closed
-	log.Warn("Waiting for clean shutdown...")
+	log.Warn("waiting for clean shutdown...")
 	select {
 	case <-signalCh:
 		log.Info("second signal received, initializing hard shutdown")

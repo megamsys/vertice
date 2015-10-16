@@ -7,11 +7,12 @@ import (
 	"runtime/pprof"
 
 	log "github.com/Sirupsen/logrus"
+	pp "github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/subd/deployd"
+	"github.com/megamsys/megamd/subd/dns"
 	"github.com/megamsys/megamd/subd/docker"
 	"github.com/megamsys/megamd/subd/httpd"
-	"github.com/megamsys/megamd/subd/dns"
 )
 
 // Server represents a container for the metadata and storage data and services.
@@ -61,7 +62,7 @@ func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {
 
 func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
 	if !d.Enabled {
-		log.Warn("skip docker service.")
+		log.Warn("skip dockerd service.")
 		return
 	}
 	srv := docker.NewService(c, d)
@@ -99,7 +100,7 @@ func (s *Server) Open() error {
 				return fmt.Errorf("open service: %s", err)
 			}
 		}
-		log.Debug("services started")
+		log.Debug(pp.Colorfy("up , at your service", "green", "red", "bold"))
 		return nil
 
 	}(); err != nil {

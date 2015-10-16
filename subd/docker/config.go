@@ -12,12 +12,12 @@ import (
 )
 
 const (
-	DOCKER_REGISTRY  = "dock_registry"
-	DOCKER_SWARM     = "dock_swarm"
-	DOCKER_MEMSIZE   = "dock_mem"
-	DOCKER_SWAPSIZE  = "dock_swap"
-	DOCKER_CPUPERIOD = "dock_cpuperiod"
-	DOCKER_CPUQUOTA  = "dock_cpuquota"
+	DOCKER_REGISTRY  = "registry"
+	DOCKER_SWARM     = "swarm"
+	DOCKER_MEMSIZE   = "mem"
+	DOCKER_SWAPSIZE  = "swap"
+	DOCKER_CPUPERIOD = "cpuperiod"
+	DOCKER_CPUQUOTA  = "cpuquota"
 
 	// DefaultRegistry is the default registry for docker (public)
 	DefaultRegistry = "https://hub.docker.com"
@@ -67,13 +67,13 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("docker", "green", "", "") + "\n"))
-	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte("Enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte(DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
-	b.Write([]byte(DOCKER_SWARM + "\t" + c.Swarm + "\n"))
-	b.Write([]byte(DOCKER_MEMSIZE + "\t" + strconv.Itoa(c.MemSize) + "\n"))
-	b.Write([]byte(DOCKER_SWAPSIZE + "\t" + strconv.Itoa(c.SwapSize) + "\n"))
-	b.Write([]byte(DOCKER_CPUPERIOD + "\t" + c.CPUPeriod.String() + "\n"))
-	b.Write([]byte(DOCKER_CPUQUOTA + "\t" + c.CPUQuota.String() + "\n"))
+	b.Write([]byte(DOCKER_SWARM + "    \t" + c.Swarm + "\n"))
+	b.Write([]byte(DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.MemSize) + "\n"))
+	b.Write([]byte(DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.SwapSize) + "\n"))
+	b.Write([]byte(DOCKER_CPUPERIOD + "    \t" + c.CPUPeriod.String() + "\n"))
+	b.Write([]byte(DOCKER_CPUQUOTA + "    \t" + c.CPUQuota.String() + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return b.String()

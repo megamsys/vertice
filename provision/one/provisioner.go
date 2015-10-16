@@ -57,7 +57,7 @@ func (p *oneProvisioner) String() string {
 	if p.cluster == nil {
 		return "✗ one cluster"
 	}
-	return cmd.Colorfy("ō͡≡o˞̶  ready", "white", "", "")
+	return " ready"
 }
 
 func (p *oneProvisioner) Initialize(m map[string]string) error {
@@ -102,9 +102,9 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("One", "white", "", "bold") + "\t" +
-		cmd.Colorfy("provisioner xmlrpc "+p.String(), "purple", "", "bold")))
-	fmt.Fprintln(w)
+	b.Write([]byte(cmd.Colorfy("one ō͡≡o˞̶ ", "white", "", "bold") + "\t" +
+	cmd.Colorfy(p.String(), "cyan","", "")))
+	fmt.Fprint(w)
 	w.Flush()
 	return b.String(), nil
 }
