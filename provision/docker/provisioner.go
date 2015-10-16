@@ -232,7 +232,7 @@ func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
 }
 
 func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
-	fmt.Fprintf(w, "\n---- status %s box %s %s ----\n", box.GetFullName(), status.String())
+	fmt.Fprintf(w, "\n---- status %s box %s ----\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
 		&updateStatusInRiak,
 	}

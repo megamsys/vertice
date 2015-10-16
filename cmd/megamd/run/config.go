@@ -15,7 +15,7 @@ type Config struct {
 	Deployd *deployd.Config `toml:"deployd"`
 	HTTPD   *httpd.Config   `toml:"http"`
 	Docker  *docker.Config  `toml:"docker"`
-	Bridges *docker.Bridges `toml:bridges`
+	Bridges *docker.Bridges `toml:"bridges"`
 	DNS     *dns.Config     `toml:"dns"`
 }
 

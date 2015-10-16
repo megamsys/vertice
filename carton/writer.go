@@ -41,10 +41,10 @@ func (w *LogWriter) Close() {
 
 func (w *LogWriter) Wait(timeout time.Duration) error {
 	if w.msgCh == nil {
+		return nil
 	}
 	select {
 	case <-w.doneCh:
-		return nil
 	case <-time.After(timeout):
 		return errors.New("timeout waiting for writer to finish")
 	}

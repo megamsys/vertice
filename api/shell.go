@@ -59,7 +59,7 @@ func remoteShellHandler(ws *websocket.Conn) {
 	width, _ := strconv.Atoi(r.URL.Query().Get("width"))
 	height, _ := strconv.Atoi(r.URL.Query().Get("height"))
 	term := r.URL.Query().Get("term")
-	fmt.Println("%s %s %s %s %s", user, unitID, width, height, term)
+	fmt.Printf("%s %s %s %s %s", user, unitID, width, height, term)
 	/*opts := provision.ShellOptions{
 		Conn:   ws,
 		Width:  width,
