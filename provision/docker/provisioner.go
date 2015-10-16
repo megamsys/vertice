@@ -123,7 +123,7 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 }
 
 func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, "\n--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
@@ -154,7 +154,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 }
 
 func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n--- destroying box (%s) ----\n", box.GetFullName())
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
 		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)

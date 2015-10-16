@@ -103,7 +103,7 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("one ō͡≡o˞̶ ", "white", "", "bold") + "\t" +
-	cmd.Colorfy(p.String(), "cyan","", "")))
+		cmd.Colorfy(p.String(), "cyan", "", "")))
 	fmt.Fprint(w)
 	w.Flush()
 	return b.String(), nil
@@ -138,7 +138,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Riak - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "\n---- deploy box (%s, image:%s) ----\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 	actions := []*action.Action{
 		&updateStatusInRiak,
 		&createMachine,
@@ -158,14 +158,14 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, "--- deploy pipeline for box (%s, image:%s) ---\n  --> %s", box.GetFullName(), imageId, err)
+		fmt.Fprintf(w, "--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)
 		return "", err
 	}
 	return imageId, nil
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, "\n---- destroying box (%s) ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n--- destroying box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -184,7 +184,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, "--- destroying box (%s) ---\n  --> %s", box.GetFullName(), err)
+		fmt.Fprintf(w, "--- destroying box (%s)\n --> %s", box.GetFullName(), err)
 		return err
 	}
 
@@ -192,7 +192,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto provision.Status) error {
-	fmt.Fprintf(w, "\n---- stateto %s ----\n", box.GetFullName())
+	fmt.Fprintf(w, "\n--- stateto %s\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -242,7 +242,7 @@ func (*oneProvisioner) Addr(box *provision.Box) (string, error) {
 }
 
 func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
-	fmt.Fprintf(w, "\n---- status %s box %s ----\n", box.GetFullName(), status.String())
+	fmt.Fprintf(w, "\n--- status %s box %s\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
 		&updateStatusInRiak,
 	}
