@@ -32,7 +32,7 @@ type ImageMetadata struct {
 }
 
 func boxImageName(appName string) string {
-	return fmt.Sprintf("%s/app-%s", appName)
+	return fmt.Sprintf("%s/app", appName)
 }
 
 func listBoxImages(appName string) ([]string, error) {

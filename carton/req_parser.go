@@ -79,7 +79,6 @@ func (p *ReqParser) parseState(action string) (MegdProcessor, error) {
 			Name: p.name,
 		}, nil
 	case DESTROY:
-		fmt.Println("----- destroying ....")
 		return DestroyProcess{
 			Name: p.name,
 		}, nil
@@ -146,10 +145,10 @@ func (e *ParseError) Error() string {
 
 type Requests struct {
 	Id        string `json:"id"`
-	Name      string `json:"name"`	
+	Name      string `json:"name"`
 	CatId     string `json:"cat_id"`
 	Action    string `json:"action"`
-	Category  string `json:category`
+	Category  string `json:"category"`
 	CreatedAt string `json:"created_at"`
 }
 

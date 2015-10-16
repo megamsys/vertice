@@ -27,7 +27,7 @@ type Payload struct {
 	Action    string `json:"action"`
 	CatId     string `json:"cat_id"`
 	CatType   string `json:"cattype"`
-	Category  string `json:category`
+	Category  string `json:"category"`
 	CreatedAt string `json:"created_at"`
 }
 
@@ -39,7 +39,6 @@ func NewPayload(b []byte) (*Payload, error) {
 	p := &Payload{}
 	err := json.Unmarshal(b, &p)
 	if err != nil {
-		log.Error("Failed to parse the payload message:\n%s.", err)
 		return nil, err
 	}
 	return p, err

@@ -45,10 +45,10 @@ const (
 
 // Config represents the meta configuration.
 type Config struct {
-	Home               string        `toml:home`
+	Home               string        `toml:"home"`
 	Dir                string        `toml:"dir"`
 	Hostname           string        `toml:"hostname"`
-	BindAddress        string        `toml:bind_address`
+	BindAddress        string        `toml:"bind_address"`
 	Riak               []string      `toml:"riak"`
 	Api                string        `toml:"api"`
 	AMQP               string        `toml:"amqp"`
