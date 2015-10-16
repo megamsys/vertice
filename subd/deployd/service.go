@@ -41,7 +41,7 @@ func NewService(c *meta.Config, d *Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Debug("starting deployd service")
+	log.Info("starting deployd service")
 
 	p, err := amqp.NewRabbitMQ(s.Meta.AMQP, QUEUE)
 	if err != nil {

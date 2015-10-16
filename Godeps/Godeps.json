@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.7-30-g4643a7e",
-			"Rev": "4643a7efec9b8fd7548882e7b30095711343100f"
+			"Comment": "v0.8.7",
+			"Rev": "418b41d23a1bf978c06faea5313ba194650ac088"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -26,7 +26,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "deb4a5e3b15dea23f340a311eea995421845c356"
+			"Rev": "0c959e80d8acfedb1ecd50c9f14a58cee287dc95"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -54,39 +54,39 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "4645f5af76de5bff2e5c85f586b18e853a98ff39"
+			"Rev": "ccc9b6e31641f8ddf02d6b8aa7cc2ec81d56e75d"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
@@ -118,11 +118,11 @@
 		},
 		{
 			"ImportPath": "github.com/sajari/fuzzy",
-			"Rev": "b6d13352e6a42cfdafe3cd204970a55f6f5b55a5"
+			"Rev": "2a247f20ed71703e33e4cd3c97f5ba390cbead1e"
 		},
 		{
 			"ImportPath": "github.com/streadway/amqp",
-			"Rev": "b4f3ceab0337f013208d31348b578d83c0064744"
+			"Rev": "79beb307dcf5904fb8cb061276f1c14f222012c2"
 		},
 		{
 			"ImportPath": "github.com/tj/go-spin",

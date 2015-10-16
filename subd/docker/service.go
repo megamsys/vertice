@@ -35,28 +35,41 @@ func NewService(c *meta.Config, d *Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Infof("Starting docker service")
+	log.Info("starting dockerd service")
 
 	p, err := amqp.NewRabbitMQ(s.Meta.AMQP, QUEUE)
 	if err != nil {
-		log.Errorf("Couldn't establish an amqp (%s): %s", s.Meta, err.Error())
+		return err
 	}
 
-	ch, err := p.Sub()
+	if swt, err := p.Sub(); err != nil {
+		return err
+	} else {
+		if err = s.setProvisioner(); err != nil {
+			return err
+		}
+		go s.processQueue(swt)
+	}
 
-	for raw := range ch {
+	return nil
+}
+
+// processQueue continually drains the given queue  and processes the payload
+// to the appropriate request process operators.
+func (s *Service) processQueue(drain chan []byte) error {
+	//defer s.wg.Done()
+	for raw := range drain {
 		p, err := carton.NewPayload(raw)
 		if err != nil {
 			return err
 		}
 
-		pc, err := p.Convert()
+		re, err := p.Convert()
 		if err != nil {
 			return err
 		}
-		go s.Handler.serveAMQP(pc)
+		go s.Handler.serveAMQP(re)
 	}
-
 	return nil
 }
 
@@ -76,25 +89,28 @@ func (s *Service) Close() error {
 func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
-func (s *Service) setProvisioner() {
-	a, err := provision.Get(s.Meta.Provider)
+func (s *Service) setProvisioner() error {
+	var err error
 
-	carton.Provisioner = a
-
-	if err != nil {
-		fatal(fmt.Errorf("couldn't located the provisioner %s", s.Meta.Provider))
+	if carton.Provisioner, err = provision.Get(s.Meta.Provider); err != nil {
+		return err
 	}
-	fmt.Printf("Using %q provisioner.\n", s.Meta.Provider)
+
+	log.Debugf("configuring %s provisioner", s.Meta.Provider)
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Dockerd.toMap())
 		if err != nil {
-			fatal(fmt.Errorf("couldn't initialize the provisioner %s\n%s", s.Meta.Provider, err))
+			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
+		} else {
+			log.Debugf("%s initialized", s.Meta.Provider)
 		}
 	}
+
 	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {
 		startupMessage, err := messageProvisioner.StartupMessage()
 		if err == nil && startupMessage != "" {
-			fmt.Print(startupMessage)
+			log.Infof(startupMessage)
 		}
 	}
+	return nil
 }

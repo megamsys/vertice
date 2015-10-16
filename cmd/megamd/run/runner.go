@@ -19,18 +19,21 @@ import (
 	"fmt"
 	"time"
 
-  log	"github.com/Sirupsen/logrus"
+	log "github.com/Sirupsen/logrus"
+	pp "github.com/megamsys/libgo/cmd"
 	"github.com/tj/go-spin"
 )
 
 const logo = `
-███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗
-████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
-██╔████╔██║█████╗  ██║  ███╗███████║██╔████╔██║██║  ██║
-██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██║██║╚██╔╝██║██║  ██║
-██║ ╚═╝ ██║███████╗╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝
-╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝
-`
+,--.               ███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗
+\  _\_             ████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
+_\/_|_\____.'\     ██╔████╔██║█████╗  ██║  ███╗███████║██╔████╔██║██║  ██║
+-(___.--._____(    ██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██║██║╚██╔╝██║██║  ██║
+   \   \           ██║ ╚═╝ ██║███████╗╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝
+    \   \          ╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝
+     '--'
+
+		 `
 
 // Command represents the command executed by "megamd start".
 type Command struct {
@@ -58,15 +61,7 @@ func NewCommand() *Command {
 
 //Short form for "Megam daemon - Megd" .We start the megamd daemon.
 func (cmd *Command) Megd(c *Config, version string) error {
-
-	fmt.Println(logo)
-
-	// Mark start-up in log.
-	fmt.Printf("Version %s\n", cmd.Version)
-
-	//Show a spinner until our services start.
-	cmd.funSpin()
-
+	cmd.funSpin(pp.Colorfy(logo, "yellow", "", "bold"), cmd.Version)
 	// Create server from config and start it.
 	s, err := NewServer(c, cmd.Version)
 	if err != nil {
@@ -106,11 +101,14 @@ func (cmd *Command) monitorServerErrors() {
 	}
 }
 
-func (cmd *Command) funSpin() {
+//Show a spinner until our services start.
+func (cmd *Command) funSpin(vers string, logo string) {
+	fmt.Printf("%s %s", vers, logo)
+
 	s := spin.New()
-	for i := 0; i < 30; i++ {
-		fmt.Printf("\r  \033[36mstarting\033[m %s ", s.Next())
-		time.Sleep(3 * time.Millisecond)
+	for i := 0; i < 10; i++ {
+		fmt.Printf("\r%s", fmt.Sprintf("%s %s", pp.Colorfy("starting", "green", "", "bold"), s.Next()))
+		time.Sleep(155 * time.Millisecond)
 	}
 	fmt.Printf("\n")
 }
