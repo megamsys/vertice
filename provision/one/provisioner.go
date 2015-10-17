@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"strings"
 	"text/tabwriter"
 
 	log "github.com/Sirupsen/logrus"
@@ -57,7 +58,7 @@ func (p *oneProvisioner) String() string {
 	if p.cluster == nil {
 		return "✗ one cluster"
 	}
-	return " ready"
+	return "ready"
 }
 
 func (p *oneProvisioner) Initialize(m map[string]string) error {
@@ -102,11 +103,11 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("one ō͡≡o˞̶ ", "white", "", "bold") + "\t" +
+	b.Write([]byte(cmd.Colorfy("  > one ", "white", "", "bold") + "\t" +
 		cmd.Colorfy(p.String(), "cyan", "", "")))
-	fmt.Fprint(w)
+	fmt.Fprintln(w)
 	w.Flush()
-	return b.String(), nil
+	return strings.TrimSpace(b.String()), nil
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {

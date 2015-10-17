@@ -4,28 +4,27 @@ import (
 	"regexp"
 
 	"github.com/fsouza/go-dockerclient"
-	"github.com/megamsys/megamd/provision/docker/container"
-	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/libgo/safe"
+	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/megamd/provision/docker/container"
 	"gopkg.in/check.v1"
 )
 
 var execResizeRegexp = regexp.MustCompile(`^.*/exec/(.*)/resize$`)
 
 type newContainerOpts struct {
-	BoxName         string
-	Status          provision.Status
-	Image           string
-	Provisioner     *dockerProvisioner
+	BoxName     string
+	Status      provision.Status
+	Image       string
+	Provisioner *dockerProvisioner
 }
 
 func (s *S) newContainer(opts *newContainerOpts, p *dockerProvisioner) (*container.Container, error) {
 	container := container.Container{
-		Id:          "id",
-		PublicIp:          "10.10.10.10",
-		HostPort:    "3333",
-		HostAddr:    "127.0.0.1",
-
+		Id:       "id",
+		PublicIp: "10.10.10.10",
+		HostPort: "3333",
+		HostAddr: "127.0.0.1",
 	}
 	if p == nil {
 		p = s.p
@@ -67,7 +66,7 @@ func (s *S) newContainer(opts *newContainerOpts, p *dockerProvisioner) (*contain
 	}
 	container.Id = c.ID
 	container.Image = image
-	imageId  := "testimageid"
+	imageId := "testimageid"
 
 	err = s.newFakeImage(p, imageId, nil)
 	if err != nil {
@@ -75,7 +74,6 @@ func (s *S) newContainer(opts *newContainerOpts, p *dockerProvisioner) (*contain
 	}
 	return &container, nil
 }
-
 
 func (s *S) newFakeImage(p *dockerProvisioner, repo string, customData map[string]interface{}) error {
 	if customData == nil {

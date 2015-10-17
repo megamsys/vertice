@@ -13,6 +13,7 @@ func (s *S) TestLogStreamTrackerAddRemove(c *check.C) {
 	LogTracker.remove(&l)
 	c.Assert(LogTracker.conn, check.HasLen, 0)
 }
+
 /*
 This fails, need to debug
 func (s *S) TestLogStreamTrackerShutdown(c *check.C) {

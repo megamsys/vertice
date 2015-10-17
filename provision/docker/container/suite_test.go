@@ -27,7 +27,7 @@ func (s *S) SetUpSuite(c *check.C) {
 func (s *S) SetUpTest(c *check.C) {
 	srv, err := dtesting.NewServer("127.0.0.1:0", nil, nil)
 	c.Assert(err, check.IsNil)
-	s.server =  srv
+	s.server = srv
 	s.p, err = newFakeDockerProvisioner(s.server.URL())
 	c.Assert(err, check.IsNil)
 }
@@ -51,12 +51,12 @@ func (s *S) newContainer(opts newContainerOpts, p *fakeDockerProvisioner) (*Cont
 		p = s.p
 	}
 	container := Container{
-		Id:          "id",
-		PublicIp:          "10.10.10.10",
-		HostPort:    "3333",
-		HostAddr:    "127.0.0.1",
-		Image:       opts.Image,
-  	BoxName:     opts.BoxName,
+		Id:       "id",
+		PublicIp: "10.10.10.10",
+		HostPort: "3333",
+		HostAddr: "127.0.0.1",
+		Image:    opts.Image,
+		BoxName:  opts.BoxName,
 	}
 	if container.BoxName == "" {
 		container.BoxName = "container"

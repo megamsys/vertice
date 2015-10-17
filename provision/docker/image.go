@@ -61,10 +61,10 @@ func (p *dockerProvisioner) usePlatformImage(re *repository.Repo) bool {
 }
 
 func (p *dockerProvisioner) cleanImage(appName, imgName string) {
-//	shouldRemove := true
+	//	shouldRemove := true
 	err := p.Cluster().RemoveImage(imgName)
 	if err != nil {
-	//	shouldRemove = false
+		//	shouldRemove = false
 		//log.Errorf("Ignored error removing old image %q: %s. Image kept on list to retry later.",
 		//	imgName, err.Error())
 	}

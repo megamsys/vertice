@@ -130,7 +130,6 @@ func urlToHost(urlStr string) string {
 	return host
 }
 
-
 func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 	/*if !args.Deploy {
 		for _, envData := range args.Box.Envs() {
@@ -192,7 +191,6 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	c.SetStatus(provision.StatusStopped)
 	return nil
 }
-
 
 func (c *Container) Logs(p DockerProvisioner, w io.Writer) (int, error) {
 	container, err := p.Cluster().InspectContainer(c.Id)
@@ -295,8 +293,6 @@ func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	}*/
 	return netInfo, err
 }
-
-
 
 type Pty struct {
 	Width  int
@@ -430,7 +426,6 @@ func (c *Container) Commit(p DockerProvisioner, writer io.Writer) (string, error
 	return c.BuildingImage, nil
 }
 */
-
 
 func getPort() (string, error) {
 	/*	port, err := config.Get("docker:run-cmd:port")

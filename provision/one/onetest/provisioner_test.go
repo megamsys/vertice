@@ -19,11 +19,11 @@ type S struct{}
 func (s *S) TestNewFakeOneProvisioner(c *check.C) {
 	server, err := otesting.NewServer("127.0.0.1:5555")
 	c.Assert(err, check.IsNil)
-  p, err := NewFakeOneProvisioner(server.URL())
+	p, err := NewFakeOneProvisioner(server.URL())
 	c.Assert(err, check.IsNil)
 	_, err = p.storage.RetrieveNode(server.URL())
 	c.Assert(err, check.IsNil)
-  defer p.Destroy()
+	defer p.Destroy()
 	defer server.Stop()
 }
 
@@ -36,7 +36,6 @@ func (s *S) TestStartMultipleServersCluster(c *check.C) {
 	c.Assert(p.servers, check.HasLen, 1)
 	defer p.Destroy()
 }
-
 
 func (s *S) TestDestroy(c *check.C) {
 	p, err := StartMultipleServersCluster()
@@ -63,7 +62,6 @@ func (s *S) TestCluster(c *check.C) {
 	p.cluster = cluster
 	c.Assert(p.Cluster(), check.Equals, cluster)
 }
-
 
 func buildClusterStorage() (cluster.Storage, error) {
 	return &cluster.MapStorage{}, nil

@@ -9,9 +9,9 @@ import (
 type routerFactory func(string) (Router, error)
 
 var (
-	ErrInvalidCName    = errors.New("CNAME is invalid. [valid examples are: megam.megambox.com, www.google.com, typo.com]")
-	ErrDomainNotFound  = errors.New("Domain not found")
-	ErrCNameNotFound   = errors.New("CNAME not found")
+	ErrInvalidCName     = errors.New("CNAME is invalid. [valid examples are: megam.megambox.com, www.google.com, typo.com]")
+	ErrDomainNotFound   = errors.New("Domain not found")
+	ErrCNameNotFound    = errors.New("CNAME not found")
 	ErrCNameMissingArgs = errors.New("CNAME missing args. [cname (and/or) ip] needed.")
 )
 

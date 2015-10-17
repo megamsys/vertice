@@ -108,7 +108,6 @@ func wrapErrorWithCmd(n node, err error, cmd string) error {
 	return nil
 }
 
-
 // New creates a new Cluster, initially composed by the given nodes.
 //
 // The scheduler parameter defines the scheduling strategy. It defaults

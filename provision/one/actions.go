@@ -59,7 +59,7 @@ var updateStatusInRiak = action.Action{
 			}
 		}
 
-		if err := mach.SetStatus(mach.Status); err!=nil{
+		if err := mach.SetStatus(mach.Status); err != nil {
 			return err, nil
 		}
 		return mach, nil

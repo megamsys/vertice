@@ -1,7 +1,7 @@
 package carton
 
 import (
-  "bytes"
+	"bytes"
 )
 
 /*

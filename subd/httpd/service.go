@@ -102,10 +102,10 @@ func (s *Service) Err() <-chan error { return s.err }
 func (s *Service) serve() {
 	var err error
 	if s.tls {
-		log.Printf("httpd https://%s", s.addr)
+		log.Printf("  > httpd https://%s", s.addr)
 		err = s.ln.ListenAndServeTLS(s.certFile, s.keyFile)
 	} else {
-		log.Printf("httpd http://%s", s.addr)
+		log.Printf("  > httpd http://%s", s.addr)
 		err = s.ln.ListenAndServe()
 	}
 	if err != nil && !strings.Contains(err.Error(), "closed") {

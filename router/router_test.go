@@ -1,10 +1,8 @@
-
 package router
 
 import (
 	"gopkg.in/check.v1"
 )
-
 
 func (s *S) TestRegisterAndGet(c *check.C) {
 	var r Router
@@ -28,5 +26,5 @@ func (s *S) TestRegisterAndGetCustomNamedRouter(c *check.C) {
 	}
 	Register("myrouter", routerCreator)
 	_, err := Get("myrouter")
-	c.Assert(err, check.IsNil)	
+	c.Assert(err, check.IsNil)
 }

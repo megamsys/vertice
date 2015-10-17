@@ -4,7 +4,6 @@ import (
 	"html/template"
 )
 
-
 var indexTemplate = template.Must(template.New("index").Parse(`
 <html>
 	<head>

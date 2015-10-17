@@ -41,6 +41,8 @@ const (
 
 	// DefaultLeaderLeaseTimeout is the default leader lease for the store.
 	DefaultLeaderLeaseTimeout = 500 * time.Millisecond
+
+	MEGAM_HOME = "MEGAM_HOME"
 )
 
 // Config represents the meta configuration.
@@ -66,7 +68,7 @@ func (c Config) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
-		cmd.Colorfy("Meta", "green", "", "") + "\n"))
+		cmd.Colorfy("Meta", "cyan", "", "") + "\n"))
 	b.Write([]byte("Home    " + "\t" + c.Home + "\n"))
 	b.Write([]byte("Dir     " + "\t" + c.Dir + "\n"))
 	b.Write([]byte("Riak    " + "\t" + strings.Join(c.Riak, ",") + "\n"))
@@ -81,8 +83,8 @@ func (c Config) String() string {
 func NewConfig() *Config {
 	var homeDir string
 	// By default, store logs, meta and load conf files in MEGAM_HOME directory
-	if os.Getenv("MEGAM_HOME") != "" {
-		homeDir = os.Getenv("MEGAM_HOME")
+	if os.Getenv(MEGAM_HOME) != "" {
+		homeDir = os.Getenv(MEGAM_HOME)
 	} else if u, err := user.Current(); err == nil {
 		homeDir = u.HomeDir
 	} else {

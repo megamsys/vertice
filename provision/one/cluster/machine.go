@@ -7,9 +7,9 @@ import (
 	"net/url"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
-	"github.com/megamsys/libgo/cmd"
 )
 
 // CreateVM creates a vm in the specified node.
@@ -26,7 +26,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) 
 		nodlist, err := c.Nodes()
 
 		if err != nil || len(nodlist) <= 0 {
-			return addr, machine, fmt.Errorf("%s\n%s",cmd.Colorfy("Nodes are not available to launch machines.\n%s", "red","",""), err)
+			return addr, machine, fmt.Errorf("%s\n%s", cmd.Colorfy("Nodes are not available to launch machines.\n%s", "red", "", ""), err)
 		} else {
 			addr = nodlist[0].Address
 		}
@@ -37,7 +37,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) 
 				c.handleNodeSuccess(addr)
 				break
 			}
-			log.Errorf("  > Trying... %s",addr)
+			log.Errorf("  > Trying... %s", addr)
 		}
 		shouldIncrementFailures := false
 		isCreateMachineErr := false

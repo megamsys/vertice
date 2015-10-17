@@ -1,8 +1,8 @@
 package docker
 
 import (
-	"github.com/megamsys/megamd/provision/docker/container"
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/provision/docker/container"
 )
 
 func (p *dockerProvisioner) fixContainers() error {
@@ -60,5 +60,5 @@ func (p *dockerProvisioner) fixContainer(container *container.Container, info co
 	if err != nil && err != router.ErrRouteExists {
 		return err
 	}*/
-  return nil
+	return nil
 }

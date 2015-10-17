@@ -23,7 +23,7 @@ type route53Router struct {
 	cname  string
 	ip     string
 	client route53.AccessIdentifiers
-	zone   route53.HostedZone
+	zone   *route53.HostedZone
 	choped string
 }
 
@@ -38,8 +38,8 @@ func createRouter(name string) (router.Router, error) {
 	return vRouter, nil
 }
 
-func (r route53Router) String() string {
-	return "[" + dns.R53.AccessKey + "," + dns.R53.SecretKey + "]"
+func (r *route53Router) String() string {
+	return "R53:(" + dns.R53.AccessKey + "," + dns.R53.SecretKey + ")"
 }
 
 //cname is the fullname eg: test.megambox.com
@@ -49,15 +49,14 @@ func (r route53Router) SetCName(cname, ip string) error {
 		return router.ErrCNameMissingArgs
 	}
 
-	rrec, err := r.Addr(cname)
+	_, err := r.zoneMatch()
 	if err != nil {
 		return err
 	}
 
 	r.ip = ip
 
-	log.Debugf("  R53 %s (%s, %s)", rrec, r.cname, r.ip)
-
+	log.Debugf("  R53 (%s, %s)", r.cname, r.ip)
 	if err := r.createOrNuke(CREATE); err != nil {
 		return err
 	}
@@ -71,7 +70,8 @@ func (r route53Router) UnsetCName(cname string, ip string) error {
 		return router.ErrCNameMissingArgs
 	}
 
-	if _, err := r.Addr(cname); err != nil {
+	_, err := r.zoneMatch()
+	if err != nil {
 		return err
 	}
 
@@ -83,11 +83,8 @@ func (r route53Router) UnsetCName(cname string, ip string) error {
 
 func (r route53Router) Addr(cname string) (string, error) {
 	r.cname = cname
-	chp, err := r.chopIt()
+	chop, err := r.zoneMatch()
 	if err != nil {
-		return "", err
-	}
-	if err := r.zoneMatch(chp); err != nil {
 		return "", err
 	}
 
@@ -101,7 +98,7 @@ func (r route53Router) Addr(cname string) (string, error) {
 		if strings.HasSuffix(rrp, ".") {
 			rrp = strings.TrimRight(rrp, ".")
 		}
-		if strings.Compare(rrp, chp) == 0 {
+		if strings.Compare(rrp, chop) == 0 {
 			return rr.ResourceRecordSets[i].Name, nil
 		}
 	}
@@ -109,9 +106,7 @@ func (r route53Router) Addr(cname string) (string, error) {
 }
 
 func (r *route53Router) createOrNuke(action string) error {
-	log.Debugf("  R53 %s (%s)", action, r.zone.HostedZoneId())
 	log.Debugf("  R53 %s (%s, %s)", action, r.cname, r.ip)
-
 	var u = route53.ChangeResourceRecordSetsRequest{
 		ZoneID:  r.zone.HostedZoneId(),
 		Comment: "",
@@ -144,8 +139,13 @@ func (r *route53Router) chopIt() (string, error) {
 	return chp, err
 }
 
-//get the hosted zones and match the domain name with it.
-func (r *route53Router) zoneMatch(chop string) error {
+//get the hosted zones and for the domain
+func (r *route53Router) zoneMatch() (string, error) {
+	chop, err := r.chopIt()
+	if err != nil {
+		return "", err
+	}
+
 	zones := r.client.Zones().HostedZones
 	noMatch := true
 	for i := range zones {
@@ -154,13 +154,14 @@ func (r *route53Router) zoneMatch(chop string) error {
 			p = strings.TrimRight(p, ".")
 		}
 		if strings.Compare(p, chop) == 0 {
-			r.zone = zones[i]
+			r.zone = &zones[i]
 			noMatch = false
 			break
 		}
 	}
+
 	if noMatch {
-		return router.ErrDomainNotFound
+		return "", router.ErrDomainNotFound
 	}
-	return nil
+	return chop, nil
 }

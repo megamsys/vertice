@@ -17,14 +17,13 @@ package bind
 
 import (
 	"fmt"
-	)
+)
 
 // EnvVar represents a environment variable for a carton.
 type EnvVar struct {
 	Name  string
 	Value string
 }
-
 
 func (e *EnvVar) String() string {
 	return fmt.Sprintf("%s=%s", e.Name, e.Value)

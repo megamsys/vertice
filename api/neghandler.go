@@ -13,7 +13,6 @@ type MegdHandler struct {
 	h      http.Handler
 }
 
-
 var megdHandlerList []MegdHandler
 
 //RegisterHandler inserts a handler on a list of handlers
@@ -24,7 +23,6 @@ func RegisterHandler(path string, method string, h http.Handler) {
 	th.h = h
 	megdHandlerList = append(megdHandlerList, th)
 }
-
 
 // RunServer starts megamd httpd server.
 func NewNegHandler() *negroni.Negroni {

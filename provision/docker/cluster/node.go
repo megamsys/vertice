@@ -25,8 +25,6 @@ type Node struct {
 	CreationStatus string
 }
 
-
-
 type HealingData struct {
 	LockedUntil time.Time
 	IsFailure   bool
@@ -113,7 +111,6 @@ func (n *Node) Client() (*docker.Client, error) {
 	client.Dialer = timeout10Dialer
 	return client, nil
 }
-
 
 func (n *Node) updateError(lastErr error, incrementFailures bool) {
 	if n.Metadata == nil {
