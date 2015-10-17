@@ -61,7 +61,7 @@ func NewCommand() *Command {
 
 //Short form for "Megam daemon - Megd" .We start the megamd daemon.
 func (cmd *Command) Megd(c *Config, version string) error {
-	cmd.funSpin(pp.Colorfy(logo, "yellow", "", "bold"), cmd.Version)
+	cmd.funSpin(pp.Colorfy(logo, "green", "", "bold"), cmd.Version)
 	// Create server from config and start it.
 	s, err := NewServer(c, cmd.Version)
 	if err != nil {

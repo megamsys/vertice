@@ -1,7 +1,6 @@
 package bind
 
-import (
-)
+import ()
 
 //add actions to  runbind stuff.
 func (b *YBoundBox) Bind(box *YBoundBox) error {

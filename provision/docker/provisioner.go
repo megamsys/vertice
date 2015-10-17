@@ -46,7 +46,7 @@ func (p *dockerProvisioner) String() string {
 	if p.cluster == nil {
 		return "✗ docker cluster"
 	}
-	return "swarm ready"
+	return "ready"
 }
 
 func (p *dockerProvisioner) Initialize(m map[string]string) error {
@@ -64,7 +64,7 @@ func (p *dockerProvisioner) initDockerCluster(m map[string]string) error {
 
 	var nodes []cluster.Node = []cluster.Node{
 		cluster.Node{
-			Address:  m["test"], //api.ENDPOINT
+			Address:  m[DOCKER_SWARM], //swarm endpoint
 			Metadata: m,
 		},
 	}
@@ -92,11 +92,11 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("docker ō͡≡o˞̶ ", "white", "", "bold") + "\t" +
+	b.Write([]byte(cmd.Colorfy("  > docker ", "white", "", "bold") + "\t" +
 		cmd.Colorfy(p.String(), "cyan", "", "")))
-	fmt.Fprint(w)
+	fmt.Fprintln(w)
 	w.Flush()
-	return b.String(), nil
+	return strings.TrimSpace(b.String()), nil
 }
 
 func (p *dockerProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {

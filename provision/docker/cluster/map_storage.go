@@ -1,11 +1,9 @@
 package cluster
 
 import (
-
 	"errors"
 	"sync"
 	"time"
-
 )
 
 var (
@@ -14,7 +12,6 @@ var (
 	ErrNoSuchImage           = errors.New("No such image in storage")
 	ErrDuplicatedNodeAddress = errors.New("Node address shouldn't repeat")
 )
-
 
 type MapStorage struct {
 	cMap    map[string]string
@@ -25,7 +22,6 @@ type MapStorage struct {
 	iMut    sync.Mutex
 	nMut    sync.Mutex
 }
-
 
 func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 	s.cMut.Lock()
@@ -63,7 +59,6 @@ func (s *MapStorage) RetrieveContainers() ([]Container, error) {
 	}
 	return entries, nil
 }
-
 
 func (s *MapStorage) updateNodeMap() {
 	s.nodeMap = make(map[string]*Node)
@@ -205,8 +200,6 @@ func (s *MapStorage) UnlockNode(address string) error {
 	n.Healing = HealingData{}
 	return nil
 }
-
-
 
 func (s *MapStorage) StoreImage(repo, id, host string) error {
 	s.iMut.Lock()

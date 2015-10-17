@@ -24,6 +24,7 @@ import (
 	"github.com/megamsys/libgo/hc"
 	"gopkg.in/check.v1"*/
 )
+
 /*
 func (s *S) TestHealthCheckDockerRegistryV2(c *check.C) {
 	var request *http.Request

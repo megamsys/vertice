@@ -1,4 +1,3 @@
-
 package router
 
 import (
@@ -13,7 +12,6 @@ type S struct {
 }
 
 var _ = check.Suite(&S{})
-
 
 func (s *S) TearDownSuite(c *check.C) {
 }

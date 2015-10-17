@@ -8,12 +8,12 @@ import (
 //this is essentially converting box to a container.
 func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Container, error) {
 	return &container.Container{
-		BoxId:       box.Id,
-		CartonId:    box.CartonId,
-		Name:        box.Name,
-		BoxName:     box.GetFullName(),
-		Level:       box.Level,
-		Status:      box.Status,
+		BoxId:    box.Id,
+		CartonId: box.CartonId,
+		Name:     box.Name,
+		BoxName:  box.GetFullName(),
+		Level:    box.Level,
+		Status:   box.Status,
 	}, nil
 
 }

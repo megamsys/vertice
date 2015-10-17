@@ -25,9 +25,9 @@ func (d DockerBridge) String() string {
 		cmd.Colorfy(d.Name, "blue", "", "") + "\n"))
 	b.Write([]byte("Network" + "\t" + d.Network + "\n"))
 	b.Write([]byte("Gateway" + "\t" + d.Gateway + "\n"))
-	fmt.Fprint(w)
+	fmt.Fprintln(w)
 	w.Flush()
-	return b.String()
+	return strings.TrimSpace(b.String())
 }
 
 func NewBridgeConfig() *Bridges {
@@ -46,8 +46,9 @@ func (c Bridges) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("bridges", "green", "", "") + "\n"))
-	b.Write([]byte(strings.Join(bs, "\n") + "\n"))
-	fmt.Fprint(w)
+	b.Write([]byte(strings.Join(bs, "\n")))
+	fmt.Fprintln(w)
 	w.Flush()
-	return b.String()
+	return strings.TrimSpace(b.String())
+
 }

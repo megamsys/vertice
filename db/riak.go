@@ -2,9 +2,9 @@ package db
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/hc"
-	"github.com/megamsys/libgo/cmd"
 
 	"github.com/megamsys/megamd/meta"
 )
@@ -39,7 +39,7 @@ func Fetch(bkt string, key string, data interface{}) error {
 		return err
 	}
 	defer s.Close()
-	log.Debugf("%s (%s, %s)",cmd.Colorfy("  > [riak] fetch","blue","","bold"), bkt, key)
+	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] fetch", "blue", "", "bold"), bkt, key)
 
 	if err = s.FetchStruct(key, data); err != nil {
 		return err
@@ -53,7 +53,7 @@ func Store(bkt string, key string, data interface{}) error {
 		return err
 	}
 	defer s.Close()
-	log.Debugf("%s (%s, %s)",cmd.Colorfy("  > [riak] store","blue","","bold"), bkt, key)
+	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] store", "blue", "", "bold"), bkt, key)
 
 	if err = s.StoreStruct(key, data); err != nil {
 		return err

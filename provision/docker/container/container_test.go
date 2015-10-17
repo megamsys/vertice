@@ -395,10 +395,10 @@ func (s *S) TestContainerShell(c *check.C) {
 	urls.Lock()
 	resizeURL := urls.items[len(urls.items)-2]
 	urls.Unlock()
-	*/
+*/
 
-	//execResizeRegexp := regexp.MustCompile(`^.*/exec/(.*)/resize$`)
-	/*matches := execResizeRegexp.FindStringSubmatch(resizeURL.Path)
+//execResizeRegexp := regexp.MustCompile(`^.*/exec/(.*)/resize$`)
+/*matches := execResizeRegexp.FindStringSubmatch(resizeURL.Path)
 	c.Assert(matches, check.HasLen, 2)
 	c.Assert(resizeURL.Query().Get("w"), check.Equals, "140")
 	c.Assert(resizeURL.Query().Get("h"), check.Equals, "38")
@@ -418,8 +418,8 @@ func (s *S) TestContainerExec(c *check.C) {
 }
 
 func (s *S) TestContainerExecErrorCode(c *check.C) {
-	*/
-	//s.server.CustomHandler("/exec/.*/json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+*/
+//s.server.CustomHandler("/exec/.*/json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 /*		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"ID":"id","ExitCode":9}`))
 	}))

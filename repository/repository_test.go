@@ -3,6 +3,7 @@ package repository
 import (
 //	"gopkg.in/check.v1"
 )
+
 /*
 func (s *S) TestRegister(c *check.C) {
 	mngr := nopManager{}

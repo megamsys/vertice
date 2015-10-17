@@ -5,9 +5,18 @@ import (
 	"net"
 	"net/url"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/safe"
-	log "github.com/Sirupsen/logrus"
+)
+
+const (
+	DOCKER_REGISTRY  = "registry"
+	DOCKER_SWARM     = "swarm"
+	DOCKER_MEMSIZE   = "mem"
+	DOCKER_SWAPSIZE  = "swap"
+	DOCKER_CPUPERIOD = "cpuperiod"
+	DOCKER_CPUQUOTA  = "cpuquota"
 )
 
 func urlToHost(urlStr string) string {

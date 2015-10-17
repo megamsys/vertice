@@ -27,6 +27,7 @@ import (
 	"time"*/
 
 )
+
 /*
 func (s *S) TestShouldBeRegistered(c *check.C) {
 	p, err := provision.Get("one")

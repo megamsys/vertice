@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
@@ -101,14 +102,14 @@ func (s *Service) setProvisioner() error {
 	if carton.Provisioner, err = provision.Get(s.Meta.Provider); err != nil {
 		return err
 	}
+	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", s.Meta.Provider))
 
-	log.Debugf("configuring %s provisioner", s.Meta.Provider)
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Deployd.toMap())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
 		} else {
-			log.Debugf("%s initialized", s.Meta.Provider)
+			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", s.Meta.Provider), "blue", "", "bold"))
 		}
 	}
 

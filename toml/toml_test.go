@@ -1,16 +1,15 @@
 package toml_test
 
 import (
-//	"reflect"
+	//	"reflect"
 
 	"github.com/megamsys/megamd/toml"
 	"gopkg.in/check.v1"
-	)
+)
 
+type S struct{}
 
-	type S struct{}
-
-	var _ = check.Suite(&S{})
+var _ = check.Suite(&S{})
 
 // Ensure that megabyte sizes can be parsed.
 func (s *S) TestSize_UnmarshalText_MB(c *check.C) {

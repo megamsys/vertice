@@ -100,7 +100,7 @@ func (s *Server) Open() error {
 				return fmt.Errorf("open service: %s", err)
 			}
 		}
-		log.Debug(pp.Colorfy("up , at your service", "green", "red", "bold"))
+		log.Debug(pp.Colorfy("ō͡≡o˞̶  engine up", "green", "", "bold"))
 		return nil
 
 	}(); err != nil {

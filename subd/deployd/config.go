@@ -3,6 +3,7 @@ package deployd
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
@@ -14,7 +15,7 @@ const (
 	// Default provisioning provider for vms is OpenNebula.
 	// This is just an endpoint for Megam. We could have openstack, chef, salt, puppet etc.
 	DefaultProvider = "one"
-	DefaultImage = "megam"
+	DefaultImage    = "megam"
 	// DefaultOneEndpoint is the default address that the service binds to an IaaS (OpenNebula).
 	DefaultOneEndpoint = "http://localhost:2633/RPC2"
 
@@ -60,16 +61,16 @@ func (c Config) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
-		cmd.Colorfy("Deployd", "green", "", "") + "\n"))
+		cmd.Colorfy("Deployd", "cyan", "", "") + "\n"))
 	b.Write([]byte(provision.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte(api.ENDPOINT + "\t" + c.OneEndPoint + "\n"))
 	b.Write([]byte(api.USERID + "    \t" + c.OneUserid + "\n"))
-	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate+ "\n"))
-	b.Write([]byte(api.IMAGE + "    \t" + c.Image+ "\n"))
+	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate + "\n"))
+	b.Write([]byte(api.IMAGE + "    \t" + c.Image + "\n"))
 	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword))
 	fmt.Fprintln(w)
 	w.Flush()
-	return b.String()
+	return strings.TrimSpace(b.String())
 }
 
 //convert the config to just a map.

@@ -22,7 +22,7 @@ amqp = "amqp://guest:guest@192.168.1.100:5672/"
 	}
 
 	c.Assert(cm.Hostname, check.Equals, "localhost")
-//	c.Assert(cm.Riak, check.Equals, "192.168.1.100:8087")
+	//	c.Assert(cm.Riak, check.Equals, "192.168.1.100:8087")
 	c.Assert(cm.Api, check.Equals, "https://api.megam.io/v2")
 
 }

@@ -9,10 +9,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
-	"github.com/megamsys/megamd/router"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/megamd/router"
 )
 
 type runContainerActionsArgs struct {
@@ -192,7 +192,6 @@ var stopContainer = action.Action{
 		if err := cont.Stop(args.provisioner); err != nil {
 			return nil, err
 		}
-
 
 		cont.Status = provision.StatusStopped
 		return cont, nil

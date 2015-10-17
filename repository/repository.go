@@ -67,7 +67,7 @@ func (r Repo) Gitr() string {
 }
 
 func (r Repo) IsEnabled() bool {
-	return r.Hook!=nil &&	r.Hook.Enabled
+	return r.Hook != nil && r.Hook.Enabled
 }
 
 func (r Repo) GetToken() string {

@@ -4,20 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 	"time"
 
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/provision/docker"
 	"github.com/megamsys/megamd/toml"
 )
 
 const (
-	DOCKER_REGISTRY  = "registry"
-	DOCKER_SWARM     = "swarm"
-	DOCKER_MEMSIZE   = "mem"
-	DOCKER_SWAPSIZE  = "swap"
-	DOCKER_CPUPERIOD = "cpuperiod"
-	DOCKER_CPUQUOTA  = "cpuquota"
 
 	// DefaultRegistry is the default registry for docker (public)
 	DefaultRegistry = "https://hub.docker.com"
@@ -66,27 +62,27 @@ func (c Config) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
-		cmd.Colorfy("docker", "green", "", "") + "\n"))
+		cmd.Colorfy("docker", "cyan", "", "") + "\n"))
 	b.Write([]byte("Enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
-	b.Write([]byte(DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
-	b.Write([]byte(DOCKER_SWARM + "    \t" + c.Swarm + "\n"))
-	b.Write([]byte(DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.MemSize) + "\n"))
-	b.Write([]byte(DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.SwapSize) + "\n"))
-	b.Write([]byte(DOCKER_CPUPERIOD + "    \t" + c.CPUPeriod.String() + "\n"))
-	b.Write([]byte(DOCKER_CPUQUOTA + "    \t" + c.CPUQuota.String() + "\n"))
+	b.Write([]byte(docker.DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
+	b.Write([]byte(docker.DOCKER_SWARM + "    \t" + c.Swarm + "\n"))
+	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.MemSize) + "\n"))
+	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.SwapSize) + "\n"))
+	b.Write([]byte(docker.DOCKER_CPUPERIOD + "    \t" + c.CPUPeriod.String() + "\n"))
+	b.Write([]byte(docker.DOCKER_CPUQUOTA + "    \t" + c.CPUQuota.String() + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
-	return b.String()
+	return strings.TrimSpace(b.String())
 }
 
 //convert the config to just a map.
 func (c Config) toMap() map[string]string {
 	m := make(map[string]string)
-	m[DOCKER_REGISTRY] = c.Registry
-	m[DOCKER_SWARM] = c.Swarm
-	m[DOCKER_MEMSIZE] = strconv.Itoa(c.MemSize)
-	m[DOCKER_SWAPSIZE] = strconv.Itoa(c.SwapSize)
-	m[DOCKER_CPUPERIOD] = c.CPUPeriod.String()
-	m[DOCKER_CPUQUOTA] = c.CPUQuota.String()
+	m[docker.DOCKER_REGISTRY] = c.Registry
+	m[docker.DOCKER_SWARM] = c.Swarm
+	m[docker.DOCKER_MEMSIZE] = strconv.Itoa(c.MemSize)
+	m[docker.DOCKER_SWAPSIZE] = strconv.Itoa(c.SwapSize)
+	m[docker.DOCKER_CPUPERIOD] = c.CPUPeriod.String()
+	m[docker.DOCKER_CPUQUOTA] = c.CPUQuota.String()
 	return m
 }

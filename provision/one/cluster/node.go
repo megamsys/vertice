@@ -2,8 +2,8 @@ package cluster
 
 import (
 	"encoding/json"
-	"time"
 	"strconv"
+	"time"
 )
 
 // Node represents a farm with endpoint of One. Each node has an Address
@@ -144,7 +144,6 @@ func (n *Node) ResetFailures() {
 	delete(n.Metadata, "DisabledUntil")
 	delete(n.Metadata, "LastError")
 }
-
 
 func (n *Node) CleanMetadata() map[string]string {
 	paramsCopy := make(map[string]string)

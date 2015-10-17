@@ -6,7 +6,7 @@ import (
 	//"net/http/httptest"
 
 	"github.com/megamsys/megamd/auth"
-//	"gopkg.in/check.v1"
+	//	"gopkg.in/check.v1"
 )
 
 func authorizedMegamHandler(w http.ResponseWriter, r *http.Request, t auth.Token) error {

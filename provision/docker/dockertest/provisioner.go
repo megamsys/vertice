@@ -11,7 +11,6 @@ import (
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/docker/cluster"
 	"github.com/megamsys/megamd/provision/docker/container"
-
 )
 
 type ContainerMoving struct {

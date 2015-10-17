@@ -1,10 +1,11 @@
 package github
 
 import (
-	//"testing"
+//"testing"
 
-	//"gopkg.in/check.v1"
+//"gopkg.in/check.v1"
 )
+
 /*
 func Test(t *testing.T) {
 	check.TestingT(t)

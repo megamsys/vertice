@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
+	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/megamd/subd/httpd"
 	"gopkg.in/check.v1"
@@ -36,7 +37,7 @@ type S struct {
 	cf  *Config
 }
 
-var meg_home = os.Getenv("MEGAM_HOME")
+var meg_home = os.Getenv(meta.MEGAM_HOME)
 
 var _ = check.Suite(&S{})
 

@@ -64,7 +64,7 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 			if ca, err := mkCarton(a.Id, ay); err != nil {
 				return nil, err
 			} else {
-				ca.toBox() //on success, make a carton2box if BoxLevel is BoxZero
+				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
 				newCs = append(newCs, ca) //on success append carton
 			}
 		}
@@ -72,7 +72,6 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
 }
-
 
 //a hash in json representing {name: "", value: ""}
 type JsonPairs []*JsonPair

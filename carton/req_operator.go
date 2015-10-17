@@ -16,8 +16,8 @@
 package carton
 
 import (
-	"github.com/megamsys/libgo/cmd"
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/cmd"
 )
 
 type ReqOperator struct {
@@ -39,7 +39,7 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 
 	md := *r
 
-	log.Debugf(cmd.Colorfy(md.String(),"cyan","","bold"))
+	log.Debugf(cmd.Colorfy(md.String(), "cyan", "", "bold"))
 
 	return md.Process(c)
 }
@@ -59,7 +59,6 @@ func (p *ReqOperator) Get(cat_id string) (Cartons, error) {
 
 // MegdProcessor represents a single operation in Megamd.
 type MegdProcessor interface {
-
 	Process(c Cartons) error
 	String() string
 	//Required() ExecutionRequirements
