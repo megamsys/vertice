@@ -75,9 +75,10 @@ func (c Config) String() string {
 	b.Write([]byte("API     " + "\t" + c.Api + "\n"))
 	b.Write([]byte("AMQP    " + "\t" + c.AMQP + "\n"))
 	b.Write([]byte("Hostname" + "\t" + c.Hostname + "\n"))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
-	return b.String()
+	return strings.TrimSpace(b.String())
 }
 
 func NewConfig() *Config {

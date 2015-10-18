@@ -27,6 +27,7 @@ func (c Config) String() string {
 	b.Write([]byte("Enabled  " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte("AccessKey" + "\t" + c.AccessKey + "\n"))
 	b.Write([]byte("SecretKey" + "\t" + c.SecretKey + "\n"))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

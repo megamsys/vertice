@@ -25,6 +25,7 @@ func (d DockerBridge) String() string {
 		cmd.Colorfy(d.Name, "blue", "", "") + "\n"))
 	b.Write([]byte("Network" + "\t" + d.Network + "\n"))
 	b.Write([]byte("Gateway" + "\t" + d.Gateway + "\n"))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

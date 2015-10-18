@@ -60,7 +60,7 @@ func (c Config) String() string {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+	b.Write([]byte(cmd.Colorfy("\nConfig:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Deployd", "cyan", "", "") + "\n"))
 	b.Write([]byte(provision.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte(api.ENDPOINT + "\t" + c.OneEndPoint + "\n"))
@@ -68,6 +68,7 @@ func (c Config) String() string {
 	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate + "\n"))
 	b.Write([]byte(api.IMAGE + "    \t" + c.Image + "\n"))
 	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

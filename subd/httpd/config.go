@@ -22,11 +22,12 @@ func (c Config) String() string {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
+	b.Write([]byte(cmd.Colorfy("\nConfig:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("httpd", "cyan", "", "") + "\n"))
 	b.Write([]byte("Enabled    " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte("BindAddress" + "\t" + c.BindAddress + "\n"))
 	b.Write([]byte("UseTls     " + "\t" + strconv.FormatBool(c.UseTls) + "\n"))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
