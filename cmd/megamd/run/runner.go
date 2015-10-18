@@ -108,7 +108,7 @@ func (cmd *Command) funSpin(vers string, logo string) {
 	s := spin.New()
 	for i := 0; i < 10; i++ {
 		fmt.Printf("\r%s", fmt.Sprintf("%s %s", pp.Colorfy("starting", "green", "", "bold"), s.Next()))
-		time.Sleep(155 * time.Millisecond)
+		time.Sleep(3 * time.Millisecond)
 	}
 	fmt.Printf("\n")
 }

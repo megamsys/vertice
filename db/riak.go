@@ -60,3 +60,17 @@ func Store(bkt string, key string, data interface{}) error {
 	}
 	return nil
 }
+
+func Delete(bkt string, key string) error {
+	s, err := newConn(bkt)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] delee", "blue", "", "bold"), bkt, key)
+
+	if err = s.DeleteObject(key); err != nil {
+		return err
+	}
+	return nil
+}

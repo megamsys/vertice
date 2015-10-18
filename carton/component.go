@@ -107,6 +107,8 @@ func (c *Component) SetStatus(status provision.Status) error {
 	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
 	c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
 
+	c.Status = status.String()
+
 	if err := db.Store(BUCKET, c.Id, c); err != nil {
 		return err
 	}

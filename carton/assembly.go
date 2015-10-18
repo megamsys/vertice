@@ -126,6 +126,7 @@ func (a *Assembly) SetStatus(status provision.Status) error {
 
 	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
 	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
+	a.Status = status.String()
 
 	if err := db.Store(BUCKET, a.Id, a); err != nil {
 		return err

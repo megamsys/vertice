@@ -30,9 +30,10 @@ const (
 )
 
 var (
-	ErrInvalidStatus = errors.New("invalid status")
-	ErrEmptyCarton   = errors.New("no boxs for this carton")
-	ErrBoxNotFound   = errors.New("box not found")
+	ErrInvalidStatus  = errors.New("invalid status")
+	ErrEmptyCarton    = errors.New("no boxs for this carton")
+	ErrBoxNotFound    = errors.New("box not found")
+	ErrNotImplemented = errors.New("I'am on diet.")
 )
 
 // Status represents the status of a unit in megamd
@@ -180,6 +181,9 @@ type Provisioner interface {
 	// Stop stops the boxes of the application, with an optional string
 	// parameter represeting the name of the process to stop.
 	Stop(*Box, string, io.Writer) error
+
+	// Open a remote shel in one of the boxs in the carton.
+	Shell(ShellOptions) error
 
 	// Addr returns the address for an box.
 	//

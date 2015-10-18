@@ -70,6 +70,7 @@ func (c Config) String() string {
 	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.SwapSize) + "\n"))
 	b.Write([]byte(docker.DOCKER_CPUPERIOD + "    \t" + c.CPUPeriod.String() + "\n"))
 	b.Write([]byte(docker.DOCKER_CPUQUOTA + "    \t" + c.CPUQuota.String() + "\n"))
+	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

@@ -177,8 +177,8 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInRiak,
-		&destroyOldRoute,
 		&destroyOldMachine,
+		&destroyOldRoute,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -217,15 +217,19 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 }
 
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
-	return nil
+	return provision.ErrNotImplemented
 }
 
 func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-	return nil
+	return provision.ErrNotImplemented
 }
 
 func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-	return nil
+	return provision.ErrNotImplemented
+}
+
+func (p *oneProvisioner) Shell(provision.ShellOptions) error {
+	return provision.ErrNotImplemented
 }
 
 func (*oneProvisioner) Addr(box *provision.Box) (string, error) {

@@ -1,12 +1,14 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/errors"
 	"github.com/megamsys/megamd/api/context"
+	"github.com/megamsys/megamd/carton"
+	"github.com/megamsys/megamd/provision"
 	"golang.org/x/net/websocket"
 )
 
@@ -42,8 +44,8 @@ func remoteShellHandler(ws *websocket.Conn) {
 		}
 		return
 	}
-	appName := r.URL.Query().Get(":appname")
-	_, err = getApp(appName)
+	assembly_id := r.URL.Query().Get(":id") //send the assembly_id
+	box, err := getBox(assembly_id)
 	if err != nil {
 		if herr, ok := err.(*errors.HTTP); ok {
 			httpErr = herr
@@ -55,28 +57,30 @@ func remoteShellHandler(ws *websocket.Conn) {
 		}
 		return
 	}
-	unitID := r.URL.Query().Get("unit")
+	boxId := r.URL.Query().Get("id")
 	width, _ := strconv.Atoi(r.URL.Query().Get("width"))
 	height, _ := strconv.Atoi(r.URL.Query().Get("height"))
 	term := r.URL.Query().Get("term")
-	fmt.Printf("%s %s %s %s %s", user, unitID, width, height, term)
-	/*opts := provision.ShellOptions{
+	log.Debugf("%s %s %s %s %s", user, boxId, width, height, term)
+
+	opts := provision.ShellOptions{
+		Box:    box,
 		Conn:   ws,
 		Width:  width,
 		Height: height,
-		Unit:   unitID,
+		Unit:   boxId,
 		Term:   term,
 	}
-	err = box.Shell(opts)
+	err = carton.Provisioner.Shell(opts) //BUG: we need get the provisioner of the correct provider
 	if err != nil {
 		httpErr = &errors.HTTP{
 			Code:    http.StatusInternalServerError,
 			Message: err.Error(),
 		}
 	}
-	*/
 }
 
-func getApp(a string) (string, error) {
-	return "", nil
+//Return the Box object ?  Get the corton, and make a Box
+func getBox(a string) (*provision.Box, error) {
+	return nil, nil
 }
