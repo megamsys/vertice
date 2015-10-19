@@ -26,6 +26,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	ASMBUCKET = "assembly"
+)
+
 type Policy struct {
 	Name    string   `json:"name"`
 	Type    string   `json:"type"`
@@ -128,18 +132,21 @@ func (a *Assembly) SetStatus(status provision.Status) error {
 	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
 	a.Status = status.String()
 
-	if err := db.Store(BUCKET, a.Id, a); err != nil {
+	if err := db.Store(ASMBUCKET, a.Id, a); err != nil {
 		return err
 	}
 	return nil
+}
 
+func (c *Assembly) Delete(asmid string) {
+	_ = db.Delete(ASMBUCKET, asmid)
 }
 
 //get the assebmly and its children (component). we only store the
 //componentid, hence you see that we have a components map to cater to that need.
 func get(id string) (*Assembly, error) {
 	a := &Assembly{Components: make(map[string]*Component)}
-	if err := db.Fetch("assembly", id, a); err != nil {
+	if err := db.Fetch(ASMBUCKET, id, a); err != nil {
 		return nil, err
 	}
 	a.dig()

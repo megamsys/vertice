@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -26,7 +25,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) 
 		nodlist, err := c.Nodes()
 
 		if err != nil || len(nodlist) <= 0 {
-			return addr, machine, fmt.Errorf("%s\n%s", cmd.Colorfy("Nodes are not available to launch machines.\n%s", "red", "", ""), err)
+			return addr, machine, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 		} else {
 			addr = nodlist[0].Address
 		}
@@ -85,8 +84,10 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	var (
 		addr string
 	)
-	if nodlist, err := c.Nodes(); err != nil {
-		return errors.New("DeleteVM needs a non empty node addr")
+	nodlist, err := c.Nodes()
+
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 	} else {
 		addr = nodlist[0].Address
 	}

@@ -121,8 +121,3 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	*/
 	return nil
 }
-
-func markDeploysAsRemoved(boxName string) error {
-	//Riak: code to nuke deploys out of a box
-	return nil
-}

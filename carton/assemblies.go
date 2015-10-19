@@ -16,10 +16,12 @@
 package carton
 
 import (
+	"reflect"
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 //bunch Assemblys
@@ -71,6 +73,19 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 	}
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
+}
+
+func (a *Assemblies) Delete(asmid string, removedAssemblys []string) {
+	existingAssemblys := make([]string, len(a.AssemblysId))
+
+	for i := 0; i < len(a.AssemblysId); i++ {
+		if len(strings.TrimSpace(a.AssemblysId[i])) > 1 {
+			existingAssemblys[i] = a.AssemblysId[i]
+		}
+	}
+	if reflect.DeepEqual(existingAssemblys, removedAssemblys) {
+		_ = db.Delete("assemblies", asmid)
+	}
 }
 
 //a hash in json representing {name: "", value: ""}

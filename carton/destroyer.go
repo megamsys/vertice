@@ -39,6 +39,28 @@ func saveDestroyedData(opts *DestroyOpts, slog string, duration time.Duration, d
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
 		cmd.Colorfy(duration.String(), "green", "", "bold"),
 		cmd.Colorfy(slog, "yellow", "", ""))
-
+	if destroyError == nil {
+		markDeploysAsRemoved(opts)
+	}
 	return nil
+}
+
+func markDeploysAsRemoved(opts *DestroyOpts) {
+	removedAssemblys := make([]string, 1)
+
+	if asm, err := NewAssembly(opts.B.CartonId); err == nil {
+		removedAssemblys[0] = opts.B.CartonId
+		asm.Delete(opts.B.CartonId)
+	}
+
+	if opts.B.Level == provision.BoxSome {
+		if comp, err := NewComponent(opts.B.Id); err == nil {
+			comp.Delete(opts.B.Id)
+		}
+	}
+
+	if asms, err := Get(opts.B.CartonsId); err == nil {
+		asms.Delete(opts.B.CartonsId, removedAssemblys)
+	}
+
 }
