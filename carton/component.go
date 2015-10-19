@@ -27,7 +27,7 @@ import (
 const (
 	DOMAIN        = "domain"
 	PUBLICIP      = "publicip"
-	BUCKET        = "components"
+	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
 )
 
@@ -72,7 +72,7 @@ func (a *Component) String() string {
 **/
 func NewComponent(id string) (*Component, error) {
 	c := &Component{Id: id}
-	if err := db.Fetch(BUCKET, id, c); err != nil {
+	if err := db.Fetch(COMPBUCKET, id, c); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -109,17 +109,21 @@ func (c *Component) SetStatus(status provision.Status) error {
 
 	c.Status = status.String()
 
-	if err := db.Store(BUCKET, c.Id, c); err != nil {
+	if err := db.Store(COMPBUCKET, c.Id, c); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c *Component) Delete(compid string) {
+	_ = db.Delete(COMPBUCKET, compid)
 }
 
 func (c *Component) setDeployData(dd DeployData) error {
 	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", ""))
 	c.Inputs = append(c.Inputs, NewJsonPair("status", ""))
 
-	if err := db.Store(BUCKET, c.Id, c); err != nil {
+	if err := db.Store(COMPBUCKET, c.Id, c); err != nil {
 		return err
 	}
 	return nil
