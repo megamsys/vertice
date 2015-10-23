@@ -2,9 +2,9 @@ package api
 
 import (
 	"net/http"
-
 	"github.com/codegangsta/negroni"
-	"golang.org/x/net/websocket"
+	//	"golang.org/x/net/websocket"
+	"github.com/rs/cors"
 )
 
 type MegdHandler struct {
@@ -24,20 +24,27 @@ func RegisterHandler(path string, method string, h http.Handler) {
 	megdHandlerList = append(megdHandlerList, th)
 }
 
+
 // RunServer starts megamd httpd server.
 func NewNegHandler() *negroni.Negroni {
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},
+	})
+
 	m := &delayedRouter{}
 	for _, handler := range megdHandlerList {
 		m.Add(handler.method, handler.path, handler.h)
 	}
 
 	m.Add("Get", "/", Handler(index))
-	m.Add("Get", "/boxs/{boxname}/logs", websocket.Handler(logs))
+	m.Add("Get", "/logs", Handler(logs))
 	//we can use this as a single click Terminal launch for docker.
 	//m.Add("Get", "/apps/{appname}/shell", websocket.Handler(remoteShellHandler))
 
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
+	n.Use(c)
 	n.Use(newLoggerMiddleware())
 	n.UseHandler(m)
 	n.Use(negroni.HandlerFunc(contextClearerMiddleware))
