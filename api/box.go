@@ -1,63 +1,49 @@
 package api
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
-
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/api/context"
+	"github.com/gorilla/websocket"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
-	"golang.org/x/net/websocket"
+	"net/http"
 )
 
-func logs(ws *websocket.Conn) {
-	var err error
-	defer func() {
-		data := map[string]interface{}{}
-		if err != nil {
-			data["error"] = err.Error()
-			log.Error(err.Error())
-		} else {
-			data["error"] = nil
-		}
-		msg, _ := json.Marshal(data)
-		ws.Write(msg)
-		ws.Close()
-	}()
-	req := ws.Request()
-	_ = context.GetAuthToken(req)
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
 
-	scanner := bufio.NewScanner(ws)
-	for scanner.Scan() {
-		var entry provision.Boxlog
-		data := bytes.TrimSpace(scanner.Bytes())
-		if len(data) == 0 {
-			continue
-		}
-		_ = json.Unmarshal(data, &entry)
-	}
-
-	err = scanner.Err()
+func logs(w http.ResponseWriter, r *http.Request) error {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		err = fmt.Errorf("wslogs: waiting for log data: %s", err)
-		return
+		log.Errorf("Error in socket connection")
+		return err
+	}
+	messageType, p, err := conn.ReadMessage()
+	var entry provision.Box
+
+	_ = json.Unmarshal(p, &entry)
+	if err != nil {
+		return err
 	}
 
-	l, _ := provision.NewLogListener(&provision.Box{})
-	if err != nil {
-		//log the errror.
-		return
-	}
-	LogTracker.add(l)
-	defer func() {
-		LogTracker.remove(l)
-		l.Close()
+	l, _ := provision.NewLogListener(&entry)
+
+	go func() {
+		if _, _, err := conn.NextReader(); err != nil {
+			conn.Close()
+			l.Close()
+			log.Debugf(cmd.Colorfy("  > [amqp] unsub   ", "blue", "", "bold") + fmt.Sprintf("Unsubscribing from the Queue"))
+		}
 	}()
+
 	for log := range l.B {
-		//wait on the channel, and push it to the ws.
-		fmt.Printf("%v", log)
+		logData, _ := json.Marshal(log)
+		go conn.WriteMessage(messageType, logData)
 	}
 
+	return nil
 }

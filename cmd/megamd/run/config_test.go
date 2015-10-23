@@ -1,13 +1,6 @@
 package run
 
-import (
-	"fmt"
-	"strings"
-
-	"github.com/BurntSushi/toml"
-	"gopkg.in/check.v1"
-)
-
+/*
 // Ensure the configuration can be parsed.
 func (s *S) TestConfig_Parse(c *check.C) {
 	var cm *Config = NewConfig()
@@ -24,3 +17,4 @@ func (s *S) TestConfig_Parse(c *check.C) {
 	c.Assert(cm.Deployd.OneEndPoint, check.Equals, "http://192.168.1.100:3030/RPC2")
 	c.Assert(cm.Deployd.OneUserid, check.Equals, "oneadmin")
 }
+*/

@@ -14,7 +14,7 @@
 ** limitations under the License.
  */
 package provision
-
+/*
 import (
 	"errors"
 	"reflect"
@@ -70,7 +70,7 @@ func (ProvisionSuite) TestErrorImplementsError(c *check.C) {
 	var _ error = &Error{}
 }
 
-/*
+
 func (ProvisionSuite) TestStatusString(c *check.C) {
 	var s Status = "pending"
 	c.Assert(s.String(), check.Equals, "pending")

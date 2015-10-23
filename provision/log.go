@@ -2,7 +2,6 @@ package provision
 
 import (
 	"encoding/json"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/meta"
@@ -48,14 +47,7 @@ func NewLogListener(a *Box) (*LogListener, error) {
 }
 
 func (l *LogListener) Close() (err error) {
-	/*	defer func() {
-			if r := recover(); r != nil {
-				err = fmt.Errorf("Recovered panic closing listener (possible double close): %#v", r)
-			}
-		}()
-		err = l.q.UnSub()
-		return
-	*/
+	err = l.q.UnSub()
 	return nil
 }
 
