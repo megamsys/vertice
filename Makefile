@@ -83,7 +83,7 @@ _megamd:
 
 
 _megamdr:
-	./megamd start
+	sudo ./megamd start --config conf/megamd.conf
 	rm -f megamd
 
 _sh_tests:
