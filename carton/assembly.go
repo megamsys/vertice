@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
@@ -37,22 +38,22 @@ type Policy struct {
 }
 
 //An assembly comprises of various components.
-type ambly struct {
-	Id        string    `json:"id"`
-	Name      string    `json:"name"`
-	JsonClaz  string    `json:"json_claz"`
-	Tosca     string    `json:"tosca_type"`
-	Inputs    JsonPairs `json:"inputs"`
-	Outputs   JsonPairs `json:"outputs"`
-	Policies  []*Policy `json:"policies"`
-	Status    string    `json:"status"`
-	CreatedAt string    `json:"created_at"`
+type Ambly struct {
+	Id           string    `json:"id"`
+	Name         string    `json:"name"`
+	JsonClaz     string    `json:"json_claz"`
+	Tosca        string    `json:"tosca_type"`
+	Inputs       JsonPairs `json:"inputs"`
+	Outputs      JsonPairs `json:"outputs"`
+	Policies     []*Policy `json:"policies"`
+	Status       string    `json:"status"`
+	CreatedAt    string    `json:"created_at"`
+	ComponentIds []string  `json:"components"`
 }
 
 type Assembly struct {
-	ambly
-	ComponentIds []string `json:"components"`
-	Components   map[string]*Component
+	Ambly
+	Components map[string]*Component
 }
 
 func (a *Assembly) String() string {
@@ -118,6 +119,14 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	return newBoxs, nil
 }
 
+func fetch(id string) (*Ambly, error) {
+	a := &Ambly{}
+	if err := db.Fetch(ASMBUCKET, id, a); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
 //Temporary hack to create an assembly from its id.
 //This is used by SetStatus.
 //We need add a Notifier interface duck typed by Box and Carton ?
@@ -125,7 +134,11 @@ func NewAssembly(id string) (*Assembly, error) {
 	return get(id)
 }
 
-func (a *Assembly) SetStatus(status provision.Status) error {
+func NewAmbly(id string) (*Ambly, error) {
+	return fetch(id)
+}
+
+func (a *Ambly) SetStatus(status provision.Status) error {
 	LastStatusUpdate := time.Now().In(time.UTC)
 
 	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
@@ -133,6 +146,7 @@ func (a *Assembly) SetStatus(status provision.Status) error {
 	a.Status = status.String()
 
 	if err := db.Store(ASMBUCKET, a.Id, a); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil

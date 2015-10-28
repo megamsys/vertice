@@ -76,9 +76,10 @@ func (m *Machine) Remove(p OneProvisioner) error {
 func (m *Machine) SetStatus(status provision.Status) error {
 	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
-	if asm, err := carton.NewAssembly(m.CartonId); err != nil {
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
+
 		return err
 	}
 

@@ -248,7 +248,7 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 func (c *Container) SetStatus(status provision.Status) error {
 	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
 
-	if asm, err := carton.NewAssembly(c.CartonId); err != nil {
+	if asm, err := carton.NewAmbly(c.CartonId); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
 		return err

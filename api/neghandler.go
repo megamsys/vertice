@@ -1,8 +1,8 @@
 package api
 
 import (
-	"net/http"
 	"github.com/codegangsta/negroni"
+	"net/http"
 	//	"golang.org/x/net/websocket"
 	"github.com/rs/cors"
 )
@@ -23,7 +23,6 @@ func RegisterHandler(path string, method string, h http.Handler) {
 	th.h = h
 	megdHandlerList = append(megdHandlerList, th)
 }
-
 
 // RunServer starts megamd httpd server.
 func NewNegHandler() *negroni.Negroni {

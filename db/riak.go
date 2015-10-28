@@ -25,7 +25,6 @@ func healthCheck() error {
 //A global function which helps to avoid passing config of riak everywhere.
 func newConn(bkt string) (*db.Storage, error) {
 	r, err := db.NewRiakDB(meta.MC.Riak, bkt)
-
 	if err != nil {
 		return nil, err
 	}
@@ -49,6 +48,7 @@ func Fetch(bkt string, key string, data interface{}) error {
 
 func Store(bkt string, key string, data interface{}) error {
 	s, err := newConn(bkt)
+
 	if err != nil {
 		return err
 	}

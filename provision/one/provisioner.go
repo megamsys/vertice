@@ -115,6 +115,7 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 	if err != nil {
 		return "", err
 	}
+
 	return p.deployPipeline(box, imageId, w)
 }
 
