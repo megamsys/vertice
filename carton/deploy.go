@@ -81,7 +81,6 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 func image(b *provision.Box) string {
 	if b.Tosca[strings.LastIndex(b.Tosca, ".")+1:] == DOCKER_TYPE {
 		return b.Repo.URL
-
 	} else {
 	if b.Repo == nil {
 		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]

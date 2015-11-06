@@ -163,6 +163,8 @@ func (c *Cluster) removeFromStorage(opts docker.RemoveContainerOptions) error {
 }
 
 func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error {
+	fmt.Println("booyah-----startingsssss conttt---111")
+
 	node, err := c.getNodeForContainer(id)
 	if err != nil {
 		return err
@@ -173,6 +175,7 @@ func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error
 // StopContainer stops a container, killing it after the given timeout, if it
 // fails to stop nicely.
 func (c *Cluster) StopContainer(id string, timeout uint) error {
+	fmt.Println("booyah-----stopping conttt---111")
 	node, err := c.getNodeForContainer(id)
 	if err != nil {
 		return err

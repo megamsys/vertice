@@ -47,6 +47,8 @@ type callbackFunc func(*container.Container, chan *container.Container) error
 type rollbackFunc func(*container.Container)
 
 func runInContainers(containers []container.Container, callback callbackFunc, rollback rollbackFunc, parallel bool) error {
+
+	fmt.Println("booyah---------inside ryn in containers--------------------")
 	if len(containers) == 0 {
 		return nil
 	}
@@ -96,6 +98,8 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 		}
 		return err
 	}
+	fmt.Println("booyah---------inside ryn in containers----------eeennndddd----------")
+
 	return nil
 }
 

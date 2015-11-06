@@ -45,7 +45,6 @@ var updateStatusInRiak = action.Action{
 		log.Debugf("  update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
 
 		var mach machine.Machine
-		fmt.Println(mach)
 		if ctx.Previous != nil {
 			mach = ctx.Previous.(machine.Machine)
 		} else {

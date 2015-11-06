@@ -84,7 +84,7 @@ func (c *Container) Create(args *CreateArgs) error {
 	}
 
 	//c.addEnvsToConfig(args, &config)
-	opts := docker.CreateContainerOptions{Name: c.Name, Config: &config}
+	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts)
 	if err != nil {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
@@ -131,14 +131,16 @@ func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 
 func (c *Container) Remove(p DockerProvisioner) error {
 	log.Debugf("Removing container %s from docker", c.Id)
+	fmt.Println("booyah-----------------------------------")
 	err := c.Stop(p)
 	if err != nil {
 		log.Errorf("error on stop unit %s - %s", c.Id, err)
 	}
-	err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
-	if err != nil {
-		log.Errorf("Failed to remove container from docker: %s", err)
-	}
+	fmt.Println("STOPPED")
+	//err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
+	//if err != nil {
+	//	log.Errorf("Failed to remove container from docker: %s", err)
+	//}
 	return nil
 }
 

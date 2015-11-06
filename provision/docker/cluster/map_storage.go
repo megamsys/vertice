@@ -4,6 +4,7 @@ import (
 	"errors"
 	"sync"
 	"time"
+	"fmt"
 )
 
 var (
@@ -34,6 +35,8 @@ func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 }
 
 func (s *MapStorage) RetrieveContainer(containerID string) (string, error) {
+	fmt.Println("booyah------------storage---->>>>")
+	fmt.Println(containerID)
 	s.cMut.Lock()
 	defer s.cMut.Unlock()
 	host, ok := s.cMap[containerID]
