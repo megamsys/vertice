@@ -21,12 +21,13 @@ import (
 	"io"
 	"strings"
 	"time"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
 )
+
+const DOCKER_TYPE = "dockercontainer"
 
 type DeployData struct {
 	BoxName     string
@@ -78,6 +79,10 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 // for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
 // for docker return the Inputs[image]
 func image(b *provision.Box) string {
+	if b.Tosca[strings.LastIndex(b.Tosca, ".")+1:] == DOCKER_TYPE {
+		return b.Repo.URL
+
+	} else {
 	if b.Repo == nil {
 		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
 		if len(strings.TrimSpace(b.ImageVersion)) > 1 {
@@ -85,6 +90,7 @@ func image(b *provision.Box) string {
 		}
 		return img
 	}
+}
 	return ""
 }
 

@@ -83,21 +83,11 @@ func (c *Container) Create(args *CreateArgs) error {
 		CPUShares:    args.Box.GetCpushare(),
 	}
 
-	c.addEnvsToConfig(args, &config)
-
+	//c.addEnvsToConfig(args, &config)
 	opts := docker.CreateContainerOptions{Name: c.Name, Config: &config}
-	var nodeList []string
-	if len(args.DestinationHosts) > 0 {
-		var nodeName string
-		nodeName, err := c.hostToNodeAddress(args.Provisioner, args.DestinationHosts[0])
-		if err != nil {
-			return err
-		}
-		nodeList = []string{nodeName}
-	}
-	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts, nodeList...)
+	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts)
 	if err != nil {
-		log.Errorf("error on creating container in docker %s - %s", c.BoxName, err)
+		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
 	}
 	c.Id = cont.ID
@@ -136,6 +126,7 @@ func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 			cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
 		}
 	}*/
+
 }
 
 func (c *Container) Remove(p DockerProvisioner) error {
@@ -193,11 +184,11 @@ func (c *Container) Stop(p DockerProvisioner) error {
 }
 
 func (c *Container) Logs(p DockerProvisioner, w io.Writer) (int, error) {
-	container, err := p.Cluster().InspectContainer(c.Id)
+/*	container, err := p.Cluster().InspectContainer(c.Id)
 	if err != nil {
 		return 0, err
 	}
-	opts := docker.AttachToContainerOptions{
+	opts := docker.AttachToContainerOptions {
 		Container:    c.Id,
 		Logs:         true,
 		Stdout:       true,
@@ -207,7 +198,10 @@ func (c *Container) Logs(p DockerProvisioner, w io.Writer) (int, error) {
 		RawTerminal:  container.Config.Tty,
 		Stream:       true,
 	}
-	return SafeAttachWaitContainer(p, opts)
+	return SafeAttachWaitContainer(p, opts) */
+
+return 0, nil
+
 }
 
 type waitResult struct {
@@ -277,6 +271,7 @@ func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	if err != nil {
 		return netInfo, err
 	}
+
 	_, err = p.Cluster().InspectContainer(c.Id)
 	if err != nil {
 		return netInfo, err

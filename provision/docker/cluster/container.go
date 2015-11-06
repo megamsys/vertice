@@ -20,13 +20,13 @@ type Container struct {
 // specified, it will create the container in a node selected by the scheduler.
 //
 // It returns the container, or an error, in case of failures.
-func (c *Cluster) CreateContainer(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
-	return c.CreateContainerSchedulerOpts(opts, nodes...)
+func (c *Cluster) CreateContainer(opts docker.CreateContainerOptions) (string, *docker.Container, error) {
+	return c.CreateContainerSchedulerOpts(opts)
 }
 
 // Similar to CreateContainer but allows arbritary options to be passed to
 // the scheduler.
-func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
+func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions) (string, *docker.Container, error) {
 	var (
 		addr      string
 		container *docker.Container
@@ -35,7 +35,8 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
-		addr = nodes[0]
+		nodes, err := c.Nodes()
+		addr = nodes[0].Address
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
@@ -81,6 +82,7 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	if err != nil {
 		return nil, err
 	}
+
 	cont, err := node.CreateContainer(opts)
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
