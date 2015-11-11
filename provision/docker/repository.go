@@ -19,7 +19,7 @@ func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Co
 }
 
 func (p *dockerProvisioner) listContainersByBox(box *provision.Box) ([]container.Container, error) {
-	list := make([]container.Container, 5)
+	list := make([]container.Container, 1)
 	//
 	//do a query on the name to riak, and call GetContainerByBox(box)
 	//

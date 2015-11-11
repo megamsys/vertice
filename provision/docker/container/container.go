@@ -90,6 +90,7 @@ func (c *Container) Create(args *CreateArgs) error {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
 	}
+
 	c.Id = cont.ID
 	c.HostAddr = urlToHost(addr)
 	return nil
@@ -130,17 +131,19 @@ func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 }
 
 func (c *Container) Remove(p DockerProvisioner) error {
-	log.Debugf("Removing container %s from docker", c.Id)
-	fmt.Println("booyah-----------------------------------")
+	log.Debugf("Removing container %s from docker", c.BoxName)
+
+  //this will be removed. containerID will be stored upon create in riak
+	id, _ := p.Cluster().PreStopAction(c.BoxName)
+	c.Id = id
 	err := c.Stop(p)
 	if err != nil {
 		log.Errorf("error on stop unit %s - %s", c.Id, err)
 	}
-	fmt.Println("STOPPED")
-	//err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
-	//if err != nil {
-	//	log.Errorf("Failed to remove container from docker: %s", err)
-	//}
+	err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
+	if err != nil {
+		log.Errorf("Failed to remove container from docker: %s", err)
+	}
 	return nil
 }
 

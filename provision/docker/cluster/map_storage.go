@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 	"time"
-	"fmt"
 )
 
 var (
@@ -24,6 +23,27 @@ type MapStorage struct {
 	nMut    sync.Mutex
 }
 
+func (s *MapStorage) StoreContainerByName(containerID, Name string) error {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	if s.cMap == nil {
+		s.cMap = make(map[string]string)
+	}
+	s.cMap[Name] = containerID
+	return nil
+}
+
+func (s *MapStorage) RetrieveContainerByName(Name string) (string, error) {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	container, ok := s.cMap[Name]
+	if !ok {
+		return "", ErrNoSuchContainer
+	}
+	return container, nil
+}
+
+
 func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 	s.cMut.Lock()
 	defer s.cMut.Unlock()
@@ -35,8 +55,6 @@ func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 }
 
 func (s *MapStorage) RetrieveContainer(containerID string) (string, error) {
-	fmt.Println("booyah------------storage---->>>>")
-	fmt.Println(containerID)
 	s.cMut.Lock()
 	defer s.cMut.Unlock()
 	host, ok := s.cMap[containerID]

@@ -48,7 +48,6 @@ type rollbackFunc func(*container.Container)
 
 func runInContainers(containers []container.Container, callback callbackFunc, rollback rollbackFunc, parallel bool) error {
 
-	fmt.Println("booyah---------inside ryn in containers--------------------")
 	if len(containers) == 0 {
 		return nil
 	}
@@ -98,7 +97,6 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 		}
 		return err
 	}
-	fmt.Println("booyah---------inside ryn in containers----------eeennndddd----------")
 
 	return nil
 }
@@ -222,7 +220,9 @@ var destroyOldContainers = action.Action{
 			plural = "s"
 		}
 		fmt.Fprintf(writer, "\n---- Destroying %d old containers%s ----\n", total, plural)
+		fmt.Println(args.toRemove)
 		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
+
 			err := c.Remove(args.provisioner)
 			if err != nil {
 				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)

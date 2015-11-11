@@ -65,6 +65,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
 	err = c.storage().StoreContainer(container.ID, addr)
+	err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }
 
@@ -163,7 +164,6 @@ func (c *Cluster) removeFromStorage(opts docker.RemoveContainerOptions) error {
 }
 
 func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error {
-	fmt.Println("booyah-----startingsssss conttt---111")
 
 	node, err := c.getNodeForContainer(id)
 	if err != nil {
@@ -172,11 +172,20 @@ func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error
 	return wrapError(node, node.StartContainer(id, hostConfig))
 }
 
+func (c *Cluster) PreStopAction(name string) (string, error) {
+	id, err := c.storage().RetrieveContainerByName(name)
+	if err != nil {
+		return "", err
+	}
+	return id, err
+}
+
+
 // StopContainer stops a container, killing it after the given timeout, if it
 // fails to stop nicely.
 func (c *Cluster) StopContainer(id string, timeout uint) error {
-	fmt.Println("booyah-----stopping conttt---111")
 	node, err := c.getNodeForContainer(id)
+	fmt.Println(node)
 	if err != nil {
 		return err
 	}

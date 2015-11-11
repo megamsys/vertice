@@ -39,6 +39,9 @@ type ContainerStorage interface {
 	RetrieveContainer(container string) (host string, err error)
 	RemoveContainer(container string) error
 	RetrieveContainers() ([]Container, error)
+
+	StoreContainerByName(container, host string) error
+	RetrieveContainerByName(name string) (container string, err error)
 }
 
 // ImageStorage works like ContainerStorage, but stores information about

@@ -155,13 +155,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 
 func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, "\n--- destroying box (%s) ----\n", box.GetFullName())
-	fmt.Println(box)
-	fmt.Println("09-0-0-0-0-0-0-0-booyah0-0-0-0-0-0-0-0-0-0-0-0")
 	containers, err := p.listContainersByBox(box)
-	fmt.Println(err)
-	fmt.Println("Listing containers by box---")
-	fmt.Println(containers)
-	fmt.Println("=-=-=-=-=-=-=-=-=-=-=-=-=-=-==")
 	if err != nil {
 		fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
 		return err
