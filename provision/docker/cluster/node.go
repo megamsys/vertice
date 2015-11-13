@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
-
 	"github.com/fsouza/go-dockerclient"
 )
 

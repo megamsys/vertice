@@ -13,10 +13,15 @@ import (
 const (
 	DOCKER_REGISTRY  = "registry"
 	DOCKER_SWARM     = "swarm"
+	DOCKER_GULP      = "gulp_port"
 	DOCKER_MEMSIZE   = "mem"
 	DOCKER_SWAPSIZE  = "swap"
 	DOCKER_CPUPERIOD = "cpuperiod"
 	DOCKER_CPUQUOTA  = "cpuquota"
+
+	BRIDGE_NAME = "name"
+	BRIDGE_NETWORK = "network"
+	BRIDGE_GATEWAY = "gateway"
 )
 
 func urlToHost(urlStr string) string {

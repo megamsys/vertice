@@ -1,5 +1,5 @@
 package dockertest
-
+/*
 import (
 	"net"
 	"net/url"
@@ -221,3 +221,4 @@ func urlToHost(urlStr string) string {
 	}
 	return host
 }
+*/

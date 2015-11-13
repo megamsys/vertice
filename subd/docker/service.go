@@ -22,14 +22,16 @@ type Service struct {
 
 	Meta    *meta.Config
 	Dockerd *Config
+	Bridges *Bridges
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, d *Config) *Service {
+func NewService(c *meta.Config, d *Config, b *Bridges) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Dockerd: d,
+		Bridges: b,
 	}
 	s.Handler = NewHandler(s.Dockerd)
 	return s
@@ -99,7 +101,7 @@ func (s *Service) setProvisioner() error {
 	}
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", DOCKER))
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Dockerd.toMap())
+		err = initializableProvisioner.Initialize(s.Dockerd.toMap(), s.Bridges.ConvertToMap())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
 		} else {

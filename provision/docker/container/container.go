@@ -6,12 +6,14 @@ import (
 	"net"
 	"net/url"
 	"time"
-
+//	"encoding/json"
+	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/docker/cluster"
+
 )
 
 const (
@@ -188,26 +190,6 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner, w io.Writer) (int, error) {
-/*	container, err := p.Cluster().InspectContainer(c.Id)
-	if err != nil {
-		return 0, err
-	}
-	opts := docker.AttachToContainerOptions {
-		Container:    c.Id,
-		Logs:         true,
-		Stdout:       true,
-		Stderr:       true,
-		OutputStream: w,
-		ErrorStream:  w,
-		RawTerminal:  container.Config.Tty,
-		Stream:       true,
-	}
-	return SafeAttachWaitContainer(p, opts) */
-
-return 0, nil
-
-}
 
 type waitResult struct {
 	status int
@@ -272,26 +254,25 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-	_, err := getPort()
-	if err != nil {
-		return netInfo, err
-	}
 
-	_, err = p.Cluster().InspectContainer(c.Id)
+  ip, gateway, err := p.Cluster().GetIP() //gets the IP
 	if err != nil {
 		return netInfo, err
 	}
-	/*	if dockerContainer.NetworkSettings != nil {
-		netInfo.IP = dockerContainer.NetworkSettings.IPAddress
-		httpPort := docker.Port(port + "/tcp")
-		for _, port := range dockerContainer.NetworkSettings.Ports[httpPort] {
-			if port.HostPort != "" && port.HostIP != "" {
-				netInfo.HTTPHostPort = port.HostPort
-				break
-			}
-		}
-	}*/
+	netInfo.IP = string(ip)
+		err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway)
 	return netInfo, err
+}
+
+
+func (c *Container) Logs(p DockerProvisioner) (int, error) {
+
+err := p.Cluster().SetLogs(c.Id, c.BoxName)
+if err != nil {
+	return 1, err
+}
+return 0, nil
+
 }
 
 type Pty struct {

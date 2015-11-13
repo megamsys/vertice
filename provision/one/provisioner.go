@@ -61,7 +61,7 @@ func (p *oneProvisioner) String() string {
 	return "ready"
 }
 
-func (p *oneProvisioner) Initialize(m map[string]string) error {
+func (p *oneProvisioner) Initialize(m map[string]string, b map[string]string) error {
 	return p.initOneCluster(m)
 }
 

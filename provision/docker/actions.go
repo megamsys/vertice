@@ -220,7 +220,6 @@ var destroyOldContainers = action.Action{
 			plural = "s"
 		}
 		fmt.Fprintf(writer, "\n---- Destroying %d old containers%s ----\n", total, plural)
-		fmt.Println(args.toRemove)
 		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
 
 			err := c.Remove(args.provisioner)
@@ -260,7 +259,7 @@ var followLogsAndCommit = action.Action{
 			return nil, errors.New("Previous result must be a container.")
 		}
 		args := ctx.Params[0].(runContainerActionsArgs)
-		status, err := c.Logs(args.provisioner, args.writer)
+		status, err := c.Logs(args.provisioner)
 		if err != nil {
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err

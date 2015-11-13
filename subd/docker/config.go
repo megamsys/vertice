@@ -41,6 +41,7 @@ type Config struct {
 	Swarm     string        `toml:"swarm"`
 	MemSize   int           `toml:"mem_size"`
 	SwapSize  int           `toml:"swap_size"`
+	GulpPort  string        `toml:"gulp_port"`
 	CPUPeriod toml.Duration `toml:"cpu_period"`
 	CPUQuota  toml.Duration `toml:"cpu_quota"`
 }
@@ -81,6 +82,7 @@ func (c Config) toMap() map[string]string {
 	m := make(map[string]string)
 	m[docker.DOCKER_REGISTRY] = c.Registry
 	m[docker.DOCKER_SWARM] = c.Swarm
+	m[docker.DOCKER_GULP] = c.GulpPort
 	m[docker.DOCKER_MEMSIZE] = strconv.Itoa(c.MemSize)
 	m[docker.DOCKER_SWAPSIZE] = strconv.Itoa(c.SwapSize)
 	m[docker.DOCKER_CPUPERIOD] = c.CPUPeriod.String()
