@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/url"
 	"sync"
@@ -95,7 +96,7 @@ func (c *Cluster) GetIP() (net.IP, string, error) {
 
 	for _, b := range c.bridges {
 		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
-		ind = 0
+		ind = uint(rand.Intn(1000))
 		_, subnet, _ := net.ParseCIDR(b.Network)
 		ip = b.IPRequest(subnet, ind)
 		gateway = b.Gateway
@@ -312,7 +313,6 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 
 func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string) error {
 
-
 	container := c.getContainerObject(containerId)
 	client := DockerClient{Bridge: gateway, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
 
@@ -325,11 +325,10 @@ func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string
 
 func (c *Cluster) SetLogs(containerId string, containerName string) error {
 	container := c.getContainerObject(containerId)
-  client := DockerClient{ContainerID: containerId, ContainerName: containerName}
+	client := DockerClient{ContainerID: containerId, ContainerName: containerName}
 	client.LogsRequest(container.Node.IP, c.gulp.Port)
 	return nil
 }
-
 
 func (c *Cluster) getContainerObject(containerId string) *docker.Container {
 	inspect, _ := c.InspectContainer(containerId) //gets the swarmNode

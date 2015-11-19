@@ -1,30 +1,21 @@
 package cluster
 
-
 import (
-//	"encoding/json"
-	//"strconv"
-	//"time"
-  "math"
-//  "fmt"
-"net"
-//	"github.com/fsouza/go-dockerclient"
+	"math"
+	"net"
 )
-type Bridges []Bridge
-//type Bridge interface {
 
-//}
+type Bridges []Bridge
+
 type Bridge struct {
-  Name string
-  Network string
-  Gateway string
+	Name    string
+	Network string
+	Gateway string
 }
 
+func (b *Bridge) IPRequest(subnet *net.IPNet, pos uint) net.IP {
 
-func (b *Bridge)IPRequest(subnet *net.IPNet, pos uint) net.IP {
-
-
-  retAddr := make([]byte, len(subnet.IP))
+	retAddr := make([]byte, len(subnet.IP))
 	copy(retAddr, subnet.IP)
 
 	mask, _ := subnet.Mask.Size()
