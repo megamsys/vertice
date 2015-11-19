@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/megamsys/megamdb",
+	"ImportPath": "github.com/megamsys/megamd",
 	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.7-35-gfe6f2b0",
-			"Rev": "fe6f2b03125e4fcafb21406381010e363a072c80"
+			"Comment": "v0.8.7-47-ga22723f",
+			"Rev": "a22723f16efea2e89b7bd67d10ed077c47c14eb4"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -22,15 +22,15 @@
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
-			"Rev": "ef410296f87750305e1e1acf9ad2ba3833dcb004"
+			"Rev": "c3e8735e510cf8bc6d439300ff2fc247b1f2867c"
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "d3d78384b82d449651d2435ed329d70f7c48aa56"
+			"Rev": "57346232f21afd1b0138cc10fbdd43c4d17e6c16"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "81d0490d8aa8400f6760a077f4a2039eb0296e86"
+			"Rev": "6eb49d4ba5175412dcbb29b0031ebf02ab85a48d"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -42,7 +42,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "48e889f422c9702f924e53b095546239a1253159"
+			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
@@ -58,95 +58,39 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "3a2b18797f5e5b639ba863d3ab9c8b8f73b8063e"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/api",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/auth",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/carton",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/cmd/megamd/run",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/db",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/meta",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/provision",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/repository",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/router",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/subd/deployd",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/subd/dns",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/subd/docker",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/subd/httpd",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/megamd/toml",
-			"Rev": "eef5472e8a5ecde6861a5a51a8c659f85d1faf5b"
+			"Rev": "f098de8d18d270ee5528b9484a88771d5e659581"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
@@ -182,7 +126,7 @@
 		},
 		{
 			"ImportPath": "github.com/rs/xhandler",
-			"Rev": "8431b30f293907f6613667c03df1f089e0fb8741"
+			"Rev": "768e938dd1b2901a776cf66e27a9737d64f9e15f"
 		},
 		{
 			"ImportPath": "github.com/sajari/fuzzy",
@@ -198,20 +142,24 @@
 			"Rev": "4bd47d3603b5c0460028794fbbf207f881088c08"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Rev": "346896d57731cb5670b36c6178fc5519f3225980"
+		},
+		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "042ba42fa6633b34205efc66ba5719cd3afd8d38"
+			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
 		},
 		{
 			"ImportPath": "golang.org/x/net/netutil",
-			"Rev": "042ba42fa6633b34205efc66ba5719cd3afd8d38"
+			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "042ba42fa6633b34205efc66ba5719cd3afd8d38"
+			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "d4780cd8b5fffdab1cc8ef7a4f9050dc37755847"
+			"Rev": "442624c9ec9243441e83b374a9e22ac549b5c51d"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",
