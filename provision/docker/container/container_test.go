@@ -1,5 +1,5 @@
 package container
-
+/*
 import (
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/check.v1"
@@ -36,7 +36,7 @@ func (s *S) TestContainerAddress(c *check.C) {
 	expected := "http://10.10.10.10:49153"
 	c.Assert(address.String(), check.Equals, expected)
 }
-
+*/
 /*func (s *S) TestContainerCreate(c *check.C) {
 	app := provisiontest.NewFakeBox("app-name", "brainfuck", 1)
 	app.Memory = 15
@@ -214,8 +214,8 @@ func (s *S) TestContainerNetworkInfo(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(info.IP, check.Equals, "10.10.10.10")
 	c.Assert(info.HTTPHostPort, check.Equals, "")
-}
-
+} */
+/*
 func (s *S) TestContainerSetStatus(c *check.C) {
 	update := time.Date(1989, 2, 2, 14, 59, 32, 0, time.UTC).In(time.UTC)
 	container := Container{ID: "something-300", LastStatusUpdate: update}

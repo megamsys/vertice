@@ -11,7 +11,8 @@ import (
 	"sync"
 )
 
-const QUEUE = "dockerup"
+const QUEUE = "cloudstandup"
+const DOCKER = "docker"
 
 // Service manages the listener and handler for an HTTP endpoint.
 type Service struct {
@@ -21,14 +22,16 @@ type Service struct {
 
 	Meta    *meta.Config
 	Dockerd *Config
+	Bridges *Bridges
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, d *Config) *Service {
+func NewService(c *meta.Config, d *Config, b *Bridges) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Dockerd: d,
+		Bridges: b,
 	}
 	s.Handler = NewHandler(s.Dockerd)
 	return s
@@ -93,16 +96,16 @@ func (s *Service) Err() <-chan error { return s.err }
 func (s *Service) setProvisioner() error {
 	var err error
 
-	if carton.Provisioner, err = provision.Get(s.Meta.Provider); err != nil {
+	if carton.Provisioner, err = provision.Get(DOCKER); err != nil {
 		return err
 	}
-	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", s.Meta.Provider))
+	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", DOCKER))
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Dockerd.toMap())
+		err = initializableProvisioner.Initialize(s.Dockerd.toMap(), s.Bridges.ConvertToMap())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
 		} else {
-			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", s.Meta.Provider), "blue", "", "bold"))
+			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", DOCKER), "blue", "", "bold"))
 		}
 	}
 

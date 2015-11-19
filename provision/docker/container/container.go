@@ -6,12 +6,14 @@ import (
 	"net"
 	"net/url"
 	"time"
-
+//	"encoding/json"
+	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/docker/cluster"
+
 )
 
 const (
@@ -83,23 +85,14 @@ func (c *Container) Create(args *CreateArgs) error {
 		CPUShares:    args.Box.GetCpushare(),
 	}
 
-	c.addEnvsToConfig(args, &config)
-
-	opts := docker.CreateContainerOptions{Name: c.Name, Config: &config}
-	var nodeList []string
-	if len(args.DestinationHosts) > 0 {
-		var nodeName string
-		nodeName, err := c.hostToNodeAddress(args.Provisioner, args.DestinationHosts[0])
-		if err != nil {
-			return err
-		}
-		nodeList = []string{nodeName}
-	}
-	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts, nodeList...)
+	//c.addEnvsToConfig(args, &config)
+	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
+	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts)
 	if err != nil {
-		log.Errorf("error on creating container in docker %s - %s", c.BoxName, err)
+		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
 	}
+
 	c.Id = cont.ID
 	c.HostAddr = urlToHost(addr)
 	return nil
@@ -136,10 +129,15 @@ func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 			cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
 		}
 	}*/
+
 }
 
 func (c *Container) Remove(p DockerProvisioner) error {
-	log.Debugf("Removing container %s from docker", c.Id)
+	log.Debugf("Removing container %s from docker", c.BoxName)
+
+  //this will be removed. containerID will be stored upon create in riak
+	id, _ := p.Cluster().PreStopAction(c.BoxName)
+	c.Id = id
 	err := c.Stop(p)
 	if err != nil {
 		log.Errorf("error on stop unit %s - %s", c.Id, err)
@@ -192,23 +190,6 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner, w io.Writer) (int, error) {
-	container, err := p.Cluster().InspectContainer(c.Id)
-	if err != nil {
-		return 0, err
-	}
-	opts := docker.AttachToContainerOptions{
-		Container:    c.Id,
-		Logs:         true,
-		Stdout:       true,
-		Stderr:       true,
-		OutputStream: w,
-		ErrorStream:  w,
-		RawTerminal:  container.Config.Tty,
-		Stream:       true,
-	}
-	return SafeAttachWaitContainer(p, opts)
-}
 
 type waitResult struct {
 	status int
@@ -273,25 +254,25 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-	_, err := getPort()
+
+  ip, gateway, err := p.Cluster().GetIP() //gets the IP
 	if err != nil {
 		return netInfo, err
 	}
-	_, err = p.Cluster().InspectContainer(c.Id)
-	if err != nil {
-		return netInfo, err
-	}
-	/*	if dockerContainer.NetworkSettings != nil {
-		netInfo.IP = dockerContainer.NetworkSettings.IPAddress
-		httpPort := docker.Port(port + "/tcp")
-		for _, port := range dockerContainer.NetworkSettings.Ports[httpPort] {
-			if port.HostPort != "" && port.HostIP != "" {
-				netInfo.HTTPHostPort = port.HostPort
-				break
-			}
-		}
-	}*/
+	netInfo.IP = string(ip)
+		err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway)
 	return netInfo, err
+}
+
+
+func (c *Container) Logs(p DockerProvisioner) (int, error) {
+
+err := p.Cluster().SetLogs(c.Id, c.BoxName)
+if err != nil {
+	return 1, err
+}
+return 0, nil
+
 }
 
 type Pty struct {

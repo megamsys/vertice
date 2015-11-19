@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"text/tabwriter"
+	"github.com/megamsys/megamd/provision/docker"
 
 	"github.com/megamsys/libgo/cmd"
 )
@@ -35,6 +36,25 @@ func NewBridgeConfig() *Bridges {
 	br := make(Bridges)
 	return &br
 }
+
+func (c Bridges) ConvertToMap() map[string]string  {
+	var x map[string]string
+	for _, v := range c {
+    x = v.toMap()
+	}
+  return x
+}
+
+
+func (c DockerBridge) toMap() map[string]string {
+	m := make(map[string]string)
+	m[docker.BRIDGE_NAME] = c.Name
+	m[docker.BRIDGE_NETWORK] = c.Network
+	m[docker.BRIDGE_GATEWAY] = c.Gateway
+
+	return m
+}
+
 
 func (c Bridges) String() string {
 	bs := make([]string, len(c))

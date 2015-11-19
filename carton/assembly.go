@@ -156,7 +156,7 @@ func (c *Assembly) Delete(asmid string) {
 	_ = db.Delete(ASMBUCKET, asmid)
 }
 
-//get the assebmly and its children (component). we only store the
+//get the assembly and its children (component). we only store the
 //componentid, hence you see that we have a components map to cater to that need.
 func get(id string) (*Assembly, error) {
 	a := &Assembly{Components: make(map[string]*Component)}

@@ -39,6 +39,9 @@ type ContainerStorage interface {
 	RetrieveContainer(container string) (host string, err error)
 	RemoveContainer(container string) error
 	RetrieveContainers() ([]Container, error)
+
+	StoreContainerByName(container, host string) error
+	RetrieveContainerByName(name string) (container string, err error)
 }
 
 // ImageStorage works like ContainerStorage, but stores information about
@@ -74,6 +77,8 @@ type Storage interface {
 type Cluster struct {
 	Healer         Healer
 	stor           Storage
+	bridges        Bridges
+	gulp           Gulp
 	monitoringDone chan bool
 }
 
@@ -113,7 +118,7 @@ func wrapErrorWithCmd(n node, err error, cmd string) error {
 // The scheduler parameter defines the scheduling strategy. It defaults
 // to round robin if nil.
 // The storage parameter is the storage the cluster instance will use.
-func New(storage Storage, nodes ...Node) (*Cluster, error) {
+func New(storage Storage, gulp Gulp, bridges []Bridge, nodes ...Node) (*Cluster, error) {
 	var (
 		c   Cluster
 		err error
@@ -122,6 +127,8 @@ func New(storage Storage, nodes ...Node) (*Cluster, error) {
 		return nil, errStorageMandatory
 	}
 	c.stor = storage
+	c.bridges = bridges
+	c.gulp = gulp
 	c.Healer = DefaultHealer{}
 
 	if len(nodes) > 0 {

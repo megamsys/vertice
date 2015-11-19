@@ -1,5 +1,5 @@
 package container
-
+/*
 import (
 	"github.com/megamsys/megamd/provision/docker/cluster"
 )
@@ -52,3 +52,4 @@ func (p *fakeDockerProvisioner) PushImage(name, tag string) error {
 	}
 	return nil
 }
+*/

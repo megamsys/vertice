@@ -103,9 +103,9 @@ func (s *Service) setProvisioner() error {
 		return err
 	}
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", s.Meta.Provider))
-
+  var b map[string]string
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Deployd.toMap())
+		err = initializableProvisioner.Initialize(s.Deployd.toMap(), b)
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
 		} else {

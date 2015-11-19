@@ -60,6 +60,7 @@ func ParseRequest(n, s, a string) (MegdProcessor, error) {
 }
 
 func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor, error) {
+
 	switch category {
 	case STATE:
 		return p.parseState(action)

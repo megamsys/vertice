@@ -1,5 +1,5 @@
 package dockertest
-
+/*
 import (
 	"net"
 	"net/url"
@@ -178,7 +178,7 @@ func (p *FakeDockerProvisioner) StartContainers(args StartContainersArgs) ([]con
 	for processName, amount := range args.Amount {
 		opts.Config.Cmd = []string{processName}
 		for i := 0; i < amount; i++ {
-			_, cont, err := p.Cluster().CreateContainer(opts, args.Endpoint)
+			_, cont, err := p.Cluster().CreateContainer(opts)
 			if err != nil {
 				return nil, err
 			}
@@ -221,3 +221,4 @@ func urlToHost(urlStr string) string {
 	}
 	return host
 }
+*/

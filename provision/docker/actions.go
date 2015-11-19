@@ -47,6 +47,7 @@ type callbackFunc func(*container.Container, chan *container.Container) error
 type rollbackFunc func(*container.Container)
 
 func runInContainers(containers []container.Container, callback callbackFunc, rollback rollbackFunc, parallel bool) error {
+
 	if len(containers) == 0 {
 		return nil
 	}
@@ -96,6 +97,7 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 		}
 		return err
 	}
+
 	return nil
 }
 
@@ -219,6 +221,7 @@ var destroyOldContainers = action.Action{
 		}
 		fmt.Fprintf(writer, "\n---- Destroying %d old containers%s ----\n", total, plural)
 		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
+
 			err := c.Remove(args.provisioner)
 			if err != nil {
 				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
@@ -256,7 +259,7 @@ var followLogsAndCommit = action.Action{
 			return nil, errors.New("Previous result must be a container.")
 		}
 		args := ctx.Params[0].(runContainerActionsArgs)
-		status, err := c.Logs(args.provisioner, args.writer)
+		status, err := c.Logs(args.provisioner)
 		if err != nil {
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err

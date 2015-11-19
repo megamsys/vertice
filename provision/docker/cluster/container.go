@@ -1,8 +1,10 @@
 package cluster
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/url"
 	"sync"
@@ -20,13 +22,13 @@ type Container struct {
 // specified, it will create the container in a node selected by the scheduler.
 //
 // It returns the container, or an error, in case of failures.
-func (c *Cluster) CreateContainer(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
-	return c.CreateContainerSchedulerOpts(opts, nodes...)
+func (c *Cluster) CreateContainer(opts docker.CreateContainerOptions) (string, *docker.Container, error) {
+	return c.CreateContainerSchedulerOpts(opts)
 }
 
 // Similar to CreateContainer but allows arbritary options to be passed to
 // the scheduler.
-func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions, nodes ...string) (string, *docker.Container, error) {
+func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOptions) (string, *docker.Container, error) {
 	var (
 		addr      string
 		container *docker.Container
@@ -35,7 +37,8 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
-		addr = nodes[0]
+		nodes, err := c.Nodes()
+		addr = nodes[0].Address
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
@@ -64,6 +67,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
 	err = c.storage().StoreContainer(container.ID, addr)
+	err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }
 
@@ -83,6 +87,22 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	}
 	cont, err := node.CreateContainer(opts)
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
+}
+
+func (c *Cluster) GetIP() (net.IP, string, error) {
+	var ip net.IP
+	var gateway string
+	var ind uint
+
+	for _, b := range c.bridges {
+		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
+		ind = uint(rand.Intn(1000))
+		_, subnet, _ := net.ParseCIDR(b.Network)
+		ip = b.IPRequest(subnet, ind)
+		gateway = b.Gateway
+		ind += 1
+	}
+	return ip, gateway, nil
 }
 
 // InspectContainer returns information about a container by its ID, getting
@@ -161,11 +181,20 @@ func (c *Cluster) removeFromStorage(opts docker.RemoveContainerOptions) error {
 }
 
 func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error {
+
 	node, err := c.getNodeForContainer(id)
 	if err != nil {
 		return err
 	}
 	return wrapError(node, node.StartContainer(id, hostConfig))
+}
+
+func (c *Cluster) PreStopAction(name string) (string, error) {
+	id, err := c.storage().RetrieveContainerByName(name)
+	if err != nil {
+		return "", err
+	}
+	return id, err
 }
 
 // StopContainer stops a container, killing it after the given timeout, if it
@@ -280,6 +309,36 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	return c.getNode(func(s Storage) (string, error) {
 		return s.RetrieveContainer(container)
 	})
+}
+
+func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string) error {
+
+	container := c.getContainerObject(containerId)
+	client := DockerClient{Bridge: gateway, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
+
+	err := client.NetworkRequest(container.Node.IP, c.gulp.Port)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Cluster) SetLogs(containerId string, containerName string) error {
+	container := c.getContainerObject(containerId)
+	client := DockerClient{ContainerID: containerId, ContainerName: containerName}
+	client.LogsRequest(container.Node.IP, c.gulp.Port)
+	return nil
+}
+
+func (c *Cluster) getContainerObject(containerId string) *docker.Container {
+	inspect, _ := c.InspectContainer(containerId) //gets the swarmNode
+
+	container := &docker.Container{}
+	insp, _ := json.Marshal(inspect)
+	json.Unmarshal([]byte(string(insp)), container)
+
+	return container
+
 }
 
 func (c *Cluster) CreateExec(opts docker.CreateExecOptions) (*docker.Exec, error) {

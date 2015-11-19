@@ -3,7 +3,9 @@ package cluster
 import (
 	"errors"
 	"sync"
+//	"net"
 	"time"
+//	"math"
 )
 
 var (
@@ -18,10 +20,33 @@ type MapStorage struct {
 	iMap    map[string]*Image
 	nodes   []Node
 	nodeMap map[string]*Node
+	ipindex map[string]*IPIndex
 	cMut    sync.Mutex
 	iMut    sync.Mutex
 	nMut    sync.Mutex
+	ipMut   sync.Mutex
 }
+
+func (s *MapStorage) StoreContainerByName(containerID, Name string) error {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	if s.cMap == nil {
+		s.cMap = make(map[string]string)
+	}
+	s.cMap[Name] = containerID
+	return nil
+}
+
+func (s *MapStorage) RetrieveContainerByName(Name string) (string, error) {
+	s.cMut.Lock()
+	defer s.cMut.Unlock()
+	container, ok := s.cMap[Name]
+	if !ok {
+		return "", ErrNoSuchContainer
+	}
+	return container, nil
+}
+
 
 func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 	s.cMut.Lock()
@@ -265,4 +290,10 @@ func (s *MapStorage) RetrieveImages() ([]Image, error) {
 		images = append(images, *img)
 	}
 	return images, nil
+}
+
+type IPIndex struct {
+	Ip     string
+	Subnet string
+	Index  uint
 }
