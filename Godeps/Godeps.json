@@ -94,23 +94,23 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "d38952c0c65cc943800d1466b8b51ec0ce2ce5de"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "d38952c0c65cc943800d1466b8b51ec0ce2ce5de"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "d38952c0c65cc943800d1466b8b51ec0ce2ce5de"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "d38952c0c65cc943800d1466b8b51ec0ce2ce5de"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "d38952c0c65cc943800d1466b8b51ec0ce2ce5de"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -147,15 +147,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
+			"Rev": "5627bad10b821d907ac4dc81fb3535ec7dd81c2b"
 		},
 		{
 			"ImportPath": "golang.org/x/net/netutil",
-			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
+			"Rev": "5627bad10b821d907ac4dc81fb3535ec7dd81c2b"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "1d9fd3b8333e891c0e7353e1adcfe8a612573033"
+			"Rev": "5627bad10b821d907ac4dc81fb3535ec7dd81c2b"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
