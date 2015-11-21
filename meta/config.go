@@ -15,23 +15,14 @@ import (
 )
 
 const (
-	// DefaultHostname is the default hostname if one is not provided.
-	DefaultHostname = "localhost"
-
-	// DefaultBindAddress is the default address to bind to.
-	DefaultBindAddress = ":9999"
-
 	// DefaultRiak is the default riak if one is not provided.
 	DefaultRiak = "localhost:8087"
 
 	// DefaultApi is the default megam gateway if one is not provided.
-	DefaultApi = "https://api.megam.io/v2"
+	DefaultApi = "http://localhost:9000"
 
 	// DefaultAMQP is the default rabbitmq if one is not provided.
 	DefaultAMQP = "amqp://guest:guest@localhost:5672/"
-
-	// DefaultProvider is the default provisioner used by our engine.
-	DefaultProvider = "one"
 
 	// DefaultHeartbeatTimeout is the default heartbeat timeout for the store.
 	DefaultHeartbeatTimeout = 1000 * time.Millisecond
@@ -49,13 +40,10 @@ const (
 type Config struct {
 	Home               string        `toml:"home"`
 	Dir                string        `toml:"dir"`
-	Hostname           string        `toml:"hostname"`
-	BindAddress        string        `toml:"bind_address"`
 	Riak               []string      `toml:"riak"`
 	Api                string        `toml:"api"`
 	AMQP               string        `toml:"amqp"`
 	Peers              []string      `toml:"-"`
-	Provider           string        `toml:"provider"`
 	ElectionTimeout    toml.Duration `toml:"election-timeout"`
 	HeartbeatTimeout   toml.Duration `toml:"heartbeat-timeout"`
 	LeaderLeaseTimeout toml.Duration `toml:"leader-lease-timeout"`
@@ -74,7 +62,6 @@ func (c Config) String() string {
 	b.Write([]byte("Riak    " + "\t" + strings.Join(c.Riak, ",") + "\n"))
 	b.Write([]byte("API     " + "\t" + c.Api + "\n"))
 	b.Write([]byte("AMQP    " + "\t" + c.AMQP + "\n"))
-	b.Write([]byte("Hostname" + "\t" + c.Hostname + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -98,12 +85,9 @@ func NewConfig() *Config {
 	return &Config{
 		Home:               homeDir,
 		Dir:                defaultDir,
-		Hostname:           DefaultHostname,
-		BindAddress:        DefaultBindAddress,
 		Riak:               []string{DefaultRiak},
 		Api:                DefaultApi,
 		AMQP:               DefaultAMQP,
-		Provider:           DefaultProvider,
 		ElectionTimeout:    toml.Duration(DefaultElectionTimeout),
 		HeartbeatTimeout:   toml.Duration(DefaultHeartbeatTimeout),
 		LeaderLeaseTimeout: toml.Duration(DefaultLeaderLeaseTimeout),

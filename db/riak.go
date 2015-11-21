@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	hc.AddChecker("Riak", healthCheck)
+	hc.AddChecker("riak", healthCheck)
 }
 
 func healthCheck() error {
@@ -67,7 +67,7 @@ func Delete(bkt string, key string) error {
 		return err
 	}
 	defer s.Close()
-	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] delee", "blue", "", "bold"), bkt, key)
+	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] delete", "blue", "", "bold"), bkt, key)
 
 	if err = s.DeleteObject(key); err != nil {
 		return err

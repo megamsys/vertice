@@ -11,8 +11,7 @@ import (
 	"sync"
 )
 
-const QUEUE = "cloudstandup"
-const DOCKER = "docker"
+const QUEUE = "dockerup"
 
 // Service manages the listener and handler for an HTTP endpoint.
 type Service struct {
@@ -49,7 +48,7 @@ func (s *Service) Open() error {
 	if swt, err := p.Sub(); err != nil {
 		return err
 	} else {
-		if err = s.setProvisioner(); err != nil {
+		if err = s.setProvisioner(provision.PROVIDER_DOCKER); err != nil {
 			return err
 		}
 		go s.processQueue(swt)
@@ -93,19 +92,19 @@ func (s *Service) Close() error {
 func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
-func (s *Service) setProvisioner() error {
+func (s *Service) setProvisioner(pt string) error {
 	var err error
 
-	if carton.Provisioner, err = provision.Get(DOCKER); err != nil {
+	if carton.Provisioner, err = provision.Get(pt); err != nil {
 		return err
 	}
-	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", DOCKER))
+	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Dockerd.toMap(), s.Bridges.ConvertToMap())
 		if err != nil {
-			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
+			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
 		} else {
-			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", DOCKER), "blue", "", "bold"))
+			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", pt), "blue", "", "bold"))
 		}
 	}
 

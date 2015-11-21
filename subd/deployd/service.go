@@ -52,7 +52,7 @@ func (s *Service) Open() error {
 	if swt, err := p.Sub(); err != nil {
 		return err
 	} else {
-		if err = s.setProvisioner(); err != nil {
+		if err = s.setProvisioner(provision.PROVIDER_ONE); err != nil {
 			return err
 		}
 		go s.processQueue(swt)
@@ -96,20 +96,20 @@ func (s *Service) Close() error {
 func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
-func (s *Service) setProvisioner() error {
+func (s *Service) setProvisioner(pt string) error {
 	var err error
 
-	if carton.Provisioner, err = provision.Get(s.Meta.Provider); err != nil {
+	if carton.Provisioner, err = provision.Get(pt); err != nil {
 		return err
 	}
-	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", s.Meta.Provider))
+	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
   var b map[string]string
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Deployd.toMap(), b)
 		if err != nil {
-			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", s.Meta.Provider, err)
+			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
 		} else {
-			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", s.Meta.Provider), "blue", "", "bold"))
+			log.Debugf(cmd.Colorfy(fmt.Sprintf("  > %s initialized", pt), "blue", "", "bold"))
 		}
 	}
 

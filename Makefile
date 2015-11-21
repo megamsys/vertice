@@ -67,6 +67,7 @@ bzr:
 	$(if $(shell bzr), , $(error $(BZR_ERROR)))
 
 get-code:
+	rm -rf ~/.go
 	go get $(GO_EXTRAFLAGS) -u -d -t -insecure ./...
 
 godep:
@@ -83,11 +84,8 @@ _megamd:
 
 
 _megamdr:
-	sudo ./megamd start --config conf/megamd.conf
-	rm -f megamd
+	./megamd start --config conf/megamd.conf
 
-_sh_tests:
-	@conf/trusty/megam/megam_test.sh
 
 test: _go_test _megamd _megamdr
 

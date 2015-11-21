@@ -24,9 +24,6 @@ type Server struct {
 	err     chan error
 	closing chan struct{}
 
-	Hostname    string
-	BindAddress string
-
 	Services []Service
 
 	// Profiling
@@ -41,8 +38,6 @@ func NewServer(c *Config, version string) (*Server, error) {
 		version:     version,
 		err:         make(chan error),
 		closing:     make(chan struct{}),
-		Hostname:    c.Meta.Hostname,
-		BindAddress: c.Meta.BindAddress,
 	}
 
 	// Append services.

@@ -17,42 +17,29 @@
 package one
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"regexp"
-	"strings"
-
+	//"github.com/megamsys/provision/one/cluster"
+	//"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/libgo/hc"
 )
 
-var httpRegexp = regexp.MustCompile(`^https?://`)
 
 func init() {
-	hc.AddChecker("one", healthCheckOne)
+	hc.AddChecker("one", healthCheck)
 }
 
-func healthCheckOne() error {
-	onerpc := "http://192.168.1.100/xmlrpc" //We need to hookup deployd.OneEndPoint
-	if onerpc == "" {
-		return hc.ErrDisabledComponent
+func healthCheck() error {
+	/*
+  we need to pass the Onedeployd config.
+	var nodes []cluster.Node = []cluster.Node{cluster.Node{
+		Address:  m[api.ENDPOINT],
+		Metadata: m,
+	},
 	}
-	if !httpRegexp.MatchString(onerpc) {
-		onerpc = "http://" + onerpc
-	}
-	onerpc = strings.TrimRight(onerpc, "/")
-	resp, err := http.Get(onerpc)
-	if err != nil {
-		return err
-	}
+	cluster, err = cluster.New(&cluster.MapStorage{}, nodes...)
+	nodlist, err := c.Nodes()
 
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status - %s", body)
-	}
+  if err != nil || len(nodlist) <= 0 {
+ 	 return err
+  }*/
 	return nil
 }
