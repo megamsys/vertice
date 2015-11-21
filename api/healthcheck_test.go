@@ -4,15 +4,14 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"gopkg.in/check.v1"
-  "github.com/megamsys/megamd/meta"
 	"github.com/BurntSushi/toml"
+	"github.com/megamsys/megamd/meta"
+	"gopkg.in/check.v1"
 )
 
 type HealthCheckSuite struct{}
 
 var _ = check.Suite(&HealthCheckSuite{})
-
 
 func (s *HealthCheckSuite) TestHealthCheck(c *check.C) {
 	recorder := httptest.NewRecorder()
@@ -31,5 +30,5 @@ func (s *HealthCheckSuite) TestHealthCheck(c *check.C) {
 	c.Assert(err, check.IsNil)
 	healthcheck(recorder, request)
 	c.Assert(recorder.Code, check.Equals, http.StatusOK)
-//	c.Assert(recorder.Body.String(), check.Matches, `.*WORKING.*`)
+	//	c.Assert(recorder.Body.String(), check.Matches, `.*WORKING.*`)
 }

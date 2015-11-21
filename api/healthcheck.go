@@ -27,6 +27,7 @@ func fullHealthcheck(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf.Bytes())
 	//return c.Show(result)
 }
+
 /*
 type ojak struct {
 	LevelDB string

@@ -14,10 +14,10 @@ func init() {
 
 func healthCheckLdb() error {
 	apia := meta.MC.Riak
-	if len(apia) <=0 {
+	if len(apia) <= 0 {
 		return hc.ErrDisabledComponent
 	}
-  api := apia[0]
+	api := apia[0]
 	if !httpRegexp.MatchString(api) {
 		api = "http://" + api
 	}

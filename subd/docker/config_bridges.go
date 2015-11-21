@@ -3,9 +3,9 @@ package docker
 import (
 	"bytes"
 	"fmt"
+	"github.com/megamsys/megamd/provision/docker"
 	"strings"
 	"text/tabwriter"
-	"github.com/megamsys/megamd/provision/docker"
 
 	"github.com/megamsys/libgo/cmd"
 )
@@ -37,14 +37,13 @@ func NewBridgeConfig() *Bridges {
 	return &br
 }
 
-func (c Bridges) ConvertToMap() map[string]string  {
+func (c Bridges) ConvertToMap() map[string]string {
 	var x map[string]string
 	for _, v := range c {
-    x = v.toMap()
+		x = v.toMap()
 	}
-  return x
+	return x
 }
-
 
 func (c DockerBridge) toMap() map[string]string {
 	m := make(map[string]string)
@@ -54,7 +53,6 @@ func (c DockerBridge) toMap() map[string]string {
 
 	return m
 }
-
 
 func (c Bridges) String() string {
 	bs := make([]string, len(c))

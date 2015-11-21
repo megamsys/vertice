@@ -1,7 +1,7 @@
 package hc
 
 import (
-  "net/http"
+	"net/http"
 	"regexp"
 	"strings"
 

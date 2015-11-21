@@ -9,9 +9,9 @@ package cluster
 
 import (
 	"encoding/json"
+	"github.com/fsouza/go-dockerclient"
 	"strconv"
 	"time"
-	"github.com/fsouza/go-dockerclient"
 )
 
 // Node represents a host running Docker. Each node has an Address

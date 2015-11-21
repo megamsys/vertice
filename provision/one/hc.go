@@ -22,24 +22,23 @@ import (
 	"github.com/megamsys/libgo/hc"
 )
 
-
 func init() {
 	hc.AddChecker("one", healthCheck)
 }
 
 func healthCheck() error {
 	/*
-  we need to pass the Onedeployd config.
-	var nodes []cluster.Node = []cluster.Node{cluster.Node{
-		Address:  m[api.ENDPOINT],
-		Metadata: m,
-	},
-	}
-	cluster, err = cluster.New(&cluster.MapStorage{}, nodes...)
-	nodlist, err := c.Nodes()
+		  we need to pass the Onedeployd config.
+			var nodes []cluster.Node = []cluster.Node{cluster.Node{
+				Address:  m[api.ENDPOINT],
+				Metadata: m,
+			},
+			}
+			cluster, err = cluster.New(&cluster.MapStorage{}, nodes...)
+			nodlist, err := c.Nodes()
 
-  if err != nil || len(nodlist) <= 0 {
- 	 return err
-  }*/
+		  if err != nil || len(nodlist) <= 0 {
+		 	 return err
+		  }*/
 	return nil
 }

@@ -35,9 +35,9 @@ type Server struct {
 func NewServer(c *Config, version string) (*Server, error) {
 	// Construct base meta store and data store.
 	s := &Server{
-		version:     version,
-		err:         make(chan error),
-		closing:     make(chan struct{}),
+		version: version,
+		err:     make(chan error),
+		closing: make(chan struct{}),
 	}
 
 	// Append services.

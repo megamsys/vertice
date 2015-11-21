@@ -8,7 +8,6 @@ import (
 	"gopkg.in/check.v1"
 )
 
-
 func (s *S) TestHealthCheckDocker(c *check.C) {
 	var request *http.Request
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +37,7 @@ func (s *S) TestHealthCheckDockerMultipleNodes(c *check.C) {
 	}))
 	defer server2.Close()
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{},cluster.Node{Address: server1.URL}, cluster.Node{Address: server2.URL})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server1.URL}, cluster.Node{Address: server2.URL})
 	c.Assert(err, check.IsNil)
 	err = healthCheckDocker()
 	c.Assert(err, check.IsNil)
@@ -47,7 +46,7 @@ func (s *S) TestHealthCheckDockerMultipleNodes(c *check.C) {
 
 func (s *S) TestHealthCheckDockerNoNodes(c *check.C) {
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{},[]cluster.Bridge{})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{})
 	c.Assert(err, check.IsNil)
 	err = healthCheckDocker()
 	c.Assert(err, check.NotNil)
@@ -61,7 +60,7 @@ func (s *S) TestHealthCheckDockerFailure(c *check.C) {
 	}))
 	defer server.Close()
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{},[]cluster.Bridge{},cluster.Node{Address: server.URL})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server.URL})
 	c.Assert(err, check.IsNil)
 	err = healthCheckDocker()
 	c.Assert(err, check.NotNil)

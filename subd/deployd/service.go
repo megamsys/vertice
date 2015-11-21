@@ -103,7 +103,7 @@ func (s *Service) setProvisioner(pt string) error {
 		return err
 	}
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
-  var b map[string]string
+	var b map[string]string
 	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Deployd.toMap(), b)
 		if err != nil {

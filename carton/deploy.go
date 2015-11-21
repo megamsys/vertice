@@ -18,13 +18,13 @@ package carton
 
 import (
 	"bytes"
-	"io"
-	"strings"
-	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
+	"io"
+	"strings"
+	"time"
 )
 
 const DOCKER_TYPE = "dockercontainer"
@@ -82,14 +82,14 @@ func image(b *provision.Box) string {
 	if b.Tosca[strings.LastIndex(b.Tosca, ".")+1:] == DOCKER_TYPE {
 		return b.Repo.URL
 	} else {
-	if b.Repo == nil {
-		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
-		if len(strings.TrimSpace(b.ImageVersion)) > 1 {
-			return img + "_" + b.ImageVersion
+		if b.Repo == nil {
+			img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
+			if len(strings.TrimSpace(b.ImageVersion)) > 1 {
+				return img + "_" + b.ImageVersion
+			}
+			return img
 		}
-		return img
 	}
-}
 	return ""
 }
 

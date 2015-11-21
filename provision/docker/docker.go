@@ -19,7 +19,7 @@ const (
 	DOCKER_CPUPERIOD = "cpuperiod"
 	DOCKER_CPUQUOTA  = "cpuquota"
 
-	BRIDGE_NAME = "name"
+	BRIDGE_NAME    = "name"
 	BRIDGE_NETWORK = "network"
 	BRIDGE_GATEWAY = "gateway"
 )

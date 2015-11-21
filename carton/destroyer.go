@@ -2,11 +2,11 @@ package carton
 
 import (
 	"bytes"
-	"io"
-	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
+	"io"
+	"time"
 )
 
 type DestroyOpts struct {
