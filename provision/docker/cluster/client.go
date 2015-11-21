@@ -1,19 +1,18 @@
 package cluster
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
-	"bytes"
 )
 
 const (
-	DOCKER_NETWORK  = "/docker/networks"
-	DOCKER_LOGS     = "/docker/logs"
+	DOCKER_NETWORK = "/docker/networks"
+	DOCKER_LOGS    = "/docker/logs"
 )
 
-
 type Gulp struct {
-  Port string
+	Port string
 }
 
 type DockerClient struct {

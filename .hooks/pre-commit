@@ -13,3 +13,16 @@ if [ $vetcount -gt 0 ]; then
     exit 1
 fi
 exit 0
+
+fmtcount=`find . -name *.*~ 2>&1 | wc -l`
+if [ $fmtcount -gt 0 ]; then
+    echo "Some files are temporary files, please run 'find . -type f -name "*.*~" -exec rm -f {} \;' to delete them before committing"
+    exit 1
+fi
+
+mkcount=`make 2>&1  | wc -l`
+if [ $mkcount -gt 0 ]; then
+    echo "compilation failed, please run 'make' to see the errors and fix them before committing"
+    exit 1
+fi
+exit 0

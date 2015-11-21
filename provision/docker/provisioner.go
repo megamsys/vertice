@@ -35,9 +35,6 @@ type dockerProvisioner struct {
 	storage        cluster.Storage
 }
 
-
-
-
 func (p *dockerProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
 		panic("✗ docker cluster")
@@ -57,7 +54,6 @@ func (p *dockerProvisioner) Initialize(m map[string]string, b map[string]string)
 }
 
 func (p *dockerProvisioner) initDockerCluster(m map[string]string, b map[string]string) error {
-
 	var err error
 	if p.storage == nil {
 		p.storage, err = buildClusterStorage()
@@ -66,13 +62,13 @@ func (p *dockerProvisioner) initDockerCluster(m map[string]string, b map[string]
 		}
 	}
 
-	 var bridges []cluster.Bridge = []cluster.Bridge {
-	    cluster.Bridge{
-				Name: b[BRIDGE_NAME],
-				Network: b[BRIDGE_NETWORK],
-				Gateway: b[BRIDGE_GATEWAY],
-	  	},
-    }
+	var bridges []cluster.Bridge = []cluster.Bridge{
+		cluster.Bridge{
+			Name:    b[BRIDGE_NAME],
+			Network: b[BRIDGE_NETWORK],
+			Gateway: b[BRIDGE_GATEWAY],
+		},
+	}
 
 	var nodes []cluster.Node = []cluster.Node{
 		cluster.Node{
@@ -81,9 +77,9 @@ func (p *dockerProvisioner) initDockerCluster(m map[string]string, b map[string]
 		},
 	}
 
-	var gulp cluster.Gulp  = cluster.Gulp {
-	   Port: m[DOCKER_GULP],
-}
+	var gulp cluster.Gulp = cluster.Gulp{
+		Port: m[DOCKER_GULP],
+	}
 
 	//register nodes using the map.
 	p.cluster, err = cluster.New(p.storage, gulp, bridges, nodes...)

@@ -3,9 +3,9 @@ package cluster
 import (
 	"errors"
 	"sync"
-//	"net"
+	//	"net"
 	"time"
-//	"math"
+	//	"math"
 )
 
 var (
@@ -46,7 +46,6 @@ func (s *MapStorage) RetrieveContainerByName(Name string) (string, error) {
 	}
 	return container, nil
 }
-
 
 func (s *MapStorage) StoreContainer(containerID, hostID string) error {
 	s.cMut.Lock()

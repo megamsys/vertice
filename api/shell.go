@@ -80,7 +80,7 @@ func remoteShellHandler(ws *websocket.Conn) {
 	}
 }
 
-//Return the Box object ?  Get the corton, and make a Box
+//Return the Box object ?  Get the carton, and make a Box
 func getBox(a string) (*provision.Box, error) {
 	return nil, nil
 }
