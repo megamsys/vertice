@@ -1,6 +1,7 @@
 package hc
 
 import (
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -8,24 +9,37 @@ import (
 	"github.com/megamsys/megamd/meta"
 )
 
+const PORT = "8098"
+const LEVEL_DB = "riak_kv_eleveldb_backend"
+const LEVEL_DB_NOT_SET = "Missing storage_backend: leveldb in /etc/riak/riak.conf"
+
 func init() {
 	hc.AddChecker("leveldb", healthCheckLdb)
 }
 
-func healthCheckLdb() error {
+func healthCheckLdb() (interface{}, error) {
 	apia := meta.MC.Riak
 	if len(apia) <= 0 {
-		return hc.ErrDisabledComponent
+		return nil, hc.ErrDisabledComponent
 	}
 	api := apia[0]
+	api = strings.Split(api, ":")[0] + ":" + PORT
 	if !httpRegexp.MatchString(api) {
 		api = "http://" + api
 	}
+
 	api = strings.TrimRight(api, "/")
-	vRURL := api + "stats"
-	_, err := http.Get(vRURL)
+	vRURL := api + "/stats"
+	response, err := http.Get(vRURL)
+
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	body, _ := ioutil.ReadAll(response.Body)
+
+	if strings.Contains(string(body), LEVEL_DB) {
+		return LEVEL_DB, nil
+	}
+	return LEVEL_DB_NOT_SET, nil
 }

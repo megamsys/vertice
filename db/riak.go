@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/db"
@@ -13,13 +14,13 @@ func init() {
 	hc.AddChecker("riak", healthCheck)
 }
 
-func healthCheck() error {
+func healthCheck() (interface{}, error) {
 	conn, err := newConn("test")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Close()
-	return nil
+	return fmt.Sprintf("%s up", meta.MC.Riak), nil
 }
 
 //A global function which helps to avoid passing config of riak everywhere.
