@@ -17,28 +17,25 @@
 package one
 
 import (
-	//"github.com/megamsys/provision/one/cluster"
-	//"github.com/megamsys/opennebula-go/api"
+	"errors"
 	"github.com/megamsys/libgo/hc"
+	"strings"
 )
 
 func init() {
-	hc.AddChecker("one", healthCheck)
+	hc.AddChecker("megamd:one", healthCheck)
 }
 
-func healthCheck() error {
-	/*
-		  we need to pass the Onedeployd config.
-			var nodes []cluster.Node = []cluster.Node{cluster.Node{
-				Address:  m[api.ENDPOINT],
-				Metadata: m,
-			},
-			}
-			cluster, err = cluster.New(&cluster.MapStorage{}, nodes...)
-			nodlist, err := c.Nodes()
-
-		  if err != nil || len(nodlist) <= 0 {
-		 	 return err
-		  }*/
-	return nil
+func healthCheck() (interface{}, error) {
+	if !strings.Contains(mainOneProvisioner.String(), "ready") {
+		return nil, hc.ErrDisabledComponent
+	}
+	nodes, err := mainOneProvisioner.Cluster().Nodes()
+	if err != nil {
+		return nil, err
+	}
+	if len(nodes) < 1 {
+		return nil, errors.New("no nodes available for running vm")
+	}
+	return "one " + nodes[0].Address + " ready", nil
 }

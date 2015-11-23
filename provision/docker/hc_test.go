@@ -18,7 +18,7 @@ func (s *S) TestHealthCheckDocker(c *check.C) {
 	var err error
 	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.IsNil)
 	c.Assert(request.Method, check.Equals, "GET")
 	c.Assert(request.URL.Path, check.Equals, "/_ping")
@@ -39,7 +39,7 @@ func (s *S) TestHealthCheckDockerMultipleNodes(c *check.C) {
 	var err error
 	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server1.URL}, cluster.Node{Address: server2.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.IsNil)
 	c.Assert(request, check.NotNil)
 }
@@ -48,7 +48,7 @@ func (s *S) TestHealthCheckDockerNoNodes(c *check.C) {
 	var err error
 	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "error - no nodes available for running containers")
 }
@@ -62,7 +62,7 @@ func (s *S) TestHealthCheckDockerFailure(c *check.C) {
 	var err error
 	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "ping failed - API error (500): something went wrong")
 }
