@@ -8,12 +8,18 @@ import (
 	_ "github.com/megamsys/megamd/hc"
 )
 
-func healthcheck(w http.ResponseWriter, r *http.Request) error {
-	fullHealthcheck(w, r)
+func ping(w http.ResponseWriter, r *http.Request) error {
+	data, _ := json.MarshalIndent(fullHealthcheck(w, r), "", "  ")
+	err := pingTemplate.Execute(w, map[string]interface{}{
+		"data": string(data),
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func fullHealthcheck(w http.ResponseWriter, r *http.Request) {
+func fullHealthcheck(w http.ResponseWriter, r *http.Request) []hc.Result {
 	results := hc.Check()
 	status := http.StatusOK
 	for _, result := range results {
@@ -21,7 +27,6 @@ func fullHealthcheck(w http.ResponseWriter, r *http.Request) {
 			status = http.StatusInternalServerError
 		}
 	}
-	data, _ := json.MarshalIndent(results, "", "  ")
 	w.WriteHeader(status)
-	w.Write(data)
+	return results
 }

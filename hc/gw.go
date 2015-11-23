@@ -32,11 +32,10 @@ func healthCheckGW() (interface{}, error) {
 
 	v2URL := strings.TrimRight(api, "/")
 	response, err := http.Get(v2URL)
-	defer response.Body.Close()
-
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 	body, _ := ioutil.ReadAll(response.Body)
 	return mkGateway(body, api), nil
 

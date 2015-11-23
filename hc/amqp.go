@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	hc.AddChecker("amqp", healthCheckAMQP)
+	hc.AddChecker("megamd:amqp", healthCheckAMQP)
 }
 
 func healthCheckAMQP() (interface{}, error) {

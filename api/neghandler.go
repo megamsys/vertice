@@ -37,7 +37,7 @@ func NewNegHandler() *negroni.Negroni {
 
 	m.Add("Get", "/", Handler(index))
 	m.Add("Get", "/logs", Handler(logs))
-	m.Add("Get", "/ping", Handler(healthcheck))
+	m.Add("Get", "/ping", Handler(ping))
 	//we can use this as a single click Terminal launch for docker.
 	//m.Add("Get", "/apps/{appname}/shell", websocket.Handler(remoteShellHandler))
 	n := negroni.New()

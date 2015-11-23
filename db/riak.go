@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	hc.AddChecker("riak", healthCheck)
+	hc.AddChecker("megamd:riak", healthCheck)
 }
 
 func healthCheck() (interface{}, error) {
