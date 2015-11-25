@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.8.7-47-ga22723f",
-			"Rev": "a22723f16efea2e89b7bd67d10ed077c47c14eb4"
+			"Comment": "v0.8.7-49-gcdaedc6",
+			"Rev": "cdaedc68f2894175ac2b3221869685602c759e71"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -26,7 +26,7 @@
 		},
 		{
 			"ImportPath": "github.com/golang/protobuf/proto",
-			"Rev": "57346232f21afd1b0138cc10fbdd43c4d17e6c16"
+			"Rev": "02ac84f19cf2febf53ac06e7fbc446c1ea0258e3"
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
@@ -94,23 +94,23 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "ae07c8eef323c3902b320eb49901b04a38c33eb6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "ae07c8eef323c3902b320eb49901b04a38c33eb6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "ae07c8eef323c3902b320eb49901b04a38c33eb6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "ae07c8eef323c3902b320eb49901b04a38c33eb6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "1bb429d2a1c42747c1fc309c9f9c5eb3b734317e"
+			"Rev": "ae07c8eef323c3902b320eb49901b04a38c33eb6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -147,15 +147,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+			"Rev": "c745c36eab1034bceb7999c915ced45b1f99021f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/netutil",
-			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+			"Rev": "c745c36eab1034bceb7999c915ced45b1f99021f"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "4f2fc6c1e69d41baf187332ee08fbd2b296f21ed"
+			"Rev": "c745c36eab1034bceb7999c915ced45b1f99021f"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
