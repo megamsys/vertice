@@ -69,11 +69,11 @@ func Deploy(opts *DeployOpts) error {
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE {
-		if deployer, ok := Provisioner.(provision.ImageDeployer); ok {
+		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
-	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
+	return ProvisionerMap[opts.B.Provider].(provision.GitDeployer).GitDeploy(opts.B, writer)
 }
 
 // for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
