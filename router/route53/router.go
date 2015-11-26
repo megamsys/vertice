@@ -74,6 +74,7 @@ func (r route53Router) UnsetCName(cname string, ip string) error {
 	if err != nil {
 		return err
 	}
+	r.ip = ip
 
 	if err := r.createOrNuke(DELETE); err != nil {
 		return err

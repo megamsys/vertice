@@ -98,13 +98,14 @@ func (s *Service) Err() <-chan error { return s.err }
 //this is an array, a property provider helps to load the provider specific stuff
 func (s *Service) setProvisioner(pt string) error {
 	var err error
+	var tempProv provision.Provisioner
 
-	if carton.Provisioner, err = provision.Get(pt); err != nil {
+	if tempProv, err = provision.Get(pt); err != nil {
 		return err
 	}
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
 	var b map[string]string
-	if initializableProvisioner, ok := carton.Provisioner.(provision.InitializableProvisioner); ok {
+	if initializableProvisioner, ok := tempProv.(provision.InitializableProvisioner); ok {
 		err = initializableProvisioner.Initialize(s.Deployd.toMap(), b)
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
@@ -113,11 +114,12 @@ func (s *Service) setProvisioner(pt string) error {
 		}
 	}
 
-	if messageProvisioner, ok := carton.Provisioner.(provision.MessageProvisioner); ok {
+	if messageProvisioner, ok := tempProv.(provision.MessageProvisioner); ok {
 		startupMessage, err := messageProvisioner.StartupMessage()
 		if err == nil && startupMessage != "" {
 			log.Infof(startupMessage)
 		}
 	}
+	carton.ProvisionerMap[pt] = tempProv
 	return nil
 }

@@ -40,7 +40,7 @@ func ChangeState(opts *StateChangeOpts) error {
 
 func moveState(opts *StateChangeOpts, writer io.Writer) error {
 	if &opts.Changed != nil {
-		if changer, ok := Provisioner.(provision.StateChanger); ok {
+		if changer, ok := ProvisionerMap[opts.B.Provider].(provision.StateChanger); ok {
 			return changer.SetState(opts.B, writer, opts.Changed)
 		}
 	}

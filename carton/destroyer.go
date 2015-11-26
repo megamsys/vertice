@@ -21,7 +21,7 @@ func Destroy(opts *DestroyOpts) error {
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := Provisioner.Destroy(opts.B, writer)
+	err := ProvisionerMap[opts.B.Provider].Destroy(opts.B, writer)
 	elapsed := time.Since(start)
 	saveErr := saveDestroyedData(opts, outBuffer.String(), elapsed, err)
 	if saveErr != nil {

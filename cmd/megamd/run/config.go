@@ -25,7 +25,8 @@ func (c Config) String() string {
 		c.Deployd.String() + "\n" +
 		c.HTTPD.String() + "\n" +
 		c.Docker.String() + "\n" +
-		c.Bridges.String())
+		c.Bridges.String() + "\n" +
+		c.DNS.String())
 
 }
 
