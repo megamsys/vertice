@@ -18,13 +18,14 @@ package carton
 
 import (
 	"bytes"
+	"io"
+	"strings"
+	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
-	"io"
-	"strings"
-	"time"
 )
 
 const DOCKER_TYPE = "dockercontainer"
@@ -73,7 +74,10 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
-	return ProvisionerMap[opts.B.Provider].(provision.GitDeployer).GitDeploy(opts.B, writer)
+	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
+		return deployer.GitDeploy(opts.B, writer)
+	}
+	return "Deployed in zzz!", nil
 }
 
 // for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
