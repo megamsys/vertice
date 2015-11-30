@@ -18,6 +18,7 @@ package carton
 import (
 	"time"
 
+	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
@@ -51,6 +52,7 @@ type Component struct {
 	Tosca             string        `json:"tosca_type"`
 	Inputs            JsonPairs     `json:"inputs"`
 	Outputs           JsonPairs     `json:"outputs"`
+	Envs              JsonPairs     `json:"envs"`
 	Repo              Repo          `json:"repo"`
 	Artifacts         *Artifacts    `json:"artifacts"`
 	RelatedComponents []string      `json:"related_components"`
@@ -85,6 +87,7 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Level:      provision.BoxSome,
 		Name:       c.Name,
 		DomainName: c.domain(),
+		Envs:       c.envs(),
 		Tosca:      c.Tosca,
 		Commit:     "",
 		Provider:   c.provider(),
@@ -140,4 +143,14 @@ func (c *Component) provider() string {
 
 func (c *Component) publicIp() string {
 	return c.Outputs.match(PUBLICIP)
+}
+
+//all the variables in the inputs shall be treated as ENV.
+//we can use a filtered approach as well.
+func (c *Component) envs() []bind.EnvVar {
+	envs := make([]bind.EnvVar, 0, len(c.Envs))
+	for _, i := range c.Envs {
+		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
+	}
+	return envs
 }

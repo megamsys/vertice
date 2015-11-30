@@ -19,7 +19,6 @@ type Carton struct {
 	DomainName   string
 	Provider     string
 	PublicIp     string
-	Envs         []bind.EnvVar
 	Boxes        *[]provision.Box
 }
 
@@ -175,9 +174,4 @@ func (c *Carton) Restart() error {
 		}
 	}
 	return nil
-}
-
-// Envs returns a map representing the apps environment variables.
-func (c *Carton) GetEnvs() []bind.EnvVar {
-	return c.Envs
 }

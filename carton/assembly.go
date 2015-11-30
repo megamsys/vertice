@@ -21,7 +21,6 @@ import (
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
@@ -83,7 +82,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Name:         a.Name,
 		Tosca:        a.Tosca,
 		ImageVersion: a.imageVersion(),
-		Envs:         a.envs(),
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
 		Provider:     a.provider(),
@@ -198,16 +196,6 @@ func (a *Assembly) publicIp() string {
 
 func (a *Assembly) imageVersion() string {
 	return a.Inputs.match(IMAGE_VERSION)
-}
-
-//all the variables in the inputs shall be treated as ENV.
-//we can use a filtered approach as well.
-func (a *Assembly) envs() []bind.EnvVar {
-	envs := make([]bind.EnvVar, 0, len(a.Inputs))
-	for _, i := range a.Inputs {
-		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
-	}
-	return envs
 }
 
 func (a *Assembly) newCompute() provision.BoxCompute {
