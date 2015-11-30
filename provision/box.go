@@ -16,13 +16,15 @@
 package provision
 
 import (
-	"github.com/megamsys/megamd/repository"
-	"gopkg.in/yaml.v2"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/megamsys/megamd/carton/bind"
+	"github.com/megamsys/megamd/repository"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -125,6 +127,7 @@ type Box struct {
 	Provider     string
 	PublicIp     string
 	Commit       string
+	Envs         []bind.EnvVar
 	Address      *url.URL
 }
 
