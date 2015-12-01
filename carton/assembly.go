@@ -108,6 +108,9 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				if len(strings.TrimSpace(b.Provider)) <= 0 {
 					b.Provider = a.provider()
 				}
+				if len(strings.TrimSpace(b.PublicIp)) <= 0 {
+					b.PublicIp = a.publicIp()
+				}
 				if b.Repo.IsEnabled() {
 					b.Repo.Hook.CartonId = a.Id //this is screwy, why do we need it.
 					b.Repo.Hook.BoxId = comp.Id
