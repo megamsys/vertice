@@ -10,6 +10,7 @@ import (
 const (
 	DOCKER_NETWORK = "/docker/networks"
 	DOCKER_LOGS    = "/docker/logs"
+	HTTP = "http://"
 )
 
 type Gulp struct {
@@ -26,7 +27,7 @@ type DockerClient struct {
 }
 
 func (d *DockerClient) LogsRequest(url string, port string) error {
-	url = url + port + DOCKER_LOGS
+	url = HTTP + url + port + DOCKER_LOGS
 	err := request(d, url)
 	if err != nil {
 		return err
@@ -35,8 +36,7 @@ func (d *DockerClient) LogsRequest(url string, port string) error {
 }
 
 func (d *DockerClient) NetworkRequest(url string, port string) error {
-	url = "http://" + url + port + DOCKER_NETWORK
-	fmt.Println("NETOWRK REQUESTTTTTTTTTTTTT")
+	url = HTTP + url + port + DOCKER_NETWORK
 	err := request(d, url)
 	fmt.Println(err)
 	if err != nil {
@@ -49,7 +49,6 @@ func (d *DockerClient) NetworkRequest(url string, port string) error {
  * Request to gulp
  */
 func request(d *DockerClient, url string) error {
- fmt.Println("REQUESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
 	res, _ := json.Marshal(&d)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(res))
 	req.Header.Set("X-Custom-Header", "myvalue")
