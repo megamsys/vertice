@@ -72,7 +72,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 }
 
 func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, nodeAddress string) (*docker.Container, error) {
-	registryServer, _ := parseImageRegistry(opts.Config.Image)
+	registryServer,_ := parseImageRegistry(opts.Config.Image)
 	if registryServer != "" {
 		err := c.PullImage(docker.PullImageOptions{
 			Repository: opts.Config.Image,
@@ -312,10 +312,8 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 }
 
 func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string) error {
-
 	container := c.getContainerObject(containerId)
 	client := DockerClient{Bridge: gateway, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
-
 	err := client.NetworkRequest(container.Node.IP, c.gulp.Port)
 	if err != nil {
 		return err
