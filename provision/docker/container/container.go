@@ -253,12 +253,12 @@ type NetworkInfo struct {
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
 
-	ip, gateway, err := p.Cluster().GetIP() //gets the IP
+	ip, gateway, bridge, err := p.Cluster().GetIP() //gets the IP
 	if err != nil {
 		return netInfo, err
 	}
-	netInfo.IP = string(ip)
-	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway)
+	netInfo.IP = ip.String()
+	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge)
 	return netInfo, err
 }
 
