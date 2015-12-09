@@ -19,9 +19,8 @@ type Gulp struct {
 
 type DockerClient struct {
 	ContainerName string
-	ContainerID   string
-	Bridge        string
 	ContainerId   string
+	Bridge        string
 	IpAddr        string
 	Gateway       string
 }
