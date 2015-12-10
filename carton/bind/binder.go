@@ -19,6 +19,8 @@ import (
 	"fmt"
 )
 
+type EnvVars []*EnvVar
+
 // EnvVar represents a environment variable for a carton.
 type EnvVar struct {
 	Name  string

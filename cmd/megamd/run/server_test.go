@@ -77,6 +77,7 @@ func (s *S) TearDownSuite(c *check.C) {
 		}
 	}
 }
+
 /*
 func (s *S) TestServer(c *check.C) {
 	c.Assert(s.srv, check.NotNil)

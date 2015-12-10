@@ -307,7 +307,7 @@ func (p *oneProvisioner) getBuildImage(re *repository.Repo, version string) stri
 }
 
 func (p *oneProvisioner) usePlatformImage(re *repository.Repo) bool {
-	return !re.IsOneClick()
+	return !re.OneClick
 }
 
 func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {

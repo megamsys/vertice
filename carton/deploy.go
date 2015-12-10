@@ -69,7 +69,7 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
-	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE {
+	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
@@ -86,12 +86,8 @@ func image(b *provision.Box) string {
 	if b.Tosca[strings.LastIndex(b.Tosca, ".")+1:] == DOCKER_TYPE {
 		return b.Repo.URL
 	} else {
-		if b.Repo == nil {
-			img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
-			if len(strings.TrimSpace(b.ImageVersion)) > 1 {
-				return img + "_" + b.ImageVersion
-			}
-			return img
+		if b.Repo == nil || b.Repo.OneClick {
+			return repository.ForImageName(b.Tosca, b.ImageVersion)
 		}
 	}
 	return ""
