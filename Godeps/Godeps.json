@@ -46,7 +46,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "361d4c0ffd78338ebe0a9e6320cdbe115d7dc026"
+			"Rev": "844dd6d40e1a9215ef4c8a204bfc839fcf5dd5dd"
 		},
 		{
 			"ImportPath": "github.com/karlentwistle/route53",
@@ -58,39 +58,39 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/amqp",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "cf19b4b9d928941827d2189f7869dcce885ec873"
+			"Rev": "a66d15c63d1c4a0c3f0bd17d241207589f01b4a0"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
