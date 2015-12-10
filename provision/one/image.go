@@ -44,7 +44,6 @@ func listBoxImages(appName string) ([]string, error) {
 //list all the tosca images from marketplace and figure out if this is valid.
 func isValidBoxImage(appName, imageId string) (bool, error) {
 	images, err := listBoxImages(appName)
-
 	if err != nil {
 		return false, err
 	}
@@ -54,5 +53,4 @@ func isValidBoxImage(appName, imageId string) (bool, error) {
 		}
 	}
 	return (len(strings.TrimSpace(imageId)) > 0), nil
-
 }

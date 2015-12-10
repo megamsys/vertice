@@ -72,7 +72,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 }
 
 func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, nodeAddress string) (*docker.Container, error) {
-	registryServer,_ := parseImageRegistry(opts.Config.Image)
+	registryServer, _ := parseImageRegistry(opts.Config.Image)
 	if registryServer != "" {
 		err := c.PullImage(docker.PullImageOptions{
 			Repository: opts.Config.Image,
@@ -94,7 +94,6 @@ func (c *Cluster) GetIP() (net.IP, string, string, error) {
 	var gateway string
 	var ind uint
 	var bridge string
-
 
 	for _, b := range c.bridges {
 		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index

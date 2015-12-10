@@ -2,15 +2,15 @@ package cluster
 
 import (
 	"bytes"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
 const (
 	DOCKER_NETWORK = "/docker/networks"
 	DOCKER_LOGS    = "/docker/logs"
-	HTTP = "http://"
+	HTTP           = "http://"
 )
 
 type Gulp struct {
