@@ -20,7 +20,7 @@ func healthCheckAMQP() (interface{}, error) {
 	defer pq.Close()
 	err = pq.Connect()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err = pq.Pub([]byte(`{"megamoja": "ping success"}`)); err != nil {
 		return nil, err
