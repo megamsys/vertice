@@ -78,12 +78,12 @@ func (s *S) TearDownSuite(c *check.C) {
 	}
 }
 
-func (s *S) TestServer(c *check.C) {
+/*func (s *S) TestServer(c *check.C) {
 	c.Assert(s.srv, check.NotNil)
 	c.Assert(s.cf, check.NotNil)
 	ss := *s.srv
 	c.Assert(ss.Services, check.HasLen, 2)
-}
+}*/
 
 // URL returns the base URL for the httpd endpoint.
 
