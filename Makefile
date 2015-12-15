@@ -80,7 +80,7 @@ _go_test:
 
 _megamd:
 	rm -f megamd
-	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date -u --iso-8601=seconds)"  -o megamd ./cmd/megamd
+	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z)"  -o megamd ./cmd/megamd
 
 
 _megamdr:

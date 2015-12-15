@@ -16,6 +16,7 @@
 package carton
 
 import (
+	"strings"
 	"time"
 
 	"github.com/megamsys/megamd/carton/bind"
@@ -28,8 +29,10 @@ import (
 const (
 	DOMAIN        = "domain"
 	PUBLICIP      = "publicip"
+	PRIVATEIP     = "privateip"
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
+	ONECLICK      = "oneclick"
 )
 
 type Artifacts struct {
@@ -93,11 +96,12 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
+
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
 			Source:   c.Repo.Source,
-			OneClick: c.Repo.Oneclick,
+			OneClick: c.withOneClick(),
 			URL:      c.Repo.Rurl,
 		}
 		bt.Repo.Hook = BuildHook(c.Operations, repository.CIHOOK)
@@ -143,6 +147,10 @@ func (c *Component) provider() string {
 
 func (c *Component) publicIp() string {
 	return c.Outputs.match(PUBLICIP)
+}
+
+func (c *Component) withOneClick() bool {
+	return (len(strings.TrimSpace(c.Envs.match(ONECLICK))) > 0)
 }
 
 //all the variables in the inputs shall be treated as ENV.

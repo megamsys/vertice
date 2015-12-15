@@ -57,6 +57,11 @@ func notify(boxName string, messages []interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer pubSubQ.Close()
+	err = pubSubQ.Connect()
+	if err != nil {
+		return err
+	}
 
 	for _, msg := range messages {
 		bytes, err := json.Marshal(msg)
@@ -69,5 +74,6 @@ func notify(boxName string, messages []interface{}) error {
 			log.Errorf("Error on logs notify: %s", err.Error())
 		}
 	}
+
 	return nil
 }

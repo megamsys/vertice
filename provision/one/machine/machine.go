@@ -103,7 +103,11 @@ func (m *Machine) ChangeState(status provision.Status) error {
 	if err != nil {
 		return err
 	}
-
+	defer p.Close()
+	err = p.Connect()
+	if err != nil {
+		return err
+	}
 	jsonMsg, err := json.Marshal(
 		carton.Requests{
 			CatId:     m.CartonId,
