@@ -10,7 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/amqp"
 	"github.com/megamsys/megamd/carton"
-	"github.com/megamsys/megamd/meta"
+	//"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/one/cluster"
 	"github.com/megamsys/opennebula-go/compute"
@@ -99,7 +99,7 @@ func (m *Machine) SetStatus(status provision.Status) error {
 func (m *Machine) ChangeState(status provision.Status) error {
 	log.Debugf("  change state of machine (%s, %s)", m.Name, status.String())
 
-	p, err := amqp.NewRabbitMQ(meta.MC.AMQP, m.Name)
+	p, err := amqp.NewRabbitMQ("amqp.go.com", m.Name)
 	if err != nil {
 		return err
 	}

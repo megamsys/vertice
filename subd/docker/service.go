@@ -2,26 +2,30 @@ package docker
 
 import (
 	"fmt"
+	"sync"
+
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/libgo/amqp"
+	nsq "github.com/crackcomm/nsqueue/consumer"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
-	"sync"
 )
 
-const QUEUE = "dockerup"
+const (
+	TOPIC       = "containers"
+	maxInFlight = 150
+)
 
 // Service manages the listener and handler for an HTTP endpoint.
 type Service struct {
-	wg      sync.WaitGroup
-	err     chan error
-	Handler *Handler
-
-	Meta    *meta.Config
-	Dockerd *Config
-	Bridges *Bridges
+	wg       sync.WaitGroup
+	err      chan error
+	Handler  *Handler
+	Consumer *nsq.Consumer
+	Meta     *meta.Config
+	Dockerd  *Config
+	Bridges  *Bridges
 }
 
 // NewService returns a new instance of Service.
@@ -38,52 +42,45 @@ func NewService(c *meta.Config, d *Config, b *Bridges) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
-	log.Info("starting dockerd service")
-
-	p, err := amqp.NewRabbitMQ(s.Meta.AMQP, QUEUE)
-	if err != nil {
-		return err
-	}
-
-	if swt, err := p.Sub(); err != nil {
-		return err
-	} else {
-		if err = s.setProvisioner(provision.PROVIDER_DOCKER); err != nil {
+	go func() error {
+		log.Info("starting dockerd service")
+		if err := nsq.Register(TOPIC, "engine", maxInFlight, s.processNSQ); err != nil {
 			return err
 		}
-		go s.processQueue(swt)
-	}
+		if err := nsq.Connect(s.Meta.NSQd...); err != nil {
+			return err
+		}
+		s.Consumer = nsq.DefaultConsumer
 
+		if err := s.setProvisioner(provision.PROVIDER_DOCKER); err != nil {
+			return err
+		}
+		nsq.Start(true)
+		return nil
+	}()
 	return nil
 }
 
-// processQueue continually drains the given queue  and processes the payload
-// to the appropriate request process operators.
-func (s *Service) processQueue(drain chan []byte) error {
-	//defer s.wg.Done()
-	for raw := range drain {
-		p, err := carton.NewPayload(raw)
-		if err != nil {
-			return err
-		}
-
-		re, err := p.Convert()
-		if err != nil {
-			return err
-		}
-		go s.Handler.serveAMQP(re)
+func (s *Service) processNSQ(msg *nsq.Message) {
+	p, err := carton.NewPayload(msg.Body)
+	if err != nil {
+		return
 	}
-	return nil
+
+	re, err := p.Convert()
+	if err != nil {
+		return
+	}
+	go s.Handler.serveNSQ(re)
+	return
 }
 
 // Close closes the underlying subscribe channel.
 func (s *Service) Close() error {
-	/*save the subscribe channel and close it.
-	  don't know if the amqp has Close method ?
-	  	if s.chn != nil {
-	  		return s.chn.Close()
-	  	}
-	*/
+	if s.Consumer != nil {
+		s.Consumer.Stop()
+	}
+
 	s.wg.Wait()
 	return nil
 }

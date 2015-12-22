@@ -14,7 +14,7 @@ func NewHandler(c *Config) *Handler {
 
 }
 
-func (h *Handler) serveAMQP(r *carton.Requests) error {
+func (h *Handler) serveNSQ(r *carton.Requests) error {
 	p, err := carton.ParseRequest(r.CatId, r.Category, r.Action)
 	if err != nil {
 		return err
