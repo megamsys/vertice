@@ -8,9 +8,9 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/libgo/amqp"
+	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/megamd/carton"
-	//"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/one/cluster"
 	"github.com/megamsys/opennebula-go/compute"
@@ -39,7 +39,7 @@ type CreateArgs struct {
 }
 
 func (m *Machine) Create(args *CreateArgs) error {
-	log.Debugf("  creating machine in one (%s, %s)", m.Name, m.Image)
+	log.Infof("  creating machine in one (%s, %s)", m.Name, m.Image)
 
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
@@ -99,16 +99,12 @@ func (m *Machine) SetStatus(status provision.Status) error {
 func (m *Machine) ChangeState(status provision.Status) error {
 	log.Debugf("  change state of machine (%s, %s)", m.Name, status.String())
 
-	p, err := amqp.NewRabbitMQ("amqp.go.com", m.Name)
-	if err != nil {
+	pons := nsqp.New()
+	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
 		return err
 	}
-	defer p.Close()
-	err = p.Connect()
-	if err != nil {
-		return err
-	}
-	jsonMsg, err := json.Marshal(
+
+	bytes, err := json.Marshal(
 		carton.Requests{
 			CatId:     m.CartonId,
 			Action:    status.String(),
@@ -119,13 +115,15 @@ func (m *Machine) ChangeState(status provision.Status) error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("  pub to machine (%s, %s)", m.Name, jsonMsg)
 
-	if err := p.Pub(jsonMsg); err != nil {
+	log.Debugf("  pub to machine (%s, %s)", m.Name, bytes)
+
+	if err = pons.PublishAsync(m.Name, bytes, nil); err != nil {
 		return err
 	}
-	return nil
 
+	defer pons.Stop()
+	return nil
 }
 
 //if there is a file or something to be created, do it here.
