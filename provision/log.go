@@ -65,21 +65,17 @@ func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 func notify(boxName string, messages []interface{}) error {
 	log.Debugf("  notify %s", logQueue(boxName))
 	pons := nsqp.New()
+
 	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
 		return err
 	}
 
-	for _, msg := range messages {
-		bytes, err := json.Marshal(msg)
-		if err != nil {
-			log.Errorf("Error on logs notify: %s", err.Error())
-			continue
-		}
+	defer pons.Stop()
 
-		if err = pons.PublishAsync(logQueue(boxName), bytes, nil); err != nil {
-			log.Errorf("Error on logs notify: %s", err.Error())
+	for _, msg := range messages {
+		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
+			log.Errorf("Error on publish: %s", err.Error())
 		}
 	}
-	defer pons.Stop()
 	return nil
 }

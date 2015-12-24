@@ -185,7 +185,7 @@ func (box *Box) Log(message, source, unit string) error {
 	messages := strings.Split(message, "\n")
 	logs := make([]interface{}, 0, len(messages))
 	for _, msg := range messages {
-		if msg != "" {
+		if len(strings.TrimSpace(msg)) > 0 {
 			bl := Boxlog{
 				Timestamp: time.Now().In(time.UTC),
 				Message:   msg,

@@ -118,7 +118,7 @@ func (m *Machine) ChangeState(status provision.Status) error {
 
 	log.Debugf("  pub to machine (%s, %s)", m.Name, bytes)
 
-	if err = pons.PublishAsync(m.Name, bytes, nil); err != nil {
+	if err = pons.Publish(m.Name, bytes); err != nil {
 		return err
 	}
 
