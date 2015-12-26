@@ -46,7 +46,7 @@ type BoxLevel int
 
 // Boxlog represents a log entry.
 type Boxlog struct {
-	Timestamp time.Time
+	Timestamp string
 	Message   string
 	Source    string
 	Name      string
@@ -187,7 +187,7 @@ func (box *Box) Log(message, source, unit string) error {
 	for _, msg := range messages {
 		if len(strings.TrimSpace(msg)) > 0 {
 			bl := Boxlog{
-				Timestamp: time.Now().In(time.UTC),
+				Timestamp: time.Now().Local().Format(time.RFC822),
 				Message:   msg,
 				Source:    source,
 				Name:      box.Name,
