@@ -71,7 +71,7 @@ func remoteShellHandler(ws *websocket.Conn) {
 		Unit:   boxId,
 		Term:   term,
 	}
-	err = carton.Provisioner.Shell(opts) //BUG: we need get the provisioner of the correct provider
+	err = carton.ProvisionerMap[box.Provider].Shell(opts) //BUG: we need get the provisioner of the correct provider
 	if err != nil {
 		httpErr = &errors.HTTP{
 			Code:    http.StatusInternalServerError,
@@ -80,7 +80,7 @@ func remoteShellHandler(ws *websocket.Conn) {
 	}
 }
 
-//Return the Box object ?  Get the corton, and make a Box
+//Return the Box object ?  Get the carton, and make a Box
 func getBox(a string) (*provision.Box, error) {
 	return nil, nil
 }

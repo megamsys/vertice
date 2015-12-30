@@ -6,14 +6,13 @@ import (
 	"net"
 	"net/url"
 	"time"
-//	"encoding/json"
+	//	"encoding/json"
 	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/megamd/carton"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/provision/docker/cluster"
-
 )
 
 const (
@@ -135,7 +134,7 @@ func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
 func (c *Container) Remove(p DockerProvisioner) error {
 	log.Debugf("Removing container %s from docker", c.BoxName)
 
-  //this will be removed. containerID will be stored upon create in riak
+	//this will be removed. containerID will be stored upon create in riak
 	id, _ := p.Cluster().PreStopAction(c.BoxName)
 	c.Id = id
 	err := c.Stop(p)
@@ -189,7 +188,6 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	c.SetStatus(provision.StatusStopped)
 	return nil
 }
-
 
 type waitResult struct {
 	status int
@@ -255,23 +253,22 @@ type NetworkInfo struct {
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
 
-  ip, gateway, err := p.Cluster().GetIP() //gets the IP
+	ip, gateway, bridge, err := p.Cluster().GetIP() //gets the IP
 	if err != nil {
 		return netInfo, err
 	}
-	netInfo.IP = string(ip)
-		err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway)
+	netInfo.IP = ip.String()
+	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge)
 	return netInfo, err
 }
 
-
 func (c *Container) Logs(p DockerProvisioner) (int, error) {
 
-err := p.Cluster().SetLogs(c.Id, c.BoxName)
-if err != nil {
-	return 1, err
-}
-return 0, nil
+	err := p.Cluster().SetLogs(c.Id, c.BoxName)
+	if err != nil {
+		return 1, err
+	}
+	return 0, nil
 
 }
 

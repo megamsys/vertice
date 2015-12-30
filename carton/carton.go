@@ -19,7 +19,6 @@ type Carton struct {
 	DomainName   string
 	Provider     string
 	PublicIp     string
-	Envs         []bind.EnvVar
 	Boxes        *[]provision.Box
 }
 
@@ -31,10 +30,8 @@ func (a *Carton) String() string {
 	}
 }
 
-//A global provisioner set by the subd daemon.
-//A BUG, the Provisioner can't be a global variable as
-//this will be overwritten if multiple subd daemons set something.
-var Provisioner provision.Provisioner
+//Global provisioners set by the subd daemons.
+var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
 //If there are boxes, then it set the enum BoxSome or its BoxZero
 func (c *Carton) lvl() provision.BoxLevel {
@@ -144,7 +141,7 @@ func (c *Carton) Available() bool {
 // changing the boxes state to StatusStarted.
 func (c *Carton) Start() error {
 	for _, box := range *c.Boxes {
-		err := Provisioner.Start(&box, "", nil)
+		err := ProvisionerMap[box.Provider].Start(&box, "", nil)
 		if err != nil {
 			log.Errorf("Unable to start the box  %s", err)
 			return err
@@ -157,7 +154,7 @@ func (c *Carton) Start() error {
 // changing the boxes state to StatusStopped.
 func (c *Carton) Stop() error {
 	for _, box := range *c.Boxes {
-		err := Provisioner.Stop(&box, "", nil)
+		err := ProvisionerMap[box.Provider].Stop(&box, "", nil)
 		if err != nil {
 			log.Errorf("Unable to stop the box %s", err)
 			return err
@@ -170,16 +167,11 @@ func (c *Carton) Stop() error {
 // changing the boxes state to StatusStarted.
 func (c *Carton) Restart() error {
 	for _, box := range *c.Boxes {
-		err := Provisioner.Restart(&box, "", nil)
+		err := ProvisionerMap[box.Provider].Restart(&box, "", nil)
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err
 		}
 	}
 	return nil
-}
-
-// Envs returns a map representing the apps environment variables.
-func (c *Carton) GetEnvs() []bind.EnvVar {
-	return c.Envs
 }

@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/codegangsta/negroni"
 	"net/http"
-	//	"golang.org/x/net/websocket"
+
+	"github.com/codegangsta/negroni"
 	"github.com/rs/cors"
 )
 
@@ -26,7 +26,6 @@ func RegisterHandler(path string, method string, h http.Handler) {
 
 // RunServer starts megamd httpd server.
 func NewNegHandler() *negroni.Negroni {
-
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
 	})
@@ -38,9 +37,9 @@ func NewNegHandler() *negroni.Negroni {
 
 	m.Add("Get", "/", Handler(index))
 	m.Add("Get", "/logs", Handler(logs))
+	m.Add("Get", "/ping", Handler(ping))
 	//we can use this as a single click Terminal launch for docker.
 	//m.Add("Get", "/apps/{appname}/shell", websocket.Handler(remoteShellHandler))
-
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
 	n.Use(c)

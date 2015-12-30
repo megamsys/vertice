@@ -1,31 +1,12 @@
-/*
-** Copyright [2013-2015] [Megam Systems]
-**
-** Licensed under the Apache License, Version 2.0 (the "License");
-** you may not use this file except in compliance with the License.
-** You may obtain a copy of the License at
-**
-** http://www.apache.org/licenses/LICENSE-2.0
-**
-** Unless required by applicable law or agreed to in writing, software
-** distributed under the License is distributed on an "AS IS" BASIS,
-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-** See the License for the specific language governing permissions and
-** limitations under the License.
- */
-
-package one
+package docker
 
 import (
-/*	"net/http"
+	"net/http"
 	"net/http/httptest"
-	"net/url"
 
-	"github.com/megamsys/libgo/hc"
-	"gopkg.in/check.v1"*/
+	"github.com/megamsys/megamd/provision/docker/cluster"
+	"gopkg.in/check.v1"
 )
-
-/*
 
 func (s *S) TestHealthCheckDocker(c *check.C) {
 	var request *http.Request
@@ -35,9 +16,9 @@ func (s *S) TestHealthCheckDocker(c *check.C) {
 	}))
 	defer server.Close()
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(nil, &cluster.MapStorage{}, cluster.Node{Address: server.URL})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.IsNil)
 	c.Assert(request.Method, check.Equals, "GET")
 	c.Assert(request.URL.Path, check.Equals, "/_ping")
@@ -56,19 +37,18 @@ func (s *S) TestHealthCheckDockerMultipleNodes(c *check.C) {
 	}))
 	defer server2.Close()
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(nil, &cluster.MapStorage{},
-		cluster.Node{Address: server1.URL}, cluster.Node{Address: server2.URL})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server1.URL}, cluster.Node{Address: server2.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
-	c.Assert(err, check.Equals, hc.ErrDisabledComponent)
-	c.Assert(request, check.IsNil)
+	_, err = healthCheckDocker()
+	c.Assert(err, check.IsNil)
+	c.Assert(request, check.NotNil)
 }
 
 func (s *S) TestHealthCheckDockerNoNodes(c *check.C) {
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(nil, &cluster.MapStorage{})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "error - no nodes available for running containers")
 }
@@ -80,10 +60,9 @@ func (s *S) TestHealthCheckDockerFailure(c *check.C) {
 	}))
 	defer server.Close()
 	var err error
-	mainDockerProvisioner.cluster, err = cluster.New(nil, &cluster.MapStorage{}, cluster.Node{Address: server.URL})
+	mainDockerProvisioner.cluster, err = cluster.New(&cluster.MapStorage{}, cluster.Gulp{}, []cluster.Bridge{}, cluster.Node{Address: server.URL})
 	c.Assert(err, check.IsNil)
-	err = healthCheckDocker()
+	_, err = healthCheckDocker()
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "ping failed - API error (500): something went wrong")
 }
-*/

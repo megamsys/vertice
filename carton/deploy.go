@@ -21,6 +21,7 @@ import (
 	"io"
 	"strings"
 	"time"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
@@ -68,12 +69,15 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
-	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE {
-		if deployer, ok := Provisioner.(provision.ImageDeployer); ok {
+	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
+		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
-	return Provisioner.(provision.GitDeployer).GitDeploy(opts.B, writer)
+	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
+		return deployer.GitDeploy(opts.B, writer)
+	}
+	return "Deployed in zzz!", nil
 }
 
 // for a vm provisioner return the last name (tosca.torpedo.ubuntu) ubuntu as the image name.
@@ -82,14 +86,10 @@ func image(b *provision.Box) string {
 	if b.Tosca[strings.LastIndex(b.Tosca, ".")+1:] == DOCKER_TYPE {
 		return b.Repo.URL
 	} else {
-	if b.Repo == nil {
-		img := b.Tosca[strings.LastIndex(b.Tosca, ".")+1:]
-		if len(strings.TrimSpace(b.ImageVersion)) > 1 {
-			return img + "_" + b.ImageVersion
+		if b.Repo == nil || b.Repo.OneClick {
+			return repository.ForImageName(b.Tosca, b.ImageVersion)
 		}
-		return img
 	}
-}
 	return ""
 }
 

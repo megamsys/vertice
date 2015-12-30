@@ -67,6 +67,7 @@ bzr:
 	$(if $(shell bzr), , $(error $(BZR_ERROR)))
 
 get-code:
+	rm -rf ~/.go
 	go get $(GO_EXTRAFLAGS) -u -d -t -insecure ./...
 
 godep:
@@ -79,15 +80,12 @@ _go_test:
 
 _megamd:
 	rm -f megamd
-	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date -u --iso-8601=seconds)"  -o megamd ./cmd/megamd
+	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z)"  -o megamd ./cmd/megamd
 
 
 _megamdr:
-	sudo ./megamd start --config conf/megamd.conf
-	rm -f megamd
+	./megamd -v start --config conf/megamd.conf
 
-_sh_tests:
-	@conf/trusty/megam/megam_test.sh
 
 test: _go_test _megamd _megamdr
 

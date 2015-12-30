@@ -89,10 +89,11 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
 
-func (c *Cluster) GetIP() (net.IP, string, error) {
+func (c *Cluster) GetIP() (net.IP, string, string, error) {
 	var ip net.IP
 	var gateway string
 	var ind uint
+	var bridge string
 
 	for _, b := range c.bridges {
 		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
@@ -100,9 +101,10 @@ func (c *Cluster) GetIP() (net.IP, string, error) {
 		_, subnet, _ := net.ParseCIDR(b.Network)
 		ip = b.IPRequest(subnet, ind)
 		gateway = b.Gateway
+		bridge = b.Name
 		ind += 1
 	}
-	return ip, gateway, nil
+	return ip, gateway, bridge, nil
 }
 
 // InspectContainer returns information about a container by its ID, getting
@@ -311,11 +313,9 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	})
 }
 
-func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string) error {
-
+func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string) error {
 	container := c.getContainerObject(containerId)
-	client := DockerClient{Bridge: gateway, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
-
+	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
 	err := client.NetworkRequest(container.Node.IP, c.gulp.Port)
 	if err != nil {
 		return err
@@ -325,7 +325,7 @@ func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string
 
 func (c *Cluster) SetLogs(containerId string, containerName string) error {
 	container := c.getContainerObject(containerId)
-	client := DockerClient{ContainerID: containerId, ContainerName: containerName}
+	client := DockerClient{ContainerId: containerId, ContainerName: containerName}
 	client.LogsRequest(container.Node.IP, c.gulp.Port)
 	return nil
 }

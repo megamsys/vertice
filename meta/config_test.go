@@ -10,19 +10,14 @@ func (s *S) TestMetaConfig_Parse(c *check.C) {
 	// Parse configuration.
 	var cm Config
 	if _, err := toml.Decode(`
-debug = true
-hostname = "localhost"
-bind_address = ":9999"
 dir = "/var/lib/megam/megamd/meta"
+api = "https://console.megam.io"
 riak = ["192.168.1.100:8087"]
-api  = "https://api.megam.io/v2"
-amqp = "amqp://guest:guest@192.168.1.100:5672/"
+nsqd = ["localhost:4150"]
 `, &cm); err != nil {
 		c.Fatal(err)
 	}
-
-	c.Assert(cm.Hostname, check.Equals, "localhost")
-	//	c.Assert(cm.Riak, check.Equals, "192.168.1.100:8087")
-	c.Assert(cm.Api, check.Equals, "https://api.megam.io/v2")
+	c.Assert(cm.Api, check.Equals, "https://console.megam.io")
+	c.Assert(cm.NSQd, check.DeepEquals, []string{"localhost:4150"})
 
 }

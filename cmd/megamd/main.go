@@ -25,22 +25,18 @@ import (
 
 // These variables are populated via the Go linker.
 var (
-	version string = "0.9"
+	version string = "0.9.2"
 	date    string
-	commit  string = "01"
-	branch  string = "master"
+	commit  string
 )
 
 func init() {
-	// Output to stderr instead of stdout, could also be a file.
 	log.SetOutput(os.Stdout)
-	log.SetLevel(log.DebugLevel)
-
 }
 
 // Only log debug level when the -v flag is passed.
 func cmdRegistry(name string) *cmd.Manager {
-	m := cmd.BuildBaseManager(name, version+"-"+date, nil, func(modelvl int) {
+	m := cmd.BuildBaseManager(name, version+"  "+date, nil, func(modelvl int) {
 		if modelvl >= 1 {
 			log.SetLevel(log.DebugLevel)
 		}

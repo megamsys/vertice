@@ -16,13 +16,15 @@
 package provision
 
 import (
-	"github.com/megamsys/megamd/repository"
-	"gopkg.in/yaml.v2"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/megamsys/megamd/carton/bind"
+	"github.com/megamsys/megamd/repository"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -44,7 +46,7 @@ type BoxLevel int
 
 // Boxlog represents a log entry.
 type Boxlog struct {
-	Timestamp time.Time
+	Timestamp string
 	Message   string
 	Source    string
 	Name      string
@@ -125,6 +127,7 @@ type Box struct {
 	Provider     string
 	PublicIp     string
 	Commit       string
+	Envs         []bind.EnvVar
 	Address      *url.URL
 }
 
@@ -182,9 +185,9 @@ func (box *Box) Log(message, source, unit string) error {
 	messages := strings.Split(message, "\n")
 	logs := make([]interface{}, 0, len(messages))
 	for _, msg := range messages {
-		if msg != "" {
+		if len(strings.TrimSpace(msg)) > 0 {
 			bl := Boxlog{
-				Timestamp: time.Now().In(time.UTC),
+				Timestamp: time.Now().Local().Format(time.RFC822),
 				Message:   msg,
 				Source:    source,
 				Name:      box.Name,

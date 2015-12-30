@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/megamsys/libgo/cmd"
@@ -23,12 +24,14 @@ func logs(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	messageType, p, err := conn.ReadMessage()
-	var entry provision.Box
 
-	_ = json.Unmarshal(p, &entry)
 	if err != nil {
 		return err
 	}
+
+	var entry provision.Box
+
+	_ = json.Unmarshal(p, &entry)
 
 	l, _ := provision.NewLogListener(&entry)
 
@@ -36,7 +39,7 @@ func logs(w http.ResponseWriter, r *http.Request) error {
 		if _, _, err := conn.NextReader(); err != nil {
 			conn.Close()
 			l.Close()
-			log.Debugf(cmd.Colorfy("  > [amqp] unsub   ", "blue", "", "bold") + fmt.Sprintf("Unsubscribing from the Queue"))
+			log.Debugf(cmd.Colorfy("  > [nsqd] unsub   ", "blue", "", "bold") + fmt.Sprintf("Unsubscribing from the Queue"))
 		}
 	}()
 

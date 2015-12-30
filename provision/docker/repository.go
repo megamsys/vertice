@@ -24,9 +24,8 @@ func (p *dockerProvisioner) listContainersByBox(box *provision.Box) ([]container
 	//do a query on the name to riak, and call GetContainerByBox(box)
 	//
 
-
 	//This is a temporary hack - sending []container.Container to assign n workers
-	nx,_ := p.GetContainerByBox(box)
-  list[0]	 =  *nx
+	nx, _ := p.GetContainerByBox(box)
+	list[0] = *nx
 	return list, nil
 }

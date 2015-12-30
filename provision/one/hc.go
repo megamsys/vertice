@@ -17,42 +17,25 @@
 package one
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"regexp"
-	"strings"
-
+	"errors"
 	"github.com/megamsys/libgo/hc"
+	"strings"
 )
 
-var httpRegexp = regexp.MustCompile(`^https?://`)
-
 func init() {
-	hc.AddChecker("one", healthCheckOne)
+	hc.AddChecker("megamd:one", healthCheck)
 }
 
-func healthCheckOne() error {
-	onerpc := "http://192.168.1.100/xmlrpc" //We need to hookup deployd.OneEndPoint
-	if onerpc == "" {
-		return hc.ErrDisabledComponent
+func healthCheck() (interface{}, error) {
+	if !strings.Contains(mainOneProvisioner.String(), "ready") {
+		return nil, hc.ErrDisabledComponent
 	}
-	if !httpRegexp.MatchString(onerpc) {
-		onerpc = "http://" + onerpc
-	}
-	onerpc = strings.TrimRight(onerpc, "/")
-	resp, err := http.Get(onerpc)
+	nodes, err := mainOneProvisioner.Cluster().Nodes()
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
+	if len(nodes) < 1 {
+		return nil, errors.New("no nodes available for running vm")
 	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status - %s", body)
-	}
-	return nil
+	return "one " + nodes[0].Address + " ready", nil
 }

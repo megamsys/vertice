@@ -19,7 +19,6 @@ func init() {
 	router.Register(routerName, createRouter)
 }
 
-
 type route53Router struct {
 	cname  string
 	ip     string
@@ -27,9 +26,6 @@ type route53Router struct {
 	zone   *route53.HostedZone
 	choped string
 }
-
-
-
 
 func createRouter(name string) (router.Router, error) {
 	vRouter := route53Router{
@@ -78,6 +74,7 @@ func (r route53Router) UnsetCName(cname string, ip string) error {
 	if err != nil {
 		return err
 	}
+	r.ip = ip
 
 	if err := r.createOrNuke(DELETE); err != nil {
 		return err

@@ -16,8 +16,10 @@
 package carton
 
 import (
+	"strings"
 	"time"
 
+	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
 	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/megamd/repository"
@@ -27,8 +29,10 @@ import (
 const (
 	DOMAIN        = "domain"
 	PUBLICIP      = "publicip"
+	PRIVATEIP     = "privateip"
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
+	ONECLICK      = "oneclick"
 )
 
 type Artifacts struct {
@@ -51,6 +55,7 @@ type Component struct {
 	Tosca             string        `json:"tosca_type"`
 	Inputs            JsonPairs     `json:"inputs"`
 	Outputs           JsonPairs     `json:"outputs"`
+	Envs              JsonPairs     `json:"envs"`
 	Repo              Repo          `json:"repo"`
 	Artifacts         *Artifacts    `json:"artifacts"`
 	RelatedComponents []string      `json:"related_components"`
@@ -85,16 +90,18 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Level:      provision.BoxSome,
 		Name:       c.Name,
 		DomainName: c.domain(),
+		Envs:       c.envs(),
 		Tosca:      c.Tosca,
 		Commit:     "",
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
+
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
 			Source:   c.Repo.Source,
-			OneClick: c.Repo.Oneclick,
+			OneClick: c.withOneClick(),
 			URL:      c.Repo.Rurl,
 		}
 		bt.Repo.Hook = BuildHook(c.Operations, repository.CIHOOK)
@@ -140,4 +147,18 @@ func (c *Component) provider() string {
 
 func (c *Component) publicIp() string {
 	return c.Outputs.match(PUBLICIP)
+}
+
+func (c *Component) withOneClick() bool {
+	return (len(strings.TrimSpace(c.Envs.match(ONECLICK))) > 0)
+}
+
+//all the variables in the inputs shall be treated as ENV.
+//we can use a filtered approach as well.
+func (c *Component) envs() []bind.EnvVar {
+	envs := make([]bind.EnvVar, 0, len(c.Envs))
+	for _, i := range c.Envs {
+		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
+	}
+	return envs
 }

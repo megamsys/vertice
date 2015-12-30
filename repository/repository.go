@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/megamsys/megamd/meta"
@@ -36,7 +35,7 @@ var managers map[string]RepositoryManager
 type Repo struct {
 	Type     string
 	Source   string
-	OneClick string
+	OneClick bool
 	URL      string
 	Hook     *Hook
 }
@@ -57,11 +56,6 @@ func (r Repo) GetSource() string {
 	return r.Source
 }
 
-func (r Repo) IsOneClick() bool {
-	enabled, _ := strconv.ParseBool(r.OneClick)
-	return enabled
-}
-
 func (r Repo) Gitr() string {
 	return r.URL
 }
@@ -80,7 +74,6 @@ func (r Repo) GetUserName() string {
 
 func (r Repo) Trigger() string {
 	//do a check on CartonId, BoxId and send back an exception ?
-
 	return meta.MC.Api + "/assembly/build/" + r.Hook.CartonId + "/" + r.Hook.BoxId
 }
 
@@ -90,6 +83,15 @@ func (r Repo) GetShortName() (string, error) {
 		return "", fmt.Errorf("unable to parse output of git")
 	}
 	return strings.TrimRight(r.Gitr()[i+1:], ".git"), nil
+}
+
+//This shall be under type Tosca {} and a global method
+func ForImageName(fullTosca string, version string) string {
+	img := fullTosca[strings.LastIndex(fullTosca, ".")+1:]
+	if len(strings.TrimSpace(version)) > 1 {
+		return img + "_" + version
+	}
+	return img
 }
 
 type Repository interface {

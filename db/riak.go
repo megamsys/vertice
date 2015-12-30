@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/db"
@@ -10,16 +11,16 @@ import (
 )
 
 func init() {
-	hc.AddChecker("Riak", healthCheck)
+	hc.AddChecker("megamd:riak", healthCheck)
 }
 
-func healthCheck() error {
+func healthCheck() (interface{}, error) {
 	conn, err := newConn("test")
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer conn.Close()
-	return nil
+	return fmt.Sprintf("%s up", meta.MC.Riak), nil
 }
 
 //A global function which helps to avoid passing config of riak everywhere.
@@ -67,7 +68,7 @@ func Delete(bkt string, key string) error {
 		return err
 	}
 	defer s.Close()
-	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] delee", "blue", "", "bold"), bkt, key)
+	log.Debugf("%s (%s, %s)", cmd.Colorfy("  > [riak] delete", "blue", "", "bold"), bkt, key)
 
 	if err = s.DeleteObject(key); err != nil {
 		return err

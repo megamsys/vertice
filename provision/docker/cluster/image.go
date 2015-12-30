@@ -75,11 +75,9 @@ func (c *Cluster) removeImage(name string, ignoreLast bool) error {
 }
 
 func parseImageRegistry(imageId string) (string, string) {
+	//tighten this when we add private registry(s)
 	parts := strings.SplitN(imageId, "/", 3)
-	if len(parts) < 3 {
-		return "", strings.Join(parts, "/")
-	}
-	return parts[0], strings.Join(parts[1:], "/")
+	return imageId, strings.Join(parts[1:], "/")
 }
 
 func (c *Cluster) RemoveFromRegistry(imageId string) error {

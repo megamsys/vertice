@@ -2,16 +2,23 @@ package provision
 
 import (
 	"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/libgo/amqp"
+	nsqc "github.com/crackcomm/nsqueue/consumer"
+	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/megamd/meta"
+)
+
+const (
+	maxInFlight = 150
 )
 
 var LogPubSubQueueSuffix = "_log"
 
 type LogListener struct {
+	b chan Boxlog
 	B <-chan Boxlog
-	q amqp.PubSubQ
+	c *nsqc.Consumer
 }
 
 func logQueue(boxName string) string {
@@ -19,54 +26,55 @@ func logQueue(boxName string) string {
 }
 
 func NewLogListener(a *Box) (*LogListener, error) {
-	pubSubQ, err := amqp.NewRabbitMQ(meta.MC.AMQP, logQueue(a.Name))
-	if err != nil {
-		return nil, err
-	}
-	subChan, err := pubSubQ.Sub()
-	if err != nil {
+	bo := make(chan Boxlog, 10)
+
+	cons := nsqc.New()
+	if err := cons.Register(logQueue(a.Name), "clients", maxInFlight, dumpLog(bo)); err != nil {
 		return nil, err
 	}
 
-	b := make(chan Boxlog, 10)
-	go func() {
-		defer close(b)
-		for msg := range subChan {
-			bl := Boxlog{}
-			err := json.Unmarshal(msg, &bl)
-			if err != nil {
-				log.Errorf("Unparsable log message, ignoring: %s", string(msg))
-				continue
-			}
-			//write box logs to the  "channel - c" as json.
-			b <- bl
-		}
-	}()
-	l := LogListener{B: b, q: pubSubQ}
+	if err := cons.Connect(meta.MC.NSQd...); err != nil {
+		return nil, err
+	}
+
+	go cons.Start(true)
+
+	l := LogListener{B: bo, c: cons, b: bo}
 	return &l, nil
 }
 
 func (l *LogListener) Close() (err error) {
-	err = l.q.UnSub()
+	l.c.Stop()
+	defer close(l.b)
 	return nil
+}
+
+func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
+	return func(msg *nsqc.Message) {
+		go func(b chan Boxlog, msg *nsqc.Message) {
+			bl := Boxlog{}
+			if err := json.Unmarshal(msg.Body, &bl); err != nil {
+				log.Errorf("Unparsable log message, ignoring: %s", string(msg.Body))
+			} else {
+				b <- bl
+			}
+		}(b, msg)
+	}
 }
 
 func notify(boxName string, messages []interface{}) error {
 	log.Debugf("  notify %s", logQueue(boxName))
-	pubSubQ, err := amqp.NewRabbitMQ(meta.MC.AMQP, logQueue(boxName))
-	if err != nil {
+	pons := nsqp.New()
+
+	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
 		return err
 	}
 
+	defer pons.Stop()
+
 	for _, msg := range messages {
-		bytes, err := json.Marshal(msg)
-		if err != nil {
-			log.Errorf("Error on logs notify: %s", err.Error())
-			continue
-		}
-		err = pubSubQ.Pub(bytes)
-		if err != nil {
-			log.Errorf("Error on logs notify: %s", err.Error())
+		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
+			log.Errorf("Error on publish: %s", err.Error())
 		}
 	}
 	return nil
