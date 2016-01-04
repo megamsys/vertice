@@ -218,15 +218,83 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 }
 
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
-	return provision.ErrNotImplemented
+	fmt.Fprintf(w, "\n--- restarting box (%s)\n", box.GetFullName())
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: provision.StatusBootstrapped,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+			&updateStatusInRiak,
+		&restartMachine,
+			&updateStatusInRiak,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, "--- restarting box (%s)\n --> %s", box.GetFullName(), err)
+		return err
+	}
+
+	return nil
 }
 
 func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-	return provision.ErrNotImplemented
+	fmt.Fprintf(w, "\n--- starting box (%s)\n", box.GetFullName())
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: provision.StatusStarting,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+			&updateStatusInRiak,
+		&startMachine,
+		&updateStatusInRiak,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, "--- starting box (%s)\n --> %s", box.GetFullName(), err)
+		return err
+	}
+
+	return nil
 }
 
 func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-	return provision.ErrNotImplemented
+	fmt.Fprintf(w, "\n--- stoping box (%s)\n", box.GetFullName())
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: provision.StatusStopping,
+		provisioner:   p,
+	}
+	actions := []*action.Action{
+&updateStatusInRiak,
+		&stopMachine,
+		&updateStatusInRiak,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, "--- stoping box (%s)\n --> %s", box.GetFullName(), err)
+		return err
+	}
+
+	return nil
 }
 
 func (p *oneProvisioner) Shell(provision.ShellOptions) error {

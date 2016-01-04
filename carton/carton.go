@@ -5,6 +5,7 @@ import (
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
+
 )
 
 // A carton represents a real world assembly.
@@ -141,7 +142,7 @@ func (c *Carton) Available() bool {
 // changing the boxes state to StatusStarted.
 func (c *Carton) Start() error {
 	for _, box := range *c.Boxes {
-		err := ProvisionerMap[box.Provider].Start(&box, "", nil)
+		err :=Start(&DeployOpts{B: &box})
 		if err != nil {
 			log.Errorf("Unable to start the box  %s", err)
 			return err
@@ -150,11 +151,12 @@ func (c *Carton) Start() error {
 	return nil
 }
 
+
 // stops the box calling the provisioner.
 // changing the boxes state to StatusStopped.
 func (c *Carton) Stop() error {
 	for _, box := range *c.Boxes {
-		err := ProvisionerMap[box.Provider].Stop(&box, "", nil)
+		err :=Stop(&DeployOpts{B: &box})
 		if err != nil {
 			log.Errorf("Unable to stop the box %s", err)
 			return err
@@ -167,7 +169,7 @@ func (c *Carton) Stop() error {
 // changing the boxes state to StatusStarted.
 func (c *Carton) Restart() error {
 	for _, box := range *c.Boxes {
-		err := ProvisionerMap[box.Provider].Restart(&box, "", nil)
+		err := Restart(&DeployOpts{B: &box})
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err

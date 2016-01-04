@@ -125,6 +125,83 @@ var destroyOldMachine = action.Action{
 	MinParams: 1,
 }
 
+var startMachine = action.Action{
+	Name: "start-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, "\n---- Starting  machine %s ----\n", mach.Name)
+
+		err := mach.Start(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Started machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var stopMachine = action.Action{
+	Name: "stop-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+
+		fmt.Fprintf(writer, "\n---- Stoping  machine %s ----\n", mach.Name)
+		err := mach.Stop(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Stoped machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var restartMachine = action.Action{
+	Name: "restart-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, "\n---- Restarting  machine %s ----\n", mach.Name)
+
+		err := mach.Restart(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Restarted machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+
 var changeStateofMachine = action.Action{
 	Name: "change-state-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

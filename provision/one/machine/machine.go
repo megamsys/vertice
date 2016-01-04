@@ -72,6 +72,46 @@ func (m *Machine) Remove(p OneProvisioner) error {
 	return nil
 }
 
+func (m *Machine) Start(p OneProvisioner) error {
+	log.Debugf("  starting machine in one (%s)", m.Name)
+	opts := compute.VirtualMachine{
+		Name: m.Name,
+	}
+
+	err := p.Cluster().StartVM(opts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) Restart(p OneProvisioner) error {
+	log.Debugf("  restarting machine in one (%s)", m.Name)
+	opts := compute.VirtualMachine{
+		Name: m.Name,
+	}
+
+	err := p.Cluster().RestartVM(opts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) Stop(p OneProvisioner) error {
+	log.Debugf("  stoping machine in one (%s)", m.Name)
+	fmt.Println("STOP*****************")
+	opts := compute.VirtualMachine{
+		Name: m.Name,
+	}
+
+	err := p.Cluster().StopVM(opts)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //it possible to have a Notifier interface that does this, duck typed by Assembly, Components.
 func (m *Machine) SetStatus(status provision.Status) error {
 	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())

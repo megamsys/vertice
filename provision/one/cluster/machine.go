@@ -105,6 +105,81 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	return nil
 }
 
+func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
+
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	opts.Client = node.Client
+
+	_, err = opts.Resume()
+	if err != nil {
+		return wrapError(node, err)
+	}
+	return nil
+}
+
+func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
+
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	opts.Client = node.Client
+
+	_, err = opts.Reboot()
+	if err != nil {
+		return wrapError(node, err)
+	}
+	return nil
+}
+
+func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	opts.Client = node.Client
+
+	_, err = opts.Poweroff()
+	if err != nil {
+		return wrapError(node, err)
+	}
+	return nil
+}
+
+
 func (c *Cluster) getNodeByAddr(addr string) (node, error) {
 	return c.getNode(func(s Storage) (Node, error) {
 		return s.RetrieveNode(addr)
