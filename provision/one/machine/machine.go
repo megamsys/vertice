@@ -100,7 +100,6 @@ func (m *Machine) Restart(p OneProvisioner) error {
 
 func (m *Machine) Stop(p OneProvisioner) error {
 	log.Debugf("  stoping machine in one (%s)", m.Name)
-	fmt.Println("STOP*****************")
 	opts := compute.VirtualMachine{
 		Name: m.Name,
 	}
