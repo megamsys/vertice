@@ -8,10 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/toml"
 )
 
 const (
@@ -21,32 +19,19 @@ const (
 	// DefaultApi is the default megam gateway if one is not provided.
 	DefaultApi = "http://localhost:9000"
 
-	// DefaultAMQP is the default rabbitmq if one is not provided.
-	DefaultAMQP = "amqp://guest:guest@localhost:5672/"
-
-	// DefaultHeartbeatTimeout is the default heartbeat timeout for the store.
-	DefaultHeartbeatTimeout = 1000 * time.Millisecond
-
-	// DefaultElectionTimeout is the default election timeout for the store.
-	DefaultElectionTimeout = 1000 * time.Millisecond
-
-	// DefaultLeaderLeaseTimeout is the default leader lease for the store.
-	DefaultLeaderLeaseTimeout = 500 * time.Millisecond
+	// DefaultNSQ is the default nsqd if its not provided.
+	DefaultNSQd = "localhost:4161"
 
 	MEGAM_HOME = "MEGAM_HOME"
 )
 
 // Config represents the meta configuration.
 type Config struct {
-	Home               string        `toml:"home"`
-	Dir                string        `toml:"dir"`
-	Riak               []string      `toml:"riak"`
-	Api                string        `toml:"api"`
-	AMQP               string        `toml:"amqp"`
-	Peers              []string      `toml:"-"`
-	ElectionTimeout    toml.Duration `toml:"election-timeout"`
-	HeartbeatTimeout   toml.Duration `toml:"heartbeat-timeout"`
-	LeaderLeaseTimeout toml.Duration `toml:"leader-lease-timeout"`
+	Home string   `toml:"home"`
+	Api  string   `toml:"api"`
+	Dir  string   `toml:"dir"`
+	Riak []string `toml:"riak"`
+	NSQd []string `toml:"nsqd"`
 }
 
 var MC *Config
@@ -57,11 +42,11 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Meta", "cyan", "", "") + "\n"))
-	b.Write([]byte("Home    " + "\t" + c.Home + "\n"))
-	b.Write([]byte("Dir     " + "\t" + c.Dir + "\n"))
-	b.Write([]byte("Riak    " + "\t" + strings.Join(c.Riak, ",") + "\n"))
-	b.Write([]byte("API     " + "\t" + c.Api + "\n"))
-	b.Write([]byte("AMQP    " + "\t" + c.AMQP + "\n"))
+	b.Write([]byte("Home      " + "\t" + c.Home + "\n"))
+	b.Write([]byte("Dir       " + "\t" + c.Dir + "\n"))
+	b.Write([]byte("Riak      " + "\t" + strings.Join(c.Riak, ",") + "\n"))
+	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
+	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -83,14 +68,11 @@ func NewConfig() *Config {
 
 	// Config represents the configuration format for the megamd.
 	return &Config{
-		Home:               homeDir,
-		Dir:                defaultDir,
-		Riak:               []string{DefaultRiak},
-		Api:                DefaultApi,
-		AMQP:               DefaultAMQP,
-		ElectionTimeout:    toml.Duration(DefaultElectionTimeout),
-		HeartbeatTimeout:   toml.Duration(DefaultHeartbeatTimeout),
-		LeaderLeaseTimeout: toml.Duration(DefaultLeaderLeaseTimeout),
+		Home: homeDir,
+		Dir:  defaultDir,
+		Riak: []string{DefaultRiak},
+		Api:  DefaultApi,
+		NSQd: []string{DefaultNSQd},
 	}
 }
 
