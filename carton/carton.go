@@ -2,7 +2,7 @@ package carton
 
 import (
 	"bytes"
-	log "github.com/Sirupsen/logrus"
+
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
@@ -146,7 +146,7 @@ func (c *Carton) LCoperation(lcoperation string) error {
 		queueWriter.Async()
 		defer queueWriter.Close()
 		writer := io.MultiWriter(&outBuffer, &queueWriter)
-		err := ParseControl(&box, lcoperation, writer)
+	err := ParseControl(&box, lcoperation, writer)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (c *Carton) LCoperation(lcoperation string) error {
 	return nil
 }
 func ParseControl(box *provision.Box, action string, w io.Writer) error {
-	switch action {
+switch action {
 	case START:
 		return ProvisionerMap[box.Provider].Start(box, "", w)
 	case STOP:
@@ -164,43 +164,4 @@ func ParseControl(box *provision.Box, action string, w io.Writer) error {
 	default:
 		return newParseError([]string{CONTROL, action}, []string{START, STOP, RESTART})
 	}
-}
-
-// starts the box calling the provisioner.
-// changing the boxes state to StatusStarted.
-func (c *Carton) Start() error {
-	for _, box := range *c.Boxes {
-		err := c.LCoperation(START)
-		if err != nil {
-			log.Errorf("Unable to start the box  %s", box.Name, err)
-			return err
-		}
-	}
-	return nil
-}
-
-// stops the box calling the provisioner.
-// changing the boxes state to StatusStopped.
-func (c *Carton) Stop() error {
-	for _, box := range *c.Boxes {
-		err := c.LCoperation(STOP)
-		if err != nil {
-			log.Errorf("Unable to stop the box %s", box.Name, err)
-			return err
-		}
-	}
-	return nil
-}
-
-// restarts the box calling the provisioner.
-// changing the boxes state to StatusStarted.
-func (c *Carton) Restart() error {
-	for _, box := range *c.Boxes {
-		err := c.LCoperation(RESTART)
-		if err != nil {
-			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
-			return err
-		}
-	}
-	return nil
 }

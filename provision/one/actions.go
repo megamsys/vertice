@@ -27,6 +27,12 @@ import (
 	"github.com/megamsys/megamd/provision/one/machine"
 )
 
+const (
+	START   = "start"
+	STOP    = "stop"
+	RESTART = "restart"
+)
+
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer
@@ -135,8 +141,7 @@ var startMachine = action.Action{
 			writer = ioutil.Discard
 		}
 		fmt.Fprintf(writer, "\n---- Starting  machine %s ----\n", mach.Name)
-
-		err := mach.Start(args.provisioner)
+		err := mach.LCoperation(args.provisioner, START)
 		if err != nil {
 			return nil, err
 		}
@@ -156,13 +161,13 @@ var stopMachine = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
+
 		writer := args.writer
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-
 		fmt.Fprintf(writer, "\n---- Stoping  machine %s ----\n", mach.Name)
-		err := mach.Stop(args.provisioner)
+		err := mach.LCoperation(args.provisioner, STOP)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +192,7 @@ var restartMachine = action.Action{
 		}
 		fmt.Fprintf(writer, "\n---- Restarting  machine %s ----\n", mach.Name)
 
-		err := mach.Restart(args.provisioner)
+		err := mach.LCoperation(args.provisioner, RESTART)
 		if err != nil {
 			return nil, err
 		}
@@ -200,7 +205,6 @@ var restartMachine = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
-
 
 var changeStateofMachine = action.Action{
 	Name: "change-state-machine",

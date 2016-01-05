@@ -217,6 +217,9 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 	return nil
 }
 
+
+
+
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
 	fmt.Fprintf(w, "\n--- restarting box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
@@ -226,21 +229,25 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		machineStatus: provision.StatusBootstrapped,
 		provisioner:   p,
 	}
+
 	actions := []*action.Action{
-		&updateStatusInRiak,
+			&updateStatusInRiak,
 		&restartMachine,
-		&updateStatusInRiak,
+			&updateStatusInRiak,
 	}
+
 	pipeline := action.NewPipeline(actions...)
+
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- restarting box (%s)\n --> %s", box.GetFullName(), err)
 		return err
 	}
-	return nil
+
+	return  nil
 }
 
-func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
+func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer)  error {
 	fmt.Fprintf(w, "\n--- starting box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
@@ -249,21 +256,25 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		machineStatus: provision.StatusStarting,
 		provisioner:   p,
 	}
+
 	actions := []*action.Action{
-		&updateStatusInRiak,
+			&updateStatusInRiak,
 		&startMachine,
 		&updateStatusInRiak,
 	}
+
 	pipeline := action.NewPipeline(actions...)
+
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- starting box (%s)\n --> %s", box.GetFullName(), err)
-		return err
+		return  err
 	}
-	return nil
+
+	return  nil
 }
 
-func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
+func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer)  error {
 	fmt.Fprintf(w, "\n--- stoping box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
@@ -273,7 +284,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		provisioner:   p,
 	}
 	actions := []*action.Action{
-		&updateStatusInRiak,
+&updateStatusInRiak,
 		&stopMachine,
 		&updateStatusInRiak,
 	}
@@ -283,7 +294,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- stoping box (%s)\n --> %s", box.GetFullName(), err)
-		return err
+		return  err
 	}
 
 	return nil

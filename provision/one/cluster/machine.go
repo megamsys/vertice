@@ -13,6 +13,12 @@ import (
 
 // CreateVM creates a vm in the specified node.
 // It returns the vm, or an error, in case of failures.
+const (
+	START   = "start"
+	STOP    = "stop"
+	RESTART = "restart"
+)
+
 func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) {
 	var (
 		addr    string
@@ -105,6 +111,18 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	return nil
 }
 
+func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
+	switch action {
+	case START:
+		return c.StartVM(opts)
+	case STOP:
+		return c.StopVM(opts)
+	case RESTART:
+		return c.RestartVM(opts)
+	default:
+		return nil
+	}
+}
 func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	var (
 		addr string
@@ -178,7 +196,6 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	}
 	return nil
 }
-
 
 func (c *Cluster) getNodeByAddr(addr string) (node, error) {
 	return c.getNode(func(s Storage) (Node, error) {
