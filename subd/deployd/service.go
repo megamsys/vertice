@@ -73,7 +73,6 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 		return
 	}
 	go s.Handler.serveNSQ(re)
-
 	return
 }
 
