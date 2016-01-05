@@ -1,11 +1,12 @@
 package carton
 
 import (
+	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
-
+	"io"
 )
 
 // A carton represents a real world assembly.
@@ -138,27 +139,53 @@ func (c *Carton) Available() bool {
 	return false
 }
 
+func (c *Carton) LCoperation(lcoperation string) error {
+	for _, box := range *c.Boxes {
+		var outBuffer bytes.Buffer
+		queueWriter := LogWriter{Box: &box}
+		queueWriter.Async()
+		defer queueWriter.Close()
+		writer := io.MultiWriter(&outBuffer, &queueWriter)
+		err := ParseControl(&box, lcoperation, writer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func ParseControl(box *provision.Box, action string, w io.Writer) error {
+	switch action {
+	case START:
+		return ProvisionerMap[box.Provider].Start(box, "", w)
+	case STOP:
+		return ProvisionerMap[box.Provider].Stop(box, "", w)
+	case RESTART:
+		return ProvisionerMap[box.Provider].Restart(box, "", w)
+	default:
+		return newParseError([]string{CONTROL, action}, []string{START, STOP, RESTART})
+	}
+}
+
 // starts the box calling the provisioner.
 // changing the boxes state to StatusStarted.
 func (c *Carton) Start() error {
 	for _, box := range *c.Boxes {
-		err :=Start(&DeployOpts{B: &box})
+		err := c.LCoperation(START)
 		if err != nil {
-			log.Errorf("Unable to start the box  %s", err)
+			log.Errorf("Unable to start the box  %s", box.Name, err)
 			return err
 		}
 	}
 	return nil
 }
 
-
 // stops the box calling the provisioner.
 // changing the boxes state to StatusStopped.
 func (c *Carton) Stop() error {
 	for _, box := range *c.Boxes {
-		err :=Stop(&DeployOpts{B: &box})
+		err := c.LCoperation(STOP)
 		if err != nil {
-			log.Errorf("Unable to stop the box %s", err)
+			log.Errorf("Unable to stop the box %s", box.Name, err)
 			return err
 		}
 	}
@@ -169,7 +196,7 @@ func (c *Carton) Stop() error {
 // changing the boxes state to StatusStarted.
 func (c *Carton) Restart() error {
 	for _, box := range *c.Boxes {
-		err := Restart(&DeployOpts{B: &box})
+		err := c.LCoperation(RESTART)
 		if err != nil {
 			log.Errorf("[start] error on start the box %s - %s", box.Name, err)
 			return err

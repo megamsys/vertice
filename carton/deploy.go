@@ -21,7 +21,7 @@ import (
 	"io"
 	"strings"
 	"time"
-	
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
@@ -124,42 +124,5 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	}
 	return db.Store(compid or assmid, &struct)
 	*/
-	return nil
-}
-func Stop(opts *DeployOpts) error {
-	var outBuffer bytes.Buffer
-	logWriter := LogWriter{Box: opts.B}
-	logWriter.Async()
-	defer logWriter.Close()
-	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].Stop(opts.B,"", writer)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func Start(opts *DeployOpts) error {
-	var outBuffer bytes.Buffer
-	logWriter := LogWriter{Box: opts.B}
-	logWriter.Async()
-	defer logWriter.Close()
-	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].Start(opts.B,"", writer)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func Restart(opts *DeployOpts) error {
-	var outBuffer bytes.Buffer
-	logWriter := LogWriter{Box: opts.B}
-	logWriter.Async()
-	defer logWriter.Close()
-	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].Restart(opts.B,"", writer)
-	if err != nil {
-		return err
-	}
 	return nil
 }

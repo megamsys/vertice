@@ -226,21 +226,17 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		machineStatus: provision.StatusBootstrapped,
 		provisioner:   p,
 	}
-
 	actions := []*action.Action{
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 		&restartMachine,
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 	}
-
 	pipeline := action.NewPipeline(actions...)
-
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- restarting box (%s)\n --> %s", box.GetFullName(), err)
 		return err
 	}
-
 	return nil
 }
 
@@ -253,21 +249,17 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		machineStatus: provision.StatusStarting,
 		provisioner:   p,
 	}
-
 	actions := []*action.Action{
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 		&startMachine,
 		&updateStatusInRiak,
 	}
-
 	pipeline := action.NewPipeline(actions...)
-
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- starting box (%s)\n --> %s", box.GetFullName(), err)
 		return err
 	}
-
 	return nil
 }
 
@@ -281,7 +273,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		provisioner:   p,
 	}
 	actions := []*action.Action{
-&updateStatusInRiak,
+		&updateStatusInRiak,
 		&stopMachine,
 		&updateStatusInRiak,
 	}
