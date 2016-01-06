@@ -173,7 +173,6 @@ type Provisioner interface {
 	// Restart restarts the boxes of the carton, with an optional
 	// string parameter represeting the name of the process to start.
 	Restart(*Box, string, io.Writer) error
-
 	// Start starts the boxes of the application, with an optional string
 	// parameter represeting the name of the process to start.
 	Start(*Box, string, io.Writer) error

@@ -32,15 +32,11 @@ func NewReqOperator(id string) *ReqOperator {
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
 	c, err := p.Get(p.Id)
-
 	if err != nil {
 		return err
 	}
-
 	md := *r
-
 	log.Debugf(cmd.Colorfy(md.String(), "cyan", "", "bold"))
-
 	return md.Process(c)
 }
 
@@ -59,6 +55,7 @@ func (p *ReqOperator) Get(cat_id string) (Cartons, error) {
 
 // MegdProcessor represents a single operation in Megamd.
 type MegdProcessor interface {
+
 	Process(c Cartons) error
 	String() string
 }

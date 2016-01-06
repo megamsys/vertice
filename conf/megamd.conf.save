@@ -1,15 +1,24 @@
 
-  ### Welcome to the Megamd configuration file.
+### Welcome to the Megamd configuration file.
   ###
   ### [meta]
   ###
-  ### Controls how megamd connects to riak, nsq
+  ### Controls the parameters for the Raft consensus group that stores metadata
+  ### about the Megamd cluster.
+  ###
 
   [meta]
     debug = true
+    hostname = "localhost"
+    bind_address = ":9999"
     dir = "/var/lib/megam/megamd/meta"
-    riak = ["192.168.1.247:8087"]
-    nsqd = ["localhost:4150"]
+    riak = ["192.168.1.105:8087"]
+    api  = "https://api.megam.io/v2"
+    amqp = "amqp://guest:guest@192.168.1.105:5672/"
+    election-timeout = "1s"
+    heartbeat-timeout = "1s"
+    leader-lease-timeout = "500ms"
+    provider = "yolnacsEtun3"
 
   ###
   ### [deployd]
@@ -20,19 +29,21 @@
   ###
 
   [deployd]
-    one_endpoint = "http://103.56.92.4:2633/RPC2"
+    one_endpoint = "http://192.168.1.105:2633/RPC2"
     one_userid = "oneadmin"
-    one_password =  "yourWuOtHij3"
+    one_password =  ""
+
 
   ###
   ### [http]
   ###
-  ### Controls how the HTTP endpoints are configured. A mini webserver for pinging megamd
+  ### Controls how the HTTP endpoints are configured. This a frill
+  ### mechanism for pinging megamd (ping)
   ###
 
   [http]
     enabled = true
-    bind_address = "localhost:7777"
+    bind-address = "localhost:6666"
 
   ###
   ### [docker]
@@ -42,8 +53,7 @@
 
   [docker]
     enabled = false
-    swarm = "tcp://103.56.92.52:2375"
-    gulp_port = ":6666"
+    swarm = "http://192.168.1.241:2375"
 
   [bridges]
 
