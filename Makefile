@@ -84,7 +84,7 @@ _megamd:
 
 
 _megamdr:
-	./megamd -v start --config conf/megamd.conf
+	./megamd -v start --config $(MEGAM_HOME)/megamd/megamd.conf
 
 
 test: _go_test _megamd _megamdr

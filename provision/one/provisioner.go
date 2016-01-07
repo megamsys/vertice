@@ -32,6 +32,10 @@ import (
 	"github.com/megamsys/megamd/router"
 	_ "github.com/megamsys/megamd/router/route53"
 	"github.com/megamsys/opennebula-go/api"
+
+	//	git "github.com/google/go-github/github"
+	// "code.google.com/p/goauth2/oauth"
+	// "encoding/json"
 )
 
 var mainOneProvisioner *oneProvisioner
@@ -111,15 +115,35 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
+	//	fmt.Println("************GitDeploy********************")
+	a, err := repository.Get(box.Repo.Source)
+	if err != nil {
+		log.Errorf("fatal error, couldn't locate the Repository %s", box.Repo.Source)
+		return "", err
+	}
+	provision.Repositorys = a
+	log.Debugf("Before CreateHook.")
+	if repositoryManager, ok := provision.Repositorys.(repository.RepositoryManager); ok {
+		var r repository.Repository
+		//	fmt.Println("************createHook********************")
+		_, err = repositoryManager.CreateHook(r)
+		if err != nil {
+			log.Errorf("fatal error, cann't createHook for the Repository %s", box.Repo.URL)
+			return "", err
+		} else {
+			log.Debugf("%s Hook created", box.Repo.Source)
+			return "", nil
+		}
+	}
 	imageId, err := p.gitDeploy(box.Repo, box.ImageVersion, w)
 	if err != nil {
 		return "", err
 	}
-
 	return p.deployPipeline(box, imageId, w)
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
+
 	return p.getBuildImage(re, version), nil
 }
 

@@ -21,7 +21,7 @@ import (
 	"io"
 	"strings"
 	"time"
-
+	//"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
@@ -56,6 +56,8 @@ func Deploy(opts *DeployOpts) error {
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
+	//	fmt.Println("****************Deploy********************")
+	//	fmt.Println(opts)
 	imageId, err := deployToProvisioner(opts, writer)
 	elapsed := time.Since(start)
 	saveErr := saveDeployData(opts, imageId, outBuffer.String(), elapsed, err)
@@ -65,18 +67,22 @@ func Deploy(opts *DeployOpts) error {
 	if err != nil {
 		return err
 	}
+	//	fmt.Println("*****************************************")
 	return nil
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
+		//		fmt.Println("*******************deployToProvisioner/image**********************")
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
+		//		fmt.Println("*******************deployToProvisioner/git**********************")
 		return deployer.GitDeploy(opts.B, writer)
 	}
+
 	return "Deployed in zzz!", nil
 }
 
