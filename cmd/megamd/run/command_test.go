@@ -23,13 +23,11 @@ import (
 func (s *S) TestMegamStartInfo(c *check.C) {
 	desc := `starts megamd.
 
-If you use the '--dry' flag megamd will do a dry run(parse conf) and exit.
-
 `
 
 	expected := &cmd.Info{
 		Name:    "start",
-		Usage:   `start [--dry] [--config]`,
+		Usage:   `start [--config]`,
 		Desc:    desc,
 		MinArgs: 0,
 	}

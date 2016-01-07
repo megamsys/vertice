@@ -1,9 +1,3 @@
-package carton
-
-import (
-	"bytes"
-)
-
 /*
 ** Copyright [2013-2015] [Megam Systems]
 **
@@ -19,6 +13,12 @@ import (
 ** See the License for the specific language governing permissions and
 ** limitations under the License.
  */
+
+package carton
+
+import (
+	"bytes"
+)
 
 // CreateProcs represents a command for creating new cartons.
 type CreateProcess struct {
@@ -76,7 +76,7 @@ func (s StartProcess) String() string {
 
 func (s StartProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.LCoperation(START); err != nil {
+		if err := c.Start(); err != nil {
 			return err
 		}
 	}
@@ -97,7 +97,7 @@ func (s StopProcess) String() string {
 
 func (s StopProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.LCoperation(STOP); err != nil {
+		if err := c.Stop(); err != nil {
 			return err
 		}
 	}
@@ -118,7 +118,28 @@ func (s RestartProcess) String() string {
 
 func (s RestartProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.LCoperation(RESTART); err != nil {
+		if err := c.Restart(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UpgradeProcs represents a command for starting  cartons.
+type UpgradeProcess struct {
+	Name string
+}
+
+func (s UpgradeProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("UPGRADE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s UpgradeProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.Upgrade(); err != nil {
 			return err
 		}
 	}

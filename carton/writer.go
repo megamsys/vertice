@@ -18,6 +18,12 @@ type LogWriter struct {
 	doneCh chan bool
 }
 
+func NewLogWriter(l Logger) LogWriter {
+	logWriter := LogWriter{Box: l}
+	logWriter.Async()
+	return logWriter
+}
+
 func (w *LogWriter) Async() {
 	w.msgCh = make(chan []byte, 1000)
 	w.doneCh = make(chan bool)

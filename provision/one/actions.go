@@ -91,7 +91,7 @@ var createMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = provision.StatusCreating
+		mach.Status = provision.StatusLaunched
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {

@@ -173,8 +173,8 @@ func (b *Box) GetPublicIp() string {
 // whenever the unit itself is available, even when the application process is
 // not.
 func (b *Box) Available() bool {
-	return b.Status == StatusDeploying ||
-		b.Status == StatusCreating ||
+	return b.Status == StatusLaunching ||
+		b.Status == StatusLaunched ||
 		b.Status == StatusError
 }
 

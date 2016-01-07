@@ -18,7 +18,7 @@ func (s *S) TestContainerAvailable(c *check.C) {
 		Input    provision.Status
 		Expected bool
 	}{
-		{provision.StatusDeploying, false},
+		{provision.StatusLaunched, false},
 		{provision.StatusError, false},
 		{provision.StatusStarted, true},
 		{provision.StatusStarting, true},
