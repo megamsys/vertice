@@ -60,12 +60,12 @@ func ParseRequest(n, s, a string) (MegdProcessor, error) {
 }
 
 func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor, error) {
-
 	switch category {
 	case STATE:
 		return p.parseState(action)
 	case CONTROL:
 		return p.parseControl(action)
+
 	case POLICY:
 		return p.parsePolicy(action)
 	default:
@@ -106,6 +106,7 @@ func (p *ReqParser) parseControl(action string) (MegdProcessor, error) {
 		return StopProcess{
 			Name: p.name,
 		}, nil
+
 	case RESTART:
 		return RestartProcess{
 			Name: p.name,

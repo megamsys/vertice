@@ -23,5 +23,6 @@ func (h *Handler) serveNSQ(r *carton.Requests) error {
 	if rp := carton.NewReqOperator(r.CatId); rp != nil {
 		return rp.Accept(&p) //error is swalled here.
 	}
+
 	return nil
 }

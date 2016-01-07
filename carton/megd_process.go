@@ -76,7 +76,7 @@ func (s StartProcess) String() string {
 
 func (s StartProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Start(); err != nil {
+		if err := c.LCoperation(START); err != nil {
 			return err
 		}
 	}
@@ -97,7 +97,7 @@ func (s StopProcess) String() string {
 
 func (s StopProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Stop(); err != nil {
+		if err := c.LCoperation(STOP); err != nil {
 			return err
 		}
 	}
@@ -118,7 +118,7 @@ func (s RestartProcess) String() string {
 
 func (s RestartProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Restart(); err != nil {
+		if err := c.LCoperation(RESTART); err != nil {
 			return err
 		}
 	}

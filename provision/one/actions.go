@@ -27,6 +27,12 @@ import (
 	"github.com/megamsys/megamd/provision/one/machine"
 )
 
+const (
+	START   = "start"
+	STOP    = "stop"
+	RESTART = "restart"
+)
+
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer
@@ -116,6 +122,81 @@ var destroyOldMachine = action.Action{
 			return nil, err
 		}
 		fmt.Fprintf(writer, "\n---- Destroyed old machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var startMachine = action.Action{
+	Name: "start-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, "\n---- Starting  machine %s ----\n", mach.Name)
+		err := mach.LCoperation(args.provisioner, START)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Started machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var stopMachine = action.Action{
+	Name: "stop-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, "\n---- Stoping  machine %s ----\n", mach.Name)
+		err := mach.LCoperation(args.provisioner, STOP)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Stoped machine (%s, %s)\n", mach.Id, mach.Name)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var restartMachine = action.Action{
+	Name: "restart-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, "\n---- Restarting  machine %s ----\n", mach.Name)
+
+		err := mach.LCoperation(args.provisioner, RESTART)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, "\n---- Restarted machine (%s, %s)\n", mach.Id, mach.Name)
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {

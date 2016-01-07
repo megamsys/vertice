@@ -18,7 +18,6 @@ package carton
 import (
 	"reflect"
 	"strings"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/db"
 	"gopkg.in/yaml.v2"
