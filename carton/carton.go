@@ -1,12 +1,9 @@
 package carton
 
 import (
-	"bytes"
-
-	"github.com/megamsys/megamd/carton/bind"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
-	"io"
 )
 
 // A carton represents a real world assembly.
@@ -101,34 +98,6 @@ func (c *Carton) Stateup() error {
 	return nil
 }
 
-func (c *Carton) Bind(box *provision.Box) error {
-	/*	bis := c.Group()
-		for _, bi := range bis {
-			err = bi.Bind(c, bi)
-			if err != nil {
-				log.Errorf("Error binding the box %s with the service %s: %s", box.Name, bi.Name, err)
-			}
-		}
-	*/
-	return nil
-}
-
-func (c *Carton) Unbind(box *provision.Box) error {
-	/*	bis := c.Group()
-		for _, bi := range bis {
-			err = bi.UnBind(c, bi)
-			if err != nil {
-				log.Errorf("Error binding the box %s with the service %s: %s", box.Name, bi.Name, err)
-			}
-		}*/
-	return nil
-}
-
-// Group the related_components into BindInstances.
-func (c *Carton) Group() ([]*bind.YBoundBox, error) {
-	return nil, nil
-}
-
 // Available returns true if at least one of N boxes which is started
 func (c *Carton) Available() bool {
 	for _, box := range *c.Boxes {
@@ -139,29 +108,50 @@ func (c *Carton) Available() bool {
 	return false
 }
 
-func (c *Carton) LCoperation(lcoperation string) error {
+//upgrade run thru all the ops.
+func (c *Carton) Upgrade() error {
 	for _, box := range *c.Boxes {
-		var outBuffer bytes.Buffer
-		queueWriter := LogWriter{Box: &box}
-		queueWriter.Async()
-		defer queueWriter.Close()
-		writer := io.MultiWriter(&outBuffer, &queueWriter)
-	err := ParseControl(&box, lcoperation, writer)
+		err := NewUpgradeable(&box).Upgrade()
 		if err != nil {
+			log.Errorf("Unable to upgrade box : %s", err)
 			return err
 		}
 	}
 	return nil
 }
-func ParseControl(box *provision.Box, action string, w io.Writer) error {
-switch action {
-	case START:
-		return ProvisionerMap[box.Provider].Start(box, "", w)
-	case STOP:
-		return ProvisionerMap[box.Provider].Stop(box, "", w)
-	case RESTART:
-		return ProvisionerMap[box.Provider].Restart(box, "", w)
-	default:
-		return newParseError([]string{CONTROL, action}, []string{START, STOP, RESTART})
+
+// starts box
+func (c *Carton) Start() error {
+	for _, box := range *c.Boxes {
+		err := Start(&LifecycleOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to start the box  %s", err)
+			return err
+		}
 	}
+	return nil
+}
+
+// stops the box
+func (c *Carton) Stop() error {
+	for _, box := range *c.Boxes {
+		err := Stop(&LifecycleOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to stop the box %s", err)
+			return err
+		}
+	}
+	return nil
+}
+
+// restarts the box
+func (c *Carton) Restart() error {
+	for _, box := range *c.Boxes {
+		err := Restart(&LifecycleOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to restart the box %s", err)
+			return err
+		}
+	}
+	return nil
 }

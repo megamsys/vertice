@@ -123,7 +123,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	return newBoxs, nil
 }
 
-func fetch(id string) (*Ambly, error) {
+func getBig(id string) (*Ambly, error) {
 	a := &Ambly{}
 	if err := db.Fetch(ASMBUCKET, id, a); err != nil {
 		return nil, err
@@ -139,7 +139,11 @@ func NewAssembly(id string) (*Assembly, error) {
 }
 
 func NewAmbly(id string) (*Ambly, error) {
-	return fetch(id)
+	return getBig(id)
+}
+
+func NewAssemblyToCart(aies string, ay string) (*Carton, error) {
+	return mkCarton(aies, ay)
 }
 
 func (a *Ambly) SetStatus(status provision.Status) error {

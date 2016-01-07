@@ -153,7 +153,10 @@ func (b *Box) GetCpushare() int64 {
 
 // GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.
 func (b *Box) GetFullName() string {
-	return b.CartonName + "." + b.DomainName
+	if len(strings.TrimSpace(b.DomainName)) > 0 {
+		return strings.Join([]string{b.CartonName, b.DomainName}, ".")
+	}
+	return b.CartonName
 }
 
 // GetTosca returns the tosca type of the box.
@@ -170,8 +173,8 @@ func (b *Box) GetPublicIp() string {
 // whenever the unit itself is available, even when the application process is
 // not.
 func (b *Box) Available() bool {
-	return b.Status == StatusDeploying ||
-		b.Status == StatusCreating ||
+	return b.Status == StatusLaunching ||
+		b.Status == StatusLaunched ||
 		b.Status == StatusError
 }
 

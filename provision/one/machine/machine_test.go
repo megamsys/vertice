@@ -27,7 +27,7 @@ func (s *S) TestMachineCreate(c *check.C) {
 		Level:    provision.BoxSome,
 		Image:    "ubuntu",
 		Routable: false,
-		Status:   provision.StatusDeploying,
+		Status:   provision.StatusLaunching,
 	}
 
 	err := mach.Create(&CreateArgs{
@@ -50,7 +50,7 @@ func (s *S) TestMachineRemove(c *check.C) {
 		Level:    provision.BoxSome,
 		Image:    "ubuntu",
 		Routable: false,
-		Status:   provision.StatusDeploying,
+		Status:   provision.StatusLaunching,
 	}
 	err := mach.Remove(s.p)
 	c.Assert(err, check.IsNil)

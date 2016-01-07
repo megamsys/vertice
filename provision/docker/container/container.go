@@ -172,7 +172,7 @@ func (c *Container) Start(args *StartArgs) error {
 	}
 	initialStatus := provision.StatusStarting
 	if args.Deploy {
-		initialStatus = provision.StatusDeploying
+		initialStatus = provision.StatusLaunching
 	}
 	return c.SetStatus(initialStatus)
 }

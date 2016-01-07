@@ -143,7 +143,7 @@ var createContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		cont.Status = provision.StatusCreating
+		cont.Status = provision.StatusLaunched
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {

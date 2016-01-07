@@ -47,7 +47,7 @@ func (s *S) newMachine(opts compute.VirtualMachine, p *fakeOneProvisioner) (*Mac
 		Level:    provision.BoxSome,
 		Image:    "figureoutimage",
 		Routable: false,
-		Status:   provision.StatusDeploying,
+		Status:   provision.StatusLaunching,
 	}
 
 	_, _, err := p.Cluster().CreateVM(opts)
