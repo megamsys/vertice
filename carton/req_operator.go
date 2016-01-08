@@ -21,7 +21,8 @@ import (
 )
 
 type ReqOperator struct {
-	Id string
+	Id        string
+	CartonsId string
 }
 
 // NewReqOperator returns a new instance of ReqOperator

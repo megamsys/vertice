@@ -33,6 +33,7 @@ var (
 	ErrInvalidStatus  = errors.New("invalid status")
 	ErrEmptyCarton    = errors.New("no boxs for this carton")
 	ErrBoxNotFound    = errors.New("box not found")
+	ErrNoOutputsFound = errors.New("no outputs found in the box. Did you set it ? ")
 	ErrNotImplemented = errors.New("I'am on diet.")
 )
 
