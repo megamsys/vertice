@@ -51,7 +51,7 @@ func NewFakeCarton(name, tosca string, lvl provision.BoxLevel, units int) *FakeC
 				Memory:   "512",
 				HDD:      "",
 			},
-			Status:   provision.StatusDeploying,
+			Status:   provision.StatusLaunching,
 			Provider: "one",
 			PublicIp: "",
 		}

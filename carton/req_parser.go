@@ -37,10 +37,9 @@ var (
 	START   = "start"
 	RESTART = "restart"
 
-	//the policy actions available are
-	POLICY = "policy"
-	BIND   = "bind"
-	UNBIND = "unbind"
+	//the operation actions is just one called upgrade
+	OPERATIONS = "operations"
+	UPGRADE    = "upgrade"
 )
 
 type ReqParser struct {
@@ -65,11 +64,10 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 		return p.parseState(action)
 	case CONTROL:
 		return p.parseControl(action)
-
-	case POLICY:
-		return p.parsePolicy(action)
+	case OPERATIONS:
+		return p.parseOperations(action)
 	default:
-		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, POLICY})
+		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS})
 	}
 }
 
@@ -116,16 +114,14 @@ func (p *ReqParser) parseControl(action string) (MegdProcessor, error) {
 	}
 }
 
-func (p *ReqParser) parsePolicy(action string) (MegdProcessor, error) {
+func (p *ReqParser) parseOperations(action string) (MegdProcessor, error) {
 	switch action {
-	case BIND:
-		//	return BindPolicy{}
-		return StartProcess{Name: p.name}, nil
-	case UNBIND:
-		return StopProcess{Name: p.name}, nil
-	//	return UnBindPolicy{}
+	case UPGRADE:
+		return UpgradeProcess{
+			Name: p.name,
+		}, nil
 	default:
-		return nil, newParseError([]string{POLICY, action}, []string{BIND, UNBIND})
+		return nil, newParseError([]string{OPERATIONS, action}, []string{UPGRADE})
 	}
 }
 

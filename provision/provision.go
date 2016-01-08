@@ -45,45 +45,33 @@ func (s Status) String() string {
 }
 
 const (
-	// StatusDeploying is the initial status of a box in the database
+	// StatusLaunching is the initial status of a box
 	// it should transition shortly to a more specific status
-	StatusDeploying = Status("deploying")
+	StatusLaunching = Status("launching")
 
-	// StatusCreating is the status for box being provisioned by the
-	// provisioner, like in the deployment.
-	StatusCreating = Status("creating")
+	// StatusLaunched is the status for box after launched in cloud.
+	StatusLaunched = Status("launched")
 
-	// StatusBootstrapped is the status for box after being provisioned by the
-	// provisioner, updated by gulp
+	// StatusBootstrapped is the status for box after being booted by the agent in cloud
 	StatusBootstrapped = Status("boostrapped")
 
-	// Stateup is the status for box being statefully moved to a different state.
+	// Stateup is the status of the which is moving up in the state in cloud.
 	// Sent by megamd to gulpd when it received StatusBootstrapped.
 	StatusStateup = Status("stateup")
 
-	// StatusStarting the status for box being started by the
-	// provisioner.
+	//fully up instance
+	StatusRunning = Status("running")
+
 	StatusStarting = Status("starting")
+	StatusStarted  = Status("started")
 
-	// StatusDestroying the status for box after started  by the
-	// provisioner.
-	StatusStarted = Status("started")
-
-	// StatusStopping the status for box being stopped by the
-	// provisioner.
 	StatusStopping = Status("stopping")
+	StatusStopped  = Status("stopped")
 
-	// StatusStopped the status for box after stopped  by the
-	// provisioner.
-	StatusStopped = Status("stopped")
+	StatusUpgraded = Status("upgraded")
 
-	// StatusDestroying the status for box being deleted by the
-	// provisioner.
 	StatusDestroying = Status("destroying")
-
-	// StatusNuked is the status for box after being deleted(nuked) by the
-	// provisioner
-	StatusNuked = Status("nuked")
+	StatusNuked      = Status("nuked")
 
 	// StatusError is the status for units that failed to start, because of
 	// a box error.

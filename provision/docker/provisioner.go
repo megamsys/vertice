@@ -155,7 +155,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		writer:          w,
 		isDeploy:        true,
 		buildingImage:   imageId,
-		containerStatus: provision.StatusDeploying,
+		containerStatus: provision.StatusLaunching,
 		provisioner:     p,
 	}
 	err := pipeline.Execute(args)

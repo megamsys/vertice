@@ -186,7 +186,7 @@ func (p *FakeDockerProvisioner) StartContainers(args StartContainersArgs) ([]con
 			createdContainers = append(createdContainers, container.Container{
 				Id:            cont.ID,
 				BoxName:       args.Box.GetFullName(),
-				Status:        provision.StatusCreating,
+				Status:        provision.StatusLaunched,
 				HostAddr:      hostAddr,
 				Image:         args.Image,
 				BuildingImage: args.Image,

@@ -165,7 +165,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		imageId:       imageId,
 		writer:        w,
 		isDeploy:      true,
-		machineStatus: provision.StatusDeploying,
+		machineStatus: provision.StatusLaunching,
 		provisioner:   p,
 	}
 

@@ -57,5 +57,4 @@ func (p *ReqOperator) Get(cat_id string) (Cartons, error) {
 type MegdProcessor interface {
 	Process(c Cartons) error
 	String() string
-	//Required() ExecutionRequirements
 }

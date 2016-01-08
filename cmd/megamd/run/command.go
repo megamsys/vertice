@@ -38,7 +38,6 @@ func (v *configFile) String() string {
 
 func (v *configFile) Set(value string) error {
 	v.value = value
-	//configPath = value
 	return nil
 }
 
@@ -51,12 +50,10 @@ type Start struct {
 func (g *Start) Info() *cmd.Info {
 	desc := `starts megamd.
 
-If you use the '--dry' flag megamd will do a dry run(parse conf) and exit.
-
 `
 	return &cmd.Info{
 		Name:    "start",
-		Usage:   `start [--dry] [--config]`,
+		Usage:   `start [--config]`,
 		Desc:    desc,
 		MinArgs: 0,
 	}
@@ -64,27 +61,17 @@ If you use the '--dry' flag megamd will do a dry run(parse conf) and exit.
 
 func (c *Start) Run(context *cmd.Context) error {
 	log.Infof("megamd.")
-	// Parse config
 	config, err := c.ParseConfig(c.file.String())
 
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error": err.Error(),
 		}).Fatal("Failed to parse config")
-
 		return fmt.Errorf("Failed to parse config: %s", err)
 	}
 
-	if c.dry {
-		return nil
-	}
-
 	cmd := NewCommand()
-
-	// Tell the server the build details.
-	cmd.Version = "0.91"
-	cmd.Commit = "0.1"
-	cmd.Branch = "master"
+	cmd.Version = "0.9.3"
 
 	if err := cmd.Megd(config, cmd.Version); err != nil {
 		return fmt.Errorf("run: %s", err)
@@ -93,7 +80,6 @@ func (c *Start) Run(context *cmd.Context) error {
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 
-	// Block until one of the signals above is received
 	select {
 	case <-signalCh:
 		log.Info("signal received, initializing clean shutdown...")
@@ -122,8 +108,6 @@ func (c *Start) Flags() *gnuflag.FlagSet {
 		c.fs = gnuflag.NewFlagSet("megamd", gnuflag.ExitOnError)
 		c.fs.Var(&c.file, "config", "Path to configuration file (default to /megamd/megamd.conf)")
 		c.fs.Var(&c.file, "c", "Path to configuration file (default to /megamd/megamd.conf)")
-		c.fs.BoolVar(&c.dry, "dry", false, "dry-run: does not start the megamd (for testing purpose)")
-		c.fs.BoolVar(&c.dry, "d", false, "dry-run: does not start the megamd (for testing purpose)")
 	}
 	return c.fs
 }
