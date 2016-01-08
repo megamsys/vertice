@@ -17,7 +17,7 @@ const (
 	DefaultRiak = "localhost:8087"
 
 	// DefaultApi is the default megam gateway if one is not provided.
-	DefaultApi = "http://localhost:9000"
+	DefaultApi = "http://103.56.92.7:9000/v2/"
 
 	// DefaultNSQ is the default nsqd if its not provided.
 	DefaultNSQd = "localhost:4161"

@@ -146,7 +146,7 @@ func (c *Carton) LCoperation(lcoperation string) error {
 		queueWriter.Async()
 		defer queueWriter.Close()
 		writer := io.MultiWriter(&outBuffer, &queueWriter)
-	err := ParseControl(&box, lcoperation, writer)
+		err := ParseControl(&box, lcoperation, writer)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func (c *Carton) LCoperation(lcoperation string) error {
 	return nil
 }
 func ParseControl(box *provision.Box, action string, w io.Writer) error {
-switch action {
+	switch action {
 	case START:
 		return ProvisionerMap[box.Provider].Start(box, "", w)
 	case STOP:

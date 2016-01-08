@@ -55,7 +55,6 @@ func (p *ReqOperator) Get(cat_id string) (Cartons, error) {
 
 // MegdProcessor represents a single operation in Megamd.
 type MegdProcessor interface {
-
 	Process(c Cartons) error
 	String() string
 	//Required() ExecutionRequirements

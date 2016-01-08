@@ -32,10 +32,6 @@ import (
 	"github.com/megamsys/megamd/router"
 	_ "github.com/megamsys/megamd/router/route53"
 	"github.com/megamsys/opennebula-go/api"
-
-	//	git "github.com/google/go-github/github"
-	// "code.google.com/p/goauth2/oauth"
-	// "encoding/json"
 )
 
 var mainOneProvisioner *oneProvisioner
@@ -115,31 +111,22 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
-	//	fmt.Println("************GitDeploy********************")
-	a, err := repository.Get(box.Repo.Source)
-	if err != nil {
-		log.Errorf("fatal error, couldn't locate the Repository %s", box.Repo.Source)
-		return "", err
-	}
-	provision.Repositorys = a
-	log.Debugf("Before CreateHook.")
-	if repositoryManager, ok := provision.Repositorys.(repository.RepositoryManager); ok {
-		var r repository.Repository
-		//	fmt.Println("************createHook********************")
-		_, err = repositoryManager.CreateHook(r)
-		if err != nil {
-			log.Errorf("fatal error, cann't createHook for the Repository %s", box.Repo.URL)
-			return "", err
-		} else {
-			log.Debugf("%s Hook created", box.Repo.Source)
-			return "", nil
-		}
-	}
 	imageId, err := p.gitDeploy(box.Repo, box.ImageVersion, w)
 	if err != nil {
 		return "", err
 	}
-	return p.deployPipeline(box, imageId, w)
+	imageid, er := p.deployPipeline(box, imageId, w)
+	if er != nil {
+		return imageid, err
+	}
+
+	if box.Level == provision.BoxSome && box.Repo.IsEnabled() {
+		hookId, err := repository.Manager(box.Repo.GetSource()).CreateHook(box.Repo)
+		if err != nil {
+			return hookId, err
+		}
+	}
+	return imageid, er
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
@@ -241,9 +228,6 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 	return nil
 }
 
-
-
-
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
 	fmt.Fprintf(w, "\n--- restarting box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
@@ -255,9 +239,9 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 	}
 
 	actions := []*action.Action{
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 		&restartMachine,
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -268,10 +252,10 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		return err
 	}
 
-	return  nil
+	return nil
 }
 
-func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer)  error {
+func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
 	fmt.Fprintf(w, "\n--- starting box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
@@ -282,7 +266,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	}
 
 	actions := []*action.Action{
-			&updateStatusInRiak,
+		&updateStatusInRiak,
 		&startMachine,
 		&updateStatusInRiak,
 	}
@@ -292,13 +276,13 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- starting box (%s)\n --> %s", box.GetFullName(), err)
-		return  err
+		return err
 	}
 
-	return  nil
+	return nil
 }
 
-func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer)  error {
+func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
 	fmt.Fprintf(w, "\n--- stoping box (%s)\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
@@ -308,7 +292,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer)  
 		provisioner:   p,
 	}
 	actions := []*action.Action{
-&updateStatusInRiak,
+		&updateStatusInRiak,
 		&stopMachine,
 		&updateStatusInRiak,
 	}
@@ -318,7 +302,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer)  
 	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, "--- stoping box (%s)\n --> %s", box.GetFullName(), err)
-		return  err
+		return err
 	}
 
 	return nil

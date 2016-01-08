@@ -19,8 +19,8 @@ func (s *S) TestConfig_Parse(c *check.C) {
 	}
 
 	c.Assert(cm, check.NotNil)
-	c.Assert(cm.Meta.Riak, check.DeepEquals, []string{"192.168.0.101:8087"})
-	c.Assert(cm.Meta.NSQd, check.DeepEquals, []string{"192.168.0.101:4150"})
+	c.Assert(cm.Meta.Riak, check.DeepEquals, []string{"103.56.92.7:8087"})
+	c.Assert(cm.Meta.NSQd, check.DeepEquals, []string{"103.56.92.7:4150"})
 	c.Assert(cm.Deployd.OneUserid, check.Equals, "oneadmin")
 
 }
