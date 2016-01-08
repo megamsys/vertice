@@ -17,7 +17,11 @@ package provision
 
 import (
 	"net/url"
+	"os"
+	"os/user"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -51,6 +55,47 @@ type Boxlog struct {
 	Source    string
 	Name      string
 	Unit      string
+}
+
+type BoxSSH struct {
+	User   string
+	Prefix string
+}
+
+func (bs *BoxSSH) Pub() string {
+	return bs.Prefix + "_pub"
+}
+
+//authorized_keys path is same in all linux i think
+func (bs *BoxSSH) AuthKeysFile() string {
+	dotssh_dir := ""
+	dotssh := ""
+	switch runtime.GOOS {
+	case "linux":
+		dotssh_dir = filepath.Join(home(bs.User), ".ssh")
+		dotssh = filepath.Join(dotssh_dir, "authorized_keys")
+	default:
+		dotssh_dir = filepath.Join(home(bs.User), ".ssh")
+		dotssh = filepath.Join(dotssh_dir, "authorized_keys")
+	}
+
+	if _, err := os.Stat(dotssh_dir); err != nil { //create  authorized_keys file, if it aint there
+		os.Mkdir(dotssh_dir, 755)
+	}
+
+	if _, err := os.Stat(dotssh); err != nil { //create  authorized_keys file, if it aint there
+		w, _ := os.Create(dotssh)
+		defer w.Close()
+	}
+	return dotssh
+}
+
+func home(name string) string {
+	if auth_user, err := user.Lookup(name); err == nil {
+		return auth_user.HomeDir
+	}
+	curr_user, _ := user.Current()
+	return curr_user.HomeDir // hmm no error trap ?
 }
 
 type BoxCompute struct {
@@ -126,6 +171,7 @@ type Box struct {
 	Status       Status
 	Provider     string
 	PublicIp     string
+	SSH          BoxSSH
 	Commit       string
 	Envs         []bind.EnvVar
 	Address      *url.URL

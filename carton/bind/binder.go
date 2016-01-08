@@ -1,5 +1,5 @@
 /*
-** Copyright [2013-2015] [Megam Systems]
+** Copyright [2013-2016] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -17,36 +17,89 @@ package bind
 
 import (
 	"fmt"
-)
+	"runtime"
+	"strings"
 
-type EnvVars []*EnvVar
+	"github.com/megamsys/libgo/os"
+)
 
 // EnvVar represents a environment variable for a carton.
 type EnvVar struct {
-	Name  string
-	Value string
+	Name     string
+	Value    string
+	Endpoint string
 }
 
 func (e *EnvVar) String() string {
 	return fmt.Sprintf("%s=%s", e.Name, e.Value)
 }
 
-type Binder interface {
+type EnvVars []EnvVar
 
-	// Bind makes the bind between two boxes.
-	//Bind(b *provision.Box) error
-
-	// Unbind makes the unbind between two boxes
-	//Unbind(b *provision.Box) error
-
-	// Provides the YetToBeBoud instances for a box.
-	//Group() (*[]YBoundBox, error)
+func (en EnvVars) WrapForInitds() string {
+	var envs = ""
+	for _, de := range en {
+		envs += wrapForInitdservice(de.Name, de.Value)
+	}
+	return envs
 }
 
-/*Yet to be bound instance for a box.
-Details needed like the Envs (in a map), name.domain
-*/
-type YBoundBox struct {
-	Name string
-	Envs map[string]string
+func wrapForInitdservice(key string, value string) string {
+	osh := os.HostOS()
+	switch runtime.GOOS {
+	case "linux":
+		if osh != os.Ubuntu {
+			return key + "=" + value //systemd
+		}
+	default:
+		return "initctl set-env " + key + "=" + value + "\n"
+	}
+	return "initctl set-env " + key + "=" + value + "\n"
+}
+
+type JsonPair struct {
+	K string `json:"key"`
+	V string `json:"value"`
+}
+
+type JsonPairs []*JsonPair
+
+func NewJsonPair(k string, v string) *JsonPair {
+	return &JsonPair{
+		K: k,
+		V: v,
+	}
+}
+
+//match for a value in the JSONPair and send the value
+func (p *JsonPairs) Match(k string) string {
+	for _, j := range *p {
+		if j.K == k {
+			return j.V
+		}
+	}
+	return ""
+}
+
+//Delete old keys and update them with the new values
+func (p *JsonPairs) NukeAndSet(m map[string][]string) {
+	swap := make(JsonPairs, 0)
+	for _, j := range *p { //j is value
+		exists := false
+		for k, _ := range m { //k is key
+			if strings.Compare(j.K, k) == 0 {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			swap = append(swap, j)
+		}
+	}
+	for mkey, mvals := range m {
+		for _, mval := range mvals {
+			swap = append(swap, NewJsonPair(mkey, mval))
+		}
+	}
+	*p = swap
 }

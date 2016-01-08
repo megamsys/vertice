@@ -15,6 +15,7 @@ type Carton struct {
 	Tosca        string
 	ImageVersion string
 	Compute      provision.BoxCompute
+	SSH          provision.BoxSSH
 	DomainName   string
 	Provider     string
 	PublicIp     string
