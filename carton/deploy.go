@@ -18,7 +18,7 @@ package carton
 
 import (
 	"bytes"
-	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/megamd/provision"
