@@ -21,13 +21,16 @@ import (
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/carton/bind"
 	"github.com/megamsys/megamd/db"
+	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/provision"
 	"gopkg.in/yaml.v2"
 )
 
 const (
-	ASMBUCKET = "assembly"
+	ASSEMBLYBUCKET = "assembly"
+	SSHKEY         = "sshkey"
 )
 
 type Policy struct {
@@ -38,16 +41,16 @@ type Policy struct {
 
 //An assembly comprises of various components.
 type Ambly struct {
-	Id           string    `json:"id"`
-	Name         string    `json:"name"`
-	JsonClaz     string    `json:"json_claz"`
-	Tosca        string    `json:"tosca_type"`
-	Inputs       JsonPairs `json:"inputs"`
-	Outputs      JsonPairs `json:"outputs"`
-	Policies     []*Policy `json:"policies"`
-	Status       string    `json:"status"`
-	CreatedAt    string    `json:"created_at"`
-	ComponentIds []string  `json:"components"`
+	Id           string         `json:"id"`
+	Name         string         `json:"name"`
+	JsonClaz     string         `json:"json_claz"`
+	Tosca        string         `json:"tosca_type"`
+	Inputs       bind.JsonPairs `json:"inputs"`
+	Outputs      bind.JsonPairs `json:"outputs"`
+	Policies     []*Policy      `json:"policies"`
+	Status       string         `json:"status"`
+	CreatedAt    string         `json:"created_at"`
+	ComponentIds []string       `json:"components"`
 }
 
 type Assembly struct {
@@ -84,6 +87,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
+		SSH:          a.newSSH(),
 		Provider:     a.provider(),
 		PublicIp:     a.publicIp(),
 		Boxes:        &b,
@@ -116,6 +120,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 					b.Repo.Hook.BoxId = comp.Id
 				}
 				b.Compute = a.newCompute()
+				b.SSH = a.newSSH()
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -125,7 +130,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 
 func getBig(id string) (*Ambly, error) {
 	a := &Ambly{}
-	if err := db.Fetch(ASMBUCKET, id, a); err != nil {
+	if err := db.Fetch(ASSEMBLYBUCKET, id, a); err != nil {
 		return nil, err
 	}
 	return a, nil
@@ -147,28 +152,43 @@ func NewAssemblyToCart(aies string, ay string) (*Carton, error) {
 }
 
 func (a *Ambly) SetStatus(status provision.Status) error {
-	LastStatusUpdate := time.Now().In(time.UTC)
-
-	a.Inputs = append(a.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
-	a.Inputs = append(a.Inputs, NewJsonPair("status", status.String()))
+	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
+	m := make(map[string][]string, 2)
+	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
+	m["status"] = []string{status.String()}
+	a.Inputs.NukeAndSet(m) //just nuke the matching output key:
 	a.Status = status.String()
 
-	if err := db.Store(ASMBUCKET, a.Id, a); err != nil {
+	if err := db.Store(ASSEMBLYBUCKET, a.Id, a); err != nil {
 		fmt.Println(err)
 		return err
 	}
 	return nil
 }
 
+//update outputs in riak, nuke the matching keys available
+func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
+	if len(m) > 0 {
+		log.Debugf("nuke and set outputs in riak [%s]", m)
+		a.Outputs.NukeAndSet(m) //just nuke the matching output key:
+		if err := db.Store(ASSEMBLYBUCKET, a.Id, a); err != nil {
+			return err
+		}
+	} else {
+		return provision.ErrNoOutputsFound
+	}
+	return nil
+}
+
 func (c *Assembly) Delete(asmid string) {
-	_ = db.Delete(ASMBUCKET, asmid)
+	_ = db.Delete(ASSEMBLYBUCKET, asmid)
 }
 
 //get the assembly and its children (component). we only store the
 //componentid, hence you see that we have a components map to cater to that need.
 func get(id string) (*Assembly, error) {
 	a := &Assembly{Components: make(map[string]*Component)}
-	if err := db.Fetch(ASMBUCKET, id, a); err != nil {
+	if err := db.Fetch(ASSEMBLYBUCKET, id, a); err != nil {
 		return nil, err
 	}
 	a.dig()
@@ -189,20 +209,24 @@ func (a *Assembly) dig() error {
 	return nil
 }
 
+func (a *Assembly) sshkey() string {
+	return a.Inputs.Match(SSHKEY)
+}
+
 func (a *Assembly) domain() string {
-	return a.Inputs.match(DOMAIN)
+	return a.Inputs.Match(DOMAIN)
 }
 
 func (a *Assembly) provider() string {
-	return a.Inputs.match(provision.PROVIDER)
+	return a.Inputs.Match(provision.PROVIDER)
 }
 
 func (a *Assembly) publicIp() string {
-	return a.Outputs.match(PUBLICIP)
+	return a.Outputs.Match(PUBLICIPV4)
 }
 
 func (a *Assembly) imageVersion() string {
-	return a.Inputs.match(IMAGE_VERSION)
+	return a.Inputs.Match(IMAGE_VERSION)
 }
 
 func (a *Assembly) newCompute() provision.BoxCompute {
@@ -214,12 +238,19 @@ func (a *Assembly) newCompute() provision.BoxCompute {
 	}
 }
 
+func (a *Assembly) newSSH() provision.BoxSSH {
+	return provision.BoxSSH{
+		User:   meta.MC.User,
+		Prefix: a.sshkey(),
+	}
+}
+
 func (a *Assembly) getCpushare() string {
-	return a.Inputs.match(provision.CPU)
+	return a.Inputs.Match(provision.CPU)
 }
 
 func (a *Assembly) getMemory() string {
-	return a.Inputs.match(provision.RAM)
+	return a.Inputs.Match(provision.RAM)
 
 }
 
@@ -229,8 +260,8 @@ func (a *Assembly) getSwap() string {
 
 //The default HDD is 10. we should configure it in the megamd.conf
 func (a *Assembly) getHDD() string {
-	if len(strings.TrimSpace(a.Inputs.match(provision.HDD))) <= 0 {
+	if len(strings.TrimSpace(a.Inputs.Match(provision.HDD))) <= 0 {
 		return "10"
 	}
-	return a.Inputs.match(provision.HDD)
+	return a.Inputs.Match(provision.HDD)
 }

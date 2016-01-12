@@ -25,6 +25,7 @@ type Machine struct {
 	Id       string
 	CartonId string
 	Level    provision.BoxLevel
+	SSH      provision.BoxSSH
 	Image    string
 	Routable bool
 	Status   provision.Status

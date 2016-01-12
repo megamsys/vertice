@@ -28,17 +28,17 @@ import (
 
 const (
 	DOMAIN        = "domain"
-	PUBLICIP      = "publicip"
-	PRIVATEIP     = "privateip"
+	PUBLICIPV4    = "publicipv4"
+	PRIVATEIPV4   = "privateipv4"
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
 )
 
 type Artifacts struct {
-	Type         string    `json:"artifact_type"`
-	Content      string    `json:"content"`
-	Requirements JsonPairs `json:"requirements"`
+	Type         string         `json:"artifact_type"`
+	Content      string         `json:"content"`
+	Requirements bind.JsonPairs `json:"requirements"`
 }
 
 /* Repository represents a repository managed by the manager. */
@@ -50,18 +50,18 @@ type Repo struct {
 }
 
 type Component struct {
-	Id                string        `json:"id"`
-	Name              string        `json:"name"`
-	Tosca             string        `json:"tosca_type"`
-	Inputs            JsonPairs     `json:"inputs"`
-	Outputs           JsonPairs     `json:"outputs"`
-	Envs              JsonPairs     `json:"envs"`
-	Repo              Repo          `json:"repo"`
-	Artifacts         *Artifacts    `json:"artifacts"`
-	RelatedComponents []string      `json:"related_components"`
-	Operations        []*Operations `json:"operations"`
-	Status            string        `json:"status"`
-	CreatedAt         string        `json:"created_at"`
+	Id                string         `json:"id"`
+	Name              string         `json:"name"`
+	Tosca             string         `json:"tosca_type"`
+	Inputs            bind.JsonPairs `json:"inputs"`
+	Outputs           bind.JsonPairs `json:"outputs"`
+	Envs              bind.JsonPairs `json:"envs"`
+	Repo              Repo           `json:"repo"`
+	Artifacts         *Artifacts     `json:"artifacts"`
+	RelatedComponents []string       `json:"related_components"`
+	Operations        []*Operations  `json:"operations"`
+	Status            string         `json:"status"`
+	CreatedAt         string         `json:"created_at"`
 }
 
 func (a *Component) String() string {
@@ -110,9 +110,11 @@ func (c *Component) mkBox() (provision.Box, error) {
 }
 
 func (c *Component) SetStatus(status provision.Status) error {
-	LastStatusUpdate := time.Now().In(time.UTC)
-	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", LastStatusUpdate.String()))
-	c.Inputs = append(c.Inputs, NewJsonPair("status", status.String()))
+	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
+	m := make(map[string][]string, 2)
+	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
+	m["status"] = []string{status.String()}
+	c.Inputs.NukeAndSet(m) //just nuke the matching output key:
 
 	c.Status = status.String()
 
@@ -122,35 +124,49 @@ func (c *Component) SetStatus(status provision.Status) error {
 	return nil
 }
 
-func (c *Component) Delete(compid string) {
-	_ = db.Delete(COMPBUCKET, compid)
-}
+/*func (c *Component) UpdateOpsRun(opsRan upgrade.OperationsRan) error {
+	mutatedOps := make([]*upgrade.Operation, 0, len(opsRan))
 
-func (c *Component) setDeployData(dd DeployData) error {
-	c.Inputs = append(c.Inputs, NewJsonPair("lastsuccessstatusupdate", ""))
-	c.Inputs = append(c.Inputs, NewJsonPair("status", ""))
+	for _, o := range opsRan {
+		mutatedOps = append(mutatedOps, o.Raw)
+	}
+	c.Operations = mutatedOps
 
 	if err := db.Store(COMPBUCKET, c.Id, c); err != nil {
 		return err
 	}
 	return nil
+}*/
+
+func (c *Component) Delete(compid string) {
+	_ = db.Delete(COMPBUCKET, compid)
+}
+
+func (c *Component) setDeployData(dd DeployData) error {
+	/*c.Inputs = append(c.Inputs, bind.NewJsonPair("lastsuccessstatusupdate", ""))
+	c.Inputs = append(c.Inputs, bind.NewJsonPair("status", ""))
+
+	if err := db.Store(COMPBUCKET, c.Id, c); err != nil {
+		return err
+	}*/
+	return nil
 
 }
 
 func (c *Component) domain() string {
-	return c.Inputs.match(DOMAIN)
+	return c.Inputs.Match(DOMAIN)
 }
 
 func (c *Component) provider() string {
-	return c.Inputs.match(provision.PROVIDER)
+	return c.Inputs.Match(provision.PROVIDER)
 }
 
 func (c *Component) publicIp() string {
-	return c.Outputs.match(PUBLICIP)
+	return c.Outputs.Match(PUBLICIPV4)
 }
 
 func (c *Component) withOneClick() bool {
-	return (len(strings.TrimSpace(c.Envs.match(ONECLICK))) > 0)
+	return (len(strings.TrimSpace(c.Envs.Match(ONECLICK))) > 0)
 }
 
 //all the variables in the inputs shall be treated as ENV.

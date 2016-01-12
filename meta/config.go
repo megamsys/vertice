@@ -22,16 +22,20 @@ const (
 	// DefaultNSQ is the default nsqd if its not provided.
 	DefaultNSQd = "localhost:4161"
 
+	//default user
+	DefaultUser = "megam"
+
 	MEGAM_HOME = "MEGAM_HOME"
 )
 
 // Config represents the meta configuration.
 type Config struct {
 	Home string   `toml:"home"`
-	Api  string   `toml:"api"`
 	Dir  string   `toml:"dir"`
 	Riak []string `toml:"riak"`
 	NSQd []string `toml:"nsqd"`
+	Api  string   `toml:"api"`
+	User string   `toml:"user"`
 }
 
 var MC *Config
@@ -70,6 +74,7 @@ func NewConfig() *Config {
 	return &Config{
 		Home: homeDir,
 		Dir:  defaultDir,
+		User: DefaultUser,
 		Riak: []string{DefaultRiak},
 		Api:  DefaultApi,
 		NSQd: []string{DefaultNSQd},

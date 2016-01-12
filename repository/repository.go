@@ -73,9 +73,9 @@ func (r Repo) GetUserName() string {
 	return r.Hook.UserName
 }
 
+//Check on CartonId, BoxId if it exists (r.Hook.BoxId)
 func (r Repo) Trigger() string {
-	//do a check on CartonId, BoxId and send back an exception ?
-	return meta.MC.Api + "/assembly/build/" + r.Hook.CartonId + "/" + r.Hook.BoxId
+	return meta.MC.Api + "/assembly/upgrade/" + r.Hook.CartonId
 }
 
 func (r Repo) GetShortName() (string, error) {
