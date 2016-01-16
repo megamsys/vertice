@@ -8,15 +8,17 @@ import (
 	"github.com/megamsys/megamd/subd/dns"
 	"github.com/megamsys/megamd/subd/docker"
 	"github.com/megamsys/megamd/subd/httpd"
+	"github.com/megamsys/megamd/subd/metricsd"
 )
 
 type Config struct {
-	Meta    *meta.Config    `toml:"meta"`
-	Deployd *deployd.Config `toml:"deployd"`
-	HTTPD   *httpd.Config   `toml:"http"`
-	Docker  *docker.Config  `toml:"docker"`
-	Bridges *docker.Bridges `toml:"bridges"`
-	DNS     *dns.Config     `toml:"dns"`
+	Meta    *meta.Config     `toml:"meta"`
+	Deployd *deployd.Config  `toml:"deployd"`
+	HTTPD   *httpd.Config    `toml:"http"`
+	Docker  *docker.Config   `toml:"docker"`
+	Bridges *docker.Bridges  `toml:"bridges"`
+	Metrics *metricsd.Config `toml:"metrics"`
+	DNS     *dns.Config      `toml:"dns"`
 }
 
 func (c Config) String() string {
@@ -26,6 +28,7 @@ func (c Config) String() string {
 		c.HTTPD.String() + "\n" +
 		c.Docker.String() + "\n" +
 		c.Bridges.String() + "\n" +
+		c.Metrics.String() + "\n" +
 		c.DNS.String())
 
 }
@@ -38,6 +41,7 @@ func NewConfig() *Config {
 	c.HTTPD = httpd.NewConfig()
 	c.Docker = docker.NewConfig()
 	c.Bridges = docker.NewBridgeConfig()
+	c.Metrics = metricsd.NewConfig()
 	c.DNS = dns.NewConfig()
 	return c
 }

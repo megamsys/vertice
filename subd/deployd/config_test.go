@@ -22,7 +22,7 @@ func (s *S) TestDeploydConfig_Parse(c *check.C) {
 	}
 
 	c.Assert(cm.OneEndPoint, check.Equals, "locahost")
-	c.Assert(cm.OneUserid, check.Equals, "oneadmin")
+	c.Assert(cm.OneUserid, check.Equals, "oneadmaaain")
 	c.Assert(cm.OnePassword, check.Equals, "password")
 	c.Assert(cm.OneTemplate, check.Equals, "megam")
 
