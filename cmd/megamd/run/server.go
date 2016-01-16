@@ -13,6 +13,7 @@ import (
 	"github.com/megamsys/megamd/subd/dns"
 	"github.com/megamsys/megamd/subd/docker"
 	"github.com/megamsys/megamd/subd/httpd"
+	"github.com/megamsys/megamd/subd/metricsd"
 )
 
 // Server represents a container for the metadata and storage data and services.
@@ -44,6 +45,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker, c.Bridges)
+	s.appendMetricsdService(c.Meta, c.Deployd, c.Metrics)
 	//s.appendEventsTransporter(c.Meta)
 	s.selfieDNS(c.DNS)
 	return s, nil
@@ -73,6 +75,17 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 		return
 	}
 	srv := httpd.NewService(c)
+	s.Services = append(s.Services, srv)
+}
+
+func (s *Server) appendMetricsdService(c *meta.Config, d *deployd.Config, f *metricsd.Config) {
+	if !f.Enabled {
+		log.Warn("skip metricsd service.")
+		return
+	}
+	srv := metricsd.NewService(c, d, f)
+	//	srv.SwarmExecutor = s.SwarmExecutor
+	//	srv.ProvisioningWriter = s.ProvisioningWriter
 	s.Services = append(s.Services, srv)
 }
 
