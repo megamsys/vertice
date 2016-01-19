@@ -2,7 +2,12 @@ package docker
 
 import (
 	"gopkg.in/check.v1"
+	"testing"
 )
+
+func Test(t *testing.T) {
+	check.TestingT(t)
+}
 
 type S struct {
 	service *Service

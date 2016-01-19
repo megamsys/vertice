@@ -1,7 +1,5 @@
 package metrix
 
-import "strconv"
-
 type MetricsCollection struct {
 	Prefix  string
 	Metrics Metrics
@@ -25,7 +23,7 @@ func (m *MetricsCollection) AddMapping(from, to string) {
 	m.Mapping[from] = to
 }
 
-func (m *MetricsCollection) AddWithTags(key string, v int64, tags map[string]string) (e error) {
+func (m *MetricsCollection) AddWithTags(key string, v string, tags map[string]string) (e error) {
 	if realKey, ok := m.Mapping[key]; ok {
 		key = realKey
 	}
@@ -34,13 +32,9 @@ func (m *MetricsCollection) AddWithTags(key string, v int64, tags map[string]str
 }
 
 func (m *MetricsCollection) MustAddString(key, value string) error {
-	i, e := strconv.ParseInt(value, 10, 64)
-	if e != nil {
-		return e
-	}
-	return m.Add(key, i)
+	return m.Add(key, value)
 }
 
-func (m *MetricsCollection) Add(key string, v int64) (e error) {
+func (m *MetricsCollection) Add(key string, v string) (e error) {
 	return m.AddWithTags(key, v, map[string]string{})
 }

@@ -21,8 +21,8 @@ func (s *S) TestDeploydConfig_Parse(c *check.C) {
 		c.Fatal(err)
 	}
 
-	c.Assert(cm.OneEndPoint, check.Equals, "locahost")
-	c.Assert(cm.OneUserid, check.Equals, "oneadmaaain")
+	c.Assert(cm.OneEndPoint, check.Equals, "http://opennebula:3000/xmlrpc2")
+	c.Assert(cm.OneUserid, check.Equals, "oneadmin")
 	c.Assert(cm.OnePassword, check.Equals, "password")
 	c.Assert(cm.OneTemplate, check.Equals, "megam")
 

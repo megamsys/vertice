@@ -24,9 +24,9 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Route", "cyan", "", "") + "\n"))
-	b.Write([]byte("Enabled  " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
-	b.Write([]byte("AccessKey" + "\t" + c.AccessKey + "\n"))
-	b.Write([]byte("SecretKey" + "\t" + c.SecretKey + "\n"))
+	b.Write([]byte("enabled  " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte("access_key" + "\t" + c.AccessKey + "\n"))
+	b.Write([]byte("secret_key" + "\t" + c.SecretKey + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()

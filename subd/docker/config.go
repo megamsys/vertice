@@ -64,7 +64,7 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("docker", "cyan", "", "") + "\n"))
-	b.Write([]byte("Enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte(docker.DOCKER_REGISTRY + "\t" + c.Registry + "\n"))
 	b.Write([]byte(docker.DOCKER_SWARM + "    \t" + c.Swarm + "\n"))
 	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.MemSize) + "\n"))

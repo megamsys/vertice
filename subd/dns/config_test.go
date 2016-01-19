@@ -18,7 +18,7 @@ func (s *S) TestDnsConfig_Parse(c *check.C) {
 	if _, err := toml.Decode(`
 enabled = true
 access_key  = ":9000"
-secrete_key = "xxx"
+secret_key = "xxx"
 `, &cm); err != nil {
 		c.Fatal(err)
 	}
