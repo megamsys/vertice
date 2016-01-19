@@ -20,6 +20,7 @@ const (
 	TYPE     = "type"
 	TOKEN    = "token"
 	USERNAME = "username"
+	STATUS   = "unbound"
 
 	// IMAGE indicates that the repo is an image
 	IMAGE = "image"
