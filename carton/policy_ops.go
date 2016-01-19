@@ -23,6 +23,7 @@ type Operations struct {
 	Type        string    `json:"operation_type"`
 	Description string    `json:"description"`
 	Properties  JsonPairs `json:"properties"`
+	Status      string    `json:"status"`
 }
 
 func (o *Operations) prepBuildHook() *repository.Hook {
