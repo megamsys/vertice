@@ -106,21 +106,10 @@ type Repository interface {
 	GetShortName() (string, error)
 }
 
-type Repositorys interface {
-}
-
 // RepositoryManager represents a manager of application repositories.
 type RepositoryManager interface {
 	CreateHook(r Repository) (string, error)
 	RemoveHook(r Repository) error
-}
-
-func Get(name string) (Repositorys, error) {
-	p, ok := managers[name]
-	if !ok {
-		return nil, fmt.Errorf("unknown repository: %q", name)
-	}
-	return p, nil
 }
 
 // Manager returns the current configured manager, as defined in the
