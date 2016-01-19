@@ -21,7 +21,6 @@ import (
 	"io"
 
 	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/repository"
 )
 
 const (
@@ -78,8 +77,6 @@ const (
 	// a box error.
 	StatusError = Status("error")
 )
-
-var Repositorys repository.Repositorys
 
 // Named is something that has a name, providing the GetName method.
 type Named interface {

@@ -1,5 +1,5 @@
 /*
-** Copyright [2013-2015] [Megam Systems]
+** Copyright [2013-2016] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -120,7 +120,6 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
-
 	return p.getBuildImage(re, version), nil
 }
 
