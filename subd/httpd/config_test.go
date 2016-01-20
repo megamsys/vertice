@@ -1,9 +1,15 @@
 package httpd
 
 import (
+	"testing"
+
 	"github.com/BurntSushi/toml"
 	"gopkg.in/check.v1"
 )
+
+func Test(t *testing.T) {
+	check.TestingT(t)
+}
 
 type S struct {
 	service *Service
@@ -23,6 +29,6 @@ use_tls =  false
 		c.Fatal(err)
 	}
 
-	c.Assert(cm.BindAddress, check.Equals, "locahost")
+	c.Assert(cm.BindAddress, check.Equals, ":8080")
 	c.Assert(cm.UseTls, check.Equals, false)
 }

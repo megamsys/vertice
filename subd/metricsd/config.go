@@ -34,8 +34,8 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nConfig:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Metricsd", "cyan", "", "") + "\n"))
-	b.Write([]byte("Enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
-	b.Write([]byte("CollectInterval" + "\t" + c.CollectInterval.String() + "\n"))
+	b.Write([]byte("enabled" + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
+	b.Write([]byte("collect_interval" + "\t" + c.CollectInterval.String() + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()

@@ -5,23 +5,23 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/db"
 )
 
-func SendMetricsToRiak(address []string, metrics []*Metric, hostname string) (e error) {
-	_ = time.Now()
+func SendMetricsToRiak(address []string, metrics Sensors, hostname string) (err error) {
+	started := time.Now()
 	for _, m := range metrics {
-		_ = hostname + "." + m.Key
-		_, e := json.Marshal(m)
-		if e != nil {
-			log.Debugf(e.Error())
+		sj, err := json.Marshal(m)
+		if err != nil {
+			log.Debugf(err.Error())
 			continue
 		}
 
-		/*if e != nil {
-			log.Debugf(e.Error())
+		if err = db.Store(SENSORSBUCKET, m.Id, sj); err != nil {
+			log.Debugf(err.Error())
 			continue
-		}*/
+		}
 	}
-	//fmt.Printf("sent %d metrics in %.06f\n", len(metrics), time.Now().Sub(started).Seconds())
+	log.Debugf("sent %d metrics in %.06f\n", len(metrics), time.Since(started).Seconds())
 	return nil
 }

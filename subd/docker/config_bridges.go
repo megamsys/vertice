@@ -24,8 +24,8 @@ func (d DockerBridge) String() string {
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Bridge", "white", "", "") + "\t" +
 		cmd.Colorfy(d.Name, "blue", "", "") + "\n"))
-	b.Write([]byte("Network" + "\t" + d.Network + "\n"))
-	b.Write([]byte("Gateway" + "\t" + d.Gateway + "\n"))
+	b.Write([]byte("network" + "\t" + d.Network + "\n"))
+	b.Write([]byte("gateway" + "\t" + d.Gateway + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()

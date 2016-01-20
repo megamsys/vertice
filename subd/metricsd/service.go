@@ -1,8 +1,6 @@
 package metricsd
 
 import (
-	"fmt"
-	"sync"
 	"time"
 
 	log "github.com/Sirupsen/logrus"
@@ -22,7 +20,6 @@ type Service struct {
 	err     chan error
 	Handler *Handler
 	stop    chan struct{}
-	wg      *sync.WaitGroup
 	Meta    *meta.Config
 	Deployd *deployd.Config
 	Config  *Config
@@ -48,19 +45,16 @@ func (s *Service) Open() error {
 	}
 
 	s.stop = make(chan struct{})
-	s.wg = &sync.WaitGroup{}
-	s.wg.Add(1)
-
 	go s.backgroundLoop()
 	return nil
 }
 
 func (s *Service) backgroundLoop() {
-	defer s.wg.Done()
 	for {
 		select {
 		case <-s.stop:
-			log.Info("metricd terminating")
+			log.Info("metricsd terminating")
+			break
 		case <-time.After(time.Duration(s.Config.CollectInterval)):
 			s.runMetricsCollectors()
 		}
@@ -79,23 +73,8 @@ func (s *Service) runMetricsCollectors() error {
 
 	mh := &metrix.MetricHandler{}
 
-	values := make(map[string]string)
-
-	for key, _ := range values {
-		if collector, ok := collectors[key]; ok {
-			go s.Handler.processCollector(mh, output, collector)
-		} else {
-			isOutput := false
-			for _, out := range OUTPUTS {
-				if out == key {
-					isOutput = true
-					break
-				}
-			}
-			if !isOutput {
-				return fmt.Errorf("no collector found for %q\n", key)
-			}
-		}
+	for _, collector := range collectors {
+		go s.Handler.processCollector(mh, output, collector)
 	}
 	return nil
 }
@@ -105,11 +84,8 @@ func (s *Service) Close() error {
 		return nil
 	}
 	close(s.stop)
-	s.wg.Wait()
-	s.wg = nil
 	s.stop = nil
 	return nil
-
 }
 
 // Err returns a channel for fatal errors that occur on the listener.

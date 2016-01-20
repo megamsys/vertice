@@ -17,5 +17,5 @@ func (s *S) TestDockerConfig_Parse(c *check.C) {
 		c.Fatal(err)
 	}
 
-	c.Assert(cm.Swarm, check.Equals, "locahost")
+	c.Assert(cm.Swarm, check.Equals, "http://192.168.1.241:2375")
 }

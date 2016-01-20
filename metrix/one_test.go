@@ -1,28 +1,41 @@
 package metrix
 
 import (
-//	"testing"
+	"fmt"
+
+	"gopkg.in/check.v1"
 )
 
-/*func TestParseElasticSearch(t *testing.T) {
-	Convey("ElasticSearch", t, func() {
-		mh := &MetricHandler{}
-		es := &ElasticSearch{RawStatus: readFile("fixtures/elasticsearch_status.json")}
+// Ensure the configuration can be parsed.
+func (s *S) TestParseOpenNebulaCollector(c *check.C) {
+	mh := &MetricHandler{}
+	on := &OpenNebula{RawStatus: s.testjson}
+	all, _ := mh.Collect(on)
 
-		all, _ := mh.Collect(es)
+	for _, m := range all {
+		fmt.Printf("%+v", m)
+		c.Assert(len(m.Id) > 0, check.Equals, true)
+		c.Assert(len(m.Type) > 0, check.Equals, true)
+		c.Assert(len(m.CreatedAt) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AccountsId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssemblyId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssembliesId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssemblyName) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.System) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Status) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Source) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Message) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.BeginAudit) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.EndAudit) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.DeltaAudit) > 0, check.Equals, true)
 
-		mapped := map[string]*Metric{}
-		for _, m := range all {
-			k := m.Key
-			if name, ok := m.Tags["index_name"]; ok {
-				k = name + "." + k
-			}
-			mapped[k] = m
+		for _, me := range m.Payload.Metrics {
+			c.Assert(len(me.Key) > 0, check.Equals, true)
+			c.Assert(len(me.Value) > 0, check.Equals, true)
+			c.Assert(len(me.Units) > 0, check.Equals, true)
+			c.Assert(len(me.Type) > 0, check.Equals, true)
+
 		}
-		So(mapped["elasticsearch.shards.Total"].Value, ShouldEqual, int64(20))
-		So(mapped["elasticsearch.shards.Successful"].Value, ShouldEqual, int64(10))
-		So(mapped["index.elasticsearch.indices.index.SizeInBytes"].Value, ShouldEqual, int64(2161))
-		So(mapped["index.elasticsearch.indices.merges.TotalDocs"].Value, ShouldEqual, int64(1))
-		So(len(mapped) > 5, ShouldBeTrue)
-	})
-}*/
+
+	}
+}
