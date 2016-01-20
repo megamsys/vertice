@@ -37,6 +37,7 @@
         },
         "TEMPLATE": {
           "CONTEXT": {
+            "ACCOUNTS_ID": "ACT1200099000099290465",
             "ASSEMBLIES_ID": "AMS1299290465681670144",
             "ASSEMBLY_ID": "ASM1299290465459372032",
             "NODE_NAME": "steams.megambox.com",

@@ -16,7 +16,6 @@ const (
 var LogPubSubQueueSuffix = "_log"
 
 type LogListener struct {
-	b chan Boxlog
 	B <-chan Boxlog
 	c *nsqc.Consumer
 }
@@ -26,26 +25,28 @@ func logQueue(boxName string) string {
 }
 
 func NewLogListener(a *Box) (*LogListener, error) {
-	bo := make(chan Boxlog, 10)
-
+	b := make(chan Boxlog, 10)
 	cons := nsqc.New()
-	if err := cons.Register(logQueue(a.Name), "clients", maxInFlight, dumpLog(bo)); err != nil {
-		return nil, err
-	}
+	go func() {
+		defer close(b)
+		if err := cons.Register(logQueue(a.Name), "clients", maxInFlight, dumpLog(b)); err != nil {
+			return
+		}
 
-	if err := cons.Connect(meta.MC.NSQd...); err != nil {
-		return nil, err
-	}
+		if err := cons.Connect(meta.MC.NSQd...); err != nil {
+			return
+		}
+		log.Debugf("%s: start", logQueue(a.GetFullName()))
+		cons.Start(true)
+		log.Debugf("%s: start OK", logQueue(a.GetFullName()))
+	}()
 
-	go cons.Start(true)
-
-	l := LogListener{B: bo, c: cons, b: bo}
+	l := LogListener{B: b, c: cons}
 	return &l, nil
 }
 
 func (l *LogListener) Close() (err error) {
 	l.c.Stop()
-	defer close(l.b)
 	return nil
 }
 
@@ -63,7 +64,6 @@ func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 }
 
 func notify(boxName string, messages []interface{}) error {
-	log.Debugf("  notify %s", logQueue(boxName))
 	pons := nsqp.New()
 
 	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
@@ -73,6 +73,7 @@ func notify(boxName string, messages []interface{}) error {
 	defer pons.Stop()
 
 	for _, msg := range messages {
+		log.Debugf("%s:", logQueue(boxName), msg)
 		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
 			log.Errorf("Error on publish: %s", err.Error())
 		}

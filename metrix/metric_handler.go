@@ -8,8 +8,8 @@ type MetricCollector interface {
 	Collect(*MetricsCollection) error
 }
 
-func (h *MetricHandler) Collect(c MetricCollector) (Metrics, error) {
-	mc := &MetricsCollection{Prefix: c.Prefix()}
-	e := c.Collect(mc)
-	return mc.Metrics, e
+func (h *MetricHandler) Collect(c MetricCollector) (Sensors, error) {
+	sc := &MetricsCollection{Prefix: c.Prefix()}
+	e := c.Collect(sc)
+	return sc.Sensors, e
 }

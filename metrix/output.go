@@ -3,7 +3,6 @@ package metrix
 import (
 	"fmt"
 	"os"
-	"time"
 )
 
 type OutputHandler struct {
@@ -11,7 +10,7 @@ type OutputHandler struct {
 	Hostname    string
 }
 
-func (o *OutputHandler) WriteMetrics(all []*Metric) (e error) {
+func (o *OutputHandler) WriteMetrics(all Sensors) (e error) {
 	if o.Hostname == "" {
 		hn, e := os.Hostname()
 		if e != nil {
@@ -31,9 +30,8 @@ func (o *OutputHandler) WriteMetrics(all []*Metric) (e error) {
 	return
 }
 
-func SendMetricsToStdout(metrics []*Metric, hostname string) {
-	now := time.Now()
+func SendMetricsToStdout(metrics Sensors, hostname string) {
 	for _, m := range metrics {
-		fmt.Println(m.Ascii(now, hostname))
+		fmt.Println(m)
 	}
 }

@@ -10,26 +10,32 @@ import (
 func (s *S) TestParseOpenNebulaCollector(c *check.C) {
 	mh := &MetricHandler{}
 	on := &OpenNebula{RawStatus: s.testjson}
-
 	all, _ := mh.Collect(on)
-	mapped := map[string]*Metric{}
+
 	for _, m := range all {
-		//	fmt.Println(m)
-		mapped[m.Key] = m
+		fmt.Printf("%+v", m)
+		c.Assert(len(m.Id) > 0, check.Equals, true)
+		c.Assert(len(m.Type) > 0, check.Equals, true)
+		c.Assert(len(m.CreatedAt) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AccountsId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssemblyId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssembliesId) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.AssemblyName) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.System) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Status) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Source) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.Message) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.BeginAudit) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.EndAudit) > 0, check.Equals, true)
+		c.Assert(len(m.Payload.DeltaAudit) > 0, check.Equals, true)
+
+		for _, me := range m.Payload.Metrics {
+			c.Assert(len(me.Key) > 0, check.Equals, true)
+			c.Assert(len(me.Value) > 0, check.Equals, true)
+			c.Assert(len(me.Units) > 0, check.Equals, true)
+			c.Assert(len(me.Type) > 0, check.Equals, true)
+
+		}
+
 	}
-	fmt.Println(mapped)
-	c.Assert(mapped["one.accounts_id"].Value, check.Equals, "")
-	c.Assert(len(mapped["one.assembly_name"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.assembly_id"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.assemblies_id"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.status"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.system"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.cpu"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.cpu_cost"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.memory"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.memory_cost"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.audit_period_beginning"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.audit_period_ending"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped["one.audit_period_delta"].Value) > 0, check.Equals, true)
-	c.Assert(len(mapped) >= 14, check.Equals, true)
 }

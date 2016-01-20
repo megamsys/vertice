@@ -50,23 +50,26 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *OpenNebulaStatus, e error) {
 	return ons, nil
 }
 
+//actually the NewSensor can create trypes based on the event type.
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *OpenNebulaStatus) {
-	for id, h := range s.HISTORYS {
-		tags := map[string]string{"machine_id": string(id)}
-		mc.AddWithTags("node", h.HOSTNAME, tags)
-		mc.AddWithTags("accounts_id", h.AccountsId(), tags)
-		mc.AddWithTags("assembly_id", h.AssemblyId(), tags)
-		mc.AddWithTags("assembly_name", h.AssemblyName(), tags)
-		mc.AddWithTags("assemblies_id", h.AssembliesId(), tags)
-		mc.AddWithTags("status", h.State(), tags)
-		mc.AddWithTags("system", "one", tags)
-		mc.AddWithTags("cpu", h.Cpu(), tags)
-		mc.AddWithTags("memory", h.Memory(), tags)
-		mc.AddWithTags("cpu_cost", h.CpuCost(), tags)
-		mc.AddWithTags("memory_cost", h.MemoryCost(), tags)
-		mc.AddWithTags("audit_period_beginning", time.Unix(timeAsInt64(h.VM.STIME), 0).String(), tags) // UTC
-		mc.AddWithTags("audit_period_ending", time.Unix(timeAsInt64(h.VM.ETIME), 0).String(), tags)    //UTC
-		mc.AddWithTags("audit_period_delta", h.VM.elapsed(), tags)                                     //Hours
+	for _, h := range s.HISTORYS {
+		sc := NewSensor("compute.instance.exists")
+		sc.addPayload(&Payload{System: on.Prefix(),
+			Node:         h.HOSTNAME,
+			AccountsId:   h.AccountsId(),
+			AssemblyId:   h.AssemblyId(),
+			AssemblyName: h.AssemblyName(),
+			AssembliesId: h.AssembliesId(),
+			Source:       on.Prefix(),
+			Message:      "vm billing",
+			Status:       h.State(),
+			BeginAudit:   time.Unix(timeAsInt64(h.VM.STIME), 0).String(),
+			EndAudit:     time.Unix(timeAsInt64(h.VM.ETIME), 0).String(),
+			DeltaAudit:   h.VM.elapsed()})
+
+		sc.addMetric("cpu_cost", h.CpuCost(), h.Cpu(), "delta")
+		sc.addMetric("memory_cost", h.MemoryCost(), h.Memory(), "delta")
+		mc.Add(sc)
 	}
 	return
 }
