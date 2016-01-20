@@ -73,7 +73,7 @@ func notify(boxName string, messages []interface{}) error {
 	defer pons.Stop()
 
 	for _, msg := range messages {
-		log.Debugf("%s:", logQueue(boxName), msg)
+		log.Debugf("%s:%s", logQueue(boxName), msg)
 		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
 			log.Errorf("Error on publish: %s", err.Error())
 		}
