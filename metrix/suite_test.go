@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/BurntSushi/toml"
+	"github.com/megamsys/megamd/meta"
 	"gopkg.in/check.v1"
 )
 
@@ -13,6 +15,7 @@ func Test(t *testing.T) {
 
 type S struct {
 	testjson []byte
+	cm       meta.Config
 }
 
 var _ = check.Suite(&S{})
@@ -22,4 +25,13 @@ func (s *S) SetUpSuite(c *check.C) {
 	c.Assert(e, check.IsNil)
 	s.testjson = b
 	c.Assert(s.testjson, check.NotNil)
+
+	var cm meta.Config
+	if _, err := toml.Decode(`
+	riak = ["localhost:8087"]
+	`, &cm); err != nil {
+		c.Fatal(err)
+	}
+	cm.MkGlobal()
+	s.cm = cm
 }

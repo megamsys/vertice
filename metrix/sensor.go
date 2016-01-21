@@ -25,10 +25,11 @@ import (
 const SENSORSBUCKET = "sensors"
 
 type Sensor struct {
-	Id        string   `json:"id"`
-	Type      string   `json:"type"`
-	Payload   *Payload `json:"payload"`
-	CreatedAt string   `json:"created_at"`
+	Id         string   `json:"id"`
+	AccountsId string   `json:"accounts" riak:"index"`
+	Type       string   `json:"type"`
+	Payload    *Payload `json:"payload"`
+	CreatedAt  string   `json:"created_at"`
 }
 
 func (s *Sensor) String() string {
@@ -38,7 +39,6 @@ func (s *Sensor) String() string {
 }
 
 type Payload struct {
-	AccountsId   string `riak:"index" json:"accounts_id"`
 	AssemblyId   string `json:"assembly_id"`
 	AssemblyName string `json:"assembly_name"`
 	AssembliesId string `json:"assemblies_id"`

@@ -54,9 +54,9 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *OpenNebulaStatus, e error) {
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *OpenNebulaStatus) {
 	for _, h := range s.HISTORYS {
 		sc := NewSensor("compute.instance.exists")
+		sc.AccountsId = h.AccountsId()
 		sc.addPayload(&Payload{System: on.Prefix(),
 			Node:         h.HOSTNAME,
-			AccountsId:   h.AccountsId(),
 			AssemblyId:   h.AssemblyId(),
 			AssemblyName: h.AssemblyName(),
 			AssembliesId: h.AssembliesId(),
