@@ -2,6 +2,7 @@ package provision
 
 import (
 	"encoding/json"
+	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"
@@ -36,9 +37,9 @@ func NewLogListener(a *Box) (*LogListener, error) {
 		if err := cons.Connect(meta.MC.NSQd...); err != nil {
 			return
 		}
-		log.Debugf("%s: start", logQueue(a.GetFullName()))
+		log.Debugf("%s: start", logQueue(a.Name))
 		cons.Start(true)
-		log.Debugf("%s: start OK", logQueue(a.GetFullName()))
+		log.Debugf("%s: start OK", logQueue(a.Name))
 	}()
 
 	l := LogListener{B: b, c: cons}
