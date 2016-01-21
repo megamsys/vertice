@@ -2,7 +2,6 @@ package provision
 
 import (
 	"encoding/json"
-	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"

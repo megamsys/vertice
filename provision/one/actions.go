@@ -145,8 +145,9 @@ var startMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
+		mach.Status = provision.StatusStarted
 		fmt.Fprintf(writer, "\n---- Started machine (%s, %s)\n", mach.Id, mach.Name)
-		return ctx.Previous, nil
+		return mach, nil
 	},
 
 	Backward: func(ctx action.BWContext) {
@@ -166,13 +167,14 @@ var stopMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n---- Stoping  machine %s ----\n", mach.Name)
+		fmt.Fprintf(writer, "\n---- Stopping  machine %s ----\n", mach.Name)
 		err := mach.LCoperation(args.provisioner, STOP)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, "\n---- Stoped machine (%s, %s)\n", mach.Id, mach.Name)
-		return ctx.Previous, nil
+		mach.Status = provision.StatusStopped
+		fmt.Fprintf(writer, "\n---- Stopped machine (%s, %s)\n", mach.Id, mach.Name)
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		//do you want to add it back.
