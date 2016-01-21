@@ -198,8 +198,9 @@ var restartMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
+		mach.Status = provision.StatusRunning
 		fmt.Fprintf(writer, "\n---- Restarted machine (%s, %s)\n", mach.Id, mach.Name)
-		return ctx.Previous, nil
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		//do you want to add it back.
