@@ -7,6 +7,7 @@ import (
 	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/megamd/subd/dns"
 	"github.com/megamsys/megamd/subd/docker"
+	"github.com/megamsys/megamd/subd/eventsd"
 	"github.com/megamsys/megamd/subd/httpd"
 	"github.com/megamsys/megamd/subd/metricsd"
 )
@@ -18,6 +19,7 @@ type Config struct {
 	Docker  *docker.Config   `toml:"docker"`
 	Bridges *docker.Bridges  `toml:"bridges"`
 	Metrics *metricsd.Config `toml:"metrics"`
+	Events  *eventsd.Config  `toml:"events"`
 	DNS     *dns.Config      `toml:"dns"`
 }
 
@@ -29,6 +31,7 @@ func (c Config) String() string {
 		c.Docker.String() + "\n" +
 		c.Bridges.String() + "\n" +
 		c.Metrics.String() + "\n" +
+		c.Events.String() + "\n" +
 		c.DNS.String())
 
 }
@@ -42,6 +45,7 @@ func NewConfig() *Config {
 	c.Docker = docker.NewConfig()
 	c.Bridges = docker.NewBridgeConfig()
 	c.Metrics = metricsd.NewConfig()
+	c.Events = eventsd.NewConfig()
 	c.DNS = dns.NewConfig()
 	return c
 }

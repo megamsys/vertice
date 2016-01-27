@@ -2,18 +2,18 @@
 megamd
 =================
 
-megamd is the core engine for Megam PaaS  
+megamd is the core engine for Megam Vertice
 
 
 ### Requirements
 
 >
-[Golang 1.4 > +](http://www.golang.org/dl)
+[Golang 1.5 > +](http://www.golang.org/dl)
 
 
 ## Usage
 
-``megamd start``
+``megamd -v start``
 
 
 ### Compile from source
