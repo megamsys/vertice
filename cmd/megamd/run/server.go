@@ -8,23 +8,24 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	pp "github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/events"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/megamd/subd/dns"
 	"github.com/megamsys/megamd/subd/docker"
+	"github.com/megamsys/megamd/subd/eventsd"
 	"github.com/megamsys/megamd/subd/httpd"
 	"github.com/megamsys/megamd/subd/metricsd"
 )
 
 // Server represents a container for the metadata and storage data and services.
-// It is built using a Config and it manages the startup and shutdown of all
+// It is built using a config and it manages the startup and shutdown of all
 // services in the proper order.
 type Server struct {
 	version string // Build version
 
-	err     chan error
-	closing chan struct{}
-
+	err      chan error
+	closing  chan struct{}
 	Services []Service
 
 	// Profiling
@@ -34,37 +35,26 @@ type Server struct {
 
 // NewServer returns a new instance of Server built from a config.
 func NewServer(c *Config, version string) (*Server, error) {
-	// Construct base meta store and data store.
 	s := &Server{
 		version: version,
 		err:     make(chan error),
 		closing: make(chan struct{}),
 	}
 
-	// Append services.
+	if err := s.setEventsWriter(c.Events); err != nil {
+		return nil, err
+	}
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker, c.Bridges)
 	s.appendMetricsdService(c.Meta, c.Deployd, c.Metrics)
-	//s.appendEventsTransporter(c.Meta)
+	s.appendEventsdService(c.Meta, c.Events)
 	s.selfieDNS(c.DNS)
 	return s, nil
 }
 
 func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {
 	srv := deployd.NewService(c, d)
-	//	srv.ProvisioningWriter = s.ProvisioningWriter
-	s.Services = append(s.Services, srv)
-}
-
-func (s *Server) appendDockerService(c *meta.Config, d *docker.Config, b *docker.Bridges) {
-	if !d.Enabled {
-		log.Warn("skip dockerd service.")
-		return
-	}
-	srv := docker.NewService(c, d, b)
-	//	srv.SwarmExecutor = s.SwarmExecutor
-	//	srv.ProvisioningWriter = s.ProvisioningWriter
 	s.Services = append(s.Services, srv)
 }
 
@@ -78,14 +68,30 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 	s.Services = append(s.Services, srv)
 }
 
+func (s *Server) appendDockerService(c *meta.Config, d *docker.Config, b *docker.Bridges) {
+	if !d.Enabled {
+		log.Warn("skip dockerd service.")
+		return
+	}
+	srv := docker.NewService(c, d, b)
+	s.Services = append(s.Services, srv)
+}
+
 func (s *Server) appendMetricsdService(c *meta.Config, d *deployd.Config, f *metricsd.Config) {
 	if !f.Enabled {
 		log.Warn("skip metricsd service.")
 		return
 	}
 	srv := metricsd.NewService(c, d, f)
-	//	srv.SwarmExecutor = s.SwarmExecutor
-	//	srv.ProvisioningWriter = s.ProvisioningWriter
+	s.Services = append(s.Services, srv)
+}
+
+func (s *Server) appendEventsdService(c *meta.Config, e *eventsd.Config) {
+	if !e.Enabled {
+		log.Warn("skip eventsd service.")
+		return
+	}
+	srv := eventsd.NewService(c)
 	s.Services = append(s.Services, srv)
 }
 
@@ -130,6 +136,10 @@ func (s *Server) Close() error {
 	if s.closing != nil {
 		close(s.closing)
 	}
+
+	/*if s.eventHander !=nil {
+		s.CloseEventChannel
+	}*/
 	return nil
 }
 
@@ -146,6 +156,10 @@ func (s *Server) monitorErrorChan(ch <-chan error) {
 			return
 		}
 	}
+}
+
+func (s *Server) setEventsWriter(e *eventsd.Config) error {
+	return events.NewWriter(e)
 }
 
 // Service represents a service attached to the server.

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	maxInFlight = 150
+	maxInFlight = 300
 )
 
 var LogPubSubQueueSuffix = "_log"
@@ -25,7 +25,7 @@ func logQueue(boxName string) string {
 }
 
 func NewLogListener(a *Box) (*LogListener, error) {
-	b := make(chan Boxlog, 10)
+	b := make(chan Boxlog, maxInFlight)
 	cons := nsqc.New()
 	go func() {
 		defer close(b)
