@@ -5,6 +5,18 @@ import (
 )
 
 const (
+	EventMachine   EventType = "machine"
+	EventContainer           = "container"
+	EventBill                = "bill"
+	EventUser                = "user"
+	//EventWHMS                        = "whmsCreation"
+
+	Add EventAction = iota
+	Destroy
+	Status
+	Deduct
+	Alert
+
 	// 10ms, i.e. 0.01s
 	timePrecision time.Duration = 10 * time.Millisecond
 )
@@ -22,6 +34,10 @@ type Event struct {
 	// the type of event. EventType is an enumerated type
 	EventType EventType `json:"event_type"`
 
+	//the action can be
+	//bill create, bill delete
+	EventAction EventAction
+
 	// the original event object and all of its extraneous data, ex. an
 	// OomInstance
 	EventData EventData `json:"event_data,omitempty"`
@@ -31,16 +47,31 @@ type Event struct {
 // events may fall. The Event field EventType is populated by this enum.
 type EventType string
 
-const (
-	EventVMCreation        EventType = "vmCreation"
-	EventVMDestroy                   = "vmDestroy"
-	EventContainerCreation           = "containerCreation"
-	EventContainerDestroy            = "containerDestroy"
-	EventBill                        = "bill"
-	EventUserAlert                   = "userAlert"
-	EventDev                         = "dev"
-	//EventWHMS                        = "whmsCreation"
-)
+type EventChannel struct {
+	// Watch ID. Can be used by the caller to request cancellation of watch events.
+	watchId int
+	// Channel on which the caller can receive watch events.
+	channel chan *Event
+}
+
+type EventAction int
+
+func (v *EventAction) String() string {
+	switch *v {
+	case Add:
+		return "add"
+	case Destroy:
+		return "destroy"
+	case Status:
+		return "status"
+	case Deduct:
+		return "deduct"
+	case Alert:
+		return "alert"
+	default:
+		return "arrgh"
+	}
+}
 
 // Extra information about an event. Only one type will be set.
 type EventData struct {

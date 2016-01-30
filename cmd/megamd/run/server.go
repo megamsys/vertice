@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	pp "github.com/megamsys/libgo/cmd"
@@ -41,16 +42,75 @@ func NewServer(c *Config, version string) (*Server, error) {
 		closing: make(chan struct{}),
 	}
 
-	if err := s.setEventsWriter(c.Events); err != nil {
+	if err := s.setEventsWrap(c.Events); err != nil {
 		return nil, err
 	}
+
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker, c.Bridges)
 	s.appendMetricsdService(c.Meta, c.Deployd, c.Metrics)
 	s.appendEventsdService(c.Meta, c.Events)
 	s.selfieDNS(c.DNS)
+	if err := testFakeEvents(); err != nil {
+		log.Errorf("error publishing fake events %s", err.Error())
+	}
 	return s, nil
+}
+
+func testFakeEvents() error {
+	newEvent := &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Add,
+		EventType:   events.EventMachine,
+	}
+	err := events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Destroy,
+		EventType:   events.EventMachine,
+	}
+	err = events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Add,
+		EventType:   events.EventContainer,
+	}
+	err = events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Destroy,
+		EventType:   events.EventContainer,
+	}
+	err = events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Add,
+		EventType:   events.EventBill,
+	}
+	err = events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Deduct,
+		EventType:   events.EventBill,
+	}
+	err = events.W.Write(newEvent)
+
+	newEvent = &events.Event{
+		Timestamp:   time.Now(),
+		EventAction: events.Alert,
+		EventType:   events.EventUser,
+	}
+	err = events.W.Write(newEvent)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {
@@ -158,8 +218,8 @@ func (s *Server) monitorErrorChan(ch <-chan error) {
 	}
 }
 
-func (s *Server) setEventsWriter(e *eventsd.Config) error {
-	return events.NewWriter(e)
+func (s *Server) setEventsWrap(e *eventsd.Config) error {
+	return events.NewWrap(e)
 }
 
 // Service represents a service attached to the server.

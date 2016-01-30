@@ -19,8 +19,8 @@ type Config struct {
 	Docker  *docker.Config   `toml:"docker"`
 	Bridges *docker.Bridges  `toml:"bridges"`
 	Metrics *metricsd.Config `toml:"metrics"`
-	Events  *eventsd.Config  `toml:"events"`
 	DNS     *dns.Config      `toml:"dns"`
+	Events  *eventsd.Config  `toml:"events"`
 }
 
 func (c Config) String() string {
@@ -31,8 +31,8 @@ func (c Config) String() string {
 		c.Docker.String() + "\n" +
 		c.Bridges.String() + "\n" +
 		c.Metrics.String() + "\n" +
-		c.Events.String() + "\n" +
-		c.DNS.String())
+		c.DNS.String() + "\n" +
+		c.Events.String())
 
 }
 

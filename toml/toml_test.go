@@ -24,11 +24,11 @@ func (s *S) TestSize_UnmarshalText_MB(c *check.C) {
 	c.Assert(sb, check.Not(check.Equals), 200*(1<<20))
 }
 
-// Ensure that gigabyte sizes can be parsed.
+//Ensure that gigabyte sizes can be parsed.
 func (s *S) TestSize_UnmarshalText_GB(c *check.C) {
 	var sb toml.Size
 	err := sb.UnmarshalText([]byte("10g"))
 	c.Assert(err, check.IsNil)
-	c.Assert(sb, check.Not(check.Equals), (10 * (1 << 30)))
-
+	f := int64(10 * (1 << 30))
+	c.Assert(sb, check.Not(check.Equals), f)
 }

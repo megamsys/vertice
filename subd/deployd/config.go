@@ -67,7 +67,7 @@ func (c Config) String() string {
 	b.Write([]byte(api.USERID + "    \t" + c.OneUserid + "\n"))
 	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate + "\n"))
 	b.Write([]byte(api.IMAGE + "    \t" + c.Image + "\n"))
-	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword))
+	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()

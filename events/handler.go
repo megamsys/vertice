@@ -7,9 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/megamsys/megamd/utils"
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/utils"
 )
 
 type byTimestamp []*Event
@@ -25,13 +24,6 @@ func (e byTimestamp) Swap(i, j int) {
 
 func (e byTimestamp) Less(i, j int) bool {
 	return e[i].Timestamp.Before(e[j].Timestamp)
-}
-
-type EventChannel struct {
-	// Watch ID. Can be used by the caller to request cancellation of watch events.
-	watchId int
-	// Channel on which the caller can receive watch events.
-	channel chan *Event
 }
 
 // Request holds a set of parameters by which Event objects may be screened.
@@ -51,7 +43,7 @@ type Request struct {
 	// events to receive. If there are more events than MaxEventsReturned
 	// then the most chronologically recent events in the time period
 	// specified are returned. Must be >= 1
-	MaxEventsReturned int
+	maxEventsReturned int
 	// the absolute container name for which the event occurred
 	ContainerName string
 	// if IncludeSubcontainers is false, only events occurring in the specific
@@ -142,11 +134,11 @@ func NewEventManager(storagePolicy StoragePolicy) *events {
 }
 
 // returns a pointer to an initialized Request object
-func NewRequest() *Request {
+func NewRequest(opts *eventReqOpts) *Request {
 	return &Request{
-		EventType:            map[EventType]bool{},
+		EventType:            map[EventType]bool{opts.etype: true},
 		IncludeSubcontainers: false,
-		MaxEventsReturned:    10,
+		maxEventsReturned:    10,
 	}
 }
 
@@ -169,7 +161,7 @@ func (self *EventChannel) GetWatchId() int {
 // sorts and returns up to the last MaxEventsReturned chronological elements
 func getMaxEventsReturned(request *Request, eSlice []*Event) []*Event {
 	sort.Sort(byTimestamp(eSlice))
-	n := request.MaxEventsReturned
+	n := request.maxEventsReturned
 	if n >= len(eSlice) || n <= 0 {
 		return eSlice
 	}
@@ -229,7 +221,7 @@ func (self *events) GetEvents(request *Request) ([]*Event, error) {
 			continue
 		}
 
-		res := evs.InTimeRange(request.StartTime, request.EndTime, request.MaxEventsReturned)
+		res := evs.InTimeRange(request.StartTime, request.EndTime, request.maxEventsReturned)
 		for _, in := range res {
 			e := in.(*Event)
 			if checkIfEventSatisfiesRequest(request, e) {
@@ -302,7 +294,7 @@ func (self *events) AddEvent(e *Event) error {
 	for _, watchObject := range watchesToSend {
 		watchObject.eventChannel.GetChannel() <- e
 	}
-	log.Infof("Added event %v", e)
+	log.Infof("WRIT %s %s", e.EventType, e.EventAction.String())
 	return nil
 }
 
