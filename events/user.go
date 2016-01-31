@@ -2,6 +2,7 @@ package events
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/events/alerts"
 	"github.com/megamsys/megamd/subd/eventsd"
 )
 
@@ -11,22 +12,38 @@ const (
 	INFOBIP = "infobip"
 )
 
-var notifiers map[string]interface{}
+var notifiers map[string]alerts.Notifier
 
 type User struct {
 	stop chan struct{}
 }
 
-func register(e *eventsd.Config) {
-	notifiers = make(map[string]interface{})
-	notifiers[MAILGUN] = e.Mailgun
-	notifiers[SLACK] = e.Slack
-	notifiers[INFOBIP] = e.Infobip
-}
-
 func NewUser(e *eventsd.Config) *User {
 	register(e)
 	return &User{}
+}
+
+func register(e *eventsd.Config) {
+	notifiers = make(map[string]alerts.Notifier)
+	notifiers[MAILGUN] = newMailgun(&e.Mailgun)
+	notifiers[INFOBIP] = newInfobip(&e.Infobip)
+	notifiers[SLACK] = newSlack(&e.Slack)
+}
+
+func newMailgun(m *eventsd.Mailgun) alerts.Notifier {
+	return alerts.NewMailgun(m.ApiKey, m.Domain)
+}
+
+func newInfobip(i *eventsd.Infobip) alerts.Notifier {
+	return alerts.NewInfobip(i.Username,
+		i.Password,
+		i.ApiKey,
+		i.ApplicationId,
+		i.MessageId)
+}
+
+func newSlack(s *eventsd.Slack) alerts.Notifier {
+	return alerts.NewSlack(s.Token, s.Channel)
 }
 
 // Watches for new vms, or vms destroyed.
@@ -37,7 +54,7 @@ func (self *User) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == Alert:
+				case event.EventAction == Notify:
 					err := self.alert()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
@@ -59,6 +76,9 @@ func (self *User) Close() {
 }
 
 func (self *User) alert() error {
-	log.Info("RECV user alert")
-	return nil
+	var err error
+	for _, a := range notifiers {
+		err = a.Notify("user")
+	}
+	return err
 }

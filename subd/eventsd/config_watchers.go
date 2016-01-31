@@ -27,8 +27,8 @@ func (m Mailgun) String() string {
 }
 
 type Slack struct {
-	ApiKey string `toml:"api_key"`
-	Room   string `toml:"room"`
+	Token   string `toml:"token"`
+	Channel string `toml:"channel"`
 }
 
 func (s Slack) String() string {
@@ -36,8 +36,8 @@ func (s Slack) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nSlack", "green", "", "") + "\n"))
-	b.Write([]byte("api_key" + "\t" + s.ApiKey + "\n"))
-	b.Write([]byte("room" + "\t" + s.Room + "\n"))
+	b.Write([]byte("token" + "\t" + s.Token + "\n"))
+	b.Write([]byte("channel" + "\t" + s.Channel + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

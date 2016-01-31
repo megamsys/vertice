@@ -3,7 +3,6 @@ package events
 import (
 	"errors"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -44,11 +43,6 @@ type Request struct {
 	// then the most chronologically recent events in the time period
 	// specified are returned. Must be >= 1
 	maxEventsReturned int
-	// the absolute container name for which the event occurred
-	ContainerName string
-	// if IncludeSubcontainers is false, only events occurring in the specific
-	// container, and not the subcontainers, will be returned
-	IncludeSubcontainers bool
 }
 
 // EventManager is implemented by Events. It provides two ways to monitor
@@ -136,9 +130,8 @@ func NewEventManager(storagePolicy StoragePolicy) *events {
 // returns a pointer to an initialized Request object
 func NewRequest(opts *eventReqOpts) *Request {
 	return &Request{
-		EventType:            map[EventType]bool{opts.etype: true},
-		IncludeSubcontainers: false,
-		maxEventsReturned:    10,
+		EventType:         map[EventType]bool{opts.etype: true},
+		maxEventsReturned: 10,
 	}
 }
 
@@ -168,17 +161,6 @@ func getMaxEventsReturned(request *Request, eSlice []*Event) []*Event {
 	return eSlice[len(eSlice)-n:]
 }
 
-// If the request wants all subcontainers, this returns if the request's
-// container path is a prefix of the event container path.  Otherwise,
-// it checks that the container paths of the event and request are
-// equivalent
-func checkIfIsSubcontainer(request *Request, event *Event) bool {
-	if request.IncludeSubcontainers == true {
-		return request.ContainerName == "/" || strings.HasPrefix(event.ContainerName+"/", request.ContainerName+"/")
-	}
-	return event.ContainerName == request.ContainerName
-}
-
 // determines if an event occurs within the time set in the request object and is the right type
 func checkIfEventSatisfiesRequest(request *Request, event *Event) bool {
 	startTime := request.StartTime
@@ -196,9 +178,6 @@ func checkIfEventSatisfiesRequest(request *Request, event *Event) bool {
 	}
 	if !request.EventType[event.EventType] {
 		return false
-	}
-	if request.ContainerName != "" {
-		return checkIfIsSubcontainer(request, event)
 	}
 	return true
 }

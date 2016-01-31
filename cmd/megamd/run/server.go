@@ -5,7 +5,6 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	pp "github.com/megamsys/libgo/cmd"
@@ -52,65 +51,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendMetricsdService(c.Meta, c.Deployd, c.Metrics)
 	s.appendEventsdService(c.Meta, c.Events)
 	s.selfieDNS(c.DNS)
-	if err := testFakeEvents(); err != nil {
-		log.Errorf("error publishing fake events %s", err.Error())
-	}
 	return s, nil
-}
-
-func testFakeEvents() error {
-	newEvent := &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Add,
-		EventType:   events.EventMachine,
-	}
-	err := events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Destroy,
-		EventType:   events.EventMachine,
-	}
-	err = events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Add,
-		EventType:   events.EventContainer,
-	}
-	err = events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Destroy,
-		EventType:   events.EventContainer,
-	}
-	err = events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Add,
-		EventType:   events.EventBill,
-	}
-	err = events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Deduct,
-		EventType:   events.EventBill,
-	}
-	err = events.W.Write(newEvent)
-
-	newEvent = &events.Event{
-		Timestamp:   time.Now(),
-		EventAction: events.Alert,
-		EventType:   events.EventUser,
-	}
-	err = events.W.Write(newEvent)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {

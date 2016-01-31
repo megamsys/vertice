@@ -25,8 +25,8 @@ func (s *S) TestEventsConfig_Parse(c *check.C) {
 	    message_id = "info_msgid"
 
 	  [slack]
-	    api_key = "temp"
-	    room  = "bugs"
+	    token = "temp"
+	    channel = "ahoy"
 
 	  [bill]
 	    api_key = "whmcs"
@@ -37,5 +37,5 @@ func (s *S) TestEventsConfig_Parse(c *check.C) {
 	c.Assert(cm.Enabled, check.Equals, false)
 	c.Assert(cm.Mailgun.ApiKey, check.Equals, "temp")
 	c.Assert(cm.Infobip.Username, check.Equals, "info_username")
-	c.Assert(cm.Slack.ApiKey, check.Equals, "temp")
+	c.Assert(cm.Slack.Token, check.Equals, "temp")
 }
