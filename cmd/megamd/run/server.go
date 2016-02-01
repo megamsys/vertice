@@ -8,7 +8,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	pp "github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/events"
 	"github.com/megamsys/megamd/meta"
 	"github.com/megamsys/megamd/subd/deployd"
 	"github.com/megamsys/megamd/subd/dns"
@@ -39,10 +38,6 @@ func NewServer(c *Config, version string) (*Server, error) {
 		version: version,
 		err:     make(chan error),
 		closing: make(chan struct{}),
-	}
-
-	if err := s.setEventsWrap(c.Events); err != nil {
-		return nil, err
 	}
 
 	s.appendDeploydService(c.Meta, c.Deployd)
@@ -92,7 +87,7 @@ func (s *Server) appendEventsdService(c *meta.Config, e *eventsd.Config) {
 		log.Warn("skip eventsd service.")
 		return
 	}
-	srv := eventsd.NewService(c)
+	srv := eventsd.NewService(c, e)
 	s.Services = append(s.Services, srv)
 }
 
@@ -157,10 +152,6 @@ func (s *Server) monitorErrorChan(ch <-chan error) {
 			return
 		}
 	}
-}
-
-func (s *Server) setEventsWrap(e *eventsd.Config) error {
-	return events.NewWrap(e)
 }
 
 // Service represents a service attached to the server.

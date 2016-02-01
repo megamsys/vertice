@@ -81,6 +81,14 @@ func (p *JsonPairs) Match(k string) string {
 	return ""
 }
 
+func (p *JsonPairs) ToMap() map[string]string {
+	jm := make(map[string]string)
+	for _, j := range *p {
+		jm[j.K] = j.V
+	}
+	return jm
+}
+
 //Delete old keys and update them with the new values
 func (p *JsonPairs) NukeAndSet(m map[string][]string) {
 	swap := make(JsonPairs, 0)

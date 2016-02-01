@@ -6,12 +6,17 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/subd/eventsd"
 )
 
 var W *EventsWriter
 var eventStorageAgeLimit = "default=24h"
 var eventStorageEventLimit = "default=100000"
+
+type EventsConfigMap map[string]map[string]string
+
+func (ec EventsConfigMap) Get(key string) map[string]string {
+	return ec[key]
+}
 
 type EventsWriter struct {
 	H *events
@@ -22,7 +27,7 @@ type eventWatcher struct {
 	Watcher
 }
 
-func NewWrap(c *eventsd.Config) error {
+func NewWrap(c EventsConfigMap) error {
 	e := &EventsWriter{
 		H: NewEventManager(parseEventsStoragePolicy()),
 	}
@@ -30,7 +35,7 @@ func NewWrap(c *eventsd.Config) error {
 	return e.open(c)
 }
 
-func (e *EventsWriter) open(c *eventsd.Config) error {
+func (e *EventsWriter) open(c EventsConfigMap) error {
 	watchers := watchHandlers(c)
 	for _, w := range watchers {
 		ec, err := e.WatchForEvents(NewRequest(&eventReqOpts{etype: w.eventType}))
@@ -68,11 +73,11 @@ func (ew *EventsWriter) Close() {
 	//close all channels.
 }
 
-func watchHandlers(c *eventsd.Config) []*eventWatcher {
+func watchHandlers(c EventsConfigMap) []*eventWatcher {
 	watchers := make([]*eventWatcher, 0)
 	watchers = append(watchers, &eventWatcher{eventType: EventMachine, Watcher: &Machine{}})
 	watchers = append(watchers, &eventWatcher{eventType: EventContainer, Watcher: &Container{}})
-	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: NewBill(c)})
+	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: NewBill(c.Get(BILL))})
 	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c)})
 	return watchers
 }

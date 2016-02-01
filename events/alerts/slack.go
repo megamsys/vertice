@@ -9,19 +9,19 @@ type slacker struct {
 	chnl  string
 }
 
-func NewSlack(tok string, cl string) Notifier {
-	return &slacker{token: tok, chnl: cl}
+func NewSlack(m map[string]string) Notifier {
+	return &slacker{token: m[TOKEN], chnl: m[CHANNEL]}
 }
 
 func (s *slacker) satisfied() bool {
 	return true
 }
 
-func (s *slacker) Notify(evt string) error {
+func (s *slacker) Notify(eva EventAction, m map[string]string) error {
 	if !s.satisfied() {
 		return nil
 	}
-	if err := slack.NewClient(s.token).SendMessage("#"+s.chnl, evt, "megamio"); err != nil {
+	if err := slack.NewClient(s.token).SendMessage("#"+s.chnl, m["message"], "megamio"); err != nil {
 		return err
 	}
 	return nil

@@ -8,6 +8,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/events"
+	"github.com/megamsys/megamd/events/alerts"
 )
 
 type Config struct {
@@ -37,4 +39,12 @@ func (c Config) String() string {
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
+}
+
+func (c Config) toMap() events.EventsConfigMap {
+	em := make(events.EventsConfigMap)
+	em[alerts.MAILGUN] = c.Slack.toMap()
+	em[alerts.SLACK] = c.Mailgun.toMap()
+	em[alerts.INFOBIP] = c.Infobip.toMap()
+	return em
 }

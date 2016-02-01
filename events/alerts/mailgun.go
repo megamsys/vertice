@@ -9,17 +9,57 @@ import (
 )
 
 const (
-	ONBOARD int = iota
+	CREATE EventAction = iota
+	DESTROY
+	STATUS
+	DEDUCT
+	ONBOARD
 	RESET
 	INVITE
 	BALANCE
-	MACHINE_CREATED
-	MACHINE_DESTROYED
+
+	MAILGUN = "mailgun"
+	SLACK   = "slack"
+	INFOBIP = "infobip"
+
+	API_KEY        = "api_key"
+	DOMAIN         = "domain"
+	TOKEN          = "token"
+	CHANNEL        = "channel"
+	USERNAME       = "username"
+	PASSWORD       = "password"
+	APPLICATION_ID = "application_id"
+	MESSAGE_ID     = "message_id"
 )
 
 type Notifier interface {
-	Notify(evt string) error
+	Notify(eva EventAction, m map[string]string) error
 	satisfied() bool
+}
+
+type EventAction int
+
+func (v *EventAction) String() string {
+	switch *v {
+	case CREATE:
+		return "create"
+	case DESTROY:
+		return "destroy"
+	case STATUS:
+		return "status"
+	case DEDUCT:
+		return "deduct"
+	case ONBOARD:
+		return "onboard"
+	case RESET:
+		return "reset"
+	case INVITE:
+		return "invite"
+	case BALANCE:
+		return "bal"
+	default:
+		return "arrgh"
+	}
 }
 
 type mailgunner struct {
@@ -27,10 +67,10 @@ type mailgunner struct {
 	domain  string
 }
 
-func NewMailgun(ak string, do string) Notifier {
+func NewMailgun(m map[string]string) Notifier {
 	return &mailgunner{
-		api_key: ak,
-		domain:  do,
+		api_key: m[API_KEY],
+		domain:  m[DOMAIN],
 	}
 }
 
@@ -38,7 +78,7 @@ func (m *mailgunner) satisfied() bool {
 	return true
 }
 
-func (m *mailgunner) Notify(evt string) error {
+func (m *mailgunner) Notify(eva EventAction, mp map[string]string) error {
 	if !m.satisfied() {
 		return nil
 	}
@@ -46,26 +86,24 @@ func (m *mailgunner) Notify(evt string) error {
 	var sub string
 	var err error
 
-	eventAction := 1
-
-	switch eventAction {
+	switch eva {
 	case ONBOARD:
-		err = onboardTemplate.Execute(&w, onboard())
+		err = onboardTemplate.Execute(&w, mp)
 		sub = "Ahoy. Welcome aboard!"
 	case RESET:
-		err = resetTemplate.Execute(&w, reset())
+		err = resetTemplate.Execute(&w, mp)
 		sub = "You have fat finger.!"
 	case INVITE:
-		err = inviteTemplate.Execute(&w, fake())
+		err = inviteTemplate.Execute(&w, mp)
 		sub = "Lets party!"
 	case BALANCE:
-		err = balanceTemplate.Execute(&w, fake())
+		err = balanceTemplate.Execute(&w, mp)
 		sub = "Piggy bank!"
-	case MACHINE_CREATED:
-		err = onboardTemplate.Execute(&w, fake())
+	case CREATE:
+		err = onboardTemplate.Execute(&w, mp)
 		sub = "Up!"
-	case MACHINE_DESTROYED:
-		err = onboardTemplate.Execute(&w, fake())
+	case DESTROY:
+		err = onboardTemplate.Execute(&w, mp)
 		sub = "Nuked"
 	default:
 		break
@@ -73,7 +111,7 @@ func (m *mailgunner) Notify(evt string) error {
 	if err != nil {
 		return err
 	}
-	m.Send(w.String(), "", sub, "info@megam.io")
+	m.Send(w.String(), "", sub, mp["email"])
 	return nil
 }
 
@@ -98,35 +136,11 @@ func (m *mailgunner) Send(msg string, sender string, subject string, to string) 
 	return nil
 }
 
-func onboard() map[string]interface{} {
-	return map[string]interface{}{
+/*return map[string]interface{}{
 		"email":     "nkishore@megam.io",
 		"logo":      "vertice.png",
 		"nilavu":    "console.megam.io",
 		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
 		"days":      "20",
 		"cost":      "$12",
-	}
-}
-
-func reset() map[string]interface{} {
-	return map[string]interface{}{
-		"email":     "nkishore@megam.io",
-		"logo":      "vertice.png",
-		"nilavu":    "console.megam.io",
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
-		"days":      "20",
-		"cost":      "$12",
-	}
-}
-
-func fake() map[string]interface{} {
-	return map[string]interface{}{
-		"email":     "nkishore@megam.io",
-		"logo":      "vertice.png",
-		"nilavu":    "console.megam.io",
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
-		"days":      "20",
-		"cost":      "$12",
-	}
-}
+}*/

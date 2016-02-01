@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
+	"github.com/megamsys/megamd/events"
 	"github.com/megamsys/megamd/meta"
 )
 
@@ -20,13 +21,15 @@ type Service struct {
 	Handler  *Handler
 	Consumer *nsq.Consumer
 	Meta     *meta.Config
+	Eventsd  *Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config) *Service {
+func NewService(c *meta.Config, e *Config) *Service {
 	s := &Service{
-		err:  make(chan error),
-		Meta: c,
+		err:     make(chan error),
+		Meta:    c,
+		Eventsd: e,
 	}
 	s.Handler = NewHandler(nil)
 	return s
@@ -34,6 +37,9 @@ func NewService(c *meta.Config) *Service {
 
 // Open starts the service
 func (s *Service) Open() error {
+	if err := s.setEventsWrap(s.Eventsd); err != nil {
+		return err
+	}
 	go func() error {
 		log.Info("starting eventsd service")
 		if err := nsq.Register(TOPIC, "engine", maxInFlight, s.processNSQ); err != nil {
@@ -52,18 +58,21 @@ func (s *Service) Open() error {
 }
 
 func (s *Service) processNSQ(msg *nsq.Message) {
-	/*eq, err := events.NewRequest(msg.Body)
+	pe, err := events.NewParseEvent(msg.Body)
 	if err != nil {
 		return
 	}
 
-	er, err := eq.Convert()
+	e, err := pe.AsEvent()
 	if err != nil {
 		return
 	}
-	go s.Handler.serveNSQ(er)
-	*/
+	go s.Handler.serveNSQ(e)
 	return
+}
+
+func (s *Service) setEventsWrap(e *Config) error {
+	return events.NewWrap(e.toMap())
 }
 
 // Close closes the underlying subscribe channel.

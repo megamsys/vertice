@@ -2,6 +2,7 @@ package events
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/events/alerts"
 )
 
 type Machine struct {
@@ -16,12 +17,12 @@ func (self *Machine) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == Add:
+				case event.EventAction == alerts.CREATE:
 					err := self.create()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
-				case event.EventAction == Destroy:
+				case event.EventAction == alerts.DESTROY:
 					err := self.destroy()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
