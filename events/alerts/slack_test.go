@@ -14,8 +14,8 @@ func (s *S) TestSlack(c *check.C) {
 		c.Skip("-Slack (token) not provided")
 	}
 	c.Assert(len(st) > 0, check.Equals, true)
-	ms := NewSlack(st, ch)
+	ms := NewSlack(map[string]string{TOKEN: st, CHANNEL: ch})
 	c.Assert(ms, check.NotNil)
-	err := ms.Notify("test message from megamd")
+	err := ms.Notify(CREATE, map[string]string{"message": "Awesome vertice... :)"})
 	c.Assert(err, check.IsNil)
 }

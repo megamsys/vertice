@@ -1,7 +1,7 @@
 package eventsd
 
 import (
-	"github.com/megamsys/megamd/carton"
+	"github.com/megamsys/megamd/events"
 )
 
 type Handler struct {
@@ -14,6 +14,9 @@ func NewHandler(c *Config) *Handler {
 
 }
 
-func (h *Handler) serveNSQ(r *carton.Requests) error {
+func (h *Handler) serveNSQ(e *events.Event) error {
+	if err := events.W.Write(e); err != nil {
+		return err
+	}
 	return nil
 }

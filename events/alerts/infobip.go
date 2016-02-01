@@ -9,14 +9,14 @@ type infobip struct {
 	message_id     string
 }
 
-func NewInfobip(us string, pa string, ak string, aid string, mid string) Notifier {
+func NewInfobip(m map[string]string) Notifier {
 	return &infobip{
 		url:            "https://infobip.com/v2",
-		username:       us,
-		password:       pa,
-		api_key:        ak,
-		application_id: aid,
-		message_id:     mid,
+		username:       m[USERNAME],
+		password:       m[PASSWORD],
+		api_key:        m[API_KEY],
+		application_id: m[APPLICATION_ID],
+		message_id:     m[MESSAGE_ID],
 	}
 }
 
@@ -24,6 +24,6 @@ func (i *infobip) satisfied() bool {
 	return false
 }
 
-func (i *infobip) Notify(evt string) error {
+func (i *infobip) Notify(eva EventAction, m map[string]string) error {
 	return nil
 }

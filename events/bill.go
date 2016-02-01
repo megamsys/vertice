@@ -2,8 +2,10 @@ package events
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/subd/eventsd"
+	"github.com/megamsys/megamd/events/alerts"
 )
+
+const BILL = "bill"
 
 type Config struct {
 	Logo   string
@@ -16,7 +18,7 @@ type Bill struct {
 	stop   chan struct{}
 }
 
-func NewBill(e *eventsd.Config) *Bill {
+func NewBill(b map[string]string) *Bill {
 	return &Bill{
 		config: &Config{
 		//	Logo:   m.Logo,
@@ -34,12 +36,12 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == Add:
+				case event.EventAction == alerts.CREATE:
 					err := self.create()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
-				case event.EventAction == Deduct:
+				case event.EventAction == alerts.DEDUCT:
 					err := self.deduct()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)

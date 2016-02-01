@@ -7,6 +7,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/megamd/events/alerts"
 )
 
 type Mailgun struct {
@@ -14,6 +15,12 @@ type Mailgun struct {
 	Domain string `toml:"domain"`
 }
 
+func (m Mailgun) toMap() map[string]string {
+	mp := make(map[string]string)
+	mp[alerts.API_KEY] = m.ApiKey
+	mp[alerts.DOMAIN] = m.Domain
+	return mp
+}
 func (m Mailgun) String() string {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
@@ -29,6 +36,13 @@ func (m Mailgun) String() string {
 type Slack struct {
 	Token   string `toml:"token"`
 	Channel string `toml:"channel"`
+}
+
+func (s Slack) toMap() map[string]string {
+	mp := make(map[string]string)
+	mp[alerts.TOKEN] = s.Token
+	mp[alerts.CHANNEL] = s.Channel
+	return mp
 }
 
 func (s Slack) String() string {
@@ -49,6 +63,16 @@ type Infobip struct {
 	ApiKey        string `toml:"api_key"`
 	ApplicationId string `toml:"application_id"`
 	MessageId     string `toml:"message_id"`
+}
+
+func (i Infobip) toMap() map[string]string {
+	mp := make(map[string]string)
+	mp[alerts.USERNAME] = i.Username
+	mp[alerts.PASSWORD] = i.Password
+	mp[alerts.API_KEY] = i.ApiKey
+	mp[alerts.APPLICATION_ID] = i.ApplicationId
+	mp[alerts.MESSAGE_ID] = i.MessageId
+	return mp
 }
 
 func (i Infobip) String() string {
