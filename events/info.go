@@ -5,6 +5,17 @@ import (
 )
 
 const (
+	EventMachine   EventType = "machine"
+	EventContainer           = "container"
+	EventBill                = "bill"
+	EventUser                = "user"
+
+	Add EventAction = iota
+	Destroy
+	Status
+	Deduct
+	Notify
+
 	// 10ms, i.e. 0.01s
 	timePrecision time.Duration = 10 * time.Millisecond
 )
@@ -13,46 +24,52 @@ const (
 // occurred, their specific type, and the actual event. Event types are
 // differentiated by the EventType field of Event.
 type Event struct {
-	// the absolute container name for which the event occurred
-	ContainerName string `json:"container_name"`
-
 	// the time at which the event occurred
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp time.Time
 
 	// the type of event. EventType is an enumerated type
-	EventType EventType `json:"event_type"`
+	EventType EventType
+
+	//the action can be
+	//bill create, bill delete
+	EventAction EventAction
 
 	// the original event object and all of its extraneous data, ex. an
 	// OomInstance
-	EventData EventData `json:"event_data,omitempty"`
+	EventData EventData
 }
 
 // EventType is an enumerated type which lists the categories under which
 // events may fall. The Event field EventType is populated by this enum.
 type EventType string
 
-const (
-	EventVMCreation        EventType = "vmCreation"
-	EventVMDestroy                   = "vmDestroy"
-	EventContainerCreation           = "containerCreation"
-	EventContainerDestroy            = "containerDestroy"
-	EventBill                        = "bill"
-	EventUserAlert                   = "userAlert"
-	EventDev                         = "dev"
-	//EventWHMS                        = "whmsCreation"
-)
+type EventAction int
 
-// Extra information about an event. Only one type will be set.
-type EventData struct {
-	// Information about an OOM kill event.
-	OomKill *OomKillEventData `json:"oom,omitempty"`
+func (v *EventAction) String() string {
+	switch *v {
+	case Add:
+		return "add"
+	case Destroy:
+		return "destroy"
+	case Status:
+		return "status"
+	case Deduct:
+		return "deduct"
+	case Notify:
+		return "alert"
+	default:
+		return "arrgh"
+	}
 }
 
-// Information related to an OOM kill instance
-type OomKillEventData struct {
-	// process id of the killed process
-	Pid int `json:"pid"`
+// Extra information about an event.
+type EventData struct {
+	M map[string]string
+}
 
-	// The name of the killed process
-	ProcessName string `json:"process_name"`
+type EventChannel struct {
+	// Watch ID. Can be used by the caller to request cancellation of watch events.
+	watchId int
+	// Channel on which the caller can receive watch events.
+	channel chan *Event
 }

@@ -41,9 +41,10 @@ func NewServer(c *Config, version string) (*Server, error) {
 		closing: make(chan struct{}),
 	}
 
-	if err := s.setEventsWriter(c.Events); err != nil {
+	if err := s.setEventsWrap(c.Events); err != nil {
 		return nil, err
 	}
+
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker, c.Bridges)
@@ -158,8 +159,8 @@ func (s *Server) monitorErrorChan(ch <-chan error) {
 	}
 }
 
-func (s *Server) setEventsWriter(e *eventsd.Config) error {
-	return events.NewWriter(e)
+func (s *Server) setEventsWrap(e *eventsd.Config) error {
+	return events.NewWrap(e)
 }
 
 // Service represents a service attached to the server.

@@ -2,12 +2,10 @@ package toml
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 )
-
-// maxInt is the largest integer representable by a word (architecture dependent).
-const maxInt = int64(^uint(0) >> 1)
 
 // Duration is a TOML wrapper type for time.Duration.
 type Duration time.Duration
@@ -41,7 +39,7 @@ func (d Duration) MarshalText() (text []byte, err error) {
 
 // Size represents a TOML parseable file size.
 // Users can specify size using "m" for megabytes and "g" for gigabytes.
-type Size int
+type Size int64
 
 // UnmarshalText parses a byte size from text.
 func (s *Size) UnmarshalText(text []byte) error {
@@ -63,7 +61,7 @@ func (s *Size) UnmarshalText(text []byte) error {
 	}
 
 	// Check for overflow.
-	if size > maxInt {
+	if size > math.MaxInt64 {
 		return fmt.Errorf("size %d cannot be represented by an int", size)
 	}
 

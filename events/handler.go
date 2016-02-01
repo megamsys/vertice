@@ -3,13 +3,11 @@ package events
 import (
 	"errors"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/megamsys/megamd/utils"
-
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/megamd/utils"
 )
 
 type byTimestamp []*Event
@@ -25,13 +23,6 @@ func (e byTimestamp) Swap(i, j int) {
 
 func (e byTimestamp) Less(i, j int) bool {
 	return e[i].Timestamp.Before(e[j].Timestamp)
-}
-
-type EventChannel struct {
-	// Watch ID. Can be used by the caller to request cancellation of watch events.
-	watchId int
-	// Channel on which the caller can receive watch events.
-	channel chan *Event
 }
 
 // Request holds a set of parameters by which Event objects may be screened.
@@ -51,12 +42,7 @@ type Request struct {
 	// events to receive. If there are more events than MaxEventsReturned
 	// then the most chronologically recent events in the time period
 	// specified are returned. Must be >= 1
-	MaxEventsReturned int
-	// the absolute container name for which the event occurred
-	ContainerName string
-	// if IncludeSubcontainers is false, only events occurring in the specific
-	// container, and not the subcontainers, will be returned
-	IncludeSubcontainers bool
+	maxEventsReturned int
 }
 
 // EventManager is implemented by Events. It provides two ways to monitor
@@ -142,11 +128,10 @@ func NewEventManager(storagePolicy StoragePolicy) *events {
 }
 
 // returns a pointer to an initialized Request object
-func NewRequest() *Request {
+func NewRequest(opts *eventReqOpts) *Request {
 	return &Request{
-		EventType:            map[EventType]bool{},
-		IncludeSubcontainers: false,
-		MaxEventsReturned:    10,
+		EventType:         map[EventType]bool{opts.etype: true},
+		maxEventsReturned: 10,
 	}
 }
 
@@ -169,22 +154,11 @@ func (self *EventChannel) GetWatchId() int {
 // sorts and returns up to the last MaxEventsReturned chronological elements
 func getMaxEventsReturned(request *Request, eSlice []*Event) []*Event {
 	sort.Sort(byTimestamp(eSlice))
-	n := request.MaxEventsReturned
+	n := request.maxEventsReturned
 	if n >= len(eSlice) || n <= 0 {
 		return eSlice
 	}
 	return eSlice[len(eSlice)-n:]
-}
-
-// If the request wants all subcontainers, this returns if the request's
-// container path is a prefix of the event container path.  Otherwise,
-// it checks that the container paths of the event and request are
-// equivalent
-func checkIfIsSubcontainer(request *Request, event *Event) bool {
-	if request.IncludeSubcontainers == true {
-		return request.ContainerName == "/" || strings.HasPrefix(event.ContainerName+"/", request.ContainerName+"/")
-	}
-	return event.ContainerName == request.ContainerName
 }
 
 // determines if an event occurs within the time set in the request object and is the right type
@@ -204,9 +178,6 @@ func checkIfEventSatisfiesRequest(request *Request, event *Event) bool {
 	}
 	if !request.EventType[event.EventType] {
 		return false
-	}
-	if request.ContainerName != "" {
-		return checkIfIsSubcontainer(request, event)
 	}
 	return true
 }
@@ -229,7 +200,7 @@ func (self *events) GetEvents(request *Request) ([]*Event, error) {
 			continue
 		}
 
-		res := evs.InTimeRange(request.StartTime, request.EndTime, request.MaxEventsReturned)
+		res := evs.InTimeRange(request.StartTime, request.EndTime, request.maxEventsReturned)
 		for _, in := range res {
 			e := in.(*Event)
 			if checkIfEventSatisfiesRequest(request, e) {
@@ -302,7 +273,7 @@ func (self *events) AddEvent(e *Event) error {
 	for _, watchObject := range watchesToSend {
 		watchObject.eventChannel.GetChannel() <- e
 	}
-	log.Infof("Added event %v", e)
+	log.Infof("WRIT %s %s", e.EventType, e.EventAction.String())
 	return nil
 }
 

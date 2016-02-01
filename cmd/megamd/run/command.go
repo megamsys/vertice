@@ -71,7 +71,7 @@ func (c *Start) Run(context *cmd.Context) error {
 	}
 
 	cmd := NewCommand()
-	cmd.Version = "0.9.3"
+	cmd.Version = "0.9.4"
 
 	if err := cmd.Megd(config, cmd.Version); err != nil {
 		return fmt.Errorf("run: %s", err)

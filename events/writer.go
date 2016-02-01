@@ -9,25 +9,45 @@ import (
 	"github.com/megamsys/megamd/subd/eventsd"
 )
 
-var EW *EventsWriter
+var W *EventsWriter
 var eventStorageAgeLimit = "default=24h"
-var eventStorageEventLimit = "default=100000" //Max number of events to store (per type).
+var eventStorageEventLimit = "default=100000"
 
 type EventsWriter struct {
 	H *events
 }
 
-func NewWriter(e *eventsd.Config) error {
-	ew := &EventsWriter{
-		H: NewEventManager(parseEventsStoragePolicy()),
-	}
-	return ew.open(e)
+type eventWatcher struct {
+	eventType EventType
+	Watcher
 }
 
-func (ew *EventsWriter) open(e *eventsd.Config) error {
-	//loop through all the event_handlers and start them.
-	EW = ew
+func NewWrap(c *eventsd.Config) error {
+	e := &EventsWriter{
+		H: NewEventManager(parseEventsStoragePolicy()),
+	}
+	W = e
+	return e.open(c)
+}
+
+func (e *EventsWriter) open(c *eventsd.Config) error {
+	watchers := watchHandlers(c)
+	for _, w := range watchers {
+		ec, err := e.WatchForEvents(NewRequest(&eventReqOpts{etype: w.eventType}))
+		if err != nil {
+			log.Infof("error type  %#v %s\n", w.eventType, err.Error())
+			return err
+		}
+		if err := w.Watch(ec); err != nil {
+			return nil
+		}
+	}
 	return nil
+}
+
+// can be called by the api which will take events returned on the channel
+func (ew *EventsWriter) Write(e *Event) error {
+	return ew.H.AddEvent(e)
 }
 
 // can be called by the api which will take events returned on the channel
@@ -46,6 +66,15 @@ func (ew *EventsWriter) CloseEventChannel(watch_id int) {
 
 func (ew *EventsWriter) Close() {
 	//close all channels.
+}
+
+func watchHandlers(c *eventsd.Config) []*eventWatcher {
+	watchers := make([]*eventWatcher, 0)
+	watchers = append(watchers, &eventWatcher{eventType: EventMachine, Watcher: &Machine{}})
+	watchers = append(watchers, &eventWatcher{eventType: EventContainer, Watcher: &Container{}})
+	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: NewBill(c)})
+	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c)})
+	return watchers
 }
 
 // Parses the events StoragePolicy from the flags.

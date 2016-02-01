@@ -78,8 +78,3 @@ func (s *Service) Close() error {
 
 // Err returns a channel for fatal errors that occur on the listener.
 func (s *Service) Err() <-chan error { return s.err }
-
-//this is an array, a property provider helps to load the provider specific stuff
-func (s *Service) setEventHandler() error {
-	return nil
-}

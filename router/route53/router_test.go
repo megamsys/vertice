@@ -22,9 +22,9 @@ var aws_acc = os.Getenv("AWS_ACCESS_KEY")
 var aws_sec = os.Getenv("AWS_SECRET_KEY")
 
 func (s *S) SetUpSuite(c *check.C) {
-	if aws_acc == "" || aws_sec == "" {
-		c.Skip("-R53 (aws access/secret keys) not provided")
-	}
+	//	if aws_acc == "" || aws_sec == "" {
+	c.Skip("-R53 (aws access/secret keys) not provided")
+	//	}
 	cf := dns.NewConfig()
 	cf.AccessKey = os.Getenv("AWS_ACCESS_KEY")
 	cf.SecretKey = os.Getenv("AWS_SECRET_KEY")
