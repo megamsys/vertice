@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/vertice/provision/docker/cluster"
 	"gopkg.in/check.v1"
 )
 

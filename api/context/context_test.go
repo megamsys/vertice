@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/context"
-	"github.com/megamsys/megamd/auth"
+	"github.com/megamsys/vertice/auth"
 	"gopkg.in/check.v1"
 )
 

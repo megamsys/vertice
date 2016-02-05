@@ -7,10 +7,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
-	_ "github.com/megamsys/megamd/repository/github"
-	_ "github.com/megamsys/megamd/repository/gitlab"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/repository"
+	_ "github.com/megamsys/vertice/repository/github"
+	_ "github.com/megamsys/vertice/repository/gitlab"
 )
 
 type StateChangeOpts struct {

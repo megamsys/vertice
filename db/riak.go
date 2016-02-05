@@ -7,11 +7,11 @@ import (
 	"github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/hc"
 
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 func init() {
-	hc.AddChecker("megamd:riak", healthCheck)
+	hc.AddChecker("vertice:riak", healthCheck)
 }
 
 func healthCheck() (interface{}, error) {

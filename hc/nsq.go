@@ -5,11 +5,11 @@ import (
 
 	nsq "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/hc"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 func init() {
-	hc.AddChecker("megamd:nsq", healthCheckNSQ)
+	hc.AddChecker("vertice:nsq", healthCheckNSQ)
 }
 
 func healthCheckNSQ() (interface{}, error) {

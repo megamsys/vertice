@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 	"gopkg.in/check.v1"
 )
 

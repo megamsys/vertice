@@ -5,8 +5,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
-	"github.com/megamsys/megamd/events"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/vertice/meta"
 )
 
 const (

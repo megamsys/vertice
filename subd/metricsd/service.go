@@ -4,9 +4,9 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/metrix"
-	"github.com/megamsys/megamd/subd/deployd"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/metrix"
+	"github.com/megamsys/vertice/subd/deployd"
 )
 
 const (

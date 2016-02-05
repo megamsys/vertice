@@ -4,7 +4,7 @@ import (
 	//	"reflect"
 	"testing"
 
-	"github.com/megamsys/megamd/toml"
+	"github.com/megamsys/vertice/toml"
 	"gopkg.in/check.v1"
 )
 

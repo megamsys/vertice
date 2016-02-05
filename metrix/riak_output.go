@@ -4,7 +4,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/db"
+	"github.com/megamsys/vertice/db"
 )
 
 func SendMetricsToRiak(address []string, metrics Sensors, hostname string) (err error) {

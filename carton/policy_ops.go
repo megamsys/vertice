@@ -16,7 +16,7 @@
 package carton
 
 import (
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/repository"
 )
 
 type Operations struct {

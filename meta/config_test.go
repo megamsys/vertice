@@ -10,7 +10,7 @@ func (s *S) TestMetaConfig_Parse(c *check.C) {
 	// Parse configuration.
 	var cm Config
 	if _, err := toml.Decode(`
-dir = "/var/lib/megam/megamd/meta"
+dir = "/var/lib/megam/vertice/meta"
 logo = "megam_vertice.png"
 api = "https://console.megam.io"
 riak = ["192.168.1.100:8087"]

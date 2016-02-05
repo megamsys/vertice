@@ -2,7 +2,7 @@ package events
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 type Machine struct {

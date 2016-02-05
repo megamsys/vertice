@@ -54,7 +54,7 @@ func (p *ReqOperator) Get(cat_id string) (Cartons, error) {
 	return c, nil
 }
 
-// MegdProcessor represents a single operation in Megamd.
+// MegdProcessor represents a single operation in vertice.
 type MegdProcessor interface {
 	Process(c Cartons) error
 	String() string

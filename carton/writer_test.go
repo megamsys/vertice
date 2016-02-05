@@ -3,7 +3,7 @@ package carton
 import (
 	"time"
 
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/check.v1"
 )
 

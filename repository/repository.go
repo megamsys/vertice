@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 const (

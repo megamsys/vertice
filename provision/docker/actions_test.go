@@ -16,7 +16,7 @@ func (s *S) TestCreateContainerName(c *check.C) {
 }
 
 func (s *S) TestCreateContainerForward(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
 	client, err := docker.NewClient(s.server.URL())
 	c.Assert(err, check.IsNil)
@@ -49,9 +49,9 @@ func (s *S) TestCreateContainerForward(c *check.C) {
 func (s *S) TestCreateContainerBackward(c *check.C) {
 	dcli, err := docker.NewClient(s.server.URL())
 	c.Assert(err, check.IsNil)
-	err = s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err = s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
-	defer dcli.RemoveImage("github.com/megamsys/megamd/python")
+	defer dcli.RemoveImage("github.com/megamsys/vertice/python")
 	conta, err := s.newContainer(nil, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(conta)
@@ -72,7 +72,7 @@ func (s *S) TestAddNewRouteName(c *check.C) {
 
 func (s *S) TestAddNewRouteForward(c *check.C) {
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
-	imageName := "github.com/megamsys/megamd/app-" + app.GetName()
+	imageName := "github.com/megamsys/vertice/app-" + app.GetName()
 	customData := map[string]interface{}{
 		"procfile": "web: python myapi.py\nworker: tail -f /dev/null",
 	}
@@ -114,7 +114,7 @@ func (s *S) TestAddNewRouteForwardNoWeb(c *check.C) {
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	routertest.FakeRouter.AddBackend(app.GetName())
 	defer routertest.FakeRouter.RemoveBackend(app.GetName())
-	imageName := "github.com/megamsys/megamd/app-" + app.GetName()
+	imageName := "github.com/megamsys/vertice/app-" + app.GetName()
 	customData := map[string]interface{}{
 		"procfile": "api: python myapi.py",
 	}
@@ -328,9 +328,9 @@ func (s *S) TestStartContainerForward(c *check.C) {
 func (s *S) TestStartContainerBackward(c *check.C) {
 	dcli, err := docker.NewClient(s.server.URL())
 	c.Assert(err, check.IsNil)
-	err = s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err = s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
-	defer dcli.RemoveImage("github.com/megamsys/megamd/python")
+	defer dcli.RemoveImage("github.com/megamsys/vertice/python")
 	conta, err := s.newContainer(nil, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(conta)
@@ -359,7 +359,7 @@ func (s *S) TestAddBoxsToHostForward(c *check.C) {
 	p.Provision(app)
 	coll := p.collection()
 	defer coll.Close()
-	coll.Insert(container{ID: "container-id", AppName: app.GetName(), Version: "container-version", Image: "github.com/megamsys/megamd/python"})
+	coll.Insert(container{ID: "container-id", AppName: app.GetName(), Version: "container-version", Image: "github.com/megamsys/vertice/python"})
 	defer coll.RemoveAll(bson.M{"appname": app.GetName()})
 	imageId, err := appNewImageName(app.GetName())
 	c.Assert(err, check.IsNil)
@@ -422,14 +422,14 @@ func (s *S) TestAddBoxsToHostForwardWithoutHost(c *check.C) {
 }
 
 func (s *S) TestAddBoxsToHostBackward(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp-xxx-1", "python", 0)
 	defer s.p.Destroy(app)
 	s.p.Provision(app)
 	coll := s.p.collection()
 	defer coll.Close()
-	cont := container{ID: "container-id", AppName: app.GetName(), Version: "container-version", Image: "github.com/megamsys/megamd/python"}
+	cont := container{ID: "container-id", AppName: app.GetName(), Version: "container-version", Image: "github.com/megamsys/vertice/python"}
 	coll.Insert(cont)
 	defer coll.RemoveAll(bson.M{"appname": app.GetName()})
 	args := changeUnitsPipelineArgs{
@@ -503,7 +503,7 @@ func (s *S) TestFollowLogsAndCommitName(c *check.C) {
 }
 
 func (s *S) TestFollowLogsAndCommitForward(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("mightyapp", "python", 1)
 	nextImgName, err := appNewImageName(app.GetName())
@@ -511,7 +511,7 @@ func (s *S) TestFollowLogsAndCommitForward(c *check.C) {
 	cont := container{AppName: "mightyapp", ID: "myid123", BuildingImage: nextImgName}
 	err = cont.create(runContainerActionsArgs{
 		app:         app,
-		imageID:     "github.com/megamsys/megamd/python",
+		imageID:     "github.com/megamsys/vertice/python",
 		commands:    []string{"foo"},
 		provisioner: s.p,
 	})
@@ -521,7 +521,7 @@ func (s *S) TestFollowLogsAndCommitForward(c *check.C) {
 	context := action.FWContext{Params: []interface{}{args}, Previous: cont}
 	imageId, err := followLogsAndCommit.Forward(context)
 	c.Assert(err, check.IsNil)
-	c.Assert(imageId, check.Equals, "github.com/megamsys/megamd/app-mightyapp:v1")
+	c.Assert(imageId, check.Equals, "github.com/megamsys/vertice/app-mightyapp:v1")
 	c.Assert(buf.String(), check.Not(check.Equals), "")
 	var dbCont container
 	coll := s.p.collection()
@@ -532,18 +532,18 @@ func (s *S) TestFollowLogsAndCommitForward(c *check.C) {
 	_, err = s.p.Cluster().InspectContainer(cont.ID)
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Matches, "No such container.*")
-	err = s.p.Cluster().RemoveImage("github.com/megamsys/megamd/app-mightyapp:v1")
+	err = s.p.Cluster().RemoveImage("github.com/megamsys/vertice/app-mightyapp:v1")
 	c.Assert(err, check.IsNil)
 }
 
 func (s *S) TestFollowLogsAndCommitForwardNonZeroStatus(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	cont := container{AppName: "mightyapp"}
 	err = cont.create(runContainerActionsArgs{
 		app:         app,
-		imageID:     "github.com/megamsys/megamd/python",
+		imageID:     "github.com/megamsys/vertice/python",
 		commands:    []string{"foo"},
 		provisioner: s.p,
 	})

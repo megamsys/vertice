@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/megamsys/megamd/api"
+	"github.com/megamsys/vertice/api"
 )
 
 const SENSORSBUCKET = "sensors"

@@ -4,12 +4,12 @@
 *.o
 *.a
 *.so
-megamd
+vertice
 cpuprof
 memprof
 
 # Unignore all dirs
-!*/megamd
+!*/vertice
 
 # Folders
 _obj

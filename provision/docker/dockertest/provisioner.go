@@ -9,9 +9,9 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/fsouza/go-dockerclient/testing"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/cluster"
-	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/cluster"
+	"github.com/megamsys/vertice/provision/docker/container"
 )
 
 type ContainerMoving struct {

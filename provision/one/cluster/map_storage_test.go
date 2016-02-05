@@ -7,7 +7,7 @@ package cluster
 /*
 import (
 	"testing"
-	"github.com/megamsys/megamd/provision/one/cluster"
+	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
 func TestMapStorageStorage(t *testing.T) {

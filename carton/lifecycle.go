@@ -22,7 +22,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 )
 
 type LifecycleOpts struct {

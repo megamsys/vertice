@@ -1,7 +1,7 @@
 package gitlab
 
 import (
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/repository"
 	"github.com/plouc/go-gitlab-client"
 )
 

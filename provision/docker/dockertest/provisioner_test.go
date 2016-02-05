@@ -7,10 +7,10 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	dtesting "github.com/fsouza/go-dockerclient/testing"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/cluster"
-	"github.com/megamsys/megamd/provision/docker/container"
-	"github.com/megamsys/megamd/provision/provisiontest"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/cluster"
+	"github.com/megamsys/vertice/provision/docker/container"
+	"github.com/megamsys/vertice/provision/provisiontest"
 	"gopkg.in/check.v1"
 )
 

@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 const (

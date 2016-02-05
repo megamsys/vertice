@@ -70,9 +70,9 @@ func NewConfig() *Config {
 		return nil
 	}
 
-	defaultDir := filepath.Join(homeDir, "megamd/")
+	defaultDir := filepath.Join(homeDir, "vertice/")
 
-	// Config represents the configuration format for the megamd.
+	// Config represents the configuration format for the vertice.
 	return &Config{
 		Home: homeDir,
 		Dir:  defaultDir,

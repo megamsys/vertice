@@ -10,7 +10,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/google/go-github/github"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/repository"
 	"golang.org/x/oauth2"
 )
 

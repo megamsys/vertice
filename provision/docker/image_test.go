@@ -39,7 +39,7 @@ func (s *S) TestUsePlatformImage(c *check.C) {
 	c.Assert(err, check.IsNil)
 	coll := s.p.Collection()
 	defer coll.Close()
-	err = coll.Insert(container.Container{AppName: app6.Name, Image: "github.com/megamsys/megamd/app-app6"})
+	err = coll.Insert(container.Container{AppName: app6.Name, Image: "github.com/megamsys/vertice/app-app6"})
 	c.Assert(err, check.IsNil)
 	ok = s.p.usePlatformImage(app6)
 	c.Assert(ok, check.Equals, false)
@@ -48,10 +48,10 @@ func (s *S) TestUsePlatformImage(c *check.C) {
 
 func (s *S) TestPlatformImageName(c *check.C) {
 	platName := platformImageName("python")
-	c.Assert(platName, check.Equals, "github.com/megamsys/megamd/python:latest")
+	c.Assert(platName, check.Equals, "github.com/megamsys/vertice/python:latest")
 	config.Set("docker:registry", "localhost:3030")
 	defer config.Unset("docker:registry")
 	platName = platformImageName("ruby")
-	c.Assert(platName, check.Equals, "localhost:3030/"github.com/megamsys/megamd/ruby:latest")
+	c.Assert(platName, check.Equals, "localhost:3030/"github.com/megamsys/vertice/ruby:latest")
 }
 */
