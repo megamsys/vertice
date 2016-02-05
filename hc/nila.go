@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/megamsys/libgo/hc"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 )
 

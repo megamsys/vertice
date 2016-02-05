@@ -21,7 +21,7 @@ GOPATH  := $(GOPATH):$(shell pwd)/../../../../
 
 define HG_ERROR
 
-FATAL: you need mercurial (hg) to download megamd dependencies.
+FATAL: you need mercurial (hg) to download vertice dependencies.
        Check README.md for details
 
 
@@ -29,13 +29,13 @@ endef
 
 define GIT_ERROR
 
-FATAL: you need git to download megamd dependencies.
+FATAL: you need git to download vertice dependencies.
        Check README.md for details
 endef
 
 define BZR_ERROR
 
-FATAL: you need bazaar (bzr) to download megamd dependencies.
+FATAL: you need bazaar (bzr) to download vertice dependencies.
        Check README.md for details
 endef
 
@@ -43,7 +43,7 @@ endef
 
 all: check-path get test
 
-build: check-path get _go_test _megamd
+build: check-path get _go_test _vertice
 
 # It does not support GOPATH with multiple paths.
 check-path:
@@ -78,19 +78,19 @@ _go_test:
 	go clean $(GO_EXTRAFLAGS) ./...
 	go test $(GO_EXTRAFLAGS) ./...
 
-_megamd:
-	rm -f megamd
-	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z)"  -o megamd ./cmd/megamd
+_vertice:
+	rm -f vertice
+	go build $(GO_EXTRAFLAGS)  -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z)"  -o vertice ./cmd/vertice
 
 
-_megamdr:
-	./megamd -v start --config $(MEGAM_HOME)/megamd/megamd.conf
+_verticer:
+	./vertice -v start --config $(MEGAM_HOME)/vertice/vertice.conf
 
 
-test: _go_test _megamd _megamdr
+test: _go_test _vertice _verticer
 
 _install_deadcode: git
 	go get $(GO_EXTRAFLAGS) github.com/remyoudompheng/go-misc/deadcode
 
 deadcode: _install_deadcode
-	@go list ./... | sed -e 's;github.com/megamsys/megamd/;;' | xargs deadcode
+	@go list ./... | sed -e 's;github.com/megamsys/vertice/;;' | xargs deadcode

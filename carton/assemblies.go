@@ -17,7 +17,7 @@ package carton
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/db"
+	"github.com/megamsys/vertice/db"
 	"gopkg.in/yaml.v2"
 	"reflect"
 	"strings"

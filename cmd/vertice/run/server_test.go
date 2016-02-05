@@ -22,9 +22,9 @@ import (
 	"testing"
 
 	"github.com/BurntSushi/toml"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/subd/deployd"
-	"github.com/megamsys/megamd/subd/httpd"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/subd/deployd"
+	"github.com/megamsys/vertice/subd/httpd"
 	"gopkg.in/check.v1"
 )
 
@@ -44,7 +44,7 @@ var _ = check.Suite(&S{})
 // NewTestConfig returns the default config with temporary paths.
 func NewTestConfig() *Config {
 	cm := NewConfig()
-	path := cm.Meta.Dir + "/megamd.conf"
+	path := cm.Meta.Dir + "/vertice.conf"
 	if _, err := toml.DecodeFile(path, cm); err != nil {
 		fmt.Println(err.Error())
 		return nil
@@ -60,8 +60,8 @@ func OpenServer(c *Config) *Server {
 }
 
 func (s *S) SetUpSuite(c *check.C) {
-	if _, err := os.Stat(meg_home + "/megamd/megamd.conf"); os.IsNotExist(err) {
-		c.Skip("-MEGAM_HOME/megamd/megamd.conf not provided")
+	if _, err := os.Stat(meg_home + "/vertice/vertice.conf"); os.IsNotExist(err) {
+		c.Skip("-MEGAM_HOME/vertice/vertice.conf not provided")
 	}
 
 	s.cf = NewTestConfig()

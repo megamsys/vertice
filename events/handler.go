@@ -7,7 +7,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/utils"
+	"github.com/megamsys/vertice/utils"
 )
 
 type byTimestamp []*Event

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 	"io"
 	"time"
 )

@@ -5,7 +5,7 @@ import (
 		"net/http/httptest"
 
 		"github.com/BurntSushi/toml"
-		"github.com/megamsys/megamd/meta"
+		"github.com/megamsys/vertice/meta"
 	*/
 	"gopkg.in/check.v1"
 )
@@ -19,7 +19,7 @@ var _ = check.Suite(&HealthCheckSuite{})
 	var cm meta.Config
 	if _, err := toml.Decode(`
 	debug = true
-	dir = "/var/lib/megam/megamd/meta"
+	dir = "/var/lib/megam/vertice/meta"
 	riak = ["localhost:8087"]
 	api  = "http://localhost:9000"
 	amqp = "amqp://guest:guest@localhost:5672/"

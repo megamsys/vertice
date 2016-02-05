@@ -2,7 +2,7 @@ package container
 
 /*
 import (
-	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/vertice/provision/docker/cluster"
 )
 
 type push struct {

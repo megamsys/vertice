@@ -1,7 +1,7 @@
 package deployd
 
 import (
-	"github.com/megamsys/megamd/carton"
+	"github.com/megamsys/vertice/carton"
 )
 
 type Handler struct {

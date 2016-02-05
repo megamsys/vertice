@@ -7,9 +7,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/carton"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
 )
 
 const (

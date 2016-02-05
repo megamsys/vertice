@@ -3,7 +3,7 @@ package api
 import (
 	"sync"
 
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 )
 
 type logStreamTracker struct {

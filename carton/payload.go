@@ -18,7 +18,7 @@ package carton
 import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/db"
+	"github.com/megamsys/vertice/db"
 	"strings"
 )
 

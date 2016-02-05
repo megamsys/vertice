@@ -1,6 +1,6 @@
 package api
 
-import "github.com/megamsys/megamd/auth"
+import "github.com/megamsys/vertice/auth"
 
 type Token struct {
 	Token     string

@@ -23,8 +23,8 @@ import (
 
 "github.com/megamsys/libgo/cmd"
 "github.com/megamsys/libgo/safe"
-"github.com/megamsys/megamd/carton"
-"github.com/megamsys/megamd/provision"
+"github.com/megamsys/vertice/carton"
+"github.com/megamsys/vertice/provision"
 "gopkg.in/check.v1"
 */
 )

@@ -8,8 +8,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/one/onetest/"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/one/onetest/"
 	"gopkg.in/check.v1"
 )
 

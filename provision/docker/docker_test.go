@@ -5,8 +5,8 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/safe"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/container"
 	"gopkg.in/check.v1"
 )
 
@@ -29,7 +29,7 @@ func (s *S) newContainer(opts *newContainerOpts, p *dockerProvisioner) (*contain
 	if p == nil {
 		p = s.p
 	}
-	image := "github.com/megamsys/megamd/python:latest"
+	image := "github.com/megamsys/vertice/python:latest"
 	var customData map[string]interface{}
 	if opts != nil {
 		if opts.Image != "" {
@@ -103,7 +103,7 @@ func (s *S) TestContainerGetAddress(c *check.C) {
 	routertest.FakeRouter.AddBackend(app.GetName())
 	defer routertest.FakeRouter.RemoveBackend(app.GetName())
 	s.p.Cluster().PullImage(
-		docker.PullImageOptions{Repository: "github.com/megamsys/megamd/brainfuck:latest"},
+		docker.PullImageOptions{Repository: "github.com/megamsys/vertice/brainfuck:latest"},
 		docker.AuthConfiguration{},
 	)
 	cont := container{Name: "myName", AppName: app.GetName(), Type: app.GetPlatform(), Status: "created", ProcessName: "myprocess1"}
@@ -139,7 +139,7 @@ func (s *S) TestContainerGetAddress(c *check.C) {
 		"A=myenva",
 		"ABCD=other env",
 		"HOST=my.cool:8080",
-		"github.com/megamsys/megamd_PROCESSNAME=myprocess1",
+		"github.com/megamsys/vertice_PROCESSNAME=myprocess1",
 	})
 }
 
@@ -411,7 +411,7 @@ func (s *S) TestGetImageAppWhenDeployIsMultipleOf10(c *check.C) {
 	err = conn.Apps().Insert(app)
 	c.Assert(err, check.IsNil)
 	defer conn.Apps().Remove(bson.M{"name": app.Name})
-	cont := container{ID: "bleble", Type: app.Platform, AppName: app.Name, Image: "github.com/megamsys/megamd/app1"}
+	cont := container{ID: "bleble", Type: app.Platform, AppName: app.Name, Image: "github.com/megamsys/vertice/app1"}
 	coll := s.p.collection()
 	err = coll.Insert(cont)
 	c.Assert(err, check.IsNil)
@@ -538,7 +538,7 @@ func (s *S) TestContainerCommitRetryShouldNotBeLessThanOne(c *check.C) {
 func (s *S) TestGitDeploy(c *check.C) {
 	stopCh := s.stopContainers(1)
 	defer func() { <-stopCh }()
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	repository.Manager().CreateRepository("myapp", nil)
@@ -547,14 +547,14 @@ func (s *S) TestGitDeploy(c *check.C) {
 	var buf bytes.Buffer
 	imageId, err := s.p.gitDeploy(app, "ff13e", &buf)
 	c.Assert(err, check.IsNil)
-	c.Assert(imageId, check.Equals, "github.com/megamsys/megamd/app-myapp:v1")
+	c.Assert(imageId, check.Equals, "github.com/megamsys/vertice/app-myapp:v1")
 	var conts []container
 	coll := s.p.collection()
 	defer coll.Close()
 	err = coll.Find(nil).All(&conts)
 	c.Assert(err, check.IsNil)
 	c.Assert(conts, check.HasLen, 0)
-	err = s.p.Cluster().RemoveImage("github.com/megamsys/megamd/app-myapp:v1")
+	err = s.p.Cluster().RemoveImage("github.com/megamsys/vertice/app-myapp:v1")
 	c.Assert(err, check.IsNil)
 }
 
@@ -565,7 +565,7 @@ func (errBuffer) Write(data []byte) (int, error) {
 }
 
 func (s *S) TestGitDeployRollsbackAfterErrorOnAttach(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	repository.Manager().CreateRepository("myapp", nil)
@@ -580,14 +580,14 @@ func (s *S) TestGitDeployRollsbackAfterErrorOnAttach(c *check.C) {
 	err = coll.Find(nil).All(&conts)
 	c.Assert(err, check.IsNil)
 	c.Assert(conts, check.HasLen, 0)
-	err = s.p.Cluster().RemoveImage("github.com/megamsys/megamd/myapp")
+	err = s.p.Cluster().RemoveImage("github.com/megamsys/vertice/myapp")
 	c.Assert(err, check.NotNil)
 }
 
 func (s *S) TestArchiveDeploy(c *check.C) {
 	stopCh := s.stopContainers(1)
 	defer func() { <-stopCh }()
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	routertest.FakeRouter.AddBackend(app.GetName())
@@ -598,7 +598,7 @@ func (s *S) TestArchiveDeploy(c *check.C) {
 }
 
 func (s *S) TestStart(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	imageId := s.p.getBuildImage(app)
@@ -620,7 +620,7 @@ func (s *S) TestStartStoppedContainer(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(cont)
 	cont.Status = provision.StatusStopped.String()
-	err = s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err = s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 1)
 	imageId := s.p.getBuildImage(app)

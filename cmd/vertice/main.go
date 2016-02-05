@@ -20,7 +20,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/cmd/megamd/run"
+	"github.com/megamsys/vertice/cmd/vertice/run"
 )
 
 // These variables are populated via the Go linker.

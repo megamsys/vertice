@@ -3,7 +3,7 @@ package machine
 import (
 	"testing"
 
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/opennebula-go/compute"
 	otesting "github.com/megamsys/opennebula-go/testing"
 	"gopkg.in/check.v1"

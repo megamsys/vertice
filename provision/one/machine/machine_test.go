@@ -3,8 +3,8 @@ package machine
 import (
 	/*	"bytes"
 
-		"github.com/megamsys/megamd/provision"
-		"github.com/megamsys/megamd/provision/provisiontest"
+		"github.com/megamsys/vertice/provision"
+		"github.com/megamsys/vertice/provision/provisiontest"
 		"github.com/megamsys/opennebula-go/compute" */
 	"gopkg.in/check.v1"
 )

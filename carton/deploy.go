@@ -21,8 +21,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/repository"
 	"io"
 	"strings"
 	"time"

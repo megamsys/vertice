@@ -9,10 +9,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
-	"github.com/megamsys/megamd/carton"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/one/cluster"
+	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/opennebula-go/compute"
 )
 

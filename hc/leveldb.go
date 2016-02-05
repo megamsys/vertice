@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/megamsys/libgo/hc"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 const PORT = "8098"

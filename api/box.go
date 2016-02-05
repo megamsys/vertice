@@ -7,7 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/websocket"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 	"net/http"
 )
 

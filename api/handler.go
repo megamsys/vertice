@@ -3,7 +3,7 @@ package api
 import (
 	"net/http"
 
-	"github.com/megamsys/megamd/api/context"
+	"github.com/megamsys/vertice/api/context"
 )
 
 type Handler func(http.ResponseWriter, *http.Request) error

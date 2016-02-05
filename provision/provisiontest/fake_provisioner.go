@@ -5,7 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/provision"
 )
 
 var uniqueIpCounter int32 = 0

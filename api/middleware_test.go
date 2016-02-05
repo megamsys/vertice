@@ -8,7 +8,7 @@ import (
 
 	"github.com/megamsys/libgo/errors"
 	"github.com/megamsys/libgo/io"
-	"github.com/megamsys/megamd/api/context"
+	"github.com/megamsys/vertice/api/context"
 	"gopkg.in/check.v1"
 )
 

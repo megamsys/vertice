@@ -235,7 +235,7 @@ func postnetwork(container *global.Container, ip string) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("Failed to connect to megamdocker node client: %s", err.Error())
+		log.Errorf("Failed to connect to verticeocker node client: %s", err.Error())
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -262,7 +262,7 @@ func postlogs(container *global.Container) error {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Errorf("Failed to connect to megamdocker node client: %s", err.Error())
+		log.Errorf("Failed to connect to verticeocker node client: %s", err.Error())
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)

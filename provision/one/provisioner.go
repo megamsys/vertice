@@ -26,11 +26,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/one/cluster"
-	"github.com/megamsys/megamd/repository"
-	"github.com/megamsys/megamd/router"
-	_ "github.com/megamsys/megamd/router/route53"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/one/cluster"
+	"github.com/megamsys/vertice/repository"
+	"github.com/megamsys/vertice/router"
+	_ "github.com/megamsys/vertice/router/route53"
 	"github.com/megamsys/opennebula-go/api"
 )
 

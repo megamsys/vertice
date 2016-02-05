@@ -8,8 +8,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/events"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 type Config struct {

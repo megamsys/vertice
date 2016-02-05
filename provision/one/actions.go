@@ -23,8 +23,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/one/machine"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/one/machine"
 )
 
 const (

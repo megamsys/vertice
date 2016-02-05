@@ -21,10 +21,10 @@ import (
 
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/db"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/vertice/db"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 )
 
@@ -260,7 +260,7 @@ func (a *Assembly) getSwap() string {
 	return ""
 }
 
-//The default HDD is 10. we should configure it in the megamd.conf
+//The default HDD is 10. we should configure it in the vertice.conf
 func (a *Assembly) getHDD() string {
 	if len(strings.TrimSpace(a.Inputs.Match(provision.HDD))) <= 0 {
 		return "10"

@@ -10,8 +10,8 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/megamsys/libgo/errors"
 	"github.com/megamsys/libgo/io"
-	"github.com/megamsys/megamd/api/context"
-	"github.com/megamsys/megamd/auth"
+	"github.com/megamsys/vertice/api/context"
+	"github.com/megamsys/vertice/auth"
 )
 
 func validate(token string, r *http.Request) (auth.Token, error) {
