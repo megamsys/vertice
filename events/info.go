@@ -10,12 +10,11 @@ import (
 )
 
 const (
-	EventMachine   EventType = "machine"
-	EventContainer           = "container"
-	EventBill                = "bill"
-	EventUser                = "user"
-	// 10ms, i.e. 0.01s
-	timePrecision time.Duration = 10 * time.Millisecond
+	EventMachine   EventType     = "machine"
+	EventContainer               = "container"
+	EventBill                    = "bill"
+	EventUser                    = "user"
+	timePrecision  time.Duration = 10 * time.Millisecond // 10ms, i.e. 0.01s
 )
 
 type StoredEvent struct {
@@ -109,4 +108,21 @@ func toEventType(t string) EventType {
 	default:
 		return ""
 	}
+}
+
+type MultiEvent struct {
+	Events []*Event
+}
+
+func NewMulti(ea []*Event) *MultiEvent {
+	return &MultiEvent{Events: ea}
+}
+
+func (me *MultiEvent) Write() error {
+	var err error
+	me.Events = append(me.Events, &Event{}) //add the usernotification event
+	for _, e := range me.Events {
+		err = W.Write(e)
+	}
+	return err
 }

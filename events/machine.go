@@ -18,7 +18,7 @@ func (self *Machine) Watch(eventsChannel *EventChannel) error {
 			case event := <-eventsChannel.channel:
 				switch {
 				case event.EventAction == alerts.CREATE:
-					err := self.create()
+					err := self.create(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
@@ -43,12 +43,10 @@ func (self *Machine) Close() {
 	}
 }
 
-func (self *Machine) create() error {
-	log.Info("RECV machine create")
+func (self *Machine) create(evt *Event) error {
 	return nil
 }
 
 func (self *Machine) destroy() error {
-	log.Info("RECV machine destroy")
 	return nil
 }

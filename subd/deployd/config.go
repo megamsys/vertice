@@ -7,8 +7,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/vertice/provision"
 )
 
 const (

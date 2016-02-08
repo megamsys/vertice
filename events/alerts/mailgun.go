@@ -22,8 +22,13 @@ const (
 	SLACK   = "slack"
 	INFOBIP = "infobip"
 
-	API_KEY        = "api_key"
-	DOMAIN         = "domain"
+	API_KEY = "api_key"
+	DOMAIN  = "domain"
+	NILAVU  = "nilavu"
+	LOGO    = "logo"
+	NAME    = "name"
+	MINCONS = "mincons"
+
 	TOKEN          = "token"
 	CHANNEL        = "channel"
 	USERNAME       = "username"
@@ -65,12 +70,16 @@ func (v *EventAction) String() string {
 type mailgunner struct {
 	api_key string
 	domain  string
+	nilavu  string
+	logo    string
 }
 
 func NewMailgun(m map[string]string) Notifier {
 	return &mailgunner{
 		api_key: m[API_KEY],
 		domain:  m[DOMAIN],
+		nilavu:  m[NILAVU],
+		logo:    m[LOGO],
 	}
 }
 
@@ -85,6 +94,9 @@ func (m *mailgunner) Notify(eva EventAction, mp map[string]string) error {
 	var w bytes.Buffer
 	var sub string
 	var err error
+
+	mp[NILAVU] = m.nilavu
+	mp[LOGO] = m.logo
 
 	switch eva {
 	case ONBOARD:

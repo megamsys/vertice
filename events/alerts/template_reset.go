@@ -44,7 +44,7 @@ var resetTemplate = template.Must(template.New("index").Parse(`
                   </tr>
                   <tr>
                     <td align="center" style="padding: 45px;">
-                      <a href="{{.reset_url}}">
+                      <a href="{{.nilavu}}/{{.click_url}}">
                         <img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/reset_password.png">
                       </a>
                     </td>

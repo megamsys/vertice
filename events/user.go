@@ -5,17 +5,22 @@ import (
 	"github.com/megamsys/vertice/events/alerts"
 )
 
-const ()
+// AfterFunc represents a after alert function, that can be registered with
+// NewUser function.
+type AfterFunc func(evt *Event) error
+
+type AfterFuncs []AfterFunc
 
 var notifiers map[string]alerts.Notifier
 
 type User struct {
 	stop chan struct{}
+	fns  AfterFuncs
 }
 
-func NewUser(e EventsConfigMap) *User {
+func NewUser(e EventsConfigMap, fns AfterFuncs) *User {
 	register(e)
-	return &User{}
+	return &User{fns: fns}
 }
 
 func register(e EventsConfigMap) {
@@ -44,7 +49,7 @@ func (self *User) Watch(eventsChannel *EventChannel) error {
 		for {
 			select {
 			case event := <-eventsChannel.channel:
-				err := self.alert(event.EventAction, &event.EventData)
+				err := self.alert(event)
 				if err != nil {
 					log.Warningf("Failed to process watch event: %v", err)
 				}
@@ -57,16 +62,27 @@ func (self *User) Watch(eventsChannel *EventChannel) error {
 	return nil
 }
 
+func (self *User) alert(evt *Event) error {
+	var err error
+	for _, a := range notifiers {
+		err = a.Notify(evt.EventAction, evt.EventData.M)
+	}
+	if err != nil {
+		return err
+	}
+	return self.after(evt)
+}
+
+func (self *User) after(evt *Event) error {
+	var err error
+	for _, fn := range self.fns {
+		err = fn(evt)
+	}
+	return err
+}
+
 func (self *User) Close() {
 	if self.stop != nil {
 		close(self.stop)
 	}
-}
-
-func (self *User) alert(eva alerts.EventAction, ed *EventData) error {
-	var err error
-	for _, a := range notifiers {
-		err = a.Notify(eva, ed.M)
-	}
-	return err
 }

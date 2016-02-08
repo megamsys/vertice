@@ -3,8 +3,8 @@ package onetest
 import (
 	"testing"
 
-	"github.com/megamsys/vertice/provision/one/cluster"
 	otesting "github.com/megamsys/opennebula-go/testing"
+	"github.com/megamsys/vertice/provision/one/cluster"
 	"gopkg.in/check.v1"
 )
 

@@ -106,6 +106,27 @@ var createMachine = action.Action{
 	},
 }
 
+var deductCons = action.Action{
+	Name: "deduct-cons-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		log.Debugf("  deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())
+		mach := machine.Machine{
+			Id:         args.box.Id,
+			AccountsId: args.box.AccountsId,
+			CartonId:   args.box.CartonId,
+			Level:      args.box.Level,
+			Name:       args.box.GetFullName(),
+		}
+		mach.Deduct()
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(provision.StatusError)
+	},
+}
+
 var destroyOldMachine = action.Action{
 	Name: "destroy-old-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -141,7 +162,7 @@ var startMachine = action.Action{
 			writer = ioutil.Discard
 		}
 		fmt.Fprintf(writer, "\n---- Starting  machine %s ----\n", mach.Name)
-		err := mach.LCoperation(args.provisioner, START)
+		err := mach.LifecycleOps(args.provisioner, START)
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +189,7 @@ var stopMachine = action.Action{
 			writer = ioutil.Discard
 		}
 		fmt.Fprintf(writer, "\n---- Stopping  machine %s ----\n", mach.Name)
-		err := mach.LCoperation(args.provisioner, STOP)
+		err := mach.LifecycleOps(args.provisioner, STOP)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +215,7 @@ var restartMachine = action.Action{
 		}
 		fmt.Fprintf(writer, "\n---- Restarting  machine %s ----\n", mach.Name)
 
-		err := mach.LCoperation(args.provisioner, RESTART)
+		err := mach.LifecycleOps(args.provisioner, RESTART)
 		if err != nil {
 			return nil, err
 		}

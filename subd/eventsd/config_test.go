@@ -16,6 +16,9 @@ func (s *S) TestEventsConfig_Parse(c *check.C) {
 	  [mailgun]
 	    api_key = "temp"
 	    domain  = "ojamail.megambox.com"
+			nilavu = "https://console.megam.io"
+			logo = "s3://megam_vertice.png"
+
 
 	  [infobip]
 	    username = "info_username"

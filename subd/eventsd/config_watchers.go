@@ -13,12 +13,16 @@ import (
 type Mailgun struct {
 	ApiKey string `toml:"api_key"`
 	Domain string `toml:"domain"`
+	Logo   string `toml:"logo"`
+	Nilavu string `toml:"nilavu"`
 }
 
 func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[alerts.API_KEY] = m.ApiKey
 	mp[alerts.DOMAIN] = m.Domain
+	mp[alerts.NILAVU] = m.Nilavu
+	mp[alerts.LOGO] = m.Logo
 	return mp
 }
 func (m Mailgun) String() string {
@@ -28,6 +32,8 @@ func (m Mailgun) String() string {
 	b.Write([]byte(cmd.Colorfy("Mailgun", "green", "", "") + "\n"))
 	b.Write([]byte("api_key" + "\t" + m.ApiKey + "\n"))
 	b.Write([]byte("domain" + "\t" + m.Domain + "\n"))
+	b.Write([]byte("nilavu    " + "\t" + m.Nilavu + "\n"))
+	b.Write([]byte("logo      " + "\t" + m.Logo + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
