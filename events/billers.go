@@ -1,41 +1,35 @@
 package events
 
 import (
+	"fmt"
 	"time"
 )
 
 const (
-	//source flags
 	SCYLLADB = "scylladb"
 	WHMCS    = "whmcs"
-
-	defaultManager = SCYLLADB
 )
 
 var providers map[string]BillProvider
 
-/* Repository represents a repository managed by the manager. */
+/* BillOpts represents a billtransaction managed by the provider. */
 type BillOpts struct {
 	AccountsId string
 	Email      string
 	Consumed   int
-	BeginAudit string
-	EndAudit   string
+	StartTime  string
+	EndTime    string
 	Timestamp  time.Time
 }
 
-func (r BillOpts) GetType() string {
-	return ""
-}
-
 type BillProvider interface {
-	IsEnabled(o *BillOpts) bool
-	Invoice(o *BillOpts) error //invoice fora  range.
-	Deduct(o *BillOpts) error  //deduct the bill transaction
+	IsEnabled() bool           //is this billing provider enabled.
 	Onboard(o *BillOpts) error //onboard an user in the billing system
-	Nuke(o *BillOpts) error    //suspend or delete an user.
-	Suspend(o *BillOpts) error
-	Notify(o *BillOpts) error
+	Nuke(o *BillOpts) error    //delete an user from the billing system
+	Suspend(o *BillOpts) error //suspend an user from the billing system
+	Deduct(o *BillOpts) error  //deduct the bill transaction
+	Invoice(o *BillOpts) error //invoice for a  range.
+	Notify(o *BillOpts) error  //notify an user
 }
 
 // Provider returns the current configured manager, as defined in the
@@ -53,5 +47,6 @@ func Register(name string, provider BillProvider) {
 	if providers == nil {
 		providers = make(map[string]BillProvider)
 	}
+	fmt.Printf("----> %s\n", name)
 	providers[name] = provider
 }

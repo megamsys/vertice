@@ -1,46 +1,62 @@
 package bills
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/events"
 )
 
+const (
+	billerName = "whmcs"
+)
+
 func init() {
-	events.Register("whmcs", whmcsManager{})
+	events.Register(billerName, createBiller())
 }
 
-type whmcsManager struct{}
-
-type WHMCSClient struct{}
-
-func (w whmcsManager) client() (*WHMCSClient, error) {
-	//	return whmcs.NewClient(url, tok), nil
-	return nil, nil
+type whmcsBiller struct {
+	enabled bool
+	apiKey  string
+	domain  string
 }
 
-func (w whmcsManager) IsEnabled(o *events.BillOpts) bool {
-	return false
+func createBiller() events.BillProvider {
+	vBiller := whmcsBiller{
+		enabled: false,
+		apiKey:  "",
+		domain:  "",
+	}
+	log.Debugf("%s ready", billerName)
+	return vBiller
 }
 
-func (w whmcsManager) Onboard(o *events.BillOpts) error {
+func (w *whmcsBiller) String() string {
+	return "WHMCS:(" + w.apiKey + "," + w.domain + ")"
+}
+
+func (w whmcsBiller) IsEnabled() bool {
+	return w.enabled
+}
+
+func (w whmcsBiller) Onboard(o *events.BillOpts) error {
 	return nil
 }
 
-func (w whmcsManager) Deduct(o *events.BillOpts) error {
+func (w whmcsBiller) Deduct(o *events.BillOpts) error {
 	return nil
 }
 
-func (w whmcsManager) Invoice(o *events.BillOpts) error {
+func (w whmcsBiller) Invoice(o *events.BillOpts) error {
 	return nil
 }
 
-func (w whmcsManager) Nuke(o *events.BillOpts) error {
+func (w whmcsBiller) Nuke(o *events.BillOpts) error {
 	return nil
 }
 
-func (w whmcsManager) Suspend(o *events.BillOpts) error {
+func (w whmcsBiller) Suspend(o *events.BillOpts) error {
 	return nil
 }
 
-func (w whmcsManager) Notify(o *events.BillOpts) error {
+func (w whmcsBiller) Notify(o *events.BillOpts) error {
 	return nil
 }

@@ -5,27 +5,14 @@ import (
 	"github.com/megamsys/vertice/events/alerts"
 )
 
-const BILL = "bill"
-
-type Config struct {
-	Logo   string
-	Type   string
-	ApiKey string
-}
+const BILLMGR = "bill"
 
 type Bill struct {
-	config *Config
-	stop   chan struct{}
+	stop chan struct{}
 }
 
 func NewBill(b map[string]string) *Bill {
-	return &Bill{
-		config: &Config{
-		//	Logo:   m.Logo,
-		//	Type:   e.Bill.Type,
-		//	ApiKey: e.Bill.ApiKey,
-		},
-	}
+	return &Bill{}
 }
 
 // Watches for new vms, or vms destroyed.
@@ -36,13 +23,13 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == alerts.DEDUCT:
-					err := self.deduct(event)
+				case event.EventAction == alerts.ONBOARD:
+					err := self.OnboardFunc(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
-				case event.EventAction == alerts.ONBOARD:
-					err := self.OnboardFunc(event)
+				case event.EventAction == alerts.DEDUCT:
+					err := self.deduct(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}

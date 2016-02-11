@@ -11,16 +11,18 @@ type AfterFunc func(evt *Event) error
 
 type AfterFuncs []AfterFunc
 
+type AfterFuncsMap map[alerts.EventAction]AfterFuncs
+
 var notifiers map[string]alerts.Notifier
 
 type User struct {
 	stop chan struct{}
-	fns  AfterFuncs
+	fns  AfterFuncsMap
 }
 
-func NewUser(e EventsConfigMap, fns AfterFuncs) *User {
+func NewUser(e EventsConfigMap, fnmap AfterFuncsMap) *User {
 	register(e)
-	return &User{fns: fns}
+	return &User{fns: fnmap}
 }
 
 func register(e EventsConfigMap) {
@@ -75,7 +77,8 @@ func (self *User) alert(evt *Event) error {
 
 func (self *User) after(evt *Event) error {
 	var err error
-	for _, fn := range self.fns {
+	perActionfns := self.fns[evt.EventAction]
+	for _, fn := range perActionfns {
 		err = fn(evt)
 	}
 	return err

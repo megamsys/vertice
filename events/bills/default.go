@@ -11,7 +11,7 @@ func init() {
 
 type scylladbManager struct{}
 
-func (m scylladbManager) IsEnabled(o *events.BillOpts) bool {
+func (m scylladbManager) IsEnabled() bool {
 	return true
 }
 

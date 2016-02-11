@@ -1,7 +1,6 @@
 package alerts
 
 import (
-	"bytes"
 	"strings"
 
 	log "github.com/Sirupsen/logrus"
@@ -9,32 +8,43 @@ import (
 )
 
 const (
-	CREATE EventAction = iota
-	DESTROY
+	LAUNCHED EventAction = iota
+	DESTROYED
 	STATUS
 	DEDUCT
 	ONBOARD
 	RESET
 	INVITE
 	BALANCE
+	INVOICE
 
+	//keys for watchers
 	MAILGUN = "mailgun"
 	SLACK   = "slack"
 	INFOBIP = "infobip"
 
-	API_KEY = "api_key"
-	DOMAIN  = "domain"
-	NILAVU  = "nilavu"
-	LOGO    = "logo"
-	NAME    = "name"
-	MINCONS = "mincons"
-
+	//config keys by watchers
 	TOKEN          = "token"
 	CHANNEL        = "channel"
 	USERNAME       = "username"
 	PASSWORD       = "password"
 	APPLICATION_ID = "application_id"
 	MESSAGE_ID     = "message_id"
+	API_KEY        = "api_key"
+	DOMAIN         = "domain"
+	PIGGYBANKS     = "piggybanks"
+
+	//args for notification
+	NILAVU   = "nilavu"
+	LOGO     = "logo"
+	NAME     = "name"
+	VERTNAME = "appname"
+	TEAM     = "team"
+	VERTTYPE = "type"
+	MINCONS  = "mincons"
+	EMAIL    = "email"
+	DAYS     = "days"
+	COST     = "cost"
 )
 
 type Notifier interface {
@@ -46,10 +56,10 @@ type EventAction int
 
 func (v *EventAction) String() string {
 	switch *v {
-	case CREATE:
-		return "create"
-	case DESTROY:
-		return "destroy"
+	case LAUNCHED:
+		return "launched"
+	case DESTROYED:
+		return "destroyed"
 	case STATUS:
 		return "status"
 	case DEDUCT:
@@ -61,7 +71,7 @@ func (v *EventAction) String() string {
 	case INVITE:
 		return "invite"
 	case BALANCE:
-		return "bal"
+		return "balance"
 	default:
 		return "arrgh"
 	}
@@ -87,43 +97,28 @@ func (m *mailgunner) satisfied() bool {
 	return true
 }
 
+/*{
+		"email":     "nkishore@megam.io",
+		"logo":      "vertice.png",
+		"nilavu":    "console.megam.io",
+		"appname": "vertice.megambox.com"
+		"type": "torpedo"
+		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
+		"days":      "20",
+		"cost":      "$12",
+}*/
 func (m *mailgunner) Notify(eva EventAction, mp map[string]string) error {
 	if !m.satisfied() {
 		return nil
 	}
-	var w bytes.Buffer
-	var sub string
-	var err error
-
 	mp[NILAVU] = m.nilavu
 	mp[LOGO] = m.logo
 
-	switch eva {
-	case ONBOARD:
-		err = onboardTemplate.Execute(&w, mp)
-		sub = "Ahoy. Welcome aboard!"
-	case RESET:
-		err = resetTemplate.Execute(&w, mp)
-		sub = "You have fat finger.!"
-	case INVITE:
-		err = inviteTemplate.Execute(&w, mp)
-		sub = "Lets party!"
-	case BALANCE:
-		err = balanceTemplate.Execute(&w, mp)
-		sub = "Piggy bank!"
-	case CREATE:
-		err = onboardTemplate.Execute(&w, mp)
-		sub = "Up!"
-	case DESTROY:
-		err = onboardTemplate.Execute(&w, mp)
-		sub = "Nuked"
-	default:
-		break
-	}
+	bdy, err := body(eva.String(), mp)
 	if err != nil {
 		return err
 	}
-	m.Send(w.String(), "", sub, mp["email"])
+	m.Send(bdy, "", subject(eva), mp[EMAIL])
 	return nil
 }
 
@@ -148,11 +143,23 @@ func (m *mailgunner) Send(msg string, sender string, subject string, to string) 
 	return nil
 }
 
-/*return map[string]interface{}{
-		"email":     "nkishore@megam.io",
-		"logo":      "vertice.png",
-		"nilavu":    "console.megam.io",
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
-		"days":      "20",
-		"cost":      "$12",
-}*/
+func subject(eva EventAction) string {
+	var sub string
+	switch eva {
+	case ONBOARD:
+		sub = "Ahoy. Welcome aboard!"
+	case RESET:
+		sub = "You have fat finger.!"
+	case INVITE:
+		sub = "Lets party!"
+	case BALANCE:
+		sub = "Piggy bank!"
+	case LAUNCHED:
+		sub = "Up!"
+	case DESTROYED:
+		sub = "Nuked"
+	default:
+		break
+	}
+	return sub
+}

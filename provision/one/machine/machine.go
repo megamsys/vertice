@@ -79,21 +79,14 @@ func (m *Machine) Remove(p OneProvisioner) error {
 //trigger multi event in the order
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
-	mi[alerts.NAME] = m.Name
+	mi[alerts.VERTNAME] = m.Name
 	mi[alerts.MINCONS] = "0.1"
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  m.AccountsId,
-				EventAction: alerts.CREATE,
-				EventType:   events.EventMachine,
-				EventData:   events.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  m.AccountsId,
-				EventAction: alerts.CREATE,
-				EventType:   events.EventMachine,
+				EventAction: alerts.DEDUCT,
+				EventType:   events.EventBill,
 				EventData:   events.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
