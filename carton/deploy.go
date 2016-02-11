@@ -18,6 +18,7 @@ package carton
 
 import (
 	"bytes"
+	"fmt"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
@@ -50,6 +51,7 @@ type DeployOpts struct {
 // Deploy runs a deployment of an application. It will first try to run an
 // image based deploy, and then fallback to the Git based deployment.
 func Deploy(opts *DeployOpts) error {
+	fmt.Println("***************deploy/Deploy***********************")
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := LogWriter{Box: opts.B}
@@ -57,6 +59,7 @@ func Deploy(opts *DeployOpts) error {
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	imageId, err := deployToProvisioner(opts, writer)
+	fmt.Println("****************************************")
 	elapsed := time.Since(start)
 	saveErr := saveDeployData(opts, imageId, outBuffer.String(), elapsed, err)
 	if saveErr != nil {
@@ -71,10 +74,12 @@ func Deploy(opts *DeployOpts) error {
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
+			fmt.Println("****************deployToProvisioner*image***********************")
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
+		fmt.Println("**************deployToProvisioner git**************************")
 		return deployer.GitDeploy(opts.B, writer)
 	}
 
