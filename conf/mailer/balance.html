@@ -1,10 +1,3 @@
-package alerts
-
-import (
-	"html/template"
-)
-
-var balanceTemplate = template.Must(template.New("balance").Parse(`
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -47,7 +40,7 @@ var balanceTemplate = template.Must(template.New("balance").Parse(`
                     </tr>
                     <tr>
                         <td align="center">
-                            <h3>Hi <span class="bold">User</span>,<br>Just a friendly reminder on your usage !</h3>
+                            <h3>Hi <span class="bold">{{.email}</span>,<br>Just a friendly reminder on your usage !</h3>
 
                             <table width="500px" cellspacing="0" cellpadding="3" class="box1">
                                 <tr>
@@ -90,4 +83,3 @@ var balanceTemplate = template.Must(template.New("balance").Parse(`
     </table>
 </body>
 </html>
-`))

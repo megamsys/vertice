@@ -12,6 +12,7 @@ type Carton struct {
 	Id           string //assemblyid
 	Name         string
 	CartonsId    string
+	AccountsId   string
 	Tosca        string
 	ImageVersion string
 	Compute      provision.BoxCompute
@@ -48,7 +49,8 @@ func (c *Carton) toBox() error { //assemblies id.
 	switch c.lvl() {
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
-			Id:           c.Id,        //should be the component id, but in case of BoxNone there is no component id.
+			Id:           c.Id, //should be the component id, but in case of BoxNone there is no component id.
+			AccountsId:   c.AccountsId,
 			CartonId:     c.Id,        //We stick the assemlyid here.
 			CartonsId:    c.CartonsId, //assembliesId,
 			CartonName:   c.Name,

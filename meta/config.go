@@ -32,7 +32,6 @@ const (
 type Config struct {
 	Home string   `toml:"home"`
 	Dir  string   `toml:"dir"`
-	Logo string   `toml:"logo"`
 	Riak []string `toml:"riak"`
 	NSQd []string `toml:"nsqd"`
 	Api  string   `toml:"api"`
@@ -49,7 +48,6 @@ func (c Config) String() string {
 		cmd.Colorfy("Meta", "cyan", "", "") + "\n"))
 	b.Write([]byte("Home      " + "\t" + c.Home + "\n"))
 	b.Write([]byte("Dir       " + "\t" + c.Dir + "\n"))
-	b.Write([]byte("Logo      " + "\t" + c.Logo + "\n"))
 	b.Write([]byte("Riak      " + "\t" + strings.Join(c.Riak, ",") + "\n"))
 	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
 	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))

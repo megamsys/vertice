@@ -6,6 +6,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 var W *EventsWriter
@@ -77,8 +78,9 @@ func watchHandlers(c EventsConfigMap) []*eventWatcher {
 	watchers := make([]*eventWatcher, 0)
 	watchers = append(watchers, &eventWatcher{eventType: EventMachine, Watcher: &Machine{}})
 	watchers = append(watchers, &eventWatcher{eventType: EventContainer, Watcher: &Container{}})
-	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: NewBill(c.Get(BILL))})
-	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c)})
+	b := NewBill(c.Get(BILLMGR))
+	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: b})
+	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c, AfterFuncsMap{alerts.ONBOARD: AfterFuncs{b.OnboardFunc}})})
 	return watchers
 }
 

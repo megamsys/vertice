@@ -5,27 +5,14 @@ import (
 	"github.com/megamsys/vertice/events/alerts"
 )
 
-const BILL = "bill"
-
-type Config struct {
-	Logo   string
-	Type   string
-	ApiKey string
-}
+const BILLMGR = "bill"
 
 type Bill struct {
-	config *Config
-	stop   chan struct{}
+	stop chan struct{}
 }
 
 func NewBill(b map[string]string) *Bill {
-	return &Bill{
-		config: &Config{
-		//	Logo:   m.Logo,
-		//	Type:   e.Bill.Type,
-		//	ApiKey: e.Bill.ApiKey,
-		},
-	}
+	return &Bill{}
 }
 
 // Watches for new vms, or vms destroyed.
@@ -36,13 +23,13 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == alerts.CREATE:
-					err := self.create()
+				case event.EventAction == alerts.ONBOARD:
+					err := self.OnboardFunc(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
 				case event.EventAction == alerts.DEDUCT:
-					err := self.deduct()
+					err := self.deduct(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
@@ -56,18 +43,30 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 	return nil
 }
 
+func (self *Bill) OnboardFunc(evt *Event) error {
+	log.Info("onboard func")
+	for _, bp := range providers {
+		err := bp.Onboard(&BillOpts{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (self *Bill) deduct(evt *Event) error {
+	log.Info("deduct bill")
+	for _, bp := range providers {
+		err := bp.Deduct(&BillOpts{})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (self *Bill) Close() {
 	if self.stop != nil {
 		close(self.stop)
 	}
-}
-
-func (self *Bill) create() error {
-	log.Info("RECV bill create")
-	return nil
-}
-
-func (self *Bill) deduct() error {
-	log.Info("RECV bill deduct")
-	return nil
 }

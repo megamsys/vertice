@@ -1,5 +1,5 @@
 /*
-** Copyright [2013-2015] [Megam Systems]
+** Copyright [2013-2016] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -71,7 +71,7 @@ func (c *Start) Run(context *cmd.Context) error {
 	}
 
 	cmd := NewCommand()
-	cmd.Version = "0.9.4"
+	cmd.Version = "1.0"
 
 	if err := cmd.Megd(config, cmd.Version); err != nil {
 		return fmt.Errorf("run: %s", err)
