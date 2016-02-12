@@ -55,7 +55,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) 
 			baseErr = urlErr.Err
 		}
 		_, isNetErr := baseErr.(*net.OpError)
-		if isNetErr || isCreateMachineErr || baseErr == api.ErrConnRefused {
+		if isNetErr || isCreateMachineErr || baseErr == api.ErrArgsNotSatisfied {
 			shouldIncrementFailures = true
 		}
 		c.handleNodeError(addr, err, shouldIncrementFailures)
@@ -74,7 +74,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 		return "", err
 	}
 	opts.TemplateName = node.template
-	opts.Client = node.Client
+	opts.T = node.Client
 
 	_, err = opts.Create()
 
@@ -102,7 +102,7 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	opts.Client = node.Client
+	opts.T = node.Client
 
 	_, err = opts.Delete()
 	if err != nil {
@@ -139,7 +139,7 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	opts.Client = node.Client
+	opts.T = node.Client
 
 	_, err = opts.Resume()
 	if err != nil {
@@ -164,7 +164,7 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	opts.Client = node.Client
+	opts.T = node.Client
 
 	_, err = opts.Reboot()
 	if err != nil {
@@ -188,7 +188,7 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-	opts.Client = node.Client
+	opts.T = node.Client
 
 	_, err = opts.Poweroff()
 	if err != nil {
