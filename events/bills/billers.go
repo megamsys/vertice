@@ -1,4 +1,4 @@
-package events
+package bills
 
 import (
 	"fmt"
@@ -10,9 +10,9 @@ const (
 	WHMCS    = "whmcs"
 )
 
-var providers map[string]BillProvider
+var BillProviders map[string]BillProvider
 
-/* BillOpts represents a billtransaction managed by the provider. */
+//BillOpts represents a billtransaction managed by the provider
 type BillOpts struct {
 	AccountsId string
 	Email      string
@@ -35,18 +35,18 @@ type BillProvider interface {
 // Provider returns the current configured manager, as defined in the
 // configuration file.
 func Provider(providerName string) BillProvider {
-	if _, ok := providers[providerName]; !ok {
+	if _, ok := BillProviders[providerName]; !ok {
 		providerName = "nop"
 	}
-	return providers[providerName]
+	return BillProviders[providerName]
 }
 
 // Register registers a new billing provider, that can be later configured
 // and used.
 func Register(name string, provider BillProvider) {
-	if providers == nil {
-		providers = make(map[string]BillProvider)
+	if BillProviders == nil {
+		BillProviders = make(map[string]BillProvider)
 	}
 	fmt.Printf("----> %s\n", name)
-	providers[name] = provider
+	BillProviders[name] = provider
 }

@@ -2,7 +2,6 @@ package bills
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/vertice/events"
 )
 
 const (
@@ -10,7 +9,7 @@ const (
 )
 
 func init() {
-	events.Register(billerName, createBiller())
+	Register(billerName, createBiller())
 }
 
 type whmcsBiller struct {
@@ -19,7 +18,7 @@ type whmcsBiller struct {
 	domain  string
 }
 
-func createBiller() events.BillProvider {
+func createBiller() BillProvider {
 	vBiller := whmcsBiller{
 		enabled: false,
 		apiKey:  "",
@@ -37,26 +36,26 @@ func (w whmcsBiller) IsEnabled() bool {
 	return w.enabled
 }
 
-func (w whmcsBiller) Onboard(o *events.BillOpts) error {
+func (w whmcsBiller) Onboard(o *BillOpts) error {
 	return nil
 }
 
-func (w whmcsBiller) Deduct(o *events.BillOpts) error {
+func (w whmcsBiller) Deduct(o *BillOpts) error {
 	return nil
 }
 
-func (w whmcsBiller) Invoice(o *events.BillOpts) error {
+func (w whmcsBiller) Invoice(o *BillOpts) error {
 	return nil
 }
 
-func (w whmcsBiller) Nuke(o *events.BillOpts) error {
+func (w whmcsBiller) Nuke(o *BillOpts) error {
 	return nil
 }
 
-func (w whmcsBiller) Suspend(o *events.BillOpts) error {
+func (w whmcsBiller) Suspend(o *BillOpts) error {
 	return nil
 }
 
-func (w whmcsBiller) Notify(o *events.BillOpts) error {
+func (w whmcsBiller) Notify(o *BillOpts) error {
 	return nil
 }
