@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
