@@ -75,6 +75,10 @@ type Event struct {
 	EventData EventData
 }
 
+func (e *Event) String() string {
+	return ""
+}
+
 // EventType is an enumerated type which lists the categories under which
 // events may fall. The Event field EventType is populated by this enum.
 type EventType string
@@ -112,6 +116,10 @@ func toEventType(t string) EventType {
 
 type MultiEvent struct {
 	Events []*Event
+}
+
+func (e *MultiEvent) String() string {
+	return ""
 }
 
 func NewMulti(ea []*Event) *MultiEvent {

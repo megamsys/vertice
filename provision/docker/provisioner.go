@@ -353,20 +353,6 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 	return container.Exec(p, stdout, stderr, cmd, args...)
 }
 
-func (p *dockerProvisioner) MetricEnvs(carton provision.Carton) map[string]string {
-	envMap := map[string]string{}
-	//gadvConf, err := gadvisor.LoadConfig()
-	//if err != nil {
-	//	return envMap
-	//}
-	//if envs, err := []string{};  err != nil {  //gadvConf.MetrisList
-	//  return err
-	//}
-	/*for _, env := range envs {
-		if strings.HasPrefix(env, "METRICS_") {
-			slice := strings.SplitN(env, "=", 2)
-			envMap[slice[0]] = slice[1]
-		}
-	}*/
-	return envMap
+func (p *dockerProvisioner) MetricEnvs(s, e int64, w io.Writer) ([]interface{}, error) {
+	return nil, nil
 }

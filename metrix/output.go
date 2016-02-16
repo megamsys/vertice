@@ -20,7 +20,7 @@ func (o *OutputHandler) WriteMetrics(all Sensors) (e error) {
 	}
 	sent := false
 	if len(o.RiakAddress) > 0 {
-		e = SendMetricsToRiak(o.RiakAddress, all, o.Hostname)
+		e = SendMetricsToScylla(o.RiakAddress, all, o.Hostname)
 		sent = true
 	}
 

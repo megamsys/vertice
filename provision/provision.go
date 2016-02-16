@@ -180,8 +180,8 @@ type Provisioner interface {
 	// provisioner.
 	Addr(*Box) (string, error)
 
-	// Returns the metric backend environs for the npx.
-	MetricEnvs(Carton) map[string]string
+	// Returns the metric backend collected
+	MetricEnvs(int64, int64, io.Writer) ([]interface{}, error)
 }
 
 type MessageProvisioner interface {

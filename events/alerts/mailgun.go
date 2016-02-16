@@ -12,6 +12,7 @@ const (
 	DESTROYED
 	STATUS
 	DEDUCT
+	TRANSACTION
 	ONBOARD
 	RESET
 	INVITE
@@ -35,16 +36,17 @@ const (
 	PIGGYBANKS     = "piggybanks"
 
 	//args for notification
-	NILAVU   = "nilavu"
-	LOGO     = "logo"
-	NAME     = "name"
-	VERTNAME = "appname"
-	TEAM     = "team"
-	VERTTYPE = "type"
-	MINCONS  = "mincons"
-	EMAIL    = "email"
-	DAYS     = "days"
-	COST     = "cost"
+	NILAVU    = "nilavu"
+	LOGO      = "logo"
+	NAME      = "name"
+	VERTNAME  = "appname"
+	TEAM      = "team"
+	VERTTYPE  = "type"
+	EMAIL     = "email"
+	DAYS      = "days"
+	COST      = "cost"
+	STARTTIME = "starttime"
+	ENDTIME   = "endtime"
 )
 
 type Notifier interface {

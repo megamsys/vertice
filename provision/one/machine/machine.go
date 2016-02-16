@@ -80,7 +80,7 @@ func (m *Machine) Remove(p OneProvisioner) error {
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
 	mi[alerts.VERTNAME] = m.Name
-	mi[alerts.MINCONS] = "0.1"
+	mi[alerts.COST] = "0.1"
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
