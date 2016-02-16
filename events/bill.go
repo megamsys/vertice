@@ -3,6 +3,8 @@ package events
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/events/alerts"
+	"github.com/megamsys/vertice/events/bills"
+	_ "github.com/megamsys/vertice/events/bills"
 )
 
 const BILLMGR = "bill"
@@ -45,8 +47,8 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 
 func (self *Bill) OnboardFunc(evt *Event) error {
 	log.Info("onboard func")
-	for _, bp := range providers {
-		err := bp.Onboard(&BillOpts{})
+	for _, bp := range bills.BillProviders {
+		err := bp.Onboard(&bills.BillOpts{})
 		if err != nil {
 			return err
 		}
@@ -56,8 +58,8 @@ func (self *Bill) OnboardFunc(evt *Event) error {
 
 func (self *Bill) deduct(evt *Event) error {
 	log.Info("deduct bill")
-	for _, bp := range providers {
-		err := bp.Deduct(&BillOpts{})
+	for _, bp := range bills.BillProviders {
+		err := bp.Deduct(&bills.BillOpts{})
 		if err != nil {
 			return err
 		}
