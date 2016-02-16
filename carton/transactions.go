@@ -16,7 +16,6 @@
 package carton
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/megamsys/vertice/db"
@@ -24,51 +23,40 @@ import (
 )
 
 const (
-	BALANCESBUCKET = "balances"
+	TRANSACTIONBUCKET = "billtransactions"
 )
 
-type BalanceOpts struct {
+type BillTransactionOpts struct {
 	Id        string
-	Consumed  int
 	Timestamp time.Time
 }
 
-type Balances struct {
+type BillTransaction struct {
 	AccountsId string `json:"AccountsId"`
 	Name       string `json:"name"`
-	Credit     string `json:"credit"`
 	CreatedAt  string
 }
 
-func (b *Balances) String() string {
-	if d, err := yaml.Marshal(b); err != nil {
+func (bt *BillTransactionOpts) String() string {
+	if d, err := yaml.Marshal(bt); err != nil {
 		return err.Error()
 	} else {
 		return string(d)
 	}
 }
 
-//Temporary hack to create an assembly from its id.
-//This is used by SetStatus.
-//We need add a Notifier interface duck typed by Box and Carton ?
-func NewBalances(id string) (*Balances, error) {
-	b := &Balances{}
-	if err := db.Fetch(BALANCESBUCKET, id, b); err != nil {
+func NewBillTransaction(id string) (*BillTransaction, error) {
+	bt := &BillTransaction{}
+	if err := db.Fetch(TRANSACTIONBUCKET, id, bt); err != nil {
 		return nil, err
 	}
-	return b, nil
+	return bt, nil
 }
 
-func (b *Balances) Deduct(bopts *BalanceOpts) error {
-	b.CreatedAt = time.Now().Local().Format(time.RFC822)
+func (bt *BillTransaction) Transact(topts *BillTransactionOpts) error {
+	bt.CreatedAt = time.Now().Local().Format(time.RFC822)
 
-	avail, err := strconv.Atoi(b.Credit)
-	if err != nil {
-		return err
-	}
-	b.Credit = string(avail - bopts.Consumed)
-
-	if err := db.Store(BALANCESBUCKET, bopts.Id, b); err != nil {
+	if err := db.Store(TRANSACTIONBUCKET, topts.Id, bt); err != nil {
 		return err
 	}
 	return nil

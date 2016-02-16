@@ -8,7 +8,7 @@ func (s *S) TestStoreCollectedr(c *check.C) {
 	c.Skip("Fix: Ping riak, and then decide to skip sensors")
 
 	mh := &MetricHandler{}
-	on := &OpenNebula{RawStatus: s.testjson}
+	on := &OpenNebula{RawStatus: s.testxml}
 	all, _ := mh.Collect(on)
 	c.Assert(all, check.NotNil)
 

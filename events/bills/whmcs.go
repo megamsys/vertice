@@ -44,6 +44,10 @@ func (w whmcsBiller) Deduct(o *BillOpts) error {
 	return nil
 }
 
+func (w whmcsBiller) Transaction(o *BillOpts) error {
+	return nil
+}
+
 func (w whmcsBiller) Invoice(o *BillOpts) error {
 	return nil
 }

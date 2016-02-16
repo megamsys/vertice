@@ -1,7 +1,6 @@
 package bills
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -23,13 +22,14 @@ type BillOpts struct {
 }
 
 type BillProvider interface {
-	IsEnabled() bool           //is this billing provider enabled.
-	Onboard(o *BillOpts) error //onboard an user in the billing system
-	Nuke(o *BillOpts) error    //delete an user from the billing system
-	Suspend(o *BillOpts) error //suspend an user from the billing system
-	Deduct(o *BillOpts) error  //deduct the bill transaction
-	Invoice(o *BillOpts) error //invoice for a  range.
-	Notify(o *BillOpts) error  //notify an user
+	IsEnabled() bool               //is this billing provider enabled.
+	Onboard(o *BillOpts) error     //onboard an user in the billing system
+	Nuke(o *BillOpts) error        //delete an user from the billing system
+	Suspend(o *BillOpts) error     //suspend an user from the billing system
+	Deduct(o *BillOpts) error      //deduct the balance credit
+	Transaction(o *BillOpts) error //deduct the bill transaction
+	Invoice(o *BillOpts) error     //invoice for a  range.
+	Notify(o *BillOpts) error      //notify an user
 }
 
 // Provider returns the current configured manager, as defined in the
@@ -47,6 +47,5 @@ func Register(name string, provider BillProvider) {
 	if BillProviders == nil {
 		BillProviders = make(map[string]BillProvider)
 	}
-	fmt.Printf("----> %s\n", name)
 	BillProviders[name] = provider
 }

@@ -22,7 +22,6 @@ var _ = check.Suite(&HealthCheckSuite{})
 	dir = "/var/lib/megam/vertice/meta"
 	riak = ["localhost:8087"]
 	api  = "http://localhost:9000"
-	amqp = "amqp://guest:guest@localhost:5672/"
 	`, &cm); err != nil {
 		c.Fatal(err)
 	}

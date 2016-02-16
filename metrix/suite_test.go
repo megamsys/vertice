@@ -14,17 +14,17 @@ func Test(t *testing.T) {
 }
 
 type S struct {
-	testjson []byte
-	cm       meta.Config
+	testxml []byte
+	cm      meta.Config
 }
 
 var _ = check.Suite(&S{})
 
 func (s *S) SetUpSuite(c *check.C) {
-	b, e := ioutil.ReadFile("fixtures/one.json")
+	b, e := ioutil.ReadFile("fixtures/one.xml")
 	c.Assert(e, check.IsNil)
-	s.testjson = b
-	c.Assert(s.testjson, check.NotNil)
+	s.testxml = b
+	c.Assert(s.testxml, check.NotNil)
 
 	var cm meta.Config
 	if _, err := toml.Decode(`

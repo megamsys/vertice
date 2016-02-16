@@ -41,7 +41,6 @@ func (e *EventsWriter) open(c EventsConfigMap) error {
 	for _, w := range watchers {
 		ec, err := e.WatchForEvents(NewRequest(&eventReqOpts{etype: w.eventType}))
 		if err != nil {
-			log.Infof("error type  %#v %s\n", w.eventType, err.Error())
 			return err
 		}
 		if err := w.Watch(ec); err != nil {
@@ -71,7 +70,9 @@ func (ew *EventsWriter) CloseEventChannel(watch_id int) {
 }
 
 func (ew *EventsWriter) Close() {
-	//close all channels.
+	for _, w := range ew.H.watchers {
+		ew.H.StopWatch(w.eventChannel.GetWatchId())
+	}
 }
 
 func watchHandlers(c EventsConfigMap) []*eventWatcher {

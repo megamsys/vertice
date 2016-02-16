@@ -1,6 +1,8 @@
 package events
 
 import (
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/events/alerts"
 	"github.com/megamsys/vertice/events/bills"
@@ -10,11 +12,14 @@ import (
 const BILLMGR = "bill"
 
 type Bill struct {
-	stop chan struct{}
+	piggyBanks string
+	stop       chan struct{}
 }
 
 func NewBill(b map[string]string) *Bill {
-	return &Bill{}
+	return &Bill{
+		piggyBanks: b[alerts.PIGGYBANKS],
+	}
 }
 
 // Watches for new vms, or vms destroyed.
@@ -45,23 +50,31 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 	return nil
 }
 
+func (self *Bill) skip(k string) bool {
+	return !strings.Contains(self.piggyBanks, k)
+}
+
 func (self *Bill) OnboardFunc(evt *Event) error {
-	log.Info("onboard func")
-	for _, bp := range bills.BillProviders {
-		err := bp.Onboard(&bills.BillOpts{})
-		if err != nil {
-			return err
+	log.Infof("Event:BILL:onboard")
+	for k, bp := range bills.BillProviders {
+		if !self.skip(k) {
+			err := bp.Onboard(&bills.BillOpts{})
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
 func (self *Bill) deduct(evt *Event) error {
-	log.Info("deduct bill")
-	for _, bp := range bills.BillProviders {
-		err := bp.Deduct(&bills.BillOpts{})
-		if err != nil {
-			return err
+	log.Infof("Event:BILL:deduct")
+	for k, bp := range bills.BillProviders {
+		if !self.skip(k) {
+			err := bp.Deduct(&bills.BillOpts{})
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

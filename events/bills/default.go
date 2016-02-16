@@ -33,6 +33,20 @@ func (m scylladbManager) Deduct(o *BillOpts) error {
 	return nil
 }
 
+func (m scylladbManager) Transaction(o *BillOpts) error {
+	bt, err := carton.NewBillTransaction(o.AccountsId)
+	if err != nil {
+		return err
+	}
+	if err = bt.Transact(&carton.BillTransactionOpts{
+		Id:        o.AccountsId,
+		Timestamp: o.Timestamp,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m scylladbManager) Invoice(o *BillOpts) error {
 	return nil
 }

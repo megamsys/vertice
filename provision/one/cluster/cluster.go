@@ -261,6 +261,5 @@ func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 	}
 
 	template := nodeo.Metadata[api.TEMPLATE]
-
 	return node{addr: nodeo.Address, template: template, Client: client}, nil
 }
