@@ -35,6 +35,7 @@ func (a *Carton) String() string {
 	}
 }
 
+//If there are boxes, then it set the enum BoxSome or its BoxZero
 func (c *Carton) lvl() provision.BoxLevel {
 	if len(*c.Boxes) > 0 {
 		return provision.BoxSome

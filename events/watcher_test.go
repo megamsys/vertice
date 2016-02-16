@@ -3,8 +3,7 @@ package events
 import (
 	"testing"
 	"time"
-  "fmt"
-	
+
 	"github.com/megamsys/vertice/events/alerts"
 	"gopkg.in/check.v1"
 )
@@ -50,7 +49,7 @@ func createOldTime() time.Time {
 	const longForm = "Jan 2, 2006 at 3:04pm (MST)"
 	linetime, err := time.Parse(longForm, "Feb 3, 2013 at 7:54pm (PST)")
 	if err != nil {
-		fmt.Errorf("could not format time.Time object")
+		//fmt.Errorf("could not format time.Time object")
 	} else {
 		return linetime
 	}
