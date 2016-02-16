@@ -158,6 +158,7 @@ type BoxDeploy struct {
 // IP-addressable.
 type Box struct {
 	Id           string
+	AccountsId   string
 	CartonsId    string
 	CartonId     string
 	CartonName   string

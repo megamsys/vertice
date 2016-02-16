@@ -9,11 +9,13 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
+	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/vertice/events/alerts"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
-	"github.com/megamsys/opennebula-go/compute"
 )
 
 type OneProvisioner interface {
@@ -21,14 +23,15 @@ type OneProvisioner interface {
 }
 
 type Machine struct {
-	Name     string
-	Id       string
-	CartonId string
-	Level    provision.BoxLevel
-	SSH      provision.BoxSSH
-	Image    string
-	Routable bool
-	Status   provision.Status
+	Name       string
+	Id         string
+	CartonId   string
+	AccountsId string
+	Level      provision.BoxLevel
+	SSH        provision.BoxSSH
+	Image      string
+	Routable   bool
+	Status     provision.Status
 }
 
 type CreateArgs struct {
@@ -47,8 +50,8 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Image:  m.Image,
 		Cpu:    args.Compute.Cpushare,
 		Memory: args.Compute.Memory,
-		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
-			compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		ContextMap: map[string]string{compute.ACCOUNTS_ID: args.Box.AccountsId,
+			compute.ASSEMBLY_ID: args.Box.CartonId, compute.ASSEMBLIES_ID: args.Box.CartonsId},
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
@@ -73,7 +76,25 @@ func (m *Machine) Remove(p OneProvisioner) error {
 	return nil
 }
 
-func (m *Machine) LCoperation(p OneProvisioner, action string) error {
+//trigger multi event in the order
+func (m *Machine) Deduct() error {
+	mi := make(map[string]string)
+	mi[alerts.VERTNAME] = m.Name
+	mi[alerts.MINCONS] = "0.1"
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  m.AccountsId,
+				EventAction: alerts.DEDUCT,
+				EventType:   events.EventBill,
+				EventData:   events.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	return newEvent.Write()
+}
+
+func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
 	opts := compute.VirtualMachine{
 		Name: m.Name,

@@ -2,9 +2,10 @@ package alerts
 
 import (
 	"os"
-
-	"gopkg.in/check.v1"
 	"testing"
+
+	"github.com/megamsys/vertice/meta"
+	"gopkg.in/check.v1"
 )
 
 func Test(t *testing.T) { check.TestingT(t) }
@@ -14,6 +15,12 @@ type S struct{}
 var _ = check.Suite(&S{})
 
 var ak = os.Getenv("NIL_MAILGUN_APIKEY")
+
+func (s *S) SetUpSuite(c *check.C) {
+	if os.Getenv(meta.MEGAM_HOME) != "" {
+		meta.NewConfig().MkGlobal()
+	}
+}
 
 func (s *S) TestMailgunOnboard(c *check.C) {
 	if ak == "" {

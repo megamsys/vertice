@@ -22,16 +22,19 @@ import (
 	"io"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/vertice/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
 	_ "github.com/megamsys/vertice/router/route53"
-	"github.com/megamsys/opennebula-go/api"
 )
 
 var mainOneProvisioner *oneProvisioner
@@ -189,7 +192,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		fmt.Fprintf(w, "--- destroying box (%s)\n --> %s", box.GetFullName(), err)
 		return err
 	}
-
+	err = doneNotify(box, w, alerts.DESTROYED)
 	return nil
 }
 
@@ -213,8 +216,8 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto prov
 	if err != nil {
 		return err
 	}
-
-	return nil
+	err = doneNotify(box, w, alerts.LAUNCHED)
+	return err
 }
 
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
@@ -411,4 +414,22 @@ func (p *oneProvisioner) MetricEnvs(cart provision.Carton) map[string]string {
 		}
 	}*/
 	return envMap
+}
+
+func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
+	fmt.Fprintf(w, "\n--- done %s box \n", box.GetFullName())
+	mi := make(map[string]string)
+	mi[alerts.VERTNAME] = box.GetFullName()
+	mi[alerts.VERTTYPE] = box.Tosca
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  box.AccountsId,
+				EventAction: evtAction,
+				EventType:   events.EventUser,
+				EventData:   events.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	return newEvent.Write()
 }

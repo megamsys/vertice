@@ -112,6 +112,9 @@ func (s *Service) setProvisioner(pt string) error {
 			log.Infof(startupMessage)
 		}
 	}
-	carton.ProvisionerMap[pt] = tempProv
+	err = carton.ProvisionerByName(tempProv,pt)
+  fi err != nil {
+	   return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
+  }
 	return nil
 }

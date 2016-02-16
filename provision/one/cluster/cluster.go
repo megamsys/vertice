@@ -254,7 +254,7 @@ func (c *Cluster) getNode(retrieveFn func(Storage) (Node, error)) (node, error) 
 
 func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 	var n node
-	client, err := api.NewClient(nodeo.Address, nodeo.Metadata[api.USERID], nodeo.Metadata[api.PASSWORD])
+	client, err := api.NewClient(map[string]string{api.ENDPOINT: nodeo.Address, api.USERID: nodeo.Metadata[api.USERID], api.PASSWORD: nodeo.Metadata[api.PASSWORD]})
 
 	if err != nil {
 		return n, err

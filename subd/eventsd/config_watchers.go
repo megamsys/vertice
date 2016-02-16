@@ -13,12 +13,16 @@ import (
 type Mailgun struct {
 	ApiKey string `toml:"api_key"`
 	Domain string `toml:"domain"`
+	Logo   string `toml:"logo"`
+	Nilavu string `toml:"nilavu"`
 }
 
 func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[alerts.API_KEY] = m.ApiKey
 	mp[alerts.DOMAIN] = m.Domain
+	mp[alerts.NILAVU] = m.Nilavu
+	mp[alerts.LOGO] = m.Logo
 	return mp
 }
 func (m Mailgun) String() string {
@@ -28,6 +32,8 @@ func (m Mailgun) String() string {
 	b.Write([]byte(cmd.Colorfy("Mailgun", "green", "", "") + "\n"))
 	b.Write([]byte("api_key" + "\t" + m.ApiKey + "\n"))
 	b.Write([]byte("domain" + "\t" + m.Domain + "\n"))
+	b.Write([]byte("nilavu    " + "\t" + m.Nilavu + "\n"))
+	b.Write([]byte("logo      " + "\t" + m.Logo + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
@@ -85,6 +91,40 @@ func (i Infobip) String() string {
 	b.Write([]byte("api_key" + "\t" + i.ApiKey + "\n"))
 	b.Write([]byte("application_id" + "\t" + i.ApplicationId + "\n"))
 	b.Write([]byte("message_id" + "\t" + i.MessageId + "\n"))
+	fmt.Fprintln(w)
+	w.Flush()
+	return strings.TrimSpace(b.String())
+}
+
+type BillMgr struct {
+	WHMCSAccessKey string   `toml:"whmcs_key"`
+	WHMCSUserName  string   `toml:"whmcs_username"`
+	WHMCSPassword  string   `toml:"whmcs_password"`
+	WHMCSDomain    string   `toml:"whmcs_domain"`
+	PiggyBanks     []string `toml:"piggybanks"`
+}
+
+func (l BillMgr) toMap() map[string]string {
+	mp := make(map[string]string)
+	mp[alerts.USERNAME] = l.WHMCSUserName
+	mp[alerts.PASSWORD] = l.WHMCSPassword
+	mp[alerts.API_KEY] = l.WHMCSAccessKey
+	mp[alerts.DOMAIN] = l.WHMCSDomain
+	mp[alerts.PIGGYBANKS] = strings.Join(l.PiggyBanks, ",")
+	return mp
+
+}
+
+func (l BillMgr) String() string {
+	w := new(tabwriter.Writer)
+	var b bytes.Buffer
+	w.Init(&b, 1, 8, 0, '\t', 0)
+	b.Write([]byte(cmd.Colorfy("\nBillmgr", "green", "", "") + "\n"))
+	b.Write([]byte("piggybanks    " + "\t" + strings.Join(l.PiggyBanks, ",") + "\n"))
+	b.Write([]byte("whmcs_username" + "\t" + l.WHMCSUserName + "\n"))
+	b.Write([]byte("whmcs_password" + "\t" + l.WHMCSPassword + "\n"))
+	b.Write([]byte("whmcs_key     " + "\t" + l.WHMCSAccessKey + "\n"))
+	b.Write([]byte("whmcs_domain  " + "\t" + l.WHMCSDomain + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())

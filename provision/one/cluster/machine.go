@@ -1,13 +1,13 @@
 package cluster
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
 )
 
@@ -18,6 +18,8 @@ const (
 	STOP    = "stop"
 	RESTART = "restart"
 )
+
+var ErrConnRefused = errors.New("connection refused")
 
 func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) {
 	var (
@@ -55,7 +57,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine) (string, string, error) 
 			baseErr = urlErr.Err
 		}
 		_, isNetErr := baseErr.(*net.OpError)
-		if isNetErr || isCreateMachineErr || baseErr == api.ErrArgsNotSatisfied {
+		if isNetErr || isCreateMachineErr || baseErr == ErrConnRefused {
 			shouldIncrementFailures = true
 		}
 		c.handleNodeError(addr, err, shouldIncrementFailures)

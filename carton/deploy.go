@@ -72,15 +72,25 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
+	fmt.Println("**************deployToProvisioner**********************")
+	fmt.Println(opts)
+	fmt.Printf("ProvisionerMap -  %#v\n",ProvisionerMap)
+	fmt.Printf("ProvisionerMap[opts.B.Provider]  - %#v\n",ProvisionerMap[opts.B.Provider])
 	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			fmt.Println("****************deployToProvisioner*image***********************")
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
+		} else {
+			fmt.Println("*************image else******************")
+			fmt.Println("deployer :",deployer,ok)
 		}
 	}
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
 		fmt.Println("**************deployToProvisioner git**************************")
 		return deployer.GitDeploy(opts.B, writer)
+	} else {
+		fmt.Println("*************git else******************")
+		fmt.Println("deployer :",deployer,ok)
 	}
 
 	return "Deployed in zzz!", nil
