@@ -3,7 +3,8 @@ package events
 import (
 	"testing"
 	"time"
-
+  "fmt"
+	
 	"github.com/megamsys/vertice/events/alerts"
 	"gopkg.in/check.v1"
 )

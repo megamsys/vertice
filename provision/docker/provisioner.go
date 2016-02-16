@@ -114,8 +114,6 @@ func (p *dockerProvisioner) StartupMessage() (string, error) {
 
 func (p *dockerProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, error) {
 	imageId, err := p.gitDeploy(box.Repo, box.ImageVersion, w)
-	fmt.Println("*******************provisioner/GitDeploy*********************")
-	fmt.Println(imageId)
 	if err != nil {
 		return "", err
 	}
@@ -123,14 +121,11 @@ func (p *dockerProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, 
 }
 
 func (p *dockerProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
-	fmt.Println("******************provisioner/gitDeploy**********************")
 	return p.getBuildImage(re, version), nil
 }
 
 func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Println("******************provisioner/ImageDeploy**********************")
 	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
-	fmt.Println(isValid)
 	if err != nil {
 		return "", err
 	}

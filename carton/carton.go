@@ -1,7 +1,6 @@
 package carton
 
 import (
-	"sync"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
@@ -25,19 +24,8 @@ type Carton struct {
 	Status       provision.Status
 }
 
-var provMutex = &sync.Mutex{}
 //Global provisioners set by the subd daemons.
-var ProvisionerMap map[string]provision.Provisioner
-//If there are boxes, then it set the enum BoxSome or its BoxZero
-func (c *Carton) ProvisionerByName(name string, tempProv provision.Provisioner) error {
-	provMutex.Lock()
-	defer provMutex.Unlock()
-	if ProvisionerMap == nil {
-		ProvisionerMap = make(map[string]provision.Provisioner)
-	}
-	ProvisionerMap[name] = tempProv
-	return nil
-}
+var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
 func (a *Carton) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
@@ -46,8 +34,6 @@ func (a *Carton) String() string {
 		return string(d)
 	}
 }
-
-
 
 func (c *Carton) lvl() provision.BoxLevel {
 	if len(*c.Boxes) > 0 {

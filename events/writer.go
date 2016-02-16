@@ -29,6 +29,7 @@ type eventWatcher struct {
 }
 
 func NewWrap(c EventsConfigMap) error {
+
 	e := &EventsWriter{
 		H: NewEventManager(parseEventsStoragePolicy()),
 	}
