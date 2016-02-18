@@ -50,15 +50,14 @@ func (s *Service) Open() error {
 		if err := nsq.Connect(s.Meta.NSQd...); err != nil {
 			return err
 		}
-
 		s.Consumer = nsq.DefaultConsumer
 
-		if err := s.setProvisioner(provision.PROVIDER_ONE); err != nil {
-			return err
-		}
 		nsq.Start(true)
 		return nil
 	}()
+	if err := s.setProvisioner(provision.PROVIDER_ONE); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -114,6 +113,7 @@ func (s *Service) setProvisioner(pt string) error {
 			log.Infof(startupMessage)
 		}
 	}
+
 	carton.ProvisionerMap[pt] = tempProv
 	return nil
 }

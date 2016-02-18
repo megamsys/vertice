@@ -24,6 +24,9 @@ type Carton struct {
 	Status       provision.Status
 }
 
+//Global provisioners set by the subd daemons.
+var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
+
 func (a *Carton) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
 		return err.Error()
@@ -31,9 +34,6 @@ func (a *Carton) String() string {
 		return string(d)
 	}
 }
-
-//Global provisioners set by the subd daemons.
-var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
 //If there are boxes, then it set the enum BoxSome or its BoxZero
 func (c *Carton) lvl() provision.BoxLevel {
