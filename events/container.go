@@ -2,7 +2,7 @@ package events
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 type Container struct {
@@ -17,12 +17,12 @@ func (self *Container) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == alerts.CREATE:
+				case event.EventAction == alerts.LAUNCHED:
 					err := self.create()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
-				case event.EventAction == alerts.DESTROY:
+				case event.EventAction == alerts.DESTROYED:
 					err := self.destroy()
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)

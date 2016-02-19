@@ -23,7 +23,7 @@ import (
 )
 
 func init() {
-	hc.AddChecker("megamd:one", healthCheck)
+	hc.AddChecker("vertice:one", healthCheck)
 }
 
 func healthCheck() (interface{}, error) {

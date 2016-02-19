@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/megamsys/libgo/hc"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 const GATEWAY_ERROR = "Missing initial info: to fix, run curl %s"

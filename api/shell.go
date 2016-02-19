@@ -6,9 +6,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/errors"
-	"github.com/megamsys/megamd/api/context"
-	"github.com/megamsys/megamd/carton"
-	"github.com/megamsys/megamd/provision"
+	"github.com/megamsys/vertice/api/context"
+	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/provision"
 	"golang.org/x/net/websocket"
 )
 

@@ -25,17 +25,16 @@ import (
 )
 
 const logo = `
-,--.               ███╗   ███╗███████╗ ██████╗  █████╗ ███╗   ███╗██████╗
-\  _\_             ████╗ ████║██╔════╝██╔════╝ ██╔══██╗████╗ ████║██╔══██╗
-_\/_|_\____.'\     ██╔████╔██║█████╗  ██║  ███╗███████║██╔████╔██║██║  ██║
--(___.--._____(    ██║╚██╔╝██║██╔══╝  ██║   ██║██╔══██║██║╚██╔╝██║██║  ██║
-   \   \           ██║ ╚═╝ ██║███████╗╚██████╔╝██║  ██║██║ ╚═╝ ██║██████╔╝
-    \   \          ╚═╝     ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝
+,--.               ██╗   ██╗███████╗██████╗ ████████╗██╗ ██████╗███████╗
+\  _\_             ██║   ██║██╔════╝██╔══██╗╚══██╔══╝██║██╔════╝██╔════╝
+_\/_|_\____.'\     ██║   ██║█████╗  ██████╔╝   ██║   ██║██║     █████╗
+-(___.--._____(    ╚██╗ ██╔╝██╔══╝  ██╔══██╗   ██║   ██║██║     ██╔══╝
+   \   \            ╚████╔╝ ███████╗██║  ██║   ██║   ██║╚██████╗███████╗
+    \   \            ╚═══╝  ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝ ╚═════╝╚══════╝
      '--'
-
 		 `
 
-// Command represents the command executed by "megamd start".
+// Command represents the command executed by "vertice start".
 type Command struct {
 	Version    string
 	Branch     string
@@ -59,7 +58,7 @@ func NewCommand() *Command {
 	}
 }
 
-//Short form for "Megam daemon - Megd" .We start the megamd daemon.
+//Short form for "Megam daemon - Megd" .We start the vertice daemon.
 func (cmd *Command) Megd(c *Config, version string) error {
 	cmd.funSpin(pp.Colorfy(logo, "green", "", "bold"), cmd.Version)
 	// Create server from config and start it.

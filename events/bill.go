@@ -1,30 +1,24 @@
 package events
 
 import (
+	"strings"
+
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/events/alerts"
+	"github.com/megamsys/vertice/events/bills"
+	_ "github.com/megamsys/vertice/events/bills"
 )
 
-const BILL = "bill"
-
-type Config struct {
-	Logo   string
-	Type   string
-	ApiKey string
-}
+const BILLMGR = "bill"
 
 type Bill struct {
-	config *Config
-	stop   chan struct{}
+	piggyBanks string
+	stop       chan struct{}
 }
 
 func NewBill(b map[string]string) *Bill {
 	return &Bill{
-		config: &Config{
-		//	Logo:   m.Logo,
-		//	Type:   e.Bill.Type,
-		//	ApiKey: e.Bill.ApiKey,
-		},
+		piggyBanks: b[alerts.PIGGYBANKS],
 	}
 }
 
@@ -36,13 +30,13 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 			select {
 			case event := <-eventsChannel.channel:
 				switch {
-				case event.EventAction == alerts.CREATE:
-					err := self.create()
+				case event.EventAction == alerts.ONBOARD:
+					err := self.OnboardFunc(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
 				case event.EventAction == alerts.DEDUCT:
-					err := self.deduct()
+					err := self.deduct(event)
 					if err != nil {
 						log.Warningf("Failed to process watch event: %v", err)
 					}
@@ -56,18 +50,38 @@ func (self *Bill) Watch(eventsChannel *EventChannel) error {
 	return nil
 }
 
+func (self *Bill) skip(k string) bool {
+	return !strings.Contains(self.piggyBanks, k)
+}
+
+func (self *Bill) OnboardFunc(evt *Event) error {
+	log.Infof("Event:BILL:onboard")
+	for k, bp := range bills.BillProviders {
+		if !self.skip(k) {
+			err := bp.Onboard(&bills.BillOpts{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (self *Bill) deduct(evt *Event) error {
+	log.Infof("Event:BILL:deduct")
+	for k, bp := range bills.BillProviders {
+		if !self.skip(k) {
+			err := bp.Deduct(&bills.BillOpts{})
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (self *Bill) Close() {
 	if self.stop != nil {
 		close(self.stop)
 	}
-}
-
-func (self *Bill) create() error {
-	log.Info("RECV bill create")
-	return nil
-}
-
-func (self *Bill) deduct() error {
-	log.Info("RECV bill deduct")
-	return nil
 }

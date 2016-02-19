@@ -5,7 +5,7 @@ import (
 	"net/http"
 	//"net/http/httptest"
 
-	"github.com/megamsys/megamd/auth"
+	"github.com/megamsys/vertice/auth"
 	//	"gopkg.in/check.v1"
 )
 

@@ -10,7 +10,7 @@ import (
 // Ensure the configuration can be parsed.
 /*func (s *S) TestConfig_Parse(c *check.C) {
 	var cm *Config = NewConfig()
-	path := cm.Meta.Dir + "/megamd.conf"
+	path := cm.Meta.Dir + "/vertice.conf"
 
 	c.Assert((len(strings.TrimSpace(path)) > 0), check.Equals, true)
 	if _, err := toml.DecodeFile(path, cm); err != nil {

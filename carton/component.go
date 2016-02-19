@@ -19,10 +19,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/db"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/vertice/db"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
 )
 

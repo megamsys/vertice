@@ -1,8 +1,8 @@
 package docker
 
 import (
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/container"
 )
 
 //this is essentially converting box to a container.

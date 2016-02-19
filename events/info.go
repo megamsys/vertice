@@ -5,22 +5,21 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 const (
-	EventMachine   EventType = "machine"
-	EventContainer           = "container"
-	EventBill                = "bill"
-	EventUser                = "user"
-	// 10ms, i.e. 0.01s
-	timePrecision time.Duration = 10 * time.Millisecond
+	EventMachine   EventType     = "machine"
+	EventContainer               = "container"
+	EventBill                    = "bill"
+	EventUser                    = "user"
+	timePrecision  time.Duration = 10 * time.Millisecond // 10ms, i.e. 0.01s
 )
 
 type StoredEvent struct {
 	Id         string         `json:"id"`
-	AccountsId string         `json:"accounts" riak:"index"`
+	AccountsId string         `json:"AccountsId" riak:"index"`
 	Type       string         `json:"type"`
 	Action     string         `json:"action"`
 	Inputs     bind.JsonPairs `json:"inputs"`
@@ -76,6 +75,10 @@ type Event struct {
 	EventData EventData
 }
 
+func (e *Event) String() string {
+	return ""
+}
+
 // EventType is an enumerated type which lists the categories under which
 // events may fall. The Event field EventType is populated by this enum.
 type EventType string
@@ -109,4 +112,25 @@ func toEventType(t string) EventType {
 	default:
 		return ""
 	}
+}
+
+type MultiEvent struct {
+	Events []*Event
+}
+
+func (e *MultiEvent) String() string {
+	return ""
+}
+
+func NewMulti(ea []*Event) *MultiEvent {
+	return &MultiEvent{Events: ea}
+}
+
+func (me *MultiEvent) Write() error {
+	var err error
+	me.Events = append(me.Events, &Event{}) //add the usernotification event
+	for _, e := range me.Events {
+		err = W.Write(e)
+	}
+	return err
 }

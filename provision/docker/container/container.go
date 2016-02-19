@@ -10,9 +10,9 @@ import (
 	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
-	"github.com/megamsys/megamd/carton"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/cluster"
+	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/cluster"
 )
 
 const (

@@ -2,7 +2,7 @@ package docker
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/megamd/provision/docker/container"
+	"github.com/megamsys/vertice/provision/docker/container"
 )
 
 func (p *dockerProvisioner) fixContainers() error {

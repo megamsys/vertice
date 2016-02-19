@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/megamsys/megamd/carton/bind"
+	"github.com/megamsys/vertice/carton/bind"
 )
 
 const (
@@ -37,7 +37,7 @@ var (
 	ErrNotImplemented = errors.New("I'am on diet.")
 )
 
-// Status represents the status of a unit in megamd
+// Status represents the status of a unit in vertice
 type Status string
 
 func (s Status) String() string {
@@ -56,7 +56,7 @@ const (
 	StatusBootstrapped = Status("boostrapped")
 
 	// Stateup is the status of the which is moving up in the state in cloud.
-	// Sent by megamd to gulpd when it received StatusBootstrapped.
+	// Sent by vertice to gulpd when it received StatusBootstrapped.
 	StatusStateup = Status("stateup")
 
 	//fully up instance
@@ -83,7 +83,7 @@ type Named interface {
 	GetName() string
 }
 
-// Carton represents a deployment entity in megamd.
+// Carton represents a deployment entity in vertice.
 //
 // It contains boxes to provision and only relevant information for provisioning.
 type Carton interface {
@@ -146,11 +146,11 @@ type StateChanger interface {
 
 // Provisioner is the basic interface of this package.
 //
-// Any megamd provisioner must implement this interface in order to provision
-// megamd cartons.
+// Any vertice provisioner must implement this interface in order to provision
+// vertice cartons.
 type Provisioner interface {
 
-	// Destroy is called when megamd is destroying the box.
+	// Destroy is called when vertice is destroying the box.
 	Destroy(*Box, io.Writer) error
 
 	// SetBoxStatus changes the status of a box.
@@ -175,13 +175,13 @@ type Provisioner interface {
 
 	// Addr returns the address for an box.
 	//
-	// megamd will use this method to get the IP (although it might not be
+	// vertice will use this method to get the IP (although it might not be
 	// an actual IP, collector calls it "IP") of the app from the
 	// provisioner.
 	Addr(*Box) (string, error)
 
-	// Returns the metric backend environs for the npx.
-	MetricEnvs(Carton) map[string]string
+	// Returns the metric backend collected
+	MetricEnvs(int64, int64, io.Writer) ([]interface{}, error)
 }
 
 type MessageProvisioner interface {

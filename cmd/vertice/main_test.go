@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/cmd/megamd/run"
+	"github.com/megamsys/vertice/cmd/vertice/run"
 	"gopkg.in/check.v1"
 	"os"
 )
@@ -28,8 +28,8 @@ type S struct{}
 var _ = check.Suite(&S{})
 
 func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
-	baseManager := cmd.NewManager("megamd", "0.9.2", os.Stdout, os.Stderr, os.Stdin, nil, nil)
-	manager := cmdRegistry("megamd")
+	baseManager := cmd.NewManager("vertice", "0.9.2", os.Stdout, os.Stderr, os.Stdin, nil, nil)
+	manager := cmdRegistry("vertice")
 
 	for name, instance := range baseManager.Commands {
 		command, ok := manager.Commands[name]
@@ -40,7 +40,7 @@ func (s *S) TestCommandsFromBaseManagerAreRegistered(c *check.C) {
 }
 
 func (s *S) TestStartIsRegistered(c *check.C) {
-	manager := cmdRegistry("megamd")
+	manager := cmdRegistry("vertice")
 	create, ok := manager.Commands["start"]
 	c.Assert(ok, check.Equals, true)
 	c.Assert(create, check.FitsTypeOf, &run.Start{})

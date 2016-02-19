@@ -5,8 +5,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/karlentwistle/route53"
-	"github.com/megamsys/megamd/router"
-	"github.com/megamsys/megamd/subd/dns"
+	"github.com/megamsys/vertice/router"
+	"github.com/megamsys/vertice/subd/dns"
 )
 
 const (

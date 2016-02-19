@@ -1,7 +1,7 @@
 package machine
 
 import (
-	"github.com/megamsys/megamd/provision/one/cluster"
+	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
 type fakeOneProvisioner struct {

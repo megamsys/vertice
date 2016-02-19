@@ -3,9 +3,9 @@ package onetest
 import (
 	"sync"
 
-	"github.com/megamsys/megamd/provision/one/cluster"
-	"github.com/megamsys/megamd/provision/one/machine"
 	"github.com/megamsys/opennebula-go/testing"
+	"github.com/megamsys/vertice/provision/one/cluster"
+	"github.com/megamsys/vertice/provision/one/machine"
 )
 
 type FakeOneProvisioner struct {

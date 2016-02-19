@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
-	"github.com/megamsys/megamd/api/context"
+	"github.com/megamsys/vertice/api/context"
 )
 
 type delayedRouter struct {

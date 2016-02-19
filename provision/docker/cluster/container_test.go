@@ -1685,7 +1685,7 @@ func TestCommitContainerWithStorage(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	opts := docker.CommitContainerOptions{Container: id, Repository: "github.com/megamsys/megamd/python"}
+	opts := docker.CommitContainerOptions{Container: id, Repository: "github.com/megamsys/vertice/python"}
 	image, err := cluster.CommitContainer(opts)
 	if err != nil {
 		t.Fatal(err)
@@ -1696,7 +1696,7 @@ func TestCommitContainerWithStorage(t *testing.T) {
 	if called {
 		t.Errorf("CommitContainer(%q): should not call the all node servers.", id)
 	}
-	img, _ := storage.RetrieveImage("github.com/megamsys/megamd/python")
+	img, _ := storage.RetrieveImage("github.com/megamsys/vertice/python")
 	if img.LastNode != server2.URL {
 		t.Errorf("CommitContainer(%q): wrong image last node in the storage. Want %q. Got %q", id, server2.URL, img.LastNode)
 	}
@@ -1794,7 +1794,7 @@ func TestCommitContainerWithRepositoryAndTag(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	opts := docker.CommitContainerOptions{Container: id, Repository: "github.com/megamsys/megamd/python", Tag: "v1"}
+	opts := docker.CommitContainerOptions{Container: id, Repository: "github.com/megamsys/vertice/python", Tag: "v1"}
 	image, err := cluster.CommitContainer(opts)
 	if err != nil {
 		t.Fatal(err)
@@ -1802,7 +1802,7 @@ func TestCommitContainerWithRepositoryAndTag(t *testing.T) {
 	if image.ID != "596069db4bf5" {
 		t.Errorf("CommitContainer: the image container is %s, expected: '596069db4bf5'", image.ID)
 	}
-	img, err := storage.RetrieveImage("github.com/megamsys/megamd/python:v1")
+	img, err := storage.RetrieveImage("github.com/megamsys/vertice/python:v1")
 	if err != nil {
 		t.Fatal(err)
 	}

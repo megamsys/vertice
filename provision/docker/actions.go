@@ -10,9 +10,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/action"
-	"github.com/megamsys/megamd/provision"
-	"github.com/megamsys/megamd/provision/docker/container"
-	"github.com/megamsys/megamd/router"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/provision/docker/container"
+	"github.com/megamsys/vertice/router"
 )
 
 type runContainerActionsArgs struct {

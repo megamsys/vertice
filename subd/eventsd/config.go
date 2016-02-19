@@ -8,8 +8,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/events"
-	"github.com/megamsys/megamd/events/alerts"
+	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 type Config struct {
@@ -17,6 +17,7 @@ type Config struct {
 	Mailgun Mailgun `toml:"mailgun"`
 	Slack   Slack   `toml:"slack"`
 	Infobip Infobip `toml:"infobip"`
+	BillMgr BillMgr `toml:"bill"`
 }
 
 func NewConfig() *Config {
@@ -35,6 +36,7 @@ func (c Config) String() string {
 	b.Write([]byte(c.Mailgun.String()))
 	b.Write([]byte(c.Infobip.String()))
 	b.Write([]byte(c.Slack.String() + "\n"))
+	b.Write([]byte(c.BillMgr.String() + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -46,5 +48,6 @@ func (c Config) toMap() events.EventsConfigMap {
 	em[alerts.MAILGUN] = c.Slack.toMap()
 	em[alerts.SLACK] = c.Mailgun.toMap()
 	em[alerts.INFOBIP] = c.Infobip.toMap()
+	em[events.BILLMGR] = c.BillMgr.toMap()
 	return em
 }

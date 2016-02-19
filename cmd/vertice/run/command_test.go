@@ -21,7 +21,7 @@ import (
 )
 
 func (s *S) TestMegamStartInfo(c *check.C) {
-	desc := `starts megamd.
+	desc := `starts vertice.
 
 `
 

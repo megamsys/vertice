@@ -1,8 +1,8 @@
 =======
-megamd
+vertice
 =================
 
-megamd is the core engine for Megam Vertice
+vertice is the core engine for Megam Vertice
 
 
 ### Requirements
@@ -13,7 +13,7 @@ megamd is the core engine for Megam Vertice
 
 ## Usage
 
-``megamd -v start``
+``vertice -v start``
 
 
 ### Compile from source
@@ -24,9 +24,9 @@ mkdir -p code/megam/go/src/github.com/megamsys
 
 cd code/megam/go/src/github.com/megamsys
 
-git clone https://github.com/megamsys/megamd.git
+git clone https://github.com/megamsys/vertice.git
 
-cd megamd
+cd vertice
 
 make
 

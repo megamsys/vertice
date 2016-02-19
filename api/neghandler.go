@@ -24,7 +24,7 @@ func RegisterHandler(path string, method string, h http.Handler) {
 	megdHandlerList = append(megdHandlerList, th)
 }
 
-// RunServer starts megamd httpd server.
+// RunServer starts vertice httpd server.
 func NewNegHandler() *negroni.Negroni {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},

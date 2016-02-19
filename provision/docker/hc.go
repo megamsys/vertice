@@ -12,7 +12,7 @@ import (
 var httpRegexp = regexp.MustCompile(`^https?://`)
 
 func init() {
-	hc.AddChecker("megamd:docker", healthCheckDocker)
+	hc.AddChecker("vertice:docker", healthCheckDocker)
 }
 
 func healthCheckDocker() (interface{}, error) {

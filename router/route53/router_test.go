@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/megamsys/megamd/router"
-	"github.com/megamsys/megamd/subd/dns"
+	"github.com/megamsys/vertice/router"
+	"github.com/megamsys/vertice/subd/dns"
 	"gopkg.in/check.v1"
 )
 

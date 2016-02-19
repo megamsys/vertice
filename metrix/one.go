@@ -1,8 +1,11 @@
 package metrix
 
 import (
-	"encoding/json"
+	"encoding/xml"
+	"io/ioutil"
 	"time"
+
+	"github.com/megamsys/vertice/carton"
 )
 
 const OPENNEBULA = "one"
@@ -32,10 +35,13 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
-		on.RawStatus, e = FetchURL(on.Url)
+		var res []interface{}
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(),
+			time.Now().Unix(), ioutil.Discard)
 		if e != nil {
 			return
 		}
+		on.RawStatus = []byte(res[1].(string))
 	}
 	b = on.RawStatus
 	return
@@ -43,7 +49,7 @@ func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 
 func (on *OpenNebula) ParseStatus(b []byte) (ons *OpenNebulaStatus, e error) {
 	ons = &OpenNebulaStatus{}
-	e = json.Unmarshal(b, ons)
+	e = xml.Unmarshal(b, ons)
 	if e != nil {
 		return nil, e
 	}

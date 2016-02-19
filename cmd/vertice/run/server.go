@@ -8,13 +8,13 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	pp "github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/meta"
-	"github.com/megamsys/megamd/subd/deployd"
-	"github.com/megamsys/megamd/subd/dns"
-	"github.com/megamsys/megamd/subd/docker"
-	"github.com/megamsys/megamd/subd/eventsd"
-	"github.com/megamsys/megamd/subd/httpd"
-	"github.com/megamsys/megamd/subd/metricsd"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/subd/deployd"
+	"github.com/megamsys/vertice/subd/dns"
+	"github.com/megamsys/vertice/subd/docker"
+	"github.com/megamsys/vertice/subd/eventsd"
+	"github.com/megamsys/vertice/subd/httpd"
+	"github.com/megamsys/vertice/subd/metricsd"
 )
 
 // Server represents a container for the metadata and storage data and services.

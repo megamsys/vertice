@@ -1,20 +1,17 @@
 package metrix
 
 import (
-	"fmt"
-
 	"gopkg.in/check.v1"
 )
 
 // Ensure the configuration can be parsed.
 func (s *S) TestParseOpenNebulaCollector(c *check.C) {
 	mh := &MetricHandler{}
-	on := &OpenNebula{RawStatus: s.testjson}
+	on := &OpenNebula{RawStatus: s.testxml}
 	all, _ := mh.Collect(on)
 
 	for _, m := range all {
-		fmt.Printf("%+v", m)
-		c.Assert(len(m.Id) > 0, check.Equals, true)
+		c.Assert(len(m.Id) > 0, check.Equals, false)
 		c.Assert(len(m.AccountsId) > 0, check.Equals, true)
 		c.Assert(len(m.Type) > 0, check.Equals, true)
 		c.Assert(len(m.CreatedAt) > 0, check.Equals, true)

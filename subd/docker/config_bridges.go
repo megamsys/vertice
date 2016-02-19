@@ -3,7 +3,7 @@ package docker
 import (
 	"bytes"
 	"fmt"
-	"github.com/megamsys/megamd/provision/docker"
+	"github.com/megamsys/vertice/provision/docker"
 	"strings"
 	"text/tabwriter"
 

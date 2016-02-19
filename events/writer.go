@@ -6,6 +6,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/vertice/events/alerts"
 )
 
 var W *EventsWriter
@@ -40,7 +41,6 @@ func (e *EventsWriter) open(c EventsConfigMap) error {
 	for _, w := range watchers {
 		ec, err := e.WatchForEvents(NewRequest(&eventReqOpts{etype: w.eventType}))
 		if err != nil {
-			log.Infof("error type  %#v %s\n", w.eventType, err.Error())
 			return err
 		}
 		if err := w.Watch(ec); err != nil {
@@ -70,15 +70,18 @@ func (ew *EventsWriter) CloseEventChannel(watch_id int) {
 }
 
 func (ew *EventsWriter) Close() {
-	//close all channels.
+	for _, w := range ew.H.watchers {
+		ew.H.StopWatch(w.eventChannel.GetWatchId())
+	}
 }
 
 func watchHandlers(c EventsConfigMap) []*eventWatcher {
 	watchers := make([]*eventWatcher, 0)
 	watchers = append(watchers, &eventWatcher{eventType: EventMachine, Watcher: &Machine{}})
 	watchers = append(watchers, &eventWatcher{eventType: EventContainer, Watcher: &Container{}})
-	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: NewBill(c.Get(BILL))})
-	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c)})
+	b := NewBill(c.Get(BILLMGR))
+	watchers = append(watchers, &eventWatcher{eventType: EventBill, Watcher: b})
+	watchers = append(watchers, &eventWatcher{eventType: EventUser, Watcher: NewUser(c, AfterFuncsMap{alerts.ONBOARD: AfterFuncs{b.OnboardFunc}})})
 	return watchers
 }
 

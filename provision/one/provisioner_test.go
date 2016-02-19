@@ -51,7 +51,7 @@ func (s *S) TestProvisionerRestart(c *check.C) {
 		AppName:         app.GetName(),
 		ProcessName:     "web",
 		ImageCustomData: customData,
-		Image:           "github.com/megamsys/megamd/app-" + app.GetName(),
+		Image:           "github.com/megamsys/vertice/app-" + app.GetName(),
 	}, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(cont1)
@@ -59,7 +59,7 @@ func (s *S) TestProvisionerRestart(c *check.C) {
 		AppName:         app.GetName(),
 		ProcessName:     "worker",
 		ImageCustomData: customData,
-		Image:           "github.com/megamsys/megamd/app-" + app.GetName(),
+		Image:           "github.com/megamsys/vertice/app-" + app.GetName(),
 	}, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(cont2)
@@ -100,7 +100,7 @@ func (s *S) TestProvisionerRestartProcess(c *check.C) {
 		AppName:         app.GetName(),
 		ProcessName:     "web",
 		ImageCustomData: customData,
-		Image:           "github.com/megamsys/megamd/app-" + app.GetName(),
+		Image:           "github.com/megamsys/vertice/app-" + app.GetName(),
 	}, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(cont1)
@@ -108,7 +108,7 @@ func (s *S) TestProvisionerRestartProcess(c *check.C) {
 		AppName:         app.GetName(),
 		ProcessName:     "worker",
 		ImageCustomData: customData,
-		Image:           "github.com/megamsys/megamd/app-" + app.GetName(),
+		Image:           "github.com/megamsys/vertice/app-" + app.GetName(),
 	}, nil)
 	c.Assert(err, check.IsNil)
 	defer s.removeTestContainer(cont2)
@@ -169,7 +169,7 @@ func (s *S) stopContainers(endpoint string, n uint) <-chan bool {
 func (s *S) TestDeploy(c *check.C) {
 	stopCh := s.stopContainers(s.server.URL(), 1)
 	defer func() { <-stopCh }()
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	a := app.App{
 		Name:     "otherapp",
@@ -191,7 +191,7 @@ func (s *S) TestDeploy(c *check.C) {
 	customData := map[string]interface{}{
 		"procfile": "web: python myapp.py",
 	}
-	err = saveImageCustomData("github.com/megamsys/megamd/app-"+a.Name+":v1", customData)
+	err = saveImageCustomData("github.com/megamsys/vertice/app-"+a.Name+":v1", customData)
 	c.Assert(err, check.IsNil)
 	err = app.Deploy(app.App{
 		App:          &a,
@@ -212,7 +212,7 @@ func (s *S) TestDeployErasesOldImages(c *check.C) {
 	defer config.Unset("docker:image-history-size")
 	stopCh := s.stopContainers(s.server.URL(), 3)
 	defer func() { <-stopCh }()
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	a := app.App{
 		Name:     "appdeployimagetest",
@@ -228,9 +228,9 @@ func (s *S) TestDeployErasesOldImages(c *check.C) {
 	customData := map[string]interface{}{
 		"procfile": "web: python myapp.py",
 	}
-	err = saveImageCustomData("github.com/megamsys/megamd/app-"+a.Name+":v1", customData)
+	err = saveImageCustomData("github.com/megamsys/vertice/app-"+a.Name+":v1", customData)
 	c.Assert(err, check.IsNil)
-	err = saveImageCustomData("github.com/megamsys/megamd/app-"+a.Name+":v2", customData)
+	err = saveImageCustomData("github.com/megamsys/vertice/app-"+a.Name+":v2", customData)
 	c.Assert(err, check.IsNil)
 	err = app.Deploy(app.App{
 		App:          &a,
@@ -244,7 +244,7 @@ func (s *S) TestDeployErasesOldImages(c *check.C) {
 	c.Assert(imgs, check.HasLen, 2)
 	c.Assert(imgs[0].RepoTags, check.HasLen, 1)
 	c.Assert(imgs[1].RepoTags, check.HasLen, 1)
-	expected := []string{"github.com/megamsys/megamd/app-appdeployimagetest:v1", "github.com/megamsys/megamd/python:latest"}
+	expected := []string{"github.com/megamsys/vertice/app-appdeployimagetest:v1", "github.com/megamsys/vertice/python:latest"}
 	got := []string{imgs[0].RepoTags[0], imgs[1].RepoTags[0]}
 	sort.Strings(got)
 	c.Assert(got, check.DeepEquals, expected)
@@ -262,14 +262,14 @@ func (s *S) TestDeployErasesOldImages(c *check.C) {
 	c.Assert(imgs[1].RepoTags, check.HasLen, 1)
 	got = []string{imgs[0].RepoTags[0], imgs[1].RepoTags[0]}
 	sort.Strings(got)
-	expected = []string{"github.com/megamsys/megamd/app-appdeployimagetest:v2", "github.com/megamsys/megamd/python:latest"}
+	expected = []string{"github.com/megamsys/vertice/app-appdeployimagetest:v2", "github.com/megamsys/vertice/python:latest"}
 	c.Assert(got, check.DeepEquals, expected)
 }
 
 func (s *S) TestDeployErasesOldImagesIfFailed(c *check.C) {
 	config.Set("docker:image-history-size", 1)
 	defer config.Unset("docker:image-history-size")
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	a := app.App{
 		Name:     "appdeployimagetest",
@@ -286,7 +286,7 @@ func (s *S) TestDeployErasesOldImagesIfFailed(c *check.C) {
 		var result docker.Config
 		err := json.Unmarshal(data, &result)
 		if err == nil {
-			if result.Image == "github.com/megamsys/megamd/app-appdeployimagetest:v1" {
+			if result.Image == "github.com/megamsys/vertice/app-appdeployimagetest:v1" {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
@@ -305,13 +305,13 @@ func (s *S) TestDeployErasesOldImagesIfFailed(c *check.C) {
 	c.Assert(err, check.IsNil)
 	c.Assert(imgs, check.HasLen, 1)
 	c.Assert(imgs[0].RepoTags, check.HasLen, 1)
-	c.Assert("github.com/megamsys/megamd/python:latest", check.Equals, imgs[0].RepoTags[0])
+	c.Assert("github.com/megamsys/vertice/python:latest", check.Equals, imgs[0].RepoTags[0])
 }
 
 func (s *S) TestImageDeploy(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/app-otherapp:v1", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/app-otherapp:v1", nil)
 	c.Assert(err, check.IsNil)
-	err = appendAppImageName("otherapp", "github.com/megamsys/megamd/app-otherapp:v1")
+	err = appendAppImageName("otherapp", "github.com/megamsys/vertice/app-otherapp:v1")
 	c.Assert(err, check.IsNil)
 	a := app.App{
 		Name:     "otherapp",
@@ -325,7 +325,7 @@ func (s *S) TestImageDeploy(c *check.C) {
 	err = app.Deploy(app.App{
 		App:          &a,
 		OutputStream: w,
-		Image:        "github.com/megamsys/megamd/app-otherapp:v1",
+		Image:        "github.com/megamsys/vertice/app-otherapp:v1",
 	})
 	c.Assert(err, check.IsNil)
 	units, err := a.Units()
@@ -346,9 +346,9 @@ func (s *S) TestImageDeployInvalidImage(c *check.C) {
 	err = app.Deploy(app.App{
 		App:          &a,
 		OutputStream: w,
-		Image:        "github.com/megamsys/megamd/app-otherapp:v1",
+		Image:        "github.com/megamsys/vertice/app-otherapp:v1",
 	})
-	c.Assert(err, check.ErrorMatches, "invalid image for app otherapp: github.com/megamsys/megamd/app-otherapp:v1")
+	c.Assert(err, check.ErrorMatches, "invalid image for app otherapp: github.com/megamsys/vertice/app-otherapp:v1")
 	units, err := a.Units()
 	c.Assert(err, check.IsNil)
 	c.Assert(units, check.HasLen, 0)
@@ -397,7 +397,7 @@ func (s *S) TestProvisionerDestroyRemovesImage(c *check.C) {
 	customData := map[string]interface{}{
 		"procfile": "web: python myapp.py",
 	}
-	err = saveImageCustomData(registryURL+"/github.com/megamsys/megamd/app-"+a.Name+":v1", customData)
+	err = saveImageCustomData(registryURL+"/github.com/megamsys/vertice/app-"+a.Name+":v1", customData)
 	c.Assert(err, check.IsNil)
 	err = app.Deploy(app.App{
 		App:          &a,
@@ -416,12 +416,12 @@ func (s *S) TestProvisionerDestroyRemovesImage(c *check.C) {
 	c.Assert(routertest.FakeRouter.HasBackend(a.Name), check.Equals, false)
 	c.Assert(registryRequests, check.HasLen, 1)
 	c.Assert(registryRequests[0].Method, check.Equals, "DELETE")
-	c.Assert(registryRequests[0].URL.Path, check.Equals, "/v1/repositories/github.com/megamsys/megamd/app-mydoomedapp:v1/")
+	c.Assert(registryRequests[0].URL.Path, check.Equals, "/v1/repositories/github.com/megamsys/vertice/app-mydoomedapp:v1/")
 	imgs, err := s.p.Cluster().ListImages(docker.ListImagesOptions{All: true})
 	c.Assert(err, check.IsNil)
 	c.Assert(imgs, check.HasLen, 1)
 	c.Assert(imgs[0].RepoTags, check.HasLen, 1)
-	c.Assert(imgs[0].RepoTags[0], check.Equals, registryURL+"/github.com/megamsys/megamd/python:latest")
+	c.Assert(imgs[0].RepoTags[0], check.Equals, registryURL+"/github.com/megamsys/vertice/python:latest")
 }
 
 func (s *S) TestProvisionerDestroyEmptyUnit(c *check.C) {
@@ -455,7 +455,7 @@ func (s *S) TestProvisionerAddr(c *check.C) {
 }
 
 func (s *S) TestProvisionerAddUnits(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/app-myapp", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/app-myapp", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 0)
 	app.Deploys = 1
@@ -475,7 +475,7 @@ func (s *S) TestProvisionerAddUnits(c *check.C) {
 }
 
 func (s *S) TestProvisionerAddUnitsInvalidProcess(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/app-myapp", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/app-myapp", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 0)
 	app.Deploys = 1
@@ -499,14 +499,14 @@ func (s *S) TestProvisionerAddUnitsWithErrorDoesntLeaveLostUnits(c *check.C) {
 		s.server.DefaultHandler().ServeHTTP(w, r)
 	}))
 	defer s.server.CustomHandler("/containers/create", s.server.DefaultHandler())
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 0)
 	s.p.Provision(app)
 	defer s.p.Destroy(app)
 	coll := s.p.Collection()
 	defer coll.Close()
-	coll.Insert(container.Container{ID: "c-89320", AppName: app.GetName(), Version: "a345fe", Image: "github.com/megamsys/megamd/python:latest"})
+	coll.Insert(container.Container{ID: "c-89320", AppName: app.GetName(), Version: "a345fe", Image: "github.com/megamsys/vertice/python:latest"})
 	defer coll.RemoveId(bson.M{"id": "c-89320"})
 	_, err = s.p.AddUnits(app, 3, "web", nil)
 	c.Assert(err, check.NotNil)
@@ -516,7 +516,7 @@ func (s *S) TestProvisionerAddUnitsWithErrorDoesntLeaveLostUnits(c *check.C) {
 }
 
 func (s *S) TestProvisionerAddZeroUnits(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	app := provisiontest.NewFakeApp("myapp", "python", 0)
 	app.Deploys = 1
@@ -524,7 +524,7 @@ func (s *S) TestProvisionerAddZeroUnits(c *check.C) {
 	defer s.p.Destroy(app)
 	coll := s.p.Collection()
 	defer coll.Close()
-	coll.Insert(container.Container{ID: "c-89320", AppName: app.GetName(), Version: "a345fe", Image: "github.com/megamsys/megamd/python:latest"})
+	coll.Insert(container.Container{ID: "c-89320", AppName: app.GetName(), Version: "a345fe", Image: "github.com/megamsys/vertice/python:latest"})
 	defer coll.RemoveId(bson.M{"id": "c-89320"})
 	units, err := s.p.AddUnits(app, 0, "web", nil)
 	c.Assert(units, check.IsNil)
@@ -533,7 +533,7 @@ func (s *S) TestProvisionerAddZeroUnits(c *check.C) {
 }
 
 func (s *S) TestProvisionerRemoveUnitsFailRemoveOldRoute(c *check.C) {
-	a1 := app.App{Name: "impius", Teams: []string{"github.com/megamsys/megamdteam", "nodockerforme"}, Pool: "pool1"}
+	a1 := app.App{Name: "impius", Teams: []string{"github.com/megamsys/verticeteam", "nodockerforme"}, Pool: "pool1"}
 	cont1 := container.Container{ID: "1", Name: "impius1", AppName: a1.Name, ProcessName: "web", HostAddr: "url0", HostPort: "1"}
 	cont2 := container.Container{ID: "2", Name: "mirror1", AppName: a1.Name, ProcessName: "worker", HostAddr: "url0", HostPort: "2"}
 	cont3 := container.Container{ID: "3", Name: "dedication1", AppName: a1.Name, ProcessName: "web", HostAddr: "url0", HostPort: "3"}
@@ -541,7 +541,7 @@ func (s *S) TestProvisionerRemoveUnitsFailRemoveOldRoute(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer s.storage.Apps().RemoveAll(bson.M{"name": a1.Name})
 	p := provision.Pool{Name: "pool1", Teams: []string{
-		"github.com/megamsys/megamdteam",
+		"github.com/megamsys/verticeteam",
 		"nodockerforme",
 	}}
 	o := provision.AddPoolOptions{Name: p.Name}
@@ -569,7 +569,7 @@ func (s *S) TestProvisionerRemoveUnitsFailRemoveOldRoute(c *check.C) {
 	customData := map[string]interface{}{
 		"procfile": "web: python myapp.py",
 	}
-	err = saveImageCustomData("github.com/megamsys/megamd/app-"+a1.Name, customData)
+	err = saveImageCustomData("github.com/megamsys/vertice/app-"+a1.Name, customData)
 	c.Assert(err, check.IsNil)
 	papp := provisiontest.NewFakeApp(a1.Name, "python", 0)
 	s.p.Provision(papp)
@@ -612,7 +612,7 @@ func (s *S) TestProvisionerRemoveUnitsZeroUnits(c *check.C) {
 }
 
 func (s *S) TestProvisionerRemoveUnitsTooManyUnits(c *check.C) {
-	a1 := app.App{Name: "impius", Teams: []string{"github.com/megamsys/megamdteam", "nodockerforme"}, Pool: "pool1"}
+	a1 := app.App{Name: "impius", Teams: []string{"github.com/megamsys/verticeteam", "nodockerforme"}, Pool: "pool1"}
 	cont1 := container.Container{ID: "1", Name: "impius1", AppName: a1.Name, ProcessName: "web"}
 	cont2 := container.Container{ID: "2", Name: "mirror1", AppName: a1.Name, ProcessName: "web"}
 	cont3 := container.Container{ID: "3", Name: "dedication1", AppName: a1.Name, ProcessName: "web"}
@@ -620,7 +620,7 @@ func (s *S) TestProvisionerRemoveUnitsTooManyUnits(c *check.C) {
 	c.Assert(err, check.IsNil)
 	defer s.storage.Apps().RemoveAll(bson.M{"name": a1.Name})
 	p := provision.Pool{Name: "pool1", Teams: []string{
-		"github.com/megamsys/megamdteam",
+		"github.com/megamsys/verticeteam",
 		"nodockerforme",
 	}}
 	o := provision.AddPoolOptions{Name: p.Name}
@@ -649,7 +649,7 @@ func (s *S) TestProvisionerRemoveUnitsTooManyUnits(c *check.C) {
 	customData := map[string]interface{}{
 		"procfile": "web: python myapp.py",
 	}
-	err = saveImageCustomData("github.com/megamsys/megamd/app-"+a1.Name, customData)
+	err = saveImageCustomData("github.com/megamsys/vertice/app-"+a1.Name, customData)
 	papp := provisiontest.NewFakeApp(a1.Name, "python", 0)
 	s.p.Provision(papp)
 	c.Assert(err, check.IsNil)
@@ -659,7 +659,7 @@ func (s *S) TestProvisionerRemoveUnitsTooManyUnits(c *check.C) {
 }
 
 func (s *S) TestProvisionerSetUnitStatus(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	opts := newContainerOpts{Status: provision.StatusStarted.String(), AppName: "someapp"}
 	container, err := s.newContainer(&opts, nil)
@@ -675,7 +675,7 @@ func (s *S) TestProvisionerSetUnitStatus(c *check.C) {
 func (s *S) TestProvisionerSetUnitStatusUpdatesIp(c *check.C) {
 	err := s.storage.Apps().Insert(&app.App{Name: "myawesomeapp"})
 	c.Assert(err, check.IsNil)
-	err = s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err = s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	opts := newContainerOpts{Status: provision.StatusStarted.String(), AppName: "myawesomeapp"}
 	container, err := s.newContainer(&opts, nil)
@@ -695,7 +695,7 @@ func (s *S) TestProvisionerSetUnitStatusUpdatesIp(c *check.C) {
 }
 
 func (s *S) TestProvisionerSetUnitStatusWrongApp(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	opts := newContainerOpts{Status: provision.StatusStarted.String(), AppName: "someapp"}
 	container, err := s.newContainer(&opts, nil)
@@ -710,7 +710,7 @@ func (s *S) TestProvisionerSetUnitStatusWrongApp(c *check.C) {
 }
 
 func (s *S) TestProvisionSetUnitStatusNoAppName(c *check.C) {
-	err := s.newFakeImage(s.p, "github.com/megamsys/megamd/python:latest", nil)
+	err := s.newFakeImage(s.p, "github.com/megamsys/vertice/python:latest", nil)
 	c.Assert(err, check.IsNil)
 	opts := newContainerOpts{Status: provision.StatusStarted.String(), AppName: "someapp"}
 	container, err := s.newContainer(&opts, nil)
@@ -783,8 +783,8 @@ func (s *S) TestProvisionerPlatformAdd(c *check.C) {
 	queryString := requests[0].URL.Query()
 	c.Assert(queryString.Get("t"), check.Equals, platformImageName("test"))
 	c.Assert(queryString.Get("remote"), check.Equals, "http://localhost/Dockerfile")
-	c.Assert(requests[1].URL.Path, check.Equals, "/images/localhost:3030/github.com/megamsys/megamd/test:latest/json")
-	c.Assert(requests[2].URL.Path, check.Equals, "/images/localhost:3030/github.com/megamsys/megamd/test/push")
+	c.Assert(requests[1].URL.Path, check.Equals, "/images/localhost:3030/github.com/megamsys/vertice/test:latest/json")
+	c.Assert(requests[2].URL.Path, check.Equals, "/images/localhost:3030/github.com/megamsys/vertice/test/push")
 }
 
 func (s *S) TestProvisionerPlatformRemove(c *check.C) {
@@ -823,7 +823,7 @@ func (s *S) TestRunRestartAfterHooks(c *check.C) {
 			},
 		},
 	}
-	err := saveImageCustomData("github.com/megamsys/megamd/python:latest", customData)
+	err := saveImageCustomData("github.com/megamsys/vertice/python:latest", customData)
 	c.Assert(err, check.IsNil)
 	err = s.storage.Apps().Insert(a)
 	c.Assert(err, check.IsNil)

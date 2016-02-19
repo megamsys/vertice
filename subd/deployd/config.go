@@ -7,8 +7,8 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision"
 	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/vertice/provision"
 )
 
 const (
@@ -51,7 +51,7 @@ func NewConfig() *Config {
 		OnePassword: DefaultOnePassword,
 		OneTemplate: DefaultOneTemplate,
 		OneZone:     DefaultOneZone,
-		Certificate: "/var/lib/megam/megamd/id_rsa.pub",
+		Certificate: "/var/lib/megam/vertice/id_rsa.pub",
 		Image:       DefaultImage,
 	}
 }

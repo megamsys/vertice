@@ -1,14 +1,8 @@
-package alerts
 
-import (
-	"html/template"
-)
-
-var inviteTemplate = template.Must(template.New("invite").Parse(`
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Invitation</title>
+    <title>Share team</title>
 </head>
 <div style="font-family: sans-serif; font-size: 14px; color: #8a9ca2;">
 <body bgcolor="#eaf0f2">
@@ -29,8 +23,8 @@ var inviteTemplate = template.Must(template.New("invite").Parse(`
                                 <tr style=" background-color: #fff;">
                                     <td align="center" width="30%"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/lock.png"></td>
                                     <td align="left" style="padding: 30px;" >
-                                        <h2 style="margin: 30px 0px;">Join the organization!</h2>
-                                        <p>You have been asked to join an organization!   </p>
+                                        <h2 style="margin: 30px 0px;">Use as a team!</h2>
+                                        <p>You have been invited to join  {{.team}}!   </p>
                                     </td>
                                 </tr>
                             </table >
@@ -40,7 +34,7 @@ var inviteTemplate = template.Must(template.New("invite").Parse(`
                                 </tr>
                                 <tr>
                                     <td align="center" style="padding: 45px;">
-                                        <a href="{{.click_url}}"><button class="btn btn-success">Join</button></a>
+                                        <a href="{{.click_url}}"><button class="btn btn-success">Register and Join {{.team}}</button></a>
                                     </td>
                                 </tr>
                             </table>
@@ -66,4 +60,3 @@ var inviteTemplate = template.Must(template.New("invite").Parse(`
 </body>
 </div>
 </html>
-`))

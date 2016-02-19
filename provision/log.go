@@ -6,7 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"
 	nsqp "github.com/crackcomm/nsqueue/producer"
-	"github.com/megamsys/megamd/meta"
+	"github.com/megamsys/vertice/meta"
 )
 
 const (

@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/megamd/provision/docker"
-	"github.com/megamsys/megamd/toml"
+	"github.com/megamsys/vertice/provision/docker"
+	"github.com/megamsys/vertice/toml"
 )
 
 const (

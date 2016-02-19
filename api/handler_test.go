@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/megamsys/libgo/errors"
-	"github.com/megamsys/megamd/auth"
+	"github.com/megamsys/vertice/auth"
 	"gopkg.in/check.v1"
 )
 

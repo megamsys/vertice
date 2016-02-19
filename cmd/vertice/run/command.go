@@ -1,5 +1,5 @@
 /*
-** Copyright [2013-2015] [Megam Systems]
+** Copyright [2013-2016] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ type Start struct {
 }
 
 func (g *Start) Info() *cmd.Info {
-	desc := `starts megamd.
+	desc := `starts vertice.
 
 `
 	return &cmd.Info{
@@ -60,7 +60,7 @@ func (g *Start) Info() *cmd.Info {
 }
 
 func (c *Start) Run(context *cmd.Context) error {
-	log.Infof("megamd.")
+	log.Infof("vertice.")
 	config, err := c.ParseConfig(c.file.String())
 
 	if err != nil {
@@ -71,7 +71,7 @@ func (c *Start) Run(context *cmd.Context) error {
 	}
 
 	cmd := NewCommand()
-	cmd.Version = "0.9.4"
+	cmd.Version = "1.0"
 
 	if err := cmd.Megd(config, cmd.Version); err != nil {
 		return fmt.Errorf("run: %s", err)
@@ -105,9 +105,9 @@ func (c *Start) Run(context *cmd.Context) error {
 
 func (c *Start) Flags() *gnuflag.FlagSet {
 	if c.fs == nil {
-		c.fs = gnuflag.NewFlagSet("megamd", gnuflag.ExitOnError)
-		c.fs.Var(&c.file, "config", "Path to configuration file (default to /megamd/megamd.conf)")
-		c.fs.Var(&c.file, "c", "Path to configuration file (default to /megamd/megamd.conf)")
+		c.fs = gnuflag.NewFlagSet("vertice", gnuflag.ExitOnError)
+		c.fs.Var(&c.file, "config", "Path to configuration file (default to /vertice/vertice.conf)")
+		c.fs.Var(&c.file, "c", "Path to configuration file (default to /vertice/vertice.conf)")
 	}
 	return c.fs
 }
@@ -116,7 +116,7 @@ func (c *Start) Flags() *gnuflag.FlagSet {
 func (c *Start) ParseConfig(path string) (*Config, error) {
 	config := NewConfig()
 	if path == "" {
-		path = config.Meta.Dir + "/megamd.conf"
+		path = config.Meta.Dir + "/vertice.conf"
 	}
 	log.Warnf("Using configuration at: %s", path)
 	if _, err := toml.DecodeFile(path, &config); err != nil {

@@ -26,8 +26,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/megamsys/megamd/carton/bind"
-	"github.com/megamsys/megamd/repository"
+	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
 )
 
@@ -158,6 +158,7 @@ type BoxDeploy struct {
 // IP-addressable.
 type Box struct {
 	Id           string
+	AccountsId   string
 	CartonsId    string
 	CartonId     string
 	CartonName   string
