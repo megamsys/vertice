@@ -142,12 +142,12 @@ func (e *ParseError) Error() string {
 }
 
 type Requests struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	CatId     string `json:"cat_id"`
-	Action    string `json:"action"`
-	Category  string `json:"category"`
-	CreatedAt string `json:"created_at"`
+	Id        string `json:"id" cql:"id"`
+	Name      string `json:"name" cql:"name"`
+	CatId     string `json:"cat_id" cql:"cat_id"`
+	Action    string `json:"action" cql:"action"`
+	Category  string `json:"category" cql:"category"`
+	CreatedAt string `json:"created_at" cql:"created_at"`
 }
 
 func (r *Requests) String() string {

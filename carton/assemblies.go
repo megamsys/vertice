@@ -17,7 +17,8 @@ package carton
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/vertice/db"
+	ldb "github.com/megamsys/libgo/db"
+	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"reflect"
 	"strings"
@@ -28,13 +29,13 @@ type Cartons []*Carton
 
 //The grand elephant for megam cloud platform.
 type Assemblies struct {
-	Id          string      `json:"id"`
-	AccountsId  string      `json:"accounts_id"`
-	JsonClaz    string      `json:"json_claz"`
-	Name        string      `json:"name"`
-	AssemblysId []string    `json:"assemblies"`
-	Inputs      []*JsonPair `json:"inputs"`
-	CreatedAt   string      `json:"created_at"`
+	Id          string   `json:"id" cql:"id"`
+	AccountsId  string   `json:"org_id" cql:"org_id"`
+	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
+	Name        string   `json:"name" cql:"name"`
+	AssemblysId []string `json:"assemblies" cql:"assemblies"`
+	Inputs      []string `json:"inputs" cql:"inputs"`
+	CreatedAt   string   `json:"created_at" cql:"created_at"`
 }
 
 func (a *Assemblies) String() string {
@@ -48,11 +49,21 @@ func (a *Assemblies) String() string {
 /** A public function which pulls the assemblies for deployment.
 and any others we do. **/
 func Get(id string) (*Assemblies, error) {
+
 	a := &Assemblies{}
-	if err := db.Fetch("assemblies", id, a); err != nil {
+	//ops := vdb.ScyllaOptions("assemblies", []string{"Id"}, []string{"org_id"}, map[string]string{"Id": id, "org_id":"ORG123"})
+	ops := ldb.Options{
+		TableName:   "assemblies",
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Fetchdb(ops, a); err != nil {
 		return nil, err
 	}
-
 	log.Debugf("Assemblies %v", a)
 	return a, nil
 }
@@ -83,21 +94,32 @@ func (a *Assemblies) Delete(asmid string, removedAssemblys []string) {
 		}
 	}
 	if reflect.DeepEqual(existingAssemblys, removedAssemblys) {
-		_ = db.Delete("assemblies", asmid)
+		ops := ldb.Options{
+			TableName:   "assemblies",
+			Pks:         []string{"id"},
+			Ccms:        []string{"org_id"},
+			Hosts:       meta.MC.Scylla,
+			Keyspace:    meta.MC.ScyllaKeyspace,
+			PksClauses:  map[string]interface{}{"id": asmid},
+			CcmsClauses: map[string]interface{}{"org_id": a.AccountsId},
+		}
+		if err := ldb.Deletedb(ops, Assemblies{}); err != nil {
+			return
+		}
 	}
 }
 
 //a hash in json representing {name: "", value: ""}
-type JsonPairs []*JsonPair
+type JsonPairs []JsonPair
 
 type JsonPair struct {
-	K string `json:"key"`
-	V string `json:"value"`
+	K string `json:"key" cql:"key"`
+	V string `json:"value" cql:"value"`
 }
 
 //create a new hash pair in json  by providing a key, value
-func NewJsonPair(k string, v string) *JsonPair {
-	return &JsonPair{
+func NewJsonPair(k string, v string) JsonPair {
+	return JsonPair{
 		K: k,
 		V: v,
 	}

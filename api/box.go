@@ -12,17 +12,19 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  4096,
+	WriteBufferSize: 4096,
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
 func logs(w http.ResponseWriter, r *http.Request) error {
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Errorf("Error in socket connection")
 		return err
 	}
+
 	messageType, p, err := conn.ReadMessage()
 
 	if err != nil {
@@ -43,8 +45,8 @@ func logs(w http.ResponseWriter, r *http.Request) error {
 		}
 	}()
 
-	for log := range l.B {
-		logData, _ := json.Marshal(log)
+	for logbox := range l.B {
+		logData, _ := json.Marshal(logbox)
 		go conn.WriteMessage(messageType, logData)
 	}
 

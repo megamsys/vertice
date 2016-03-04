@@ -147,6 +147,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 	fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
+	//fmt.Fprintf(w, cmd.Colorfy(stripCtlAndExtFromUnicode(fmt.Sprintf("--- \u001b[0m deploy box (%s, image:%s)\n", box.GetFullName(), imageId)), "blue", "", "bold"))
 	actions := []*action.Action{
 		&updateStatusInRiak,
 		&createMachine,
