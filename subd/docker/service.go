@@ -44,10 +44,10 @@ func NewService(c *meta.Config, d *Config, b *Bridges) *Service {
 func (s *Service) Open() error {
 	go func() error {
 		log.Info("starting dockerd service")
-	  if err := nsq.Register(TOPIC, "engine", maxInFlight, s.processNSQ); err != nil {
+		if err := nsq.Register(TOPIC, "engine", maxInFlight, s.processNSQ); err != nil {
 			return err
 		}
-			if err := nsq.Connect(s.Meta.NSQd...); err != nil {
+		if err := nsq.Connect(s.Meta.NSQd...); err != nil {
 			return err
 		}
 		s.Consumer = nsq.DefaultConsumer

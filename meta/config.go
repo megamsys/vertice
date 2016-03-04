@@ -22,6 +22,12 @@ const (
 	// DefaultNSQ is the default nsqd if its not provided.
 	DefaultNSQd = "localhost:4161"
 
+	// DefaultScylla is the default scylla if one is not provided.
+	DefaultScylla = "localhost"
+
+	// DefaultScyllaKeyspace is the default Scyllakeyspace if one is not provided.
+	DefaultScyllaKeyspace = "vertice"
+
 	//default user
 	DefaultUser = "megam"
 
@@ -30,12 +36,14 @@ const (
 
 // Config represents the meta configuration.
 type Config struct {
-	Home string   `toml:"home"`
-	Dir  string   `toml:"dir"`
-	Riak []string `toml:"riak"`
-	NSQd []string `toml:"nsqd"`
-	Api  string   `toml:"api"`
-	User string   `toml:"user"`
+	Home           string   `toml:"home"`
+	Dir            string   `toml:"dir"`
+	Riak           []string `toml:"riak"`
+	NSQd           []string `toml:"nsqd"`
+	Scylla         []string `toml:"scylla"`
+	ScyllaKeyspace string   `toml:"scylla_keyspace"`
+	Api            string   `toml:"api"`
+	User           string   `toml:"user"`
 }
 
 var MC *Config
@@ -51,6 +59,8 @@ func (c Config) String() string {
 	b.Write([]byte("Riak      " + "\t" + strings.Join(c.Riak, ",") + "\n"))
 	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
 	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))
+	b.Write([]byte("Scylla    " + "\t" + strings.Join(c.Scylla, ",") + "\n"))
+	b.Write([]byte("ScyllaKeyspace" + "\t" + c.ScyllaKeyspace + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -72,12 +82,14 @@ func NewConfig() *Config {
 
 	// Config represents the configuration format for the vertice.
 	return &Config{
-		Home: homeDir,
-		Dir:  defaultDir,
-		User: DefaultUser,
-		Riak: []string{DefaultRiak},
-		Api:  DefaultApi,
-		NSQd: []string{DefaultNSQd},
+		Home:           homeDir,
+		Dir:            defaultDir,
+		User:           DefaultUser,
+		Riak:           []string{DefaultRiak},
+		Api:            DefaultApi,
+		NSQd:           []string{DefaultNSQd},
+		Scylla:         []string{DefaultScylla},
+		ScyllaKeyspace: DefaultScyllaKeyspace,
 	}
 }
 

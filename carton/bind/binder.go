@@ -16,11 +16,11 @@
 package bind
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/megamsys/libgo/os"
 	"runtime"
 	"strings"
-
-	"github.com/megamsys/libgo/os"
 )
 
 // EnvVar represents a environment variable for a carton.
@@ -58,8 +58,8 @@ func wrapForInitdservice(key string, value string) string {
 }
 
 type JsonPair struct {
-	K string `json:"key"`
-	V string `json:"value"`
+	K string `json:"key" cql:"key"`
+	V string `json:"value" cql:"value"`
 }
 
 type JsonPairs []*JsonPair
@@ -87,6 +87,15 @@ func (p *JsonPairs) ToMap() map[string]string {
 		jm[j.K] = j.V
 	}
 	return jm
+}
+
+func (p *JsonPairs) ToString() []string {
+	swap := make([]string, 0)
+	for _, j := range *p {
+		b, _ := json.Marshal(j)
+		swap = append(swap, string(b))
+	}
+	return swap
 }
 
 //Delete old keys and update them with the new values

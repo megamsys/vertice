@@ -47,9 +47,10 @@ func saveDestroyedData(opts *DestroyOpts, slog string, duration time.Duration, d
 func markDeploysAsRemoved(opts *DestroyOpts) {
 	removedAssemblys := make([]string, 1)
 
-	if asm, err := NewAssembly(opts.B.CartonId); err == nil {
+	if _, err := NewAssembly(opts.B.CartonId); err == nil {
+		//if asm, err := NewAssembly(opts.B.CartonId); err == nil {
 		removedAssemblys[0] = opts.B.CartonId
-		asm.Delete(opts.B.CartonId)
+		//asm.Delete(opts.B.CartonId)
 	}
 
 	if opts.B.Level == provision.BoxSome {

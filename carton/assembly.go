@@ -16,16 +16,15 @@
 package carton
 
 import (
-	"strings"
-	"time"
-
-	"fmt"
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
+	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/vertice/carton/bind"
-	"github.com/megamsys/vertice/db"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
+	"strings"
+	"time"
 )
 
 const (
@@ -34,27 +33,37 @@ const (
 )
 
 type Policy struct {
-	Name    string   `json:"name"`
-	Type    string   `json:"type"`
-	Members []string `json:"members"`
+	Name    string   `json:"name" cql:"name"`
+	Type    string   `json:"type" cql:"type"`
+	Members []string `json:"members" cql:"members"`
 }
 
 //An assembly comprises of various components.
 type Ambly struct {
-	Id           string         `json:"id"`
-	Name         string         `json:"name"`
-	JsonClaz     string         `json:"json_claz"`
-	Tosca        string         `json:"tosca_type"`
-	Inputs       bind.JsonPairs `json:"inputs"`
-	Outputs      bind.JsonPairs `json:"outputs"`
-	Policies     []*Policy      `json:"policies"`
-	Status       string         `json:"status"`
-	CreatedAt    string         `json:"created_at"`
-	ComponentIds []string       `json:"components"`
+	Id         string   `json:"id" cql:"id"`
+	OrgId      string   `json:"org_id" cql:"org_id"`
+	Name       string   `json:"name" cql:"name"`
+	JsonClaz   string   `json:"json_claz" cql:"json_claz"`
+	Tosca      string   `json:"tosca_type" cql:"tosca_type"`
+	Inputs     []string `json:"inputs" cql:"inputs"`
+	Outputs    []string `json:"outputs" cql:"outputs"`
+	Policies   []string `json:"policies" cql:"policies"`
+	Status     string   `json:"status" cql:"status"`
+	CreatedAt  string   `json:"created_at" cql:"created_at"`
+	Components []string `json:"components" cql:"components"`
 }
 
 type Assembly struct {
-	Ambly
+	Id         string         `json:"id" cql:"id"`
+	OrgId      string         `json:"org_id" cql:"org_id"`
+	Name       string         `json:"name" cql:"name"`
+	JsonClaz   string         `json:"json_claz" cql:"json_claz"`
+	Tosca      string         `json:"tosca_type" cql:"tosca_type"`
+	Inputs     bind.JsonPairs `json:"inputs" cql:"inputs"`
+	Outputs    bind.JsonPairs `json:"outputs" cql:"outputs"`
+	Policies   []*Policy      `json:"policies" cql:"policies"`
+	Status     string         `json:"status" cql:"status"`
+	CreatedAt  string         `json:"created_at" cql:"created_at"`
 	Components map[string]*Component
 }
 
@@ -101,7 +110,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 //A "colored component" externalized with what we need.
 func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	newBoxs := make([]provision.Box, 0, len(a.Components))
-
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
 			if b, err := comp.mkBox(); err != nil {
@@ -132,7 +140,16 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 
 func getBig(id string) (*Ambly, error) {
 	a := &Ambly{}
-	if err := db.Fetch(ASSEMBLYBUCKET, id, a); err != nil {
+	ops := ldb.Options{
+		TableName:   ASSEMBLYBUCKET,
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Fetchdb(ops, a); err != nil {
 		return nil, err
 	}
 	return a, nil
@@ -154,15 +171,27 @@ func NewAssemblyToCart(aies string, ay string) (*Carton, error) {
 }
 
 func (a *Ambly) SetStatus(status provision.Status) error {
+	js := a.getInputs()
 	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
 	m := make(map[string][]string, 2)
 	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
 	m["status"] = []string{status.String()}
-	a.Inputs.NukeAndSet(m) //just nuke the matching output key:
+	js.NukeAndSet(m) //just nuke the matching output key:
 	a.Status = status.String()
 
-	if err := db.Store(ASSEMBLYBUCKET, a.Id, a); err != nil {
-		fmt.Println(err)
+	update_fields := make(map[string]interface{})
+	update_fields["Inputs"] = js.ToString()
+	update_fields["Status"] = status.String()
+	ops := ldb.Options{
+		TableName:   ASSEMBLYBUCKET,
+		Pks:         []string{"id"},
+		Ccms:        []string{"org_id"},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"id": a.Id},
+		CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
+	}
+	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
 	}
 	return nil
@@ -172,8 +201,20 @@ func (a *Ambly) SetStatus(status provision.Status) error {
 func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
 	if len(m) > 0 {
 		log.Debugf("nuke and set outputs in riak [%s]", m)
-		a.Outputs.NukeAndSet(m) //just nuke the matching output key:
-		if err := db.Store(ASSEMBLYBUCKET, a.Id, a); err != nil {
+		js := a.getOutputs()
+		js.NukeAndSet(m) //just nuke the matching output key:
+		update_fields := make(map[string]interface{})
+		update_fields["Inputs"] = js.ToString()
+		ops := ldb.Options{
+			TableName:   ASSEMBLYBUCKET,
+			Pks:         []string{"id"},
+			Ccms:        []string{"org_id"},
+			Hosts:       meta.MC.Scylla,
+			Keyspace:    meta.MC.ScyllaKeyspace,
+			PksClauses:  map[string]interface{}{"id": a.Id},
+			CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
+		}
+		if err := ldb.Storedb(ops, update_fields); err != nil {
 			return err
 		}
 	} else {
@@ -183,32 +224,63 @@ func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
 }
 
 func (c *Assembly) Delete(asmid string) {
-	_ = db.Delete(ASSEMBLYBUCKET, asmid)
+	ops := ldb.Options{
+		TableName:   ASSEMBLYBUCKET,
+		Pks:         []string{"id"},
+		Ccms:        []string{"org_id"},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"id": asmid},
+		CcmsClauses: map[string]interface{}{"org_id": c.OrgId},
+	}
+	if err := ldb.Deletedb(ops, Ambly{}); err != nil {
+		return
+	}
 }
 
 //get the assembly and its children (component). we only store the
 //componentid, hence you see that we have a components map to cater to that need.
 func get(id string) (*Assembly, error) {
-	a := &Assembly{Components: make(map[string]*Component)}
-	if err := db.Fetch(ASSEMBLYBUCKET, id, a); err != nil {
+	a := &Ambly{}
+	ops := ldb.Options{
+		TableName:   ASSEMBLYBUCKET,
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Fetchdb(ops, a); err != nil {
 		return nil, err
 	}
-	a.dig()
-	return a, nil
+	asm, _ := a.dig()
+	return &asm, nil
 }
 
-func (a *Assembly) dig() error {
-	for _, cid := range a.ComponentIds {
+func (a *Ambly) dig() (Assembly, error) {
+	asm := Assembly{}
+	asm.Id = a.Id
+	asm.Name = a.Name
+	asm.Tosca = a.Tosca
+	asm.JsonClaz = a.JsonClaz
+	asm.Inputs = a.getInputs()
+	asm.Outputs = a.getOutputs()
+	asm.Policies = a.getPolicies()
+	asm.Status = a.Status
+	asm.CreatedAt = a.CreatedAt
+	asm.Components = make(map[string]*Component)
+	for _, cid := range a.Components {
 		if len(strings.TrimSpace(cid)) > 1 {
 			if comp, err := NewComponent(cid); err != nil {
 				log.Errorf("Failed to get component %s from riak: %s.", cid, err.Error())
-				return err
+				return asm, err
 			} else {
-				a.Components[cid] = comp
+				asm.Components[cid] = comp
 			}
 		}
 	}
-	return nil
+	return asm, nil
 }
 
 func (a *Assembly) sshkey() string {
@@ -253,7 +325,6 @@ func (a *Assembly) getCpushare() string {
 
 func (a *Assembly) getMemory() string {
 	return a.Inputs.Match(provision.RAM)
-
 }
 
 func (a *Assembly) getSwap() string {
@@ -266,4 +337,41 @@ func (a *Assembly) getHDD() string {
 		return "10"
 	}
 	return a.Inputs.Match(provision.HDD)
+}
+
+func (a *Ambly) getInputs() bind.JsonPairs {
+	keys := make([]*bind.JsonPair, 0)
+	for _, in := range a.Inputs {
+		inputs := bind.JsonPair{}
+		parseStringToStruct(in, &inputs)
+		keys = append(keys, &inputs)
+	}
+	return keys
+}
+
+func (a *Ambly) getOutputs() bind.JsonPairs {
+	keys := make([]*bind.JsonPair, 0)
+	for _, in := range a.Outputs {
+		outputs := bind.JsonPair{}
+		parseStringToStruct(in, &outputs)
+		keys = append(keys, &outputs)
+	}
+	return keys
+}
+
+func (a *Ambly) getPolicies() []*Policy {
+	keys := make([]*Policy, 0)
+	for _, in := range a.Policies {
+		p := Policy{}
+		parseStringToStruct(in, &p)
+		keys = append(keys, &p)
+	}
+	return keys
+}
+
+func parseStringToStruct(str string, data interface{}) error {
+	if err := json.Unmarshal([]byte(str), data); err != nil {
+		return err
+	}
+	return nil
 }

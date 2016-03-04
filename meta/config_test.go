@@ -14,6 +14,8 @@ dir = "/var/lib/megam/vertice/meta"
 api = "https://api.megam.io"
 riak = ["192.168.1.100:8087"]
 nsqd = ["localhost:4150"]
+scylla = ["103.56.92.24"]
+scylla_keyspace = "vertice"
 `, &cm); err != nil {
 		c.Fatal(err)
 	}

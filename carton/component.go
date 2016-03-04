@@ -16,14 +16,14 @@
 package carton
 
 import (
-	"strings"
-	"time"
-
+	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/vertice/carton/bind"
-	"github.com/megamsys/vertice/db"
+	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
+	"strings"
+	"time"
 )
 
 const (
@@ -36,17 +36,17 @@ const (
 )
 
 type Artifacts struct {
-	Type         string         `json:"artifact_type"`
-	Content      string         `json:"content"`
-	Requirements bind.JsonPairs `json:"requirements"`
+	Type         string         `json:"artifact_type" cql:"type"`
+	Content      string         `json:"content" cql:"content"`
+	Requirements bind.JsonPairs `json:"requirements" cql:"requirements"`
 }
 
 /* Repository represents a repository managed by the manager. */
 type Repo struct {
-	Rtype    string `json:"rtype"`
-	Source   string `json:"source"`
-	Oneclick string `json:"oneclick"`
-	Rurl     string `json:"url"`
+	Rtype    string `json:"rtype" cql:"rtype"`
+	Source   string `json:"source" cql:"source"`
+	Oneclick string `json:"oneclick" cql:"oneclick"`
+	Rurl     string `json:"url" cql:"url"`
 }
 
 type Component struct {
@@ -64,6 +64,21 @@ type Component struct {
 	CreatedAt         string         `json:"created_at"`
 }
 
+type ComponentTable struct {
+	Id                string   `json:"id" cql:"id"`
+	Name              string   `json:"name" cql:"name"`
+	Tosca             string   `json:"tosca_type" cql:"tosca_type"`
+	Inputs            []string `json:"inputs" cql:"inputs"`
+	Outputs           []string `json:"outputs" cql:"outputs"`
+	Envs              []string `json:"envs" cql:"envs"`
+	Repo              string   `json:"repo" cql:"repo"`
+	Artifacts         string   `json:"artifacts" cql:"artifacts"`
+	RelatedComponents []string `json:"related_components" cql:"related_components"`
+	Operations        []string `json:"operations" cql:"operations"`
+	Status            string   `json:"status" cql:"status"`
+	CreatedAt         string   `json:"created_at" cql:"created_at"`
+}
+
 func (a *Component) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
 		return err.Error()
@@ -76,11 +91,21 @@ func (a *Component) String() string {
 **fetch the component json from riak and parse the json to struct
 **/
 func NewComponent(id string) (*Component, error) {
-	c := &Component{Id: id}
-	if err := db.Fetch(COMPBUCKET, id, c); err != nil {
+	c := &ComponentTable{Id: id}
+	ops := ldb.Options{
+		TableName:   COMPBUCKET,
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Fetchdb(ops, c); err != nil {
 		return nil, err
 	}
-	return c, nil
+	com, _ := c.dig()
+	return &com, nil
 }
 
 //make a box with the details for a provisioner.
@@ -116,9 +141,19 @@ func (c *Component) SetStatus(status provision.Status) error {
 	m["status"] = []string{status.String()}
 	c.Inputs.NukeAndSet(m) //just nuke the matching output key:
 
-	c.Status = status.String()
-
-	if err := db.Store(COMPBUCKET, c.Id, c); err != nil {
+	update_fields := make(map[string]interface{})
+	update_fields["Inputs"] = c.Inputs.ToString()
+	update_fields["Status"] = status.String()
+	ops := ldb.Options{
+		TableName:   COMPBUCKET,
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": c.Id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
 	}
 	return nil
@@ -139,7 +174,18 @@ func (c *Component) SetStatus(status provision.Status) error {
 }*/
 
 func (c *Component) Delete(compid string) {
-	_ = db.Delete(COMPBUCKET, compid)
+	ops := ldb.Options{
+		TableName:   COMPBUCKET,
+		Pks:         []string{"id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"id": compid},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Deletedb(ops, ComponentTable{}); err != nil {
+		return
+	}
 }
 
 func (c *Component) setDeployData(dd DeployData) error {
@@ -151,6 +197,23 @@ func (c *Component) setDeployData(dd DeployData) error {
 	}*/
 	return nil
 
+}
+
+func (a *ComponentTable) dig() (Component, error) {
+	asm := Component{}
+	asm.Id = a.Id
+	asm.Name = a.Name
+	asm.Tosca = a.Tosca
+	asm.Inputs = a.getInputs()
+	asm.Outputs = a.getOutputs()
+	asm.Envs = a.getEnvs()
+	asm.Repo = a.getRepo()
+	asm.Artifacts = a.getArtifacts()
+	asm.RelatedComponents = a.RelatedComponents
+	asm.Operations = a.getOperations()
+	asm.Status = a.Status
+	asm.CreatedAt = a.CreatedAt
+	return asm, nil
 }
 
 func (c *Component) domain() string {
@@ -177,4 +240,56 @@ func (c *Component) envs() []bind.EnvVar {
 		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
 	}
 	return envs
+}
+
+func (a *ComponentTable) getInputs() bind.JsonPairs {
+	keys := make([]*bind.JsonPair, 0)
+	for _, in := range a.Inputs {
+		inputs := bind.JsonPair{}
+		parseStringToStruct(in, &inputs)
+		keys = append(keys, &inputs)
+	}
+	return keys
+}
+
+func (a *ComponentTable) getOutputs() bind.JsonPairs {
+	keys := make([]*bind.JsonPair, 0)
+	for _, in := range a.Outputs {
+		outputs := bind.JsonPair{}
+		parseStringToStruct(in, &outputs)
+		keys = append(keys, &outputs)
+	}
+	return keys
+}
+
+func (a *ComponentTable) getEnvs() bind.JsonPairs {
+	keys := make([]*bind.JsonPair, 0)
+	for _, in := range a.Envs {
+		outputs := bind.JsonPair{}
+		parseStringToStruct(in, &outputs)
+		keys = append(keys, &outputs)
+	}
+	return keys
+}
+
+func (a *ComponentTable) getRepo() Repo {
+	outputs := Repo{}
+	parseStringToStruct(a.Repo, &outputs)
+	return outputs
+}
+
+func (a *ComponentTable) getArtifacts() *Artifacts {
+	outputs := Artifacts{}
+	parseStringToStruct(a.Artifacts, &outputs)
+	return &outputs
+}
+
+func (a *ComponentTable) getOperations() []*Operations {
+	keys := make([]*Operations, 0)
+	for _, in := range a.Operations {
+		p := Operations{}
+		parseStringToStruct(in, &p)
+		keys = append(keys, &p)
+	}
+	return keys
 }
