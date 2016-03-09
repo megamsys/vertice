@@ -17,6 +17,7 @@ package provision
 
 import (
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/pivotal-golang/bytefmt"
@@ -35,7 +36,7 @@ func (bc *BoxCompute) trimCore() string {
 }
 
 func (bc *BoxCompute) numCpushare() uint64 {
-	if cs, err := bytefmt.ToMegabytes(bc.trimCore()); err != nil {
+	if cs, err := strconv.ParseUint(bc.trimCore(), 10, 64); err != nil {
 		return 0
 	} else {
 		return cs
@@ -83,8 +84,8 @@ func (bc *BoxCompute) numHDD() uint64 {
 
 func (bc *BoxCompute) String() string {
 	return "(" + strings.Join([]string{
-		CPU + ":" + string(bc.numCpushare()),
-		RAM + ":" + string(bc.numMemory()),
-		HDD + ":" + string(bc.numHDD())},
+		CPU + ":" + strconv.FormatInt(int64(bc.numCpushare()), 10),
+		RAM + ":" + strconv.FormatInt(int64(bc.numMemory()), 10),
+		HDD + ":" + strconv.FormatInt(int64(bc.numHDD()), 10)},
 		",") + " )"
 }
