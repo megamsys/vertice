@@ -48,10 +48,11 @@ func (m *Machine) Create(args *CreateArgs) error {
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
-		Cpu:    args.Compute.Cpushare,
-		Memory: args.Compute.Memory,
-		ContextMap: map[string]string{compute.ACCOUNTS_ID: args.Box.AccountsId,
-			compute.ASSEMBLY_ID: args.Box.CartonId, compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		Cpu:    string(args.Box.GetCpushare()), //ugly, compute has the info.
+		Memory: string(args.Box.GetMemory()),
+		HDD:    string(args.Box.GetHDD()),
+		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
+			compute.ASSEMBLIES_ID: args.Box.CartonsId},
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)

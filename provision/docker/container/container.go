@@ -79,9 +79,9 @@ func (c *Container) Create(args *CreateArgs) error {
 		AttachStdin:  false,
 		AttachStdout: false,
 		AttachStderr: false,
-		Memory:       args.Box.GetMemory(),
-		MemorySwap:   args.Box.GetMemory() + args.Box.GetSwap(),
-		CPUShares:    args.Box.GetCpushare(),
+		Memory:       int64(args.Box.GetMemory()),
+		MemorySwap:   int64(args.Box.GetMemory() + args.Box.GetSwap()),
+		CPUShares:    int64(args.Box.GetCpushare()),
 	}
 
 	//c.addEnvsToConfig(args, &config)
@@ -161,9 +161,9 @@ func (c *Container) Start(args *StartArgs) error {
 	}
 
 	hostConfig := docker.HostConfig{
-		Memory:     args.Box.GetMemory(),
-		MemorySwap: args.Box.GetMemory() + args.Box.GetSwap(),
-		CPUShares:  args.Box.GetCpushare(),
+		Memory:     int64(args.Box.GetMemory()),
+		MemorySwap: int64(args.Box.GetMemory() + args.Box.GetSwap()),
+		CPUShares:  int64(args.Box.GetCpushare()),
 	}
 
 	err = args.Provisioner.Cluster().StartContainer(c.Id, &hostConfig)

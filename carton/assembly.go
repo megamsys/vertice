@@ -197,10 +197,10 @@ func (a *Ambly) SetStatus(status provision.Status) error {
 	return nil
 }
 
-//update outputs in riak, nuke the matching keys available
+//update outputs in scylla, nuke the matching keys available
 func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
 	if len(m) > 0 {
-		log.Debugf("nuke and set outputs in riak [%s]", m)
+		log.Debugf("nuke and set outputs in scylla [%s]", m)
 		js := a.getOutputs()
 		js.NukeAndSet(m) //just nuke the matching output key:
 		update_fields := make(map[string]interface{})
@@ -273,7 +273,7 @@ func (a *Ambly) dig() (Assembly, error) {
 	for _, cid := range a.Components {
 		if len(strings.TrimSpace(cid)) > 1 {
 			if comp, err := NewComponent(cid); err != nil {
-				log.Errorf("Failed to get component %s from riak: %s.", cid, err.Error())
+				log.Errorf("Failed to get component %s from scylla: %s.", cid, err.Error())
 				return asm, err
 			} else {
 				asm.Components[cid] = comp
