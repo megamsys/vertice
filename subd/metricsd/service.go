@@ -64,7 +64,7 @@ func (s *Service) backgroundLoop() {
 
 func (s *Service) runMetricsCollectors() error {
 	output := &metrix.OutputHandler{
-		RiakAddress: s.Meta.Riak,
+		ScyllaAddress: s.Meta.Scylla,
 	}
 
 	collectors := map[string]metrix.MetricCollector{

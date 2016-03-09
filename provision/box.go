@@ -22,7 +22,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -98,53 +97,6 @@ func home(name string) string {
 	return curr_user.HomeDir // hmm no error trap ?
 }
 
-type BoxCompute struct {
-	Cpushare string
-	Memory   string
-	Swap     string
-	HDD      string
-}
-
-func (bc *BoxCompute) numCpushare() int64 {
-	if cs, err := strconv.ParseInt(bc.Cpushare, 10, 64); err != nil {
-		return 0
-	} else {
-		return cs
-	}
-}
-
-func (bc *BoxCompute) numMemory() int64 {
-	if cp, err := strconv.ParseInt(bc.Memory, 10, 64); err != nil {
-		return 0
-	} else {
-		return cp
-	}
-}
-
-func (bc *BoxCompute) numSwap() int64 {
-	if cs, err := strconv.ParseInt(bc.Swap, 10, 64); err != nil {
-		return 0
-	} else {
-		return cs
-	}
-}
-
-func (bc *BoxCompute) numHDD() int64 {
-	if cp, err := strconv.ParseInt(bc.HDD, 10, 64); err != nil {
-		return 10
-	} else {
-		return cp
-	}
-}
-
-func (bc *BoxCompute) String() string {
-	return "(" + strings.Join([]string{
-		CPU + ":" + bc.Cpushare,
-		RAM + ":" + bc.Memory,
-		HDD + ":" + bc.HDD},
-		",") + " )"
-}
-
 // BoxDeploy represents a log entry.
 type BoxDeploy struct {
 	Date    time.Time
@@ -186,16 +138,20 @@ func (b *Box) String() string {
 	}
 }
 
-func (b *Box) GetMemory() int64 {
+func (b *Box) GetMemory() uint64 {
 	return b.Compute.numMemory()
 }
 
-func (b *Box) GetSwap() int64 {
+func (b *Box) GetSwap() uint64 {
 	return b.Compute.numSwap()
 }
 
-func (b *Box) GetCpushare() int64 {
+func (b *Box) GetCpushare() uint64 {
 	return b.Compute.numCpushare()
+}
+
+func (b *Box) GetHDD() uint64 {
+	return b.Compute.numHDD()
 }
 
 // GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.
