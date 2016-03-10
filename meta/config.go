@@ -13,9 +13,6 @@ import (
 )
 
 const (
-	// DefaultRiak is the default riak if one is not provided.
-	DefaultRiak = "localhost:8087"
-
 	// DefaultApi is the default megam gateway if one is not provided.
 	DefaultApi = "http://localhost:9000/v2/"
 
@@ -38,7 +35,6 @@ const (
 type Config struct {
 	Home           string   `toml:"home"`
 	Dir            string   `toml:"dir"`
-	Riak           []string `toml:"riak"`
 	NSQd           []string `toml:"nsqd"`
 	Scylla         []string `toml:"scylla"`
 	ScyllaKeyspace string   `toml:"scylla_keyspace"`
@@ -56,7 +52,6 @@ func (c Config) String() string {
 		cmd.Colorfy("Meta", "cyan", "", "") + "\n"))
 	b.Write([]byte("Home      " + "\t" + c.Home + "\n"))
 	b.Write([]byte("Dir       " + "\t" + c.Dir + "\n"))
-	b.Write([]byte("Riak      " + "\t" + strings.Join(c.Riak, ",") + "\n"))
 	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
 	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))
 	b.Write([]byte("Scylla    " + "\t" + strings.Join(c.Scylla, ",") + "\n"))
@@ -85,7 +80,6 @@ func NewConfig() *Config {
 		Home:           homeDir,
 		Dir:            defaultDir,
 		User:           DefaultUser,
-		Riak:           []string{DefaultRiak},
 		Api:            DefaultApi,
 		NSQd:           []string{DefaultNSQd},
 		Scylla:         []string{DefaultScylla},

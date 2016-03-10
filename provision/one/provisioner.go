@@ -141,17 +141,17 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 }
 
 //start by validating the image.
-//1. &updateStatus in Riak - Deploying..
+//1. &updateStatus in Scylla - Deploying..
 //2. &create an inmemory machine type from a Box.
-//3. &updateStatus in Riak - Creating..
+//3. &updateStatus in Scylla - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 	fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 	//fmt.Fprintf(w, cmd.Colorfy(stripCtlAndExtFromUnicode(fmt.Sprintf("--- \u001b[0m deploy box (%s, image:%s)\n", box.GetFullName(), imageId)), "blue", "", "bold"))
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&createMachine,
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&deductCons,
 		&followLogs,
 	}
@@ -186,7 +186,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&destroyOldMachine,
 		&destroyOldRoute,
 	}
@@ -239,9 +239,9 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 	}
 
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&restartMachine,
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -266,9 +266,9 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	}
 
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&startMachine,
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -292,9 +292,9 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		provisioner:   p,
 	}
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&stopMachine,
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -340,7 +340,7 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, w io.Writer) ([]inte
 func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
 	fmt.Fprintf(w, "\n--- status %s box %s\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 	}
 	pipeline := action.NewPipeline(actions...)
 

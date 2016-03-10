@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -48,10 +49,11 @@ func (m *Machine) Create(args *CreateArgs) error {
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
-		Cpu:    args.Compute.Cpushare,
-		Memory: args.Compute.Memory,
-		ContextMap: map[string]string{compute.ACCOUNTS_ID: args.Box.AccountsId,
-			compute.ASSEMBLY_ID: args.Box.CartonId, compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10), //ugly, compute has the info.
+		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
+		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
+			compute.ASSEMBLIES_ID: args.Box.CartonsId},
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)

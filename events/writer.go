@@ -52,24 +52,38 @@ func (e *EventsWriter) open(c EventsConfigMap) error {
 
 // can be called by the api which will take events returned on the channel
 func (ew *EventsWriter) Write(e *Event) error {
-	return ew.H.AddEvent(e)
+	if ew.H != nil {
+		return ew.H.AddEvent(e)
+	}
+	return nil
 }
 
 // can be called by the api which will take events returned on the channel
 func (ew *EventsWriter) WatchForEvents(request *Request) (*EventChannel, error) {
-	return ew.H.WatchEvents(request)
+	if ew.H != nil {
+		return ew.H.WatchEvents(request)
+	}
+	return nil, nil
 }
 
 // can be called by the api which will return all events satisfying the request
 func (ew *EventsWriter) GetPastEvents(request *Request) ([]*Event, error) {
-	return ew.H.GetEvents(request)
+	if ew.H != nil {
+		return ew.H.GetEvents(request)
+	}
+	return nil, nil
 }
 
 func (ew *EventsWriter) CloseEventChannel(watch_id int) {
-	ew.H.StopWatch(watch_id)
+	if ew.H == nil {
+		ew.H.StopWatch(watch_id)
+	}
 }
 
 func (ew *EventsWriter) Close() {
+	if ew.H == nil {
+		return
+	}
 	for _, w := range ew.H.watchers {
 		ew.H.StopWatch(w.eventChannel.GetWatchId())
 	}

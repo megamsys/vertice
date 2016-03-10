@@ -76,6 +76,6 @@ func saveStateData(opts *StateChangeOpts, slog string, duration time.Duration, c
 }
 
 func markStatesAsRemoved(boxName string) error {
-	//Riak: code to nuke state changes out of a box
+	//Scylla: code to nuke state changes out of a box
 	return nil
 }

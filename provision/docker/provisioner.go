@@ -139,10 +139,10 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 	fmt.Fprintf(w, "\n--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&createContainer,
 		&startContainer,
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 		&setNetworkInfo,
 		&followLogsAndCommit,
 	}
@@ -247,7 +247,7 @@ func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
 func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
 	fmt.Fprintf(w, "\n---- status %s box %s ----\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
-		&updateStatusInRiak,
+		&updateStatusInScylla,
 	}
 	pipeline := action.NewPipeline(actions...)
 

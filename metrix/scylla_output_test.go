@@ -5,7 +5,7 @@ import (
 )
 
 func (s *S) TestStoreCollectedr(c *check.C) {
-	c.Skip("Fix: Ping riak, and then decide to skip sensors")
+	c.Skip("Fix: Ping scylla, and then decide to skip sensors")
 
 	mh := &MetricHandler{}
 	on := &OpenNebula{RawStatus: s.testxml}
@@ -13,7 +13,7 @@ func (s *S) TestStoreCollectedr(c *check.C) {
 	c.Assert(all, check.NotNil)
 
 	o := OutputHandler{
-		RiakAddress: s.cm.Riak,
+		ScyllaAddress: s.cm.Scylla,
 	}
 	c.Assert(o, check.NotNil)
 	err := o.WriteMetrics(all)

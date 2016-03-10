@@ -100,7 +100,7 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 		cmd.Colorfy(duration.String(), "green", "", "bold"),
 		cmd.Colorfy(dlog, "yellow", "", ""))
 	//if there are deployments to track as follows in outputs: {} then do it here.
-	//Riak: code to save the status of a deploy (created.)
+	//Scylla: code to save the status of a deploy (created.)
 	// deploy :
 	//     name:
 	//     status:

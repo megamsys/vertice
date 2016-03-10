@@ -44,8 +44,8 @@ type runMachineActionsArgs struct {
 
 //If there is a previous machine created and it has a status, we use that.
 // eg: if it we have deployed, then make it created after a machine is created in ONE.
-var updateStatusInRiak = action.Action{
-	Name: "update-status-riak",
+var updateStatusInScylla = action.Action{
+	Name: "update-status-scylla",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer

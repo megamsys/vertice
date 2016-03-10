@@ -28,7 +28,7 @@ func (s *S) SetUpSuite(c *check.C) {
 
 	var cm meta.Config
 	if _, err := toml.Decode(`
-	riak = ["localhost:8087"]
+	scylla = ["localhost:8087"]
 	`, &cm); err != nil {
 		c.Fatal(err)
 	}

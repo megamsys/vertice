@@ -101,8 +101,8 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 	return nil
 }
 
-var updateStatusInRiak = action.Action{
-	Name: "update-status-riak",
+var updateStatusInScylla = action.Action{
+	Name: "update-status-scylla",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runContainerActionsArgs)
 		var cont container.Container
