@@ -23,6 +23,10 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		Enabled: false,
+		Mailgun: NewMaingun(),
+		//Slack: NewSlack()
+		//Infobip: NewInfobip()
+		//BillMgr: NewBillMgr()
 	}
 }
 
@@ -45,8 +49,8 @@ func (c Config) String() string {
 
 func (c Config) toMap() events.EventsConfigMap {
 	em := make(events.EventsConfigMap)
-	em[alerts.MAILGUN] = c.Slack.toMap()
-	em[alerts.SLACK] = c.Mailgun.toMap()
+	em[alerts.MAILGUN] = c.Mailgun.toMap()
+	em[alerts.SLACK] = c.Slack.toMap()
 	em[alerts.INFOBIP] = c.Infobip.toMap()
 	em[events.BILLMGR] = c.BillMgr.toMap()
 	return em

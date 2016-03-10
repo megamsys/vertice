@@ -30,12 +30,12 @@ func (s *S) TestMailgunOnboard(c *check.C) {
 	m := NewMailgun(map[string]string{"api_key": ak, "domain": "ojamail.megambox.com"})
 	c.Assert(m, check.NotNil)
 	err := m.Notify(ONBOARD, map[string]string{
-		"email":     "nkishore@megam.io",
-		"logo":      "vertice.png",
-		"nilavu":    "console.megam.io",
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
-		"days":      "20",
-		"cost":      "$12",
+		"email":  "nkishore@megam.io",
+		"logo":   "vertice.png",
+		"nilavu": "console.megam.io",
+		"token":  "9090909090",
+		"days":   "20",
+		"cost":   "$12",
 	})
 	c.Assert(err, check.IsNil)
 }
@@ -48,12 +48,12 @@ func (s *S) TestMailgunReset(c *check.C) {
 	m := NewMailgun(map[string]string{"api_key": ak, "domain": "ojamail.megambox.com"})
 	c.Assert(m, check.NotNil)
 	err := m.Notify(RESET, map[string]string{
-		"email":     "nkishore@megam.io",
-		"logo":      "vertice.png",
-		"nilavu":    "console.megam.io",
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
-		"days":      "20",
-		"cost":      "$12",
+		"email":  "nkishore@megam.io",
+		"logo":   "vertice.png",
+		"nilavu": "console.megam.io",
+		"token":  "9090909090",
+		"days":   "20",
+		"cost":   "$12",
 	})
 	c.Assert(err, check.IsNil)
 }
