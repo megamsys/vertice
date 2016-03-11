@@ -23,10 +23,6 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		Enabled: false,
-		Mailgun: NewMaingun(),
-		//Slack: NewSlack()
-		//Infobip: NewInfobip()
-		//BillMgr: NewBillMgr()
 	}
 }
 

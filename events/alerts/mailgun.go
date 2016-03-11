@@ -135,7 +135,9 @@ func (m *mailgunner) Send(msg string, sender string, subject string, to string) 
 		to,
 	)
 	g.SetHtml(msg)
-	g.SetTracking(true)
+	g.SetTracking(false)
+	//g.SetTrackingClicks(false)
+	//g.SetTrackingOpens(false)
 	_, id, err := mg.Send(g)
 	if err != nil {
 		return err
