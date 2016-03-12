@@ -17,6 +17,15 @@ type Mailgun struct {
 	Nilavu string `toml:"nilavu"`
 }
 
+func NewMaingun() Mailgun {
+	return Mailgun{
+		ApiKey: "team",
+		Domain: "ojamail.megambox.com",
+		Logo:   "https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/megam_vertice.png",
+		Nilavu: "localhost:3000",
+	}
+}
+
 func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[alerts.API_KEY] = m.ApiKey

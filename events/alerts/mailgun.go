@@ -1,10 +1,9 @@
 package alerts
 
 import (
-	"strings"
-
 	log "github.com/Sirupsen/logrus"
 	mailgun "github.com/mailgun/mailgun-go"
+	"strings"
 )
 
 const (
@@ -12,12 +11,12 @@ const (
 	DESTROYED
 	STATUS
 	DEDUCT
-	TRANSACTION
 	ONBOARD
 	RESET
 	INVITE
 	BALANCE
 	INVOICE
+	TRANSACTION
 
 	//keys for watchers
 	MAILGUN = "mailgun"
@@ -105,7 +104,7 @@ func (m *mailgunner) satisfied() bool {
 		"nilavu":    "console.megam.io",
 		"appname": "vertice.megambox.com"
 		"type": "torpedo"
-		"click_url": "https://console.megam.io/reset?email=test@email.com&resettoken=9090909090",
+		"token": "9090909090",
 		"days":      "20",
 		"cost":      "$12",
 }*/
@@ -136,7 +135,9 @@ func (m *mailgunner) Send(msg string, sender string, subject string, to string) 
 		to,
 	)
 	g.SetHtml(msg)
-	g.SetTracking(true)
+	g.SetTracking(false)
+	//g.SetTrackingClicks(false)
+	//g.SetTrackingOpens(false)
 	_, id, err := mg.Send(g)
 	if err != nil {
 		return err

@@ -3,11 +3,10 @@ package alerts
 import (
 	"bytes"
 	"errors"
+	"github.com/megamsys/vertice/meta"
 	"html/template"
 	"os"
 	"path/filepath"
-
-	"github.com/megamsys/vertice/meta"
 )
 
 func body(name string, mp map[string]string) (string, error) {
@@ -24,6 +23,7 @@ func body(name string, mp map[string]string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	if err = t.Execute(&w, mp); err != nil {
 		return "", err
 	}
