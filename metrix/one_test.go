@@ -13,7 +13,7 @@ func (s *S) TestParseOpenNebulaCollector(c *check.C) {
 	for _, m := range all {
 		c.Assert(len(m.Id) > 0, check.Equals, false)
 		c.Assert(len(m.AccountsId) > 0, check.Equals, true)
-		c.Assert(len(m.Type) > 0, check.Equals, true)
+		c.Assert(len(m.SensorType) > 0, check.Equals, true)
 		c.Assert(len(m.CreatedAt) > 0, check.Equals, true)
 		c.Assert(len(m.Payload.AssemblyId) > 0, check.Equals, true)
 		c.Assert(len(m.Payload.AssembliesId) > 0, check.Equals, true)

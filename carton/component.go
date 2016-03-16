@@ -16,8 +16,8 @@
 package carton
 
 import (
+	"github.com/megamsys/libgo/bind"
 	ldb "github.com/megamsys/libgo/db"
-	"github.com/megamsys/vertice/carton/bind"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"

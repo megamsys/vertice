@@ -25,11 +25,19 @@ import (
 const SENSORSBUCKET = "sensors"
 
 type Sensor struct {
-	Id         string   `json:"id"`
-	AccountsId string   `json:"accounts" riak:"index"`
-	Type       string   `json:"type"`
-	Payload    *Payload `json:"payload"`
-	CreatedAt  string   `json:"created_at"`
+	Id         string   `json:"id" 			cql:"id"`
+	AccountsId string   `json:"account_id" 	cql:"accounts_id"`
+	SensorType string   `json:"sensor_type" cql:"sensor_type"`
+	Payload    *Payload `json:"payload" 	cql:"payload"`
+	CreatedAt  string   `json:"created_at" 	cql:"created_at"`
+}
+
+type SensorScylla struct {
+	Id         string `json:"id"			cql:"id"`
+	AccountsId string `json:"accounts_id"	cql:"accounts_id"`
+	SensorType string `json:"sensor_type"	cql:"sensor_type"`
+	Payload    string `json:"payload"		cql:"payload"`
+	CreatedAt  string `json:"created_at"	cql:"created_at"`
 }
 
 func (s *Sensor) String() string {
@@ -39,26 +47,26 @@ func (s *Sensor) String() string {
 }
 
 type Payload struct {
-	AssemblyId   string `json:"assembly_id"`
-	AssemblyName string `json:"assembly_name"`
-	AssembliesId string `json:"assemblies_id"`
-	Node         string `json:"node"`
-	System       string `json:"system"`
-	Status       string `json:"status"`
-	Source       string `json:"source"`
-	Message      string `json:"message"`
-	BeginAudit   string `json:"audit_period_beginning"`
-	EndAudit     string `json:"audit_period_ending"`
-	DeltaAudit   string `json:"audit_period_delta"`
+	AssemblyId   string `json:"assembly_id"				cql:"assembly_id"`
+	AssemblyName string `json:"assembly_name"			cql:"assembly_name"`
+	AssembliesId string `json:"assemblies_id"			cql:"assemblies_id"`
+	Node         string `json:"node"					cql:"node"`
+	System       string `json:"system"					cql:"system"`
+	Status       string `json:"status"					cql:"status"`
+	Source       string `json:"source"					cql:"source"`
+	Message      string `json:"message"					cql:"message"`
+	BeginAudit   string `json:"audit_period_beginning"	cql:"audit_period_beginning"`
+	EndAudit     string `json:"audit_period_ending"		cql:"audit_period_ending"`
+	DeltaAudit   string `json:"audit_period_delta"		cql:"audit_period_delta"`
 
-	Metrics []*Metric `json:"metrics"`
+	Metrics []*Metric `json:"metrics"					cql:"metrics"`
 }
 
 func NewSensor(senstype string) *Sensor {
 	s := &Sensor{
-		Id:        api.Uid(""),
-		Type:      senstype,
-		CreatedAt: time.Now().Local().Format(time.RFC822),
+		Id:         api.Uid(""),
+		SensorType: senstype,
+		CreatedAt:  time.Now().Local().Format(time.RFC822),
 	}
 	return s
 }
@@ -75,6 +83,17 @@ func (s *Sensor) addMetric(key string, value string, unit string, mtype string) 
 			Units: unit,
 			Type:  mtype,
 		})
+}
+
+func (s *Sensor) ParseScyllaformat() (SensorScylla, error) {
+	b, err := json.Marshal(s.Payload)
+	return SensorScylla{
+		Id:         s.Id,
+		AccountsId: s.AccountsId,
+		SensorType: s.SensorType,
+		Payload:    string(b),
+		CreatedAt:  s.CreatedAt,
+	}, err
 }
 
 func (pa *Payload) newMetric(me *Metric) {

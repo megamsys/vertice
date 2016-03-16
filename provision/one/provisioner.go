@@ -27,9 +27,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/opennebula-go/api"
-	"github.com/megamsys/vertice/events"
-	"github.com/megamsys/vertice/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/repository"
@@ -429,7 +429,7 @@ func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) e
 				AccountsId:  box.AccountsId,
 				EventAction: evtAction,
 				EventType:   events.EventUser,
-				EventData:   events.EventData{M: mi},
+				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
 		})

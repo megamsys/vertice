@@ -7,7 +7,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/vertice/events/alerts"
+	"github.com/megamsys/libgo/events/alerts"
 )
 
 type Mailgun struct {

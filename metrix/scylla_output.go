@@ -4,15 +4,30 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/vertice/db"
-	"github.com/megamsys/vertice/events"
-	"github.com/megamsys/vertice/events/alerts"
+	ldb "github.com/megamsys/libgo/db"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/vertice/meta"
 )
 
 func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
-		if err = db.Store(SENSORSBUCKET, m.Id, m); err != nil {
+		ops := ldb.Options{
+			TableName:   SENSORSBUCKET,
+			Pks:         []string{"type"},
+			Ccms:        []string{"account_id"},
+			Hosts:       meta.MC.Scylla,
+			Keyspace:    meta.MC.ScyllaKeyspace,
+			PksClauses:  map[string]interface{}{"type": m.SensorType},
+			CcmsClauses: map[string]interface{}{"account_id": m.AccountsId},
+		}
+		s, err := m.ParseScyllaformat()
+		if err != nil {
+			log.Debugf(err.Error())
+			continue
+		}
+		if err = ldb.Storedb(ops, s); err != nil {
 			log.Debugf(err.Error())
 			continue
 		}
@@ -34,7 +49,7 @@ func mkBalance(s *Sensor) error {
 				AccountsId:  s.AccountsId,
 				EventAction: alerts.DEDUCT,
 				EventType:   events.EventBill,
-				EventData:   events.EventData{M: mi},
+				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
 		})
@@ -51,7 +66,7 @@ func mkTransaction(s *Sensor) error {
 				AccountsId:  s.AccountsId,
 				EventAction: alerts.TRANSACTION, //Change type to transaction
 				EventType:   events.EventBill,
-				EventData:   events.EventData{M: mi},
+				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
 		})

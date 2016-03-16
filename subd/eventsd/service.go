@@ -5,7 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
-	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/vertice/meta"
 )
 

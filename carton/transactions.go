@@ -15,6 +15,7 @@
  */
 package carton
 
+/*
 import (
 	"time"
 
@@ -60,4 +61,4 @@ func (bt *BillTransaction) Transact(topts *BillTransactionOpts) error {
 		return err
 	}
 	return nil
-}
+}*/

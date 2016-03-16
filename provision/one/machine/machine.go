@@ -10,10 +10,10 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/vertice/carton"
-	"github.com/megamsys/vertice/events"
-	"github.com/megamsys/vertice/events/alerts"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
@@ -89,7 +89,7 @@ func (m *Machine) Deduct() error {
 				AccountsId:  m.AccountsId,
 				EventAction: alerts.DEDUCT,
 				EventType:   events.EventBill,
-				EventData:   events.EventData{M: mi},
+				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
 		})

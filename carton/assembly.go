@@ -18,13 +18,16 @@ package carton
 import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/bind"
 	ldb "github.com/megamsys/libgo/db"
-	"github.com/megamsys/vertice/carton/bind"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
+	//"fmt"
 )
 
 const (
@@ -194,7 +197,34 @@ func (a *Ambly) SetStatus(status provision.Status) error {
 	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
 	}
-	return nil
+	return a.Event(status)
+}
+
+//trigger multi event in the order
+func (a *Ambly) Event(status provision.Status) error {
+	mi := make(map[string]string)
+
+	js := make(bind.JsonPairs, 0)
+	m := make(map[string][]string, 2)
+	m["status"] = []string{status.String()}
+	m["description"] = []string{status.Description(a.Name)}
+	js.NukeAndSet(m) //just nuke the matching output key:
+
+	mi[alerts.ASSEMBLY_ID] = a.Id
+	mi[alerts.ACCOUNT_ID] = "dfgdfgf"
+	mi[alerts.EVENT_TYPE] = status.Event_type()
+
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  "",
+				EventAction: alerts.STATUS,
+				EventType:   events.EventUser,
+				EventData:   alerts.EventData{M: mi, D: js.ToString()},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	return newEvent.Write()
 }
 
 //update outputs in scylla, nuke the matching keys available
@@ -214,7 +244,7 @@ func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
 			PksClauses:  map[string]interface{}{"id": a.Id},
 			CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
 		}
-		if err := ldb.Storedb(ops, update_fields); err != nil {
+		if err := ldb.Updatedb(ops, update_fields); err != nil {
 			return err
 		}
 	} else {
