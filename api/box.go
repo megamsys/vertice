@@ -47,7 +47,7 @@ func logs(w http.ResponseWriter, r *http.Request) error {
 
 	for logbox := range l.B {
 		logData, _ := json.Marshal(logbox)
-		go conn.WriteMessage(messageType, logData)
+		conn.WriteMessage(messageType, logData)
 	}
 
 	return nil
