@@ -3,6 +3,7 @@ package machine
 import (
 	"testing"
 
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
 	otesting "github.com/megamsys/opennebula-go/testing"
 	"github.com/megamsys/vertice/provision"
@@ -47,7 +48,7 @@ func (s *S) newMachine(opts compute.VirtualMachine, p *fakeOneProvisioner) (*Mac
 		Level:    provision.BoxSome,
 		Image:    "figureoutimage",
 		Routable: false,
-		Status:   provision.StatusLaunching,
+		Status:   constants.StatusLaunching,
 	}
 
 	_, _, err := p.Cluster().CreateVM(opts)

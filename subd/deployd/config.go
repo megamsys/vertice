@@ -3,12 +3,11 @@ package deployd
 import (
 	"bytes"
 	"fmt"
+	"github.com/megamsys/libgo/cmd"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/opennebula-go/api"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/opennebula-go/api"
-	"github.com/megamsys/vertice/provision"
 )
 
 const (
@@ -62,7 +61,7 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nConfig:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Deployd", "cyan", "", "") + "\n"))
-	b.Write([]byte(provision.PROVIDER + "\t" + c.Provider + "\n"))
+	b.Write([]byte(constants.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte(api.ENDPOINT + "\t" + c.OneEndPoint + "\n"))
 	b.Write([]byte(api.USERID + "    \t" + c.OneUserid + "\n"))
 	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate + "\n"))

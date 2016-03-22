@@ -10,6 +10,8 @@ import (
 	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
@@ -39,7 +41,7 @@ type Container struct {
 	PrivateKey              string
 	Version                 string
 	Image                   string
-	Status                  provision.Status
+	Status                  utils.Status
 	BuildingImage           string
 	LastStatusUpdate        time.Time
 	LastSuccessStatusUpdate time.Time
@@ -55,7 +57,7 @@ func (c *Container) ShortId() string {
 }
 
 func (c *Container) Available() bool {
-	return c.Status.String() == provision.StatusStarted.String() || c.Status.String() == provision.StatusStarting.String()
+	return c.Status.String() == constants.StatusStarted.String() || c.Status.String() == constants.StatusStarting.String()
 }
 
 func (c *Container) Address() *url.URL {
@@ -170,22 +172,22 @@ func (c *Container) Start(args *StartArgs) error {
 	if err != nil {
 		return err
 	}
-	initialStatus := provision.StatusStarting
+	initialStatus := constants.StatusStarting
 	if args.Deploy {
-		initialStatus = provision.StatusLaunching
+		initialStatus = constants.StatusLaunching
 	}
 	return c.SetStatus(initialStatus)
 }
 
 func (c *Container) Stop(p DockerProvisioner) error {
-	if c.Status.String() == provision.StatusStopped.String() {
+	if c.Status.String() == constants.StatusStopped.String() {
 		return nil
 	}
 	err := p.Cluster().StopContainer(c.Id, 10)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
 	}
-	c.SetStatus(provision.StatusStopped)
+	c.SetStatus(constants.StatusStopped)
 	return nil
 }
 
@@ -224,7 +226,7 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 	}
 }
 
-func (c *Container) SetStatus(status provision.Status) error {
+func (c *Container) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
 
 	if asm, err := carton.NewAmbly(c.CartonId); err != nil {

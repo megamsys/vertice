@@ -5,7 +5,7 @@ import (
 
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/safe"
-	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision/docker/container"
 	"gopkg.in/check.v1"
 )
@@ -14,7 +14,7 @@ var execResizeRegexp = regexp.MustCompile(`^.*/exec/(.*)/resize$`)
 
 type newContainerOpts struct {
 	BoxName     string
-	Status      provision.Status
+	Status      utils.Status
 	Image       string
 	Provisioner *dockerProvisioner
 }

@@ -29,6 +29,8 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
@@ -162,7 +164,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		imageId:       imageId,
 		writer:        w,
 		isDeploy:      true,
-		machineStatus: provision.StatusLaunching,
+		machineStatus: constants.StatusLaunching,
 		provisioner:   p,
 	}
 
@@ -181,7 +183,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: provision.StatusDestroying,
+		machineStatus: constants.StatusDestroying,
 		provisioner:   p,
 	}
 
@@ -203,7 +205,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto provision.Status) error {
+func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto utils.Status) error {
 	fmt.Fprintf(w, "\n--- stateto %s\n", box.GetFullName())
 	args := runMachineActionsArgs{
 		box:           box,
@@ -234,7 +236,7 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: provision.StatusBootstrapped,
+		machineStatus: constants.StatusBootstrapped,
 		provisioner:   p,
 	}
 
@@ -261,7 +263,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: provision.StatusStarting,
+		machineStatus: constants.StatusStarting,
 		provisioner:   p,
 	}
 
@@ -288,7 +290,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: provision.StatusStopping,
+		machineStatus: constants.StatusStopping,
 		provisioner:   p,
 	}
 	actions := []*action.Action{
@@ -337,7 +339,7 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, w io.Writer) ([]inte
 	return res, nil
 }
 
-func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
+func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
 	fmt.Fprintf(w, "\n--- status %s box %s\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
 		&updateStatusInScylla,
@@ -421,14 +423,14 @@ func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provi
 func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
 	fmt.Fprintf(w, "\n--- done %s box \n", box.GetFullName())
 	mi := make(map[string]string)
-	mi[alerts.VERTNAME] = box.GetFullName()
-	mi[alerts.VERTTYPE] = box.Tosca
+	mi[constants.VERTNAME] = box.GetFullName()
+	mi[constants.VERTTYPE] = box.Tosca
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  box.AccountsId,
 				EventAction: evtAction,
-				EventType:   events.EventUser,
+				EventType:   constants.EventUser,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},

@@ -2,6 +2,7 @@ package carton
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 )
@@ -21,7 +22,7 @@ type Carton struct {
 	Provider     string
 	PublicIp     string
 	Boxes        *[]provision.Box
-	Status       provision.Status
+	Status       utils.Status
 }
 
 //Global provisioners set by the subd daemons.
@@ -95,7 +96,7 @@ func (c *Carton) Destroy() error {
 // changing the boxes state to StatusStateup.
 func (c *Carton) Stateup() error {
 	for _, box := range *c.Boxes {
-		err := ChangeState(&StateChangeOpts{B: &box, Changed: provision.StatusStateup})
+		err := ChangeState(&StateChangeOpts{B: &box, Changed: utils.StatusStateup})
 		if err != nil {
 			return err
 		}

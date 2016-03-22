@@ -12,6 +12,8 @@ import (
 	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/meta"
@@ -32,7 +34,7 @@ type Machine struct {
 	SSH        provision.BoxSSH
 	Image      string
 	Routable   bool
-	Status     provision.Status
+	Status     utils.Status
 }
 
 type CreateArgs struct {
@@ -81,14 +83,14 @@ func (m *Machine) Remove(p OneProvisioner) error {
 //trigger multi event in the order
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
-	mi[alerts.VERTNAME] = m.Name
-	mi[alerts.COST] = "0.1"
+	mi[constants.VERTNAME] = m.Name
+	mi[constants.COST] = "0.1"
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  m.AccountsId,
 				EventAction: alerts.DEDUCT,
-				EventType:   events.EventBill,
+				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
@@ -109,7 +111,7 @@ func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 }
 
 //it possible to have a Notifier interface that does this, duck typed b y Assembly, Components.
-func (m *Machine) SetStatus(status provision.Status) error {
+func (m *Machine) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
 	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
@@ -132,7 +134,7 @@ func (m *Machine) SetStatus(status provision.Status) error {
 }
 
 //just publish a message stateup to the machine.
-func (m *Machine) ChangeState(status provision.Status) error {
+func (m *Machine) ChangeState(status utils.Status) error {
 	log.Debugf("  change state of machine (%s, %s)", m.Name, status.String())
 
 	pons := nsqp.New()

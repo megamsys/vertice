@@ -3,11 +3,10 @@ package eventsd
 import (
 	"bytes"
 	"fmt"
+	"github.com/megamsys/libgo/cmd"
+	constants "github.com/megamsys/libgo/utils"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/libgo/events/alerts"
 )
 
 type Mailgun struct {
@@ -28,10 +27,10 @@ func NewMaingun() Mailgun {
 
 func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
-	mp[alerts.API_KEY] = m.ApiKey
-	mp[alerts.DOMAIN] = m.Domain
-	mp[alerts.NILAVU] = m.Nilavu
-	mp[alerts.LOGO] = m.Logo
+	mp[constants.API_KEY] = m.ApiKey
+	mp[constants.DOMAIN] = m.Domain
+	mp[constants.NILAVU] = m.Nilavu
+	mp[constants.LOGO] = m.Logo
 	return mp
 }
 func (m Mailgun) String() string {
@@ -55,8 +54,8 @@ type Slack struct {
 
 func (s Slack) toMap() map[string]string {
 	mp := make(map[string]string)
-	mp[alerts.TOKEN] = s.Token
-	mp[alerts.CHANNEL] = s.Channel
+	mp[constants.TOKEN] = s.Token
+	mp[constants.CHANNEL] = s.Channel
 	return mp
 }
 
@@ -82,11 +81,11 @@ type Infobip struct {
 
 func (i Infobip) toMap() map[string]string {
 	mp := make(map[string]string)
-	mp[alerts.USERNAME] = i.Username
-	mp[alerts.PASSWORD] = i.Password
-	mp[alerts.API_KEY] = i.ApiKey
-	mp[alerts.APPLICATION_ID] = i.ApplicationId
-	mp[alerts.MESSAGE_ID] = i.MessageId
+	mp[constants.USERNAME] = i.Username
+	mp[constants.PASSWORD] = i.Password
+	mp[constants.API_KEY] = i.ApiKey
+	mp[constants.APPLICATION_ID] = i.ApplicationId
+	mp[constants.MESSAGE_ID] = i.MessageId
 	return mp
 }
 
@@ -115,11 +114,11 @@ type BillMgr struct {
 
 func (l BillMgr) toMap() map[string]string {
 	mp := make(map[string]string)
-	mp[alerts.USERNAME] = l.WHMCSUserName
-	mp[alerts.PASSWORD] = l.WHMCSPassword
-	mp[alerts.API_KEY] = l.WHMCSAccessKey
-	mp[alerts.DOMAIN] = l.WHMCSDomain
-	mp[alerts.PIGGYBANKS] = strings.Join(l.PiggyBanks, ",")
+	mp[constants.USERNAME] = l.WHMCSUserName
+	mp[constants.PASSWORD] = l.WHMCSPassword
+	mp[constants.API_KEY] = l.WHMCSAccessKey
+	mp[constants.DOMAIN] = l.WHMCSDomain
+	mp[constants.PIGGYBANKS] = strings.Join(l.PiggyBanks, ",")
 	return mp
 
 }

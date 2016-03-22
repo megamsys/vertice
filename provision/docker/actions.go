@@ -10,6 +10,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/action"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/container"
 	"github.com/megamsys/vertice/router"
@@ -18,7 +20,7 @@ import (
 type runContainerActionsArgs struct {
 	box              *provision.Box
 	imageId          string
-	containerStatus  provision.Status
+	containerStatus  utils.Status
 	destinationHosts []string
 	writer           io.Writer
 	isDeploy         bool
@@ -28,7 +30,7 @@ type runContainerActionsArgs struct {
 
 type containersToAdd struct {
 	Quantity int
-	Status   provision.Status
+	Status   utils.Status
 }
 
 type changeUnitsPipelineArgs struct {
@@ -122,7 +124,7 @@ var updateStatusInScylla = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(container.Container)
-		c.SetStatus(provision.StatusError)
+		c.SetStatus(constants.StatusError)
 	},
 }
 
@@ -143,7 +145,7 @@ var createContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		cont.Status = provision.StatusLaunched
+		cont.Status = constants.StatusLaunched
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -171,7 +173,7 @@ var startContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		c.Status = provision.StatusStarted
+		c.Status = constants.StatusStarted
 		return c, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -195,13 +197,13 @@ var stopContainer = action.Action{
 			return nil, err
 		}
 
-		cont.Status = provision.StatusStopped
+		cont.Status = constants.StatusStopped
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		args := ctx.Params[0].(runContainerActionsArgs)
 		c := ctx.FWResult.(container.Container)
-		c.Status = provision.StatusStopping
+		c.Status = constants.StatusStopping
 		fmt.Fprintf(args.writer, "\n---- Skip stopping old container %s ----\n", c.Id)
 	},
 }

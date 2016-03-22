@@ -9,7 +9,7 @@ import (
 
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events"
-	"github.com/megamsys/libgo/events/alerts"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/meta"
 )
 
@@ -46,10 +46,10 @@ func (c Config) String() string {
 
 func (c Config) toMap() events.EventsConfigMap {
 	em := make(events.EventsConfigMap)
-	em[alerts.MAILGUN] = c.Mailgun.toMap()
-	em[alerts.SLACK] = c.Slack.toMap()
-	em[alerts.INFOBIP] = c.Infobip.toMap()
-	em[events.BILLMGR] = c.BillMgr.toMap()
-	em[alerts.META] = meta.MC.ToMap()
+	em[constants.MAILGUN] = c.Mailgun.toMap()
+	em[constants.SLACK] = c.Slack.toMap()
+	em[constants.INFOBIP] = c.Infobip.toMap()
+	em[constants.BILLMGR] = c.BillMgr.toMap()
+	em[constants.META] = meta.MC.ToMap()
 	return em
 }

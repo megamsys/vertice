@@ -18,29 +18,9 @@ package provision
 import (
 	"errors"
 	"fmt"
+	"github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/carton/bind"
 	"io"
-
-	"github.com/megamsys/libgo/bind"
-)
-
-const (
-	PROVIDER        = "provider"
-	PROVIDER_ONE    = "one"
-	PROVIDER_DOCKER = "docker"
-
-	LAUNCHING    = "launching"
-	LAUNCHED     = "launched"
-	BOOTSTRAPPED = "boostrapped"
-	STATEUP      = "stateup"
-	RUNNING      = "running"
-	STARTING     = "starting"
-	STARTED      = "started"
-	STOPPING     = "stopping"
-	STOPPED      = "stopped"
-	UPGRADED     = "upgraded"
-	DESTROYING   = "destroying"
-	NUKED        = "nuked"
-	ERROR        = "error"
 )
 
 var (
@@ -50,133 +30,6 @@ var (
 	ErrNoOutputsFound = errors.New("no outputs found in the box. Did you set it ? ")
 	ErrNotImplemented = errors.New("I'am on diet.")
 )
-
-// Status represents the status of a unit in vertice
-type Status string
-
-func (s Status) String() string {
-	return string(s)
-}
-
-const (
-	// StatusLaunching is the initial status of a box
-	// it should transition shortly to a more specific status
-	StatusLaunching = Status(LAUNCHING)
-
-	// StatusLaunched is the status for box after launched in cloud.
-	StatusLaunched = Status(LAUNCHED)
-
-	// StatusBootstrapped is the status for box after being booted by the agent in cloud
-	StatusBootstrapped = Status(BOOTSTRAPPED)
-
-	// Stateup is the status of the which is moving up in the state in cloud.
-	// Sent by vertice to gulpd when it received StatusBootstrapped.
-	StatusStateup = Status(STATEUP)
-
-	//fully up instance
-	StatusRunning = Status(RUNNING)
-
-	StatusStarting = Status(STARTING)
-	StatusStarted  = Status(STARTED)
-
-	StatusStopping = Status(STOPPING)
-	StatusStopped  = Status(STOPPED)
-
-	StatusUpgraded = Status(UPGRADED)
-
-	StatusDestroying = Status(DESTROYING)
-	StatusNuked      = Status(NUKED)
-
-	// StatusError is the status for units that failed to start, because of
-	// a box error.
-	StatusError = Status(ERROR)
-
-	ONEINSTANCELAUNCHING     = "compute.instance.launching"
-	ONEINSTANCEBOOTSTRAPPING = "compute.instance.bootstrapping"
-	ONEINSTANCEBOOTSTRAPPED  = "compute.instance.bootstrapped"
-	ONEINSTANCESTATEUP       = "compute.instance.stateup"
-	ONEINSTANCERUNNING       = "compute.instance.running"
-	ONEINSTANCELAUNCHED      = "compute.instance.launched"
-	ONEINSTANCEEXISTS        = "compute.instance.exists"
-	ONEINSTANCEDESTROYING    = "compute.instance.destroying"
-	ONEINSTANCEDELETED       = "compute.instance.deleted"
-	ONEINSTANCESTARTING      = "compute.instance.starting"
-	ONEINSTANCESTARTED       = "compute.instance.started"
-	ONEINSTANCESTOPPING      = "compute.instance.stopping"
-	ONEINSTANCESTOPPED       = "compute.instance.stopped"
-	ONEINSTANCERESTARTING    = "compute.instance.restarting"
-	ONEINSTANCERESTARTED     = "compute.instance.restarted"
-	ONEINSTANCEUPGRADED      = "compute.instance.upgraded"
-	ONEINSTANCERESIZING      = "compute.instance.resizing"
-	ONEINSTANCERESIZED       = "compute.instance.resized"
-	ONEINSTANCEERROR         = "compute.instance.error"
-)
-
-func (s Status) Event_type() string {
-	switch s.String() {
-	case LAUNCHING:
-		return ONEINSTANCELAUNCHING
-	case LAUNCHED:
-		return ONEINSTANCELAUNCHED
-	case BOOTSTRAPPED:
-		return ONEINSTANCEBOOTSTRAPPED
-	case STATEUP:
-		return ONEINSTANCESTATEUP
-	case RUNNING:
-		return ONEINSTANCERUNNING
-	case STARTING:
-		return ONEINSTANCESTARTING
-	case STARTED:
-		return ONEINSTANCESTARTED
-	case STOPPING:
-		return ONEINSTANCESTOPPING
-	case STOPPED:
-		return ONEINSTANCESTOPPED
-	case UPGRADED:
-		return ONEINSTANCEUPGRADED
-	case DESTROYING:
-		return ONEINSTANCEDESTROYING
-	case NUKED:
-		return ONEINSTANCEDELETED
-	case ERROR:
-		return ONEINSTANCEERROR
-	default:
-		return "arrgh"
-	}
-}
-
-func (s Status) Description(name string) string {
-	switch s.String() {
-	case LAUNCHING:
-		return "your " + name + " machine is initializing.."
-	case LAUNCHED:
-		return "Machine " + name + " was initialized on cloud.."
-	case BOOTSTRAPPED:
-		return name + " was booted.."
-	case STATEUP:
-		return "moving up in the state of " + name + ".."
-	case RUNNING:
-		return name + " is running.."
-	case STARTING:
-		return "starting process initializing on " + name + ".."
-	case STARTED:
-		return name + " was started.."
-	case STOPPING:
-		return "stopping process initializing on " + name + ".."
-	case STOPPED:
-		return name + " was stopped.."
-	case UPGRADED:
-		return name + " was upgraded.."
-	case DESTROYING:
-		return "destroying process initializing on " + name + ".."
-	case NUKED:
-		return name + " was removed.."
-	case ERROR:
-		return "oops something went wrong on " + name + ".."
-	default:
-		return "arrgh"
-	}
-}
 
 // Named is something that has a name, providing the GetName method.
 type Named interface {
@@ -241,7 +94,7 @@ type ImageDeployer interface {
 // StateChanger changes the state of a deployed box
 // A deployed box is termed as a machine or a container
 type StateChanger interface {
-	SetState(*Box, io.Writer, Status) error
+	SetState(*Box, io.Writer, utils.Status) error
 }
 
 // Provisioner is the basic interface of this package.
@@ -254,7 +107,7 @@ type Provisioner interface {
 	Destroy(*Box, io.Writer) error
 
 	// SetBoxStatus changes the status of a box.
-	SetBoxStatus(*Box, io.Writer, Status) error
+	SetBoxStatus(*Box, io.Writer, utils.Status) error
 
 	// ExecuteCommandOnce runs a command in one box of the carton.
 	ExecuteCommandOnce(stdout, stderr io.Writer, box *Box, cmd string, args ...string) error

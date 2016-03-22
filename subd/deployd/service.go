@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
 	"github.com/megamsys/libgo/cmd"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
@@ -55,7 +56,7 @@ func (s *Service) Open() error {
 		nsq.Start(true)
 		return nil
 	}()
-	if err := s.setProvisioner(provision.PROVIDER_ONE); err != nil {
+	if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
 		return err
 	}
 	return nil

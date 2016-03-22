@@ -7,6 +7,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	_ "github.com/megamsys/vertice/repository/github"
@@ -15,7 +16,7 @@ import (
 
 type StateChangeOpts struct {
 	B       *provision.Box
-	Changed provision.Status
+	Changed utils.Status
 }
 
 // ChangeState runs a state increment of a machine or a container.

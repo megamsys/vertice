@@ -25,7 +25,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/megamsys/libgo/bind"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/carton/bind"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
 )
@@ -121,7 +123,7 @@ type Box struct {
 	ImageVersion string
 	Compute      BoxCompute
 	Repo         *repository.Repo
-	Status       Status
+	Status       utils.Status
 	Provider     string
 	PublicIp     string
 	SSH          BoxSSH
@@ -176,9 +178,9 @@ func (b *Box) GetPublicIp() string {
 // whenever the unit itself is available, even when the application process is
 // not.
 func (b *Box) Available() bool {
-	return b.Status == StatusLaunching ||
-		b.Status == StatusLaunched ||
-		b.Status == StatusError
+	return b.Status == constants.StatusLaunching ||
+		b.Status == constants.StatusLaunched ||
+		b.Status == constants.StatusError
 }
 
 func (box *Box) GetRouter() (string, error) {

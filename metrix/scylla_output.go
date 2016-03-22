@@ -7,6 +7,7 @@ import (
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/meta"
 )
 
@@ -41,14 +42,14 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 
 func mkBalance(s *Sensor) error {
 	mi := make(map[string]string)
-	mi[alerts.VERTNAME] = ""
-	mi[alerts.COST] = "0.1" //stick the cost from metrics
+	mi[constants.VERTNAME] = ""
+	mi[constants.COST] = "0.1" //stick the cost from metrics
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  s.AccountsId,
 				EventAction: alerts.DEDUCT,
-				EventType:   events.EventBill,
+				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
@@ -58,14 +59,14 @@ func mkBalance(s *Sensor) error {
 
 func mkTransaction(s *Sensor) error {
 	mi := make(map[string]string)
-	mi[alerts.VERTNAME] = ""
-	mi[alerts.COST] = "0.1" //stick the cost from metrics
+	mi[constants.VERTNAME] = ""
+	mi[constants.COST] = "0.1" //stick the cost from metrics
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  s.AccountsId,
 				EventAction: alerts.TRANSACTION, //Change type to transaction
-				EventType:   events.EventBill,
+				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},

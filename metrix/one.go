@@ -2,10 +2,9 @@ package metrix
 
 import (
 	"encoding/xml"
+	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"time"
-
-	"github.com/megamsys/vertice/carton"
 )
 
 const OPENNEBULA = "one"
