@@ -1,8 +1,10 @@
 package metrix
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -25,4 +27,29 @@ func flattenTags(tags map[string]string) string {
 	}
 	sort.Strings(out)
 	return strings.Join(out, " ")
+}
+
+func (p *Metrics) ToString() []string {
+	swap := make([]string, 0)
+	for _, j := range *p {
+		b, _ := json.Marshal(j)
+		swap = append(swap, string(b))
+	}
+	return swap
+}
+
+func parseStringToStruct(str string, data interface{}) error {
+	if err := json.Unmarshal([]byte(str), data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Metrics) Totalcost() string {
+	cost := 0.0
+	for _, in := range *m {
+		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
+		cost = cost + consume
+	}
+	return strconv.FormatFloat(cost, 'f', 2, 64)
 }

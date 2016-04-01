@@ -21,6 +21,15 @@ import (
 	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
+const (
+	ACCOUNTID    = "AccountId"
+	ASSEMBLYID   = "AssemblyId"
+	ASSEMBLYNAME = "AssemblyName"
+	CONSUMED     = "Consumed"
+	STARTTIME    = "StartTime"
+	ENDTIME      = "EndTime"
+)
+
 type OneProvisioner interface {
 	Cluster() *cluster.Cluster
 }
@@ -83,13 +92,25 @@ func (m *Machine) Remove(p OneProvisioner) error {
 //trigger multi event in the order
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
-	mi[constants.VERTNAME] = m.Name
-	mi[constants.COST] = "0.1"
+	mi[ACCOUNTID] = m.AccountsId
+	mi[ASSEMBLYID] = m.CartonId
+	mi[ASSEMBLYNAME] = m.Name
+	mi[CONSUMED] = "0.1"
+	mi[STARTTIME] = time.Now().String()
+	mi[ENDTIME] = time.Now().String()
+
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  m.AccountsId,
 				EventAction: alerts.DEDUCT,
+				EventType:   constants.EventBill,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+			&events.Event{
+				AccountsId:  m.AccountsId,
+				EventAction: alerts.TRANSACTION, //Change type to transaction
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),

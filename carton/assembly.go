@@ -47,6 +47,7 @@ type Policy struct {
 type Ambly struct {
 	Id         string   `json:"id" cql:"id"`
 	OrgId      string   `json:"org_id" cql:"org_id"`
+	AccountId  string   `json:"account_id" cql:"account_id"`
 	Name       string   `json:"name" cql:"name"`
 	JsonClaz   string   `json:"json_claz" cql:"json_claz"`
 	Tosca      string   `json:"tosca_type" cql:"tosca_type"`
@@ -61,6 +62,7 @@ type Ambly struct {
 type Assembly struct {
 	Id         string          `json:"id" cql:"id"`
 	OrgId      string          `json:"org_id" cql:"org_id"`
+	AccountId  string          `json:"account_id" cql:"account_id"`
 	Name       string          `json:"name" cql:"name"`
 	JsonClaz   string          `json:"json_claz" cql:"json_claz"`
 	Tosca      string          `json:"tosca_type" cql:"tosca_type"`
@@ -213,13 +215,13 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 	js.NukeAndSet(m) //just nuke the matching output key:
 
 	mi[constants.ASSEMBLY_ID] = a.Id
-	mi[constants.ACCOUNT_ID] = "dfgdfgf"
+	mi[constants.ACCOUNT_ID] = a.AccountId
 	mi[constants.EVENT_TYPE] = status.Event_type()
 
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
-				AccountsId:  "",
+				AccountsId:  a.AccountId,
 				EventAction: alerts.STATUS,
 				EventType:   constants.EventUser,
 				EventData:   alerts.EventData{M: mi, D: js.ToString()},
@@ -293,6 +295,7 @@ func get(id string) (*Assembly, error) {
 func (a *Ambly) dig() (Assembly, error) {
 	asm := Assembly{}
 	asm.Id = a.Id
+	asm.AccountId = a.AccountId
 	asm.Name = a.Name
 	asm.Tosca = a.Tosca
 	asm.JsonClaz = a.JsonClaz

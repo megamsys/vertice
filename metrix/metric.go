@@ -1,16 +1,15 @@
 package metrix
 
 import (
-	"strconv"
-
 	"gopkg.in/yaml.v2"
+	"strconv"
 )
 
 type Metric struct {
-	Key   string `json:"name"`
-	Value string `json:"value"`
-	Units string `json:"units"`
-	Type  string `json:"type"`
+	MetricName  string `json:"metric_name"`
+	MetricValue string `json:"metric_value"`
+	MetricUnits string `json:"metric_units"`
+	MetricType  string `json:"metric_type"`
 }
 
 func (m *Metric) String() string {

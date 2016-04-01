@@ -33,6 +33,7 @@ func (m Mailgun) toMap() map[string]string {
 	mp[constants.LOGO] = m.Logo
 	return mp
 }
+
 func (m Mailgun) String() string {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
@@ -136,4 +137,13 @@ func (l BillMgr) String() string {
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
+}
+
+type Addons struct {
+}
+
+func (l Addons) toMap() map[string]string {
+	mp := make(map[string]string)
+	return mp
+
 }
