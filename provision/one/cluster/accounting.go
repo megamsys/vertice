@@ -29,6 +29,7 @@ func (c *Cluster) Showback(start int64, end int64) ([]interface{}, error) {
 	opts := metrics.Accounting{Api: node.Client, StartTime: start, EndTime: end}
 
 	sb, err := opts.Get()
+
 	if err != nil {
 		return nil, wrapError(node, err)
 	}

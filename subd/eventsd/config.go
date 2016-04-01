@@ -8,8 +8,9 @@ import (
 	"text/tabwriter"
 
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/vertice/events"
-	"github.com/megamsys/vertice/events/alerts"
+	"github.com/megamsys/libgo/events"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/meta"
 )
 
 type Config struct {
@@ -18,6 +19,7 @@ type Config struct {
 	Slack   Slack   `toml:"slack"`
 	Infobip Infobip `toml:"infobip"`
 	BillMgr BillMgr `toml:"bill"`
+	Addons  Addons  `toml:"addons"`
 }
 
 func NewConfig() *Config {
@@ -45,9 +47,11 @@ func (c Config) String() string {
 
 func (c Config) toMap() events.EventsConfigMap {
 	em := make(events.EventsConfigMap)
-	em[alerts.MAILGUN] = c.Mailgun.toMap()
-	em[alerts.SLACK] = c.Slack.toMap()
-	em[alerts.INFOBIP] = c.Infobip.toMap()
-	em[events.BILLMGR] = c.BillMgr.toMap()
+	em[constants.MAILGUN] = c.Mailgun.toMap()
+	em[constants.SLACK] = c.Slack.toMap()
+	em[constants.INFOBIP] = c.Infobip.toMap()
+	em[constants.BILLMGR] = c.BillMgr.toMap()
+	em[constants.ADDONS] = c.Addons.toMap()
+	em[constants.META] = meta.MC.ToMap()
 	return em
 }

@@ -2,10 +2,10 @@ package metrix
 
 import (
 	"encoding/xml"
+	"github.com/megamsys/opennebula-go/metrics"
+	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"time"
-
-	"github.com/megamsys/vertice/carton"
 )
 
 const OPENNEBULA = "one"
@@ -47,8 +47,8 @@ func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	return
 }
 
-func (on *OpenNebula) ParseStatus(b []byte) (ons *OpenNebulaStatus, e error) {
-	ons = &OpenNebulaStatus{}
+func (on *OpenNebula) ParseStatus(b []byte) (ons *metrics.OpenNebulaStatus, e error) {
+	ons = &metrics.OpenNebulaStatus{}
 	e = xml.Unmarshal(b, ons)
 	if e != nil {
 		return nil, e
@@ -57,22 +57,21 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *OpenNebulaStatus, e error) {
 }
 
 //actually the NewSensor can create trypes based on the event type.
-func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *OpenNebulaStatus) {
-	for _, h := range s.HISTORYS {
+func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.OpenNebulaStatus) {
+	for _, h := range s.History_Records {
 		sc := NewSensor("compute.instance.exists")
-		sc.AccountsId = h.AccountsId()
-		sc.addPayload(&Payload{System: on.Prefix(),
-			Node:         h.HOSTNAME,
-			AssemblyId:   h.AssemblyId(),
-			AssemblyName: h.AssemblyName(),
-			AssembliesId: h.AssembliesId(),
-			Source:       on.Prefix(),
-			Message:      "vm billing",
-			Status:       h.State(),
-			BeginAudit:   time.Unix(timeAsInt64(h.VM.STIME), 0).String(),
-			EndAudit:     time.Unix(timeAsInt64(h.VM.ETIME), 0).String(),
-			DeltaAudit:   h.VM.elapsed()})
-
+		sc.AccountId = h.AccountsId()
+		sc.System = on.Prefix()
+		sc.Node = h.HostName
+		sc.AssemblyId = h.AssemblyId()
+		sc.AssemblyName = h.AssemblyName()
+		sc.AssembliesId = h.AssembliesId()
+		sc.Source = on.Prefix()
+		sc.Message = "vm billing"
+		sc.Status = h.State()
+		sc.AuditPeriodBeginning = time.Unix(metrics.TimeAsInt64(h.VM.Stime), 0).String()
+		sc.AuditPeriodEnding = time.Unix(metrics.TimeAsInt64(h.VM.Etime), 0).String()
+		sc.AuditPeriodDelta = h.Elapsed()
 		sc.addMetric("cpu_cost", h.CpuCost(), h.Cpu(), "delta")
 		sc.addMetric("memory_cost", h.MemoryCost(), h.Memory(), "delta")
 		mc.Add(sc)

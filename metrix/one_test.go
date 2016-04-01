@@ -12,25 +12,25 @@ func (s *S) TestParseOpenNebulaCollector(c *check.C) {
 
 	for _, m := range all {
 		c.Assert(len(m.Id) > 0, check.Equals, false)
-		c.Assert(len(m.AccountsId) > 0, check.Equals, true)
-		c.Assert(len(m.Type) > 0, check.Equals, true)
+		c.Assert(len(m.AccountId) > 0, check.Equals, true)
+		c.Assert(len(m.SensorType) > 0, check.Equals, true)
 		c.Assert(len(m.CreatedAt) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.AssemblyId) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.AssembliesId) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.AssemblyName) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.System) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.Status) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.Source) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.Message) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.BeginAudit) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.EndAudit) > 0, check.Equals, true)
-		c.Assert(len(m.Payload.DeltaAudit) > 0, check.Equals, true)
+		c.Assert(len(m.AssemblyId) > 0, check.Equals, true)
+		c.Assert(len(m.AssembliesId) > 0, check.Equals, true)
+		c.Assert(len(m.AssemblyName) > 0, check.Equals, true)
+		c.Assert(len(m.System) > 0, check.Equals, true)
+		c.Assert(len(m.Status) > 0, check.Equals, true)
+		c.Assert(len(m.Source) > 0, check.Equals, true)
+		c.Assert(len(m.Message) > 0, check.Equals, true)
+		c.Assert(len(m.AuditPeriodBeginning) > 0, check.Equals, true)
+		c.Assert(len(m.AuditPeriodEnding) > 0, check.Equals, true)
+		c.Assert(len(m.AuditPeriodDelta) > 0, check.Equals, true)
 
-		for _, me := range m.Payload.Metrics {
-			c.Assert(len(me.Key) > 0, check.Equals, true)
-			c.Assert(len(me.Value) > 0, check.Equals, true)
-			c.Assert(len(me.Units) > 0, check.Equals, true)
-			c.Assert(len(me.Type) > 0, check.Equals, true)
+		for _, me := range m.Metrics {
+			c.Assert(len(me.MetricName) > 0, check.Equals, true)
+			c.Assert(len(me.MetricValue) > 0, check.Equals, true)
+			c.Assert(len(me.MetricUnits) > 0, check.Equals, true)
+			c.Assert(len(me.MetricType) > 0, check.Equals, true)
 
 		}
 

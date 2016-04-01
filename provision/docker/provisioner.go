@@ -14,6 +14,8 @@ import (
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
 	"github.com/megamsys/vertice/provision/docker/container"
@@ -155,7 +157,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		writer:          w,
 		isDeploy:        true,
 		buildingImage:   imageId,
-		containerStatus: provision.StatusLaunching,
+		containerStatus: constants.StatusLaunching,
 		provisioner:     p,
 	}
 	err := pipeline.Execute(args)
@@ -204,7 +206,7 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 		if err != nil {
 			return err
 		}
-		c.SetStatus(provision.StatusStarting)
+		c.SetStatus(constants.StatusStarting)
 		if info, err := c.NetworkInfo(p); err == nil {
 			p.fixContainer(c, info)
 		}
@@ -244,7 +246,7 @@ func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
 	return addr, nil
 }
 
-func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status provision.Status) error {
+func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
 	fmt.Fprintf(w, "\n---- status %s box %s ----\n", box.GetFullName(), status.String())
 	actions := []*action.Action{
 		&updateStatusInScylla,

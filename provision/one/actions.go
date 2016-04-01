@@ -23,6 +23,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/machine"
 )
@@ -38,7 +40,7 @@ type runMachineActionsArgs struct {
 	writer        io.Writer
 	imageId       string
 	isDeploy      bool
-	machineStatus provision.Status
+	machineStatus utils.Status
 	provisioner   *oneProvisioner
 }
 
@@ -77,7 +79,7 @@ var updateStatusInScylla = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(provision.StatusError)
+		c.SetStatus(constants.StatusError)
 	},
 }
 
@@ -101,7 +103,7 @@ var createMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = provision.StatusLaunched
+		mach.Status = constants.StatusLaunched
 		fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s OK\n", args.box.GetFullName(), args.imageId, args.box.Compute)
 		return mach, nil
 	},
@@ -133,7 +135,7 @@ var deductCons = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(provision.StatusError)
+		c.SetStatus(constants.StatusError)
 	},
 }
 
@@ -175,7 +177,7 @@ var startMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = provision.StatusStarted
+		mach.Status = constants.StatusStarted
 		fmt.Fprintf(writer, "\n   started machine (%s, %s) OK\n", mach.Id, mach.Name)
 		return mach, nil
 	},
@@ -201,7 +203,7 @@ var stopMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = provision.StatusStopped
+		mach.Status = constants.StatusStopped
 		fmt.Fprintf(writer, "\n   stopped machine (%s, %s) OK\n", mach.Id, mach.Name)
 		return mach, nil
 	},
@@ -227,7 +229,7 @@ var restartMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = provision.StatusRunning
+		mach.Status = constants.StatusRunning
 		fmt.Fprintf(writer, "\n   restarted machine (%s, %s) OK\n", mach.Id, mach.Name)
 		return mach, nil
 	},
@@ -260,7 +262,7 @@ var changeStateofMachine = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(provision.StatusError)
+		c.SetStatus(constants.StatusError)
 	},
 }
 

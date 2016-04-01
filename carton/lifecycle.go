@@ -22,6 +22,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 )
 
@@ -41,10 +42,10 @@ func (cy *LifecycleOpts) setLogger() {
 //if the state is in running, started, stopped, restarted then allow it to be lcycled.
 // to-do: allow states that ends with "*ing or *ed" that should fix this generically.
 func (cy *LifecycleOpts) canCycle() bool {
-	return cy.B.Status == provision.StatusRunning ||
-		cy.B.Status == provision.StatusStarted ||
-		cy.B.Status == provision.StatusStopped ||
-		cy.B.Status == provision.StatusUpgraded
+	return cy.B.Status == constants.StatusRunning ||
+		cy.B.Status == constants.StatusStarted ||
+		cy.B.Status == constants.StatusStopped ||
+		cy.B.Status == constants.StatusUpgraded
 }
 
 // Starts  the box.

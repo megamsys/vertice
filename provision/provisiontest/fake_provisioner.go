@@ -2,10 +2,10 @@ package provisiontest
 
 import (
 	"fmt"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/provision"
 	"sync"
 	"sync/atomic"
-
-	"github.com/megamsys/vertice/provision"
 )
 
 var uniqueIpCounter int32 = 0
@@ -51,7 +51,7 @@ func NewFakeCarton(name, tosca string, lvl provision.BoxLevel, units int) *FakeC
 				Memory:   "512",
 				HDD:      "",
 			},
-			Status:   provision.StatusLaunching,
+			Status:   constants.StatusLaunching,
 			Provider: "one",
 			PublicIp: "",
 		}

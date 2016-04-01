@@ -18,15 +18,9 @@ package provision
 import (
 	"errors"
 	"fmt"
-	"io"
-
+	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton/bind"
-)
-
-const (
-	PROVIDER        = "provider"
-	PROVIDER_ONE    = "one"
-	PROVIDER_DOCKER = "docker"
+	"io"
 )
 
 var (
@@ -35,47 +29,6 @@ var (
 	ErrBoxNotFound    = errors.New("box not found")
 	ErrNoOutputsFound = errors.New("no outputs found in the box. Did you set it ? ")
 	ErrNotImplemented = errors.New("I'am on diet.")
-)
-
-// Status represents the status of a unit in vertice
-type Status string
-
-func (s Status) String() string {
-	return string(s)
-}
-
-const (
-	// StatusLaunching is the initial status of a box
-	// it should transition shortly to a more specific status
-	StatusLaunching = Status("launching")
-
-	// StatusLaunched is the status for box after launched in cloud.
-	StatusLaunched = Status("launched")
-
-	// StatusBootstrapped is the status for box after being booted by the agent in cloud
-	StatusBootstrapped = Status("boostrapped")
-
-	// Stateup is the status of the which is moving up in the state in cloud.
-	// Sent by vertice to gulpd when it received StatusBootstrapped.
-	StatusStateup = Status("stateup")
-
-	//fully up instance
-	StatusRunning = Status("running")
-
-	StatusStarting = Status("starting")
-	StatusStarted  = Status("started")
-
-	StatusStopping = Status("stopping")
-	StatusStopped  = Status("stopped")
-
-	StatusUpgraded = Status("upgraded")
-
-	StatusDestroying = Status("destroying")
-	StatusNuked      = Status("nuked")
-
-	// StatusError is the status for units that failed to start, because of
-	// a box error.
-	StatusError = Status("error")
 )
 
 // Named is something that has a name, providing the GetName method.
@@ -141,7 +94,7 @@ type ImageDeployer interface {
 // StateChanger changes the state of a deployed box
 // A deployed box is termed as a machine or a container
 type StateChanger interface {
-	SetState(*Box, io.Writer, Status) error
+	SetState(*Box, io.Writer, utils.Status) error
 }
 
 // Provisioner is the basic interface of this package.
@@ -154,7 +107,7 @@ type Provisioner interface {
 	Destroy(*Box, io.Writer) error
 
 	// SetBoxStatus changes the status of a box.
-	SetBoxStatus(*Box, io.Writer, Status) error
+	SetBoxStatus(*Box, io.Writer, utils.Status) error
 
 	// ExecuteCommandOnce runs a command in one box of the carton.
 	ExecuteCommandOnce(stdout, stderr io.Writer, box *Box, cmd string, args ...string) error

@@ -87,6 +87,15 @@ func NewConfig() *Config {
 	}
 }
 
+func (c *Config) ToMap() map[string]string {
+	mp := make(map[string]string)
+	mp["home"] = c.Home
+	mp["dir"] = c.Dir
+	mp["scylla_host"] = strings.Join(c.Scylla, ",")
+	mp["scylla_keyspace"] = c.ScyllaKeyspace
+	return mp
+}
+
 func (c *Config) MkGlobal() {
 	MC = c
 }

@@ -1,7 +1,7 @@
 package eventsd
 
 import (
-	"github.com/megamsys/vertice/events"
+	"github.com/megamsys/libgo/events"
 )
 
 type Handler struct {
