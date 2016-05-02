@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/megamsys/vertice",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v60",
+	"GodepVersion": "v62",
 	"Packages": [
 		"./..."
 	],
@@ -146,6 +146,7 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
+			"Comment": "v1.1",
 			"Rev": "1ea25387ff6f684839d82767c1733ff4d4d15d0a"
 		},
 		{
@@ -269,27 +270,27 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/metrics",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "bf28559dc0bdc801226eb6d01768b775a3c9dc63"
+			"Rev": "8c14cfde7971b1f67a655b6eebdf1c73e9fbdc6c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/riakpbc",
@@ -340,6 +341,7 @@
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
+			"Comment": "v1.0.0",
 			"Rev": "f9ab0dce87d815821e221626b772e3475a0d2749"
 		},
 		{
