@@ -81,8 +81,8 @@ func (c *Container) Create(args *CreateArgs) error {
 		AttachStdin:  false,
 		AttachStdout: false,
 		AttachStderr: false,
-		Memory:       int64(args.Box.GetMemory()),
-		MemorySwap:   int64(args.Box.GetMemory() + args.Box.GetSwap()),
+		Memory:       int64(args.Box.ConGetMemory()),
+		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
 	}
 
@@ -163,8 +163,8 @@ func (c *Container) Start(args *StartArgs) error {
 	}
 
 	hostConfig := docker.HostConfig{
-		Memory:     int64(args.Box.GetMemory()),
-		MemorySwap: int64(args.Box.GetMemory() + args.Box.GetSwap()),
+		Memory:     int64(args.Box.ConGetMemory()),
+		MemorySwap: int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:  int64(args.Box.GetCpushare()),
 	}
 
