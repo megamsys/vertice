@@ -34,12 +34,12 @@ func (bc *BoxCompute) trimCore() string {
 	coreRegex := regexp.MustCompile("[Cc][Oo][Rr][Ee].*")
 	return strings.TrimSpace(coreRegex.ReplaceAllString(bc.Cpushare, ""))
 }
-
 func (bc *BoxCompute) trimMemory() string {
 	coreRegex := regexp.MustCompile("[Bb].*")
 	s := strings.TrimSpace(coreRegex.ReplaceAllString(bc.Memory, ""))
-	return strings.Replace(s, " ", "", -1)
+	return  strings.Replace(s, " ", "", -1)
 }
+
 
 func (bc *BoxCompute) numCpushare() uint64 {
 	if cs, err := strconv.ParseUint(bc.trimCore(), 10, 64); err != nil {
@@ -49,6 +49,7 @@ func (bc *BoxCompute) numCpushare() uint64 {
 		return cs
 	}
 }
+
 func (bc *BoxCompute) ConnumMemory() uint64 {
 	if cs, err := strconv.ParseUint(bc.trimMemory(), 10, 64); err != nil {
 		return 0
