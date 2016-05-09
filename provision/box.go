@@ -30,6 +30,7 @@ import (
 	"github.com/megamsys/vertice/carton/bind"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
+
 )
 
 const (
@@ -142,6 +143,9 @@ func (b *Box) String() string {
 
 func (b *Box) GetMemory() uint64 {
 	return b.Compute.numMemory()
+}
+func (b *Box) ConGetMemory() uint64 {
+	return b.Compute.ConnumMemory()
 }
 
 func (b *Box) GetSwap() uint64 {
