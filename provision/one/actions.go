@@ -70,7 +70,6 @@ var updateStatusInScylla = action.Action{
 				Image:      args.imageId,
 			}
 		}
-
 		if err := mach.SetStatus(mach.Status); err != nil {
 			return err, nil
 		}

@@ -66,7 +66,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 	if err != nil {
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
-	err = c.storage().StoreContainer(container.ID, addr)
+		err = c.storage().StoreContainer(container.ID, addr)
 	err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }
@@ -313,9 +313,9 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	})
 }
 
-func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string) error {
+func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string, cartonId string) error {
 	container := c.getContainerObject(containerId)
-	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway}
+	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway, CartonId: cartonId }
 	err := client.NetworkRequest(container.Node.IP, c.gulp.Port)
 	if err != nil {
 		return err
@@ -326,6 +326,7 @@ func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string
 func (c *Cluster) SetLogs(containerId string, containerName string) error {
 	container := c.getContainerObject(containerId)
 	client := DockerClient{ContainerId: containerId, ContainerName: containerName}
+
 	client.LogsRequest(container.Node.IP, c.gulp.Port)
 	return nil
 }

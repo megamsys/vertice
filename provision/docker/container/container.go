@@ -93,7 +93,6 @@ func (c *Container) Create(args *CreateArgs) error {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
 	}
-
 	c.Id = cont.ID
 	c.HostAddr = urlToHost(addr)
 	return nil
@@ -228,7 +227,6 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 
 func (c *Container) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-
 	if asm, err := carton.NewAmbly(c.CartonId); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
@@ -237,7 +235,6 @@ func (c *Container) SetStatus(status utils.Status) error {
 
 	if c.Level == provision.BoxSome {
 		log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-
 		if comp, err := carton.NewComponent(c.BoxId); err != nil {
 			return err
 		} else if err = comp.SetStatus(status); err != nil {
@@ -260,12 +257,11 @@ func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 		return netInfo, err
 	}
 	netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge)
+	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge, c.CartonId)
 	return netInfo, err
 }
 
 func (c *Container) Logs(p DockerProvisioner) (int, error) {
-
 	err := p.Cluster().SetLogs(c.Id, c.BoxName)
 	if err != nil {
 		return 1, err
