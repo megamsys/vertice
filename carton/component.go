@@ -26,7 +26,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
-	"fmt"
 )
 
 const (
@@ -95,8 +94,6 @@ func (a *Component) String() string {
 **fetch the component json from riak and parse the json to struct
 **/
 func NewComponent(id string) (*Component, error) {
-	fmt.Println("************New%%%%%%%")
-	fmt.Println(id)
 	c := &ComponentTable{Id: id}
 	ops := ldb.Options{
 		TableName:   COMPBUCKET,
