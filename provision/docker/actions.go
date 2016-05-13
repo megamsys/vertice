@@ -108,7 +108,6 @@ var updateStatusInScylla = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runContainerActionsArgs)
 		var cont container.Container
-
 		if ctx.Previous != nil {
 			cont = ctx.Previous.(container.Container)
 		} else {
@@ -127,6 +126,7 @@ var updateStatusInScylla = action.Action{
 		c.SetStatus(constants.StatusError)
 	},
 }
+
 
 var createContainer = action.Action{
 	Name: "create-container",

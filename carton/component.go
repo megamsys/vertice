@@ -35,6 +35,7 @@ const (
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
+	HOSTIP        = "hostip"
 )
 
 type Artifacts struct {
