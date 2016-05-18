@@ -23,7 +23,7 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
-
+	//"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
@@ -33,6 +33,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/vertice/provision"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
@@ -130,7 +131,8 @@ func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Wri
 }
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "--- image deploy for box (%s, image:%s)\n", box.GetFullName(), imageId)
+	//fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY,lb.INFO,fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
 	if err != nil {
 		return "", err
@@ -148,7 +150,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Scylla - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
+	//fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 	//fmt.Fprintf(w, cmd.Colorfy(stripCtlAndExtFromUnicode(fmt.Sprintf("--- \u001b[0m deploy box (%s, image:%s)\n", box.GetFullName(), imageId)), "blue", "", "bold"))
 	actions := []*action.Action{
 		&updateStatusInScylla,
@@ -173,7 +175,8 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		fmt.Fprintf(w, "--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)
 		return "", err
 	}
-	fmt.Fprintf(w, "--- deploy box (%s, image:%s) OK\n", box.GetFullName(), imageId)
+	//fmt.Fprintf(w, "--- deploy box (%s, image:%s) OK\n", box.GetFullName(), imageId)
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY,lb.INFO,fmt.Sprintf("--- deploy box (%s, image:%s)OK", box.GetFullName(), imageId)))
 	return imageId, nil
 }
 

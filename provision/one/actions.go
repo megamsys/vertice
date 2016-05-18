@@ -25,6 +25,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/machine"
 )
@@ -54,8 +55,8 @@ var updateStatusInScylla = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  update status for machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
-
+		//fmt.Fprintf(writer, " \n update status for machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		var mach machine.Machine
 		if ctx.Previous != nil {
 			mach = ctx.Previous.(machine.Machine)
@@ -74,7 +75,8 @@ var updateStatusInScylla = action.Action{
 		if err := mach.SetStatus(mach.Status); err != nil {
 			return err, nil
 		}
-		fmt.Fprintf(writer, "  update status for machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+		//fmt.Fprintf(writer, "  update status for machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -92,8 +94,8 @@ var createMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s\n", args.box.GetFullName(), args.imageId, args.box.Compute)
-
+		//fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s\n", args.box.GetFullName(), args.imageId, args.box.Compute)
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
 			Compute:     args.box.Compute,
@@ -105,7 +107,8 @@ var createMachine = action.Action{
 		}
 		mach.Status = constants.StatusLaunched
 		fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s OK\n", args.box.GetFullName(), args.imageId, args.box.Compute)
-		return mach, nil
+		//fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
+  return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
@@ -128,9 +131,11 @@ var deductCons = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  deduct cons of machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
+		//fmt.Fprintf(writer, "  deduct cons of machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		mach.Deduct()
-		fmt.Fprintf(writer, "  deduct cons of machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+		//fmt.Fprintf(writer, "  deduct cons of machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
