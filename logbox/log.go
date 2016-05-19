@@ -5,16 +5,16 @@ import (
 )
 
 const (
-	INFO  = "Info"
-	ERROR = "Err"
-	WARN  = "Warn"
-  VM_DEPLOY ="VM_Deploying"
-  CONTAINER_DEPLOY="Container_Deploying"
+	INFO             = "Info"
+	ERROR            = "Error"
+	WARN             = "Warning"
+	VM_DEPLOY        = "VM_Deploying"
+	CONTAINER_DEPLOY = "Container_Deploying"
 )
 
 type LogBox struct {
 	Source  string `json:"Source"`
-	Type     string `json:"Type"`
+	Type    string `json:"Type"`
 	Message string `json:"Message"`
 }
 
@@ -26,10 +26,10 @@ func (a *LogBox) String() string {
 	}
 }
 
-func W(source, typ, message string)(string) {
-	 a := LogBox {
+func W(source, typ, message string) string {
+	a := LogBox{
 		Source:  source,
-		Type:     typ,
+		Type:    typ,
 		Message: message}
-    return a.String()
+	return a.String()
 }
