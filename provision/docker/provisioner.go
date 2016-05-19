@@ -139,7 +139,7 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 }
 
 func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	//fmt.Fprintf(w, "\n--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
+
 	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	actions := []*action.Action{
 		&updateStatusInScylla,
@@ -163,7 +163,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 	}
 	err := pipeline.Execute(args)
 	if err != nil {
-		//fmt.Fprintf(w, "deploy pipeline for box (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("deploy pipeline for box (%s) --> %s", box.GetFullName(), err)))
 		return "", err
 	}
@@ -171,11 +171,11 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 }
 
 func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	//fmt.Fprintf(w, "\n--- destroying box (%s) ----\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n--- destroying box (%s) ----", box.GetFullName())))
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-		//fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 		return err
 	}
@@ -200,7 +200,7 @@ func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-		//fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
@@ -222,7 +222,7 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 func (p *dockerProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-		//fmt.Fprintf(w, "Failed to list box containers (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
@@ -253,7 +253,7 @@ func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
 }
 
 func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
-	//fmt.Fprintf(w, "\n---- status %s box %s ----\n", box.GetFullName(), status.String())
+
 	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- status %s box %s ----", box.GetFullName(), status.String())))
 	actions := []*action.Action{
 		&updateStatusInScylla,

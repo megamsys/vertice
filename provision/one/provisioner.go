@@ -126,13 +126,11 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
-	//fmt.Fprintf(w, "--- git deploy for box (git:%s)\n", re.Source)
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- git deploy for box (git:%s)", re.Source)))
 	return p.getBuildImage(re, version), nil
 }
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	//fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
 	if err != nil {
@@ -151,9 +149,9 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //3. &updateStatus in Scylla - Creating..
 //4. &followLogs by posting it in the queue.
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	//fmt.Fprintf(w, "--- deploy box (%s, image:%s)\n", box.GetFullName(), imageId)
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
-	//fmt.Fprintf(w, cmd.Colorfy(stripCtlAndExtFromUnicode(fmt.Sprintf("--- \u001b[0m deploy box (%s, image:%s)\n", box.GetFullName(), imageId)), "blue", "", "bold"))
+
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createMachine,
@@ -177,13 +175,13 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)))
 		return "", err
 	}
-	//fmt.Fprintf(w, "--- deploy box (%s, image:%s) OK\n", box.GetFullName(), imageId)
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)OK", box.GetFullName(), imageId)))
 	return imageId, nil
 }
 
 func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
-	//fmt.Fprintf(w, "\n--- destroying box (%s)\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- destroying box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -203,18 +201,18 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		//fmt.Fprintf(w, "--- destroying box (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- destroying box (%s)--> %s", box.GetFullName(), err)))
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- destroying box (%s) OK\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- destroying box (%s)OK", box.GetFullName())))
 	err = doneNotify(box, w, alerts.DESTROYED)
 	return nil
 }
 
 func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto utils.Status) error {
-	//fmt.Fprintf(w, "\n--- stateto %s\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stateto %s", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -234,14 +232,14 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto util
 	if err != nil {
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- stateto %s OK\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stateto %s OK", box.GetFullName())))
 	err = doneNotify(box, w, alerts.LAUNCHED)
 	return err
 }
 
 func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
-	//fmt.Fprintf(w, "\n--- restarting box (%s)\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- restarting box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -261,17 +259,17 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		//fmt.Fprintf(w, "--- restarting box (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- restarting box (%s) --> %s", box.GetFullName(), err)))
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- restarting box (%s) OK\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- restarting box (%s) OK", box.GetFullName())))
 	return nil
 }
 
 func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-	//fmt.Fprintf(w, "\n--- starting box (%s)\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- starting box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -291,17 +289,17 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		//fmt.Fprintf(w, "--- starting box (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- starting box (%s) -->%s", box.GetFullName(), err)))
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- starting box (%s) OK\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- starting box (%s) OK", box.GetFullName())))
 	return nil
 }
 
 func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-	//fmt.Fprintf(w, "\n--- stopping box (%s)\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stopping box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -320,11 +318,11 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		//fmt.Fprintf(w, "--- stopping box (%s)\n --> %s", box.GetFullName(), err)
+
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- stopping box (%s)-->%s", box.GetFullName(), err)))
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- stopping box (%s) OK\n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stopping box (%s) OK", box.GetFullName())))
 	return nil
 }
@@ -348,21 +346,21 @@ func (*oneProvisioner) Addr(box *provision.Box) (string, error) {
 }
 
 func (p *oneProvisioner) MetricEnvs(start int64, end int64, w io.Writer) ([]interface{}, error) {
-	//fmt.Fprintf(w, "--- pull metrics for the duration (%d, %d)\n", start, end)
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)", start, end)))
 	res, err := p.Cluster().Showback(start, end)
 	if err != nil {
-		//fmt.Fprintf(w, "--- pull metrics for the duration  err (%d, %d)\n --> %s", start, end, err)
+
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
 		return nil, err
 	}
-	//fmt.Fprintf(w, "--- pull metrics for the duration (%d, %d) OK\n", start, end)
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
 	return res, nil
 }
 
 func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
-	//fmt.Fprintf(w, "\n--- status %s box %s\n", box.GetFullName(), status.String())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- status %s box %s", box.GetFullName(), status.String())))
 	actions := []*action.Action{
 		&updateStatusInScylla,
@@ -381,7 +379,7 @@ func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status ut
 		log.Errorf("error on execute status pipeline for box %s - %s", box.GetFullName(), err)
 		return err
 	}
-	//fmt.Fprintf(w, "\n--- status %s box %s OK\n", box.GetFullName(), status.String())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- status %s box %s OK", box.GetFullName(), status.String())))
 	return nil
 }
@@ -445,7 +443,7 @@ func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provi
 }
 
 func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
-	//fmt.Fprintf(w, "\n--- done %s box \n", box.GetFullName())
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
 	mi := make(map[string]string)
 	mi[constants.VERTNAME] = box.GetFullName()
@@ -460,7 +458,6 @@ func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) e
 				Timestamp:   time.Now().Local(),
 			},
 		})
-	//fmt.Fprintf(w, "\n--- done %s box OK\n", box.GetFullName())
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
 	return newEvent.Write()
 }
