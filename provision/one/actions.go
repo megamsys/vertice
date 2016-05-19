@@ -25,6 +25,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/machine"
 )
@@ -54,8 +55,8 @@ var updateStatusInScylla = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  update status for machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
 
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		var mach machine.Machine
 		if ctx.Previous != nil {
 			mach = ctx.Previous.(machine.Machine)
@@ -73,7 +74,8 @@ var updateStatusInScylla = action.Action{
 		if err := mach.SetStatus(mach.Status); err != nil {
 			return err, nil
 		}
-		fmt.Fprintf(writer, "  update status for machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -91,8 +93,8 @@ var createMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s\n", args.box.GetFullName(), args.imageId, args.box.Compute)
 
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
 			Compute:     args.box.Compute,
@@ -103,17 +105,19 @@ var createMachine = action.Action{
 			return nil, err
 		}
 		mach.Status = constants.StatusLaunched
-		fmt.Fprintf(writer, "  create machine for box (%s, image:%s)/%s OK\n", args.box.GetFullName(), args.imageId, args.box.Compute)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		fmt.Fprintf(args.writer, "\n   removing err machine %s\n", c.Name)
 
+		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  removing err machine %s", c.Name)))
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			fmt.Fprintf(args.writer, "\n   removing err machine\n %s\n", err.Error())
+
+			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
 	},
 }
@@ -127,9 +131,11 @@ var deductCons = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  deduct cons of machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		mach.Deduct()
-		fmt.Fprintf(writer, "  deduct cons of machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -147,12 +153,14 @@ var destroyOldMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n   destroying old machine %s ----\n", mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
 		err := mach.Remove(args.provisioner)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, "\n   destroyed old machine (%s, %s) OK\n", mach.Id, mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroyed old machine (%s, %s) OK", mach.Id, mach.Name)))
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -171,13 +179,15 @@ var startMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n   starting  machine %s\n", mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, START)
 		if err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusStarted
-		fmt.Fprintf(writer, "\n   started machine (%s, %s) OK\n", mach.Id, mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  starting  machine (%s, %s) OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 
@@ -197,13 +207,15 @@ var stopMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n   stopping  machine %s\n", mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, STOP)
 		if err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusStopped
-		fmt.Fprintf(writer, "\n   stopped machine (%s, %s) OK\n", mach.Id, mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n   stopping  machine (%s, %s)OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -222,14 +234,15 @@ var restartMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "\n   restarting  machine %s\n", mach.Name)
 
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("restarting  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, RESTART)
 		if err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusRunning
-		fmt.Fprintf(writer, "\n   restarted machine (%s, %s) OK\n", mach.Id, mach.Name)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("restarting  machine (%s, %s)OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -247,7 +260,8 @@ var changeStateofMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, "  change state of machine (%s, %s)\n", args.box.GetFullName(), args.machineStatus.String())
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		mach := machine.Machine{
 			Id:       args.box.Id,
 			CartonId: args.box.CartonId,
@@ -256,7 +270,8 @@ var changeStateofMachine = action.Action{
 		}
 		mach.ChangeState(args.machineStatus)
 		mach.Status = args.machineStatus
-		fmt.Fprintf(writer, "  change state of machine (%s, %s) OK\n", args.box.GetFullName(), args.machineStatus.String())
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -279,13 +294,15 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, "\n   adding route to machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		err = r.SetCName(mach.Name, args.box.PublicIp)
 		if err != nil {
 			return mach, err
 		}
 		mach.SetRoutable(args.box.PublicIp)
-		fmt.Fprintf(writer, "   added route to machine (%s, %s) OK\n", mach.Name, args.box.PublicIp)
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
 
 		return mach, nil
 	},
@@ -298,15 +315,19 @@ var addNewRoute = action.Action{
 			w = ioutil.Discard
 		}
 		if err != nil {
-			fmt.Fprintf(w, "   destroy route error\n     %s", err.Error())
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf(" destroy route error    %s", err.Error())))
 		}
-		fmt.Fprintf(w, "\n   destroy routes from created machine  (%s, %s)\n", mach.Id, mach.Name)
+
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("   destroy routes from created machine  (%s, %s)", mach.Id, mach.Name)))
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				fmt.Fprintf(w, "   destroy route error (%s, %s)\n    %s", mach.Name, args.box.PublicIp, err.Error())
+
+				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)    %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
-			fmt.Fprintf(w, "\n   destroy route from machine (%s, %s) OK\n", mach.Id, mach.Name)
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("destroy route from machine (%s, %s) OK", mach.Id, mach.Name)))
 		}
 	},
 	OnError: rollbackNotice,
@@ -326,16 +347,21 @@ var destroyOldRoute = action.Action{
 			w = ioutil.Discard
 		}
 		mach.SetRoutable(args.box.PublicIp)
-		fmt.Fprintf(w, "\n   destroy routes from created machine\n")
+
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("destroy routes from created machine")))
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				fmt.Fprintf(w, "   destroy route error (%s, %s)\n    %s", mach.Name, args.box.PublicIp, err.Error())
+
+				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
-			fmt.Fprintf(w, "\n   destroy route from machine (%s, %s)\n", mach.Name, args.box.PublicIp)
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroy route from machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		} else {
-			fmt.Fprintf(w, "\n   skip destroy routes from created machine (%s, %s) OK\n", mach.Name, args.box.PublicIp)
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
+
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -347,15 +373,19 @@ var destroyOldRoute = action.Action{
 			w = ioutil.Discard
 		}
 		if err != nil {
-			fmt.Fprintf(w, "   destroy route error (%s, %s)\n    %s", mach.Name, args.box.PublicIp, err.Error())
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
 		}
-		fmt.Fprintf(w, "\n   addding back routes to old machine\n")
+
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  addding back routes to old machine")))
 		if mach.Routable {
 			err = r.SetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
-				fmt.Fprintf(w, "   destroy error (%s, %s)\n     %s", mach.Name, args.box.PublicIp, err.Error())
+
+				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("destroy error (%s, %s)     %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
-			fmt.Fprintf(w, "   adding route to machine (%s, %s) OK\n", mach.Name, args.box.PublicIp)
+
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("   adding route to machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
 	},
 	OnError:   rollbackNotice,
@@ -386,6 +416,8 @@ var followLogs = action.Action{
 var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
-		fmt.Fprintf(args.writer, "\n==> ROLLBACK     \n%s\n", err)
+		
+		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("==> ROLLBACK     %s", err)))
+
 	}
 }

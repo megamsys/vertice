@@ -16,6 +16,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/vertice/carton"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
@@ -187,7 +188,8 @@ func (m *Machine) ChangeState(status utils.Status) error {
 
 //if there is a file or something to be created, do it here.
 func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
-	fmt.Fprintf(w, "\nlogs nirvana ! machine %s ", m.Name)
+	
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("logs nirvana ! machine %s ", m.Name)))
 	return nil
 }
 

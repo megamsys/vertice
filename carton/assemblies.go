@@ -16,6 +16,7 @@
 package carton
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/vertice/meta"
@@ -42,6 +43,7 @@ func (a *Assemblies) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
 		return err.Error()
 	} else {
+		fmt.Println(string(d))
 		return string(d)
 	}
 }
