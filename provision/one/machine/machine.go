@@ -42,6 +42,7 @@ type Machine struct {
 	Level      provision.BoxLevel
 	SSH        provision.BoxSSH
 	Image      string
+	VCPUThrottle string
 	Routable   bool
 	Status     utils.Status
 }
@@ -56,11 +57,16 @@ type CreateArgs struct {
 
 func (m *Machine) Create(args *CreateArgs) error {
 	log.Infof("  creating machine in one (%s, %s)", m.Name, m.Image)
-
-	opts := compute.VirtualMachine{
+ThrottleFactor, _  := strconv.Atoi(m.VCPUThrottle)
+cpuThrottleFactor :=float64(ThrottleFactor)
+res := strconv.FormatInt(int64(args.Box.GetCpushare()), 10)
+ICpu, _ := strconv.Atoi(res)
+throttle := float64(ICpu)
+realCPU :=throttle/cpuThrottleFactor
+opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
-		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10), //ugly, compute has the info.
+		Cpu:     strconv.FormatFloat(realCPU, 'f', 6, 64),//ugly, compute has the info.
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,

@@ -37,7 +37,6 @@ const (
 	CPU = "cpu"
 	RAM = "ram"
 	HDD = "hdd"
-
 	// BoxSome indicates that there is atleast one box to deploy or delete.
 	BoxSome BoxLevel = iota
 
