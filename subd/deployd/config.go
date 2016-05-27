@@ -40,6 +40,7 @@ type Config struct {
 	OneZone     string `toml:"one_zone"`
 	Certificate string `toml:"certificate"`
 	Image       string `toml:"image"`
+	VCPUPercentage string `toml:"vcpu_percentage"`
 }
 
 func NewConfig() *Config {
@@ -67,6 +68,7 @@ func (c Config) String() string {
 	b.Write([]byte(api.TEMPLATE + "\t" + c.OneTemplate + "\n"))
 	b.Write([]byte(api.IMAGE + "    \t" + c.Image + "\n"))
 	b.Write([]byte(api.PASSWORD + "\t" + c.OnePassword + "\n"))
+		b.Write([]byte(api.VCPU_PERCENTAGE+ "\t" + c.VCPUPercentage + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
 	w.Flush()
@@ -81,5 +83,6 @@ func (c Config) toMap() map[string]string {
 	m[api.PASSWORD] = c.OnePassword
 	m[api.TEMPLATE] = c.OneTemplate
 	m[api.IMAGE] = c.Image
+		m[api.VCPU_PERCENTAGE] = c.VCPUPercentage
 	return m
 }
