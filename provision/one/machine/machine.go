@@ -15,6 +15,7 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/meta"
@@ -44,6 +45,9 @@ type Machine struct {
 	SSH        provision.BoxSSH
 	Image      string
 	VCPUThrottle string
+	VMId        string
+	HostIp      string
+	VNCPort        string
 	Routable   bool
 	Status     utils.Status
 }
@@ -55,6 +59,7 @@ type CreateArgs struct {
 	Deploy      bool
 	Provisioner OneProvisioner
 }
+
 
 func (m *Machine) Create(args *CreateArgs) error {
 	log.Infof("  creating machine in one (%s, %s)", m.Name, m.Image)
@@ -72,16 +77,37 @@ opts := compute.VirtualMachine{
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId},
-	}
+		}
+
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 
-	_, _, err := args.Provisioner.Cluster().CreateVM(opts)
+ _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts)
 	if err != nil {
 		return err
 	}
+	m.VMId = vmid
 	return nil
 }
+
+
+func (m *Machine) VmHostIpPort(args *CreateArgs) error {
+opts := virtualmachine.Vnc{
+		VmId:   m.VMId,
+			}
+	//m.addEnvsToContext(m.BoxEnvs, &vm)
+
+ 	hostip, vncport, err := args.Provisioner.Cluster().GetIpPort(opts)
+	if err != nil {
+		return err
+	}
+	m.HostIp = hostip
+	m.VNCPort = vncport
+	return nil
+}
+
+
+
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
@@ -194,7 +220,7 @@ func (m *Machine) ChangeState(status utils.Status) error {
 
 //if there is a file or something to be created, do it here.
 func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
-	
+
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("logs nirvana ! machine %s ", m.Name)))
 	return nil
 }

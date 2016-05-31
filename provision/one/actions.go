@@ -123,6 +123,35 @@ var createMachine = action.Action{
 	},
 }
 
+
+
+var getVmHostIpPort = action.Action{
+	Name: "gethost-port",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.VmHostIpPort(&machine.CreateArgs{
+    	Provisioner: args.provisioner,
+		})
+		if err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusLaunched
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(constants.StatusError)
+	},
+}
+
+
+
 var deductCons = action.Action{
 	Name: "deduct-cons-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -417,7 +446,7 @@ var followLogs = action.Action{
 var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
-		
+
 		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("==> ROLLBACK     %s", err)))
 
 	}

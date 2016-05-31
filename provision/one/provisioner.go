@@ -158,6 +158,8 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		&updateStatusInScylla,
 		&createMachine,
 		&updateStatusInScylla,
+		&getVmHostIpPort,
+		&updateStatusInScylla,
 		&deductCons,
 		&followLogs,
 	}
