@@ -46,8 +46,8 @@ type Machine struct {
 	Image      string
 	VCPUThrottle string
 	VMId        string
-	HostIp      string
-	VNCPort        string
+	VNCHost      string
+	VNCPort      string
 	Routable   bool
 	Status     utils.Status
 }
@@ -78,36 +78,86 @@ opts := compute.VirtualMachine{
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId},
 		}
-
-
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
-
  _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts)
 	if err != nil {
 		return err
 	}
 	m.VMId = vmid
+
+	var id = make(map[string][]string)
+		vm := []string{}
+		vm = []string{m.VMId}
+	 id[carton.VMID] = vm
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(id); err != nil {
+			return err
+		}
 	return nil
 }
 
-
 func (m *Machine) VmHostIpPort(args *CreateArgs) error {
-opts := virtualmachine.Vnc{
+
+	//time.Sleep(time.Second * 25)
+
+  var Wait int
+    ch := make(chan int)
+		for i := 0; i < 100; i++ {
+		    go player(ch)
+		}
+    ch <- Wait
+    time.Sleep(25 * time.Second)
+    <-ch
+
+   opts := virtualmachine.Vnc {
 		VmId:   m.VMId,
 			}
-	//m.addEnvsToContext(m.BoxEnvs, &vm)
-
- 	hostip, vncport, err := args.Provisioner.Cluster().GetIpPort(opts)
+ 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts)
 	if err != nil {
 		return err
 	}
-	m.HostIp = hostip
+	m.VNCHost = vnchost
 	m.VNCPort = vncport
 	return nil
 }
 
+func player(ch chan int) {
+    for {
+        wait := <-ch
+        wait++
+        time.Sleep(150 * time.Millisecond)
+        ch <- wait
+    }
+}
 
+func (m *Machine) UpdateVncHost() error {
 
+	var vnchost = make(map[string][]string)
+		host := []string{}
+		host = []string{m.VNCHost}
+	 vnchost[carton.VNCHOST] = host
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
+			return err
+		}
+		return nil
+}
+
+func (m *Machine) UpdateVncPort() error {
+
+	var vncport = make(map[string][]string)
+		port := []string{}
+		port = []string{m.VNCPort}
+	 vncport[carton.VNCPORT] = port
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
+			return err
+		}
+		return nil
+}
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)

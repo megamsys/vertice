@@ -145,12 +145,43 @@ var getVmHostIpPort = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusError)
+
 	},
 }
 
 
+var updateVnchostInScylla = action.Action{
+	Name: "updateVnchost",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		err := mach.UpdateVncHost()
+		if err != nil {
+			return nil, err
+		}
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(constants.StatusRunning)
+	},
+}
+
+var updateVncportInScylla = action.Action{
+	Name: "updateVncport",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		err := mach.UpdateVncPort()
+		if err != nil {
+			return nil, err
+		}
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(constants.StatusRunning)
+	},
+}
 
 var deductCons = action.Action{
 	Name: "deduct-cons-machine",

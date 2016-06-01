@@ -103,13 +103,13 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc) ( string, string, error) {
 
 	var (
 		addr string
-		hostip string
+		vnchost string
 		vncport string
 	)
 	nodlist, err := c.Nodes()
 
 	if err != nil || len(nodlist) <= 0 {
-		return hostip, vncport, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+		return vnchost, vncport, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 	} else {
 		addr = nodlist[0].Address
 	}
@@ -122,13 +122,14 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc) ( string, string, error) {
 	opts.T = node.Client
 
 	res, err := opts.GetVm()
+	 vnchost = res.GetHostIp()
 	 vncport = res.GetPort()
-	 hostip = res.GetHostIp()
+	 
 	if err != nil {
 		return "", "", wrapErrorWithCmd(node, err, "createVM")
 	}
 
-	return hostip, vncport, nil
+	return vnchost, vncport, nil
 }
 // DestroyVM kills a vm, returning an error in case of failure.
 func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {

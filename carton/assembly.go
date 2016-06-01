@@ -34,6 +34,9 @@ import (
 const (
 	ASSEMBLYBUCKET = "assembly"
 	SSHKEY         = "sshkey"
+	VNCPORT       = "vncport"
+	VNCHOST       = "vnchost"
+	VMID         =  "vmid"
 )
 
 type Policy struct {
@@ -105,6 +108,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		SSH:          a.newSSH(),
 		Provider:     a.provider(),
 		PublicIp:     a.publicIp(),
+		//VncHost:      a.vncHost(),
+		//VncPort:      a.vncPort(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 	}
@@ -332,7 +337,15 @@ func (a *Assembly) provider() string {
 func (a *Assembly) publicIp() string {
 	return a.Outputs.Match(PUBLICIPV4)
 }
-
+func (a *Assembly) vncHost() string {
+	return a.Outputs.Match(VNCHOST)
+}
+func (a *Assembly) vncPort() string {
+	return a.Outputs.Match(VNCPORT)
+}
+func (a *Assembly) vmId() string {
+	return a.Outputs.Match(VMID)
+}
 func (a *Assembly) imageVersion() string {
 	return a.Inputs.Match(IMAGE_VERSION)
 }
