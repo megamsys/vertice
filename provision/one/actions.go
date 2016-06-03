@@ -69,6 +69,7 @@ var updateStatusInScylla = action.Action{
 				Name:       args.box.GetFullName(),
 				Status:     args.machineStatus,
 				Image:      args.imageId,
+				VCPUThrottle: args.provisioner.vcpuThrottle,
 			}
 		}
 		if err := mach.SetStatus(mach.Status); err != nil {
@@ -119,6 +120,66 @@ var createMachine = action.Action{
 
 			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
+	},
+}
+
+
+
+var getVmHostIpPort = action.Action{
+	Name: "gethost-port",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.VmHostIpPort(&machine.CreateArgs{
+    	Provisioner: args.provisioner,
+		})
+		if err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusLaunched
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+
+	},
+}
+
+
+var updateVnchostInScylla = action.Action{
+	Name: "updateVnchost",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		err := mach.UpdateVncHost()
+		if err != nil {
+			return nil, err
+		}
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(constants.StatusRunning)
+	},
+}
+
+var updateVncportInScylla = action.Action{
+	Name: "updateVncport",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		err := mach.UpdateVncPort()
+		if err != nil {
+			return nil, err
+		}
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		c.SetStatus(constants.StatusRunning)
 	},
 }
 
@@ -416,7 +477,7 @@ var followLogs = action.Action{
 var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
-		
+
 		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("==> ROLLBACK     %s", err)))
 
 	}

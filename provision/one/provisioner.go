@@ -49,6 +49,7 @@ func init() {
 
 type oneProvisioner struct {
 	defaultImage string
+	vcpuThrottle string
 	cluster      *cluster.Cluster
 	storage      cluster.Storage
 }
@@ -80,6 +81,7 @@ func (p *oneProvisioner) initOneCluster(m map[string]string) error {
 		}
 	}
 	p.defaultImage = m[api.IMAGE]
+	p.vcpuThrottle = m[api.VCPU_PERCENTAGE]
 	var nodes []cluster.Node = []cluster.Node{cluster.Node{
 		Address:  m[api.ENDPOINT],
 		Metadata: m,
@@ -155,6 +157,10 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createMachine,
+		&updateStatusInScylla,
+		&getVmHostIpPort,
+		&updateVnchostInScylla,
+		&updateVncportInScylla,
 		&updateStatusInScylla,
 		&deductCons,
 		&followLogs,
