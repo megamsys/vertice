@@ -15,7 +15,9 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
@@ -43,6 +45,9 @@ type Machine struct {
 	SSH        provision.BoxSSH
 	Image      string
 	VCPUThrottle string
+	VMId        string
+	VNCHost      string
+	VNCPort      string
 	Routable   bool
 	Status     utils.Status
 }
@@ -54,6 +59,7 @@ type CreateArgs struct {
 	Deploy      bool
 	Provisioner OneProvisioner
 }
+
 
 func (m *Machine) Create(args *CreateArgs) error {
 	log.Infof("  creating machine in one (%s, %s)", m.Name, m.Image)
@@ -71,15 +77,86 @@ opts := compute.VirtualMachine{
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId},
-	}
-
+		}
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
-
-	_, _, err := args.Provisioner.Cluster().CreateVM(opts)
+ _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts)
 	if err != nil {
 		return err
 	}
+	m.VMId = vmid
+
+	var id = make(map[string][]string)
+		vm := []string{}
+		vm = []string{m.VMId}
+	 id[carton.VMID] = vm
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(id); err != nil {
+			return err
+		}
 	return nil
+}
+
+func (m *Machine) VmHostIpPort(args *CreateArgs) error {
+
+	//time.Sleep(time.Second * 25)
+
+  var Wait int
+    ch := make(chan int)
+		for i := 0; i < 100; i++ {
+		    go player(ch)
+		}
+    ch <- Wait
+    time.Sleep(25 * time.Second)
+    <-ch
+
+   opts := virtualmachine.Vnc {
+		VmId:   m.VMId,
+			}
+ 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts)
+	if err != nil {
+		return err
+	}
+	m.VNCHost = vnchost
+	m.VNCPort = vncport
+	return nil
+}
+
+func player(ch chan int) {
+    for {
+        wait := <-ch
+        wait++
+        time.Sleep(150 * time.Millisecond)
+        ch <- wait
+    }
+}
+
+func (m *Machine) UpdateVncHost() error {
+
+	var vnchost = make(map[string][]string)
+		host := []string{}
+		host = []string{m.VNCHost}
+	 vnchost[carton.VNCHOST] = host
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
+			return err
+		}
+		return nil
+}
+
+func (m *Machine) UpdateVncPort() error {
+
+	var vncport = make(map[string][]string)
+		port := []string{}
+		port = []string{m.VNCPort}
+	 vncport[carton.VNCPORT] = port
+		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+			return err
+		} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
+			return err
+		}
+		return nil
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
@@ -193,7 +270,8 @@ func (m *Machine) ChangeState(status utils.Status) error {
 
 //if there is a file or something to be created, do it here.
 func (m *Machine) Logs(p OneProvisioner, w io.Writer) error {
-	fmt.Fprintf(w, "\nlogs nirvana ! machine %s ", m.Name)
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("logs nirvana ! machine %s ", m.Name)))
 	return nil
 }
 
