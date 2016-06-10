@@ -52,3 +52,44 @@ func logs(w http.ResponseWriter, r *http.Request) error {
 
 	return nil
 }
+
+
+func vnc(w http.ResponseWriter, r *http.Request) error {
+	fmt.Println("*************************")
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Errorf("Error in socket connection")
+		return err
+	}
+
+	messageType, p, err := conn.ReadMessage()
+	fmt.Println("************type*******************")
+	fmt.Println(messageType)
+	fmt.Printf("%#v", messageType)
+
+	if err != nil {
+		return err
+	}
+
+	var entry provision.Box
+
+	_ = json.Unmarshal(p, &entry)
+
+	v, _ := provision.NewVNCListener(&entry)
+
+	go func() {
+		if _, _, err := conn.NextReader(); err != nil {
+			conn.Close()
+			//v.Close()
+			log.Debugf(cmd.Colorfy("  > [vnc] conn   ", "blue", "", "bold") + fmt.Sprintf("connection closed"))
+		}
+	}()
+
+	for vncbox := range v.B {
+		vncdata, _ := json.Marshal(vncbox)
+		conn.WriteMessage(messageType, vncdata)
+	}
+
+	return nil
+}
