@@ -2,9 +2,10 @@ package api
 
 import (
 	"net/http"
-
+	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/rs/cors"
+	"github.com/googollee/go-socket.io"
 )
 
 type MegdHandler struct {
@@ -28,6 +29,7 @@ func RegisterHandler(path string, method string, h http.Handler) {
 func NewNegHandler() *negroni.Negroni {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"*"},
+		AllowCredentials: true,
 	})
 
 	m := &delayedRouter{}
@@ -35,11 +37,22 @@ func NewNegHandler() *negroni.Negroni {
 		m.Add(handler.method, handler.path, handler.h)
 	}
 
+	server, err := socketio.NewServer(nil)
+    if err != nil {
+        fmt.Println(err)
+    }
+
 	m.Add("Get", "/", Handler(index))
-	m.Add("Get", "/logs", Handler(logs))
+	m.Add("Post", "/logs/", server)
+	m.Add("Get", "/logs/", server)
+	//m.Add("Get", "/logs", Handler(logs))
 	m.Add("Get", "/ping", Handler(ping))
-	//we can use this as a single click Terminal launch for docker.
-	//m.Add("Get", "/apps/{appname}/shell", websocket.Handler(remoteShellHandler))
+	//m.Add("Get", "/vnc/", server)
+	m.Add("Get", "/vnc/", Handler(vnc))
+
+  socketHandler(server)
+	//socketProcess(server)
+
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
 	n.Use(c)
