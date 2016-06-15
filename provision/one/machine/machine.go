@@ -306,3 +306,28 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 			}...)
 	*/
 }
+
+func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
+	log.Debugf("  removing machine in one (%s)", m.Name)
+	opts := compute.VirtualMachine{
+		Name: m.Name,
+	}
+
+	err := p.Cluster().SnapVMDisk(opts)
+
+	//time.Sleep(time.Second * 25)
+
+	var Wait int
+		ch := make(chan int)
+		for i := 0; i < 100; i++ {
+				go player(ch)
+		}
+		ch <- Wait
+		time.Sleep(45 * time.Second)
+		<-ch
+
+	if err != nil {
+		return err
+	}
+	return nil
+}

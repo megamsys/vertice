@@ -217,6 +217,38 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
+func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusSnapCreating,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&updateStatusInScylla,
+		&diskSaveAsImage,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := doneNotify(box, w, alerts.SNAPSHOTTING)
+	err = pipeline.Execute(args)
+	if err != nil {
+
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
+ 	err = doneNotify(box, w, alerts.SNAPSHOTTED)
+	return nil
+}
+
+
 func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto utils.Status) error {
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stateto %s", box.GetFullName())))

@@ -166,3 +166,25 @@ func (s StateupProcess) Process(ca Cartons) error {
 	}
 	return nil
 }
+
+
+// DiskSaveProcs represents a command for delete cartons.
+type DiskSaveProcess struct {
+	Name string
+}
+
+func (s DiskSaveProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DISKSAVEAS CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s DiskSaveProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.SaveImage(); err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -365,3 +365,7 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 func (p *dockerProvisioner) MetricEnvs(s, e int64, w io.Writer) ([]interface{}, error) {
 	return nil, nil
 }
+
+func (p *dockerProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
+	return nil
+}
