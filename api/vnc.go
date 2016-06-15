@@ -24,7 +24,6 @@ var upgrader = websocket.Upgrader{
 }
 
 func vnc(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println("-------------------------------------------")
   conn, err := upgrader.Upgrade(w, r, nil)
   if err != nil {
     log.Errorf("Error in socket connection")

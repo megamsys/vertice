@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/rs/cors"
-	"github.com/googollee/go-socket.io"
 )
 
 type MegdHandler struct {
@@ -43,15 +42,9 @@ func NewNegHandler() *negroni.Negroni {
     }
 
 	m.Add("Get", "/", Handler(index))
-	m.Add("Post", "/logs/", server)
-	m.Add("Get", "/logs/", server)
-	//m.Add("Get", "/logs", Handler(logs))
+	m.Add("Get", "/logs", Handler(logs))
 	m.Add("Get", "/ping", Handler(ping))
-	//m.Add("Get", "/vnc/", server)
 	m.Add("Get", "/vnc/", Handler(vnc))
-
-  socketHandler(server)
-	//socketProcess(server)
 
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
