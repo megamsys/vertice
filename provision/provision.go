@@ -123,6 +123,9 @@ type Provisioner interface {
 	// parameter represeting the name of the process to stop.
 	Stop(*Box, string, io.Writer) error
 
+	// DiskSave creates the image for current state of the running VM
+  SaveImage(*Box, io.Writer) error
+
 	// Open a remote shel in one of the boxs in the carton.
 	Shell(ShellOptions) error
 
