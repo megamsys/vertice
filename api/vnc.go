@@ -5,7 +5,6 @@ import (
 	"net/http"
   "fmt"
   log "github.com/Sirupsen/logrus"
-	"github.com/gorilla/websocket"
 	//"github.com/megamsys/libgo/cmd"
 	//"github.com/googollee/go-socket.io"
 	//"github.com/megamsys/vertice/govnc"
@@ -16,12 +15,6 @@ import (
 	return nil
 
 }*/
-
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  4096,
-	WriteBufferSize: 4096,
-	CheckOrigin:     func(r *http.Request) bool { return true },
-}
 
 func vnc(w http.ResponseWriter, r *http.Request) error {
   conn, err := upgrader.Upgrade(w, r, nil)

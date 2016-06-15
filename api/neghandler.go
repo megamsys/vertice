@@ -2,7 +2,7 @@ package api
 
 import (
 	"net/http"
-	"fmt"
+	//"fmt"
 	"github.com/codegangsta/negroni"
 	"github.com/rs/cors"
 )
@@ -35,11 +35,6 @@ func NewNegHandler() *negroni.Negroni {
 	for _, handler := range megdHandlerList {
 		m.Add(handler.method, handler.path, handler.h)
 	}
-
-	server, err := socketio.NewServer(nil)
-    if err != nil {
-        fmt.Println(err)
-    }
 
 	m.Add("Get", "/", Handler(index))
 	m.Add("Get", "/logs", Handler(logs))
