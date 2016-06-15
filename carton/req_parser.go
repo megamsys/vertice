@@ -40,6 +40,11 @@ var (
 	//the operation actions is just one called upgrade
 	OPERATIONS = "operations"
 	UPGRADE    = "upgrade"
+
+	//snapshot actions
+	SNAPSHOT   = "snapshot"
+	DISKSAVEAS = "disksaveas"
+
 )
 
 type ReqParser struct {
@@ -66,6 +71,8 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 		return p.parseControl(action)
 	case OPERATIONS:
 		return p.parseOperations(action)
+	case SNAPSHOT:
+		return p.parseSnapshot(action)
 	default:
 		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS})
 	}
@@ -124,6 +131,19 @@ func (p *ReqParser) parseOperations(action string) (MegdProcessor, error) {
 		return nil, newParseError([]string{OPERATIONS, action}, []string{UPGRADE})
 	}
 }
+
+
+func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
+	switch action {
+	case DISKSAVEAS:
+		return DiskSaveProcess{
+			Name: p.name,
+		}, nil
+	default:
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{DISKSAVEAS})
+	}
+}
+
 
 // ParseError represents an error that occurred during parsing.
 type ParseError struct {
