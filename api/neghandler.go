@@ -1,10 +1,13 @@
 package api
 
 import (
-	"net/http"
-	//"fmt"
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/negroni"
+	"github.com/googollee/go-socket.io"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/rs/cors"
+	"net/http"
 )
 
 type MegdHandler struct {
@@ -27,7 +30,7 @@ func RegisterHandler(path string, method string, h http.Handler) {
 // RunServer starts vertice httpd server.
 func NewNegHandler() *negroni.Negroni {
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
+		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 	})
 
@@ -36,10 +39,19 @@ func NewNegHandler() *negroni.Negroni {
 		m.Add(handler.method, handler.path, handler.h)
 	}
 
+	socketServer, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Debugf(cmd.Colorfy("  > [socket] ", "red", "", "bold") + fmt.Sprintf("Error starting socket server : %v", err))
+	}
+
 	m.Add("Get", "/", Handler(index))
-	m.Add("Get", "/logs", Handler(logs))
+	//m.Add("Get", "/logs", Handler(logs))
+	m.Add("Post", "/logs/", socketServer)
+	m.Add("Get", "/logs/", socketServer)
 	m.Add("Get", "/ping", Handler(ping))
 	m.Add("Get", "/vnc/", Handler(vnc))
+
+	socketHandler(socketServer)
 
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
