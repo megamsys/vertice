@@ -482,3 +482,31 @@ var rollbackNotice = func(ctx action.FWContext, err error) {
 
 	}
 }
+
+var diskSaveAsImage = action.Action{
+	Name: "disk-saveas-image",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  creating snapshot machine %s ----", mach.Name)))
+		err := mach.CreateDiskSnap(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+
+		mach.Status = constants.StatusSnapCreated
+
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" creating snapshot machine (%s, %s) OK", mach.Id, mach.Name)))
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}

@@ -124,7 +124,7 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc) ( string, string, error) {
 	res, err := opts.GetVm()
 	 vnchost = res.GetHostIp()
 	 vncport = res.GetPort()
-	 
+
 	if err != nil {
 		return "", "", wrapErrorWithCmd(node, err, "createVM")
 	}
@@ -247,4 +247,28 @@ func (c *Cluster) getNodeByAddr(addr string) (node, error) {
 	return c.getNode(func(s Storage) (Node, error) {
 		return s.RetrieveNode(addr)
 	})
+}
+
+func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
+	var (
+		addr string
+	)
+	nodlist, err := c.Nodes()
+	if err != nil || len(nodlist) <= 0 {
+		return fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	} else {
+		addr = nodlist[0].Address
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	opts.T = node.Client
+
+	_, err = opts.DiskSnap()
+	if err != nil {
+		return wrapError(node, err)
+	}
+	return nil
 }

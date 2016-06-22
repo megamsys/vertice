@@ -45,7 +45,8 @@ func (cy *LifecycleOpts) canCycle() bool {
 	return cy.B.Status == constants.StatusRunning ||
 		cy.B.Status == constants.StatusStarted ||
 		cy.B.Status == constants.StatusStopped ||
-		cy.B.Status == constants.StatusUpgraded
+		cy.B.Status == constants.StatusUpgraded ||
+		cy.B.Status == constants.StatusSnapCreated 
 }
 
 // Starts  the box.

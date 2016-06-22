@@ -21,6 +21,7 @@ type Carton struct {
 	DomainName   string
 	Provider     string
 	PublicIp     string
+	VMId         string
 	Boxes        *[]provision.Box
 	Status       utils.Status
 }
@@ -156,6 +157,17 @@ func (c *Carton) Restart() error {
 		err := Restart(&LifecycleOpts{B: &box})
 		if err != nil {
 			log.Errorf("Unable to restart the box %s", err)
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskSave a carton, which creates an image by current state of its box.
+func (c *Carton) SaveImage() error {
+	for _, box := range *c.Boxes {
+		err := SaveImage(&DiskSaveOpts{B: &box})
+		if err != nil {
 			return err
 		}
 	}
