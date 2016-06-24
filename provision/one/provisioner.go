@@ -23,7 +23,7 @@ import (
 	"strings"
 	"text/tabwriter"
 	"time"
-	//"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
@@ -54,6 +54,36 @@ type oneProvisioner struct {
 	storage      cluster.Storage
 }
 
+
+type One struct {
+Enabled bool    `json:"enabled" toml:"enabled"`
+Regions []Region `json:"region" toml:"region"`
+Image          string `json:"image" toml:"image"`
+VCPUPercentage string `json:"vcpu_percentage" toml:"vcpu_percentage"`
+OneTemplate    string `json:"one_template" toml:"one_template"`
+}
+
+type Region struct {
+OneZone     string `json:"one_zone" toml:"one_zone"`
+OneEndPoint    string `json:"one_endpoint" toml:"one_endpoint"`
+OneUserid        string `json:"one_user" toml:"one_user"`
+OnePassword    string `json:"one_password" toml:"one_password"`
+OneTemplate    string `json:"one_template" toml:"one_template"`
+Image       string `json:"image" toml:"image"`
+VCPUPercentage string `json:"vcpu_percentage" toml:"vcpu_percentage"`
+Certificate string `json:"certificate" toml:"certificate"`
+Clusters []Cluster      `json:"cluster" toml:"cluster"`
+}
+
+type Cluster struct {
+Enabled bool    `json:"enabled" toml:"enabled"`
+ClusterId string  `json:"cluster_id" toml:"cluster_id"`
+Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
+Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
+Vnet_pri_ipv6 string `json:"vnet_pri_ipv6" toml:"vnet_pri_ipv6"`
+Vnet_pub_ipv6 string `json:"vnet_pub_ipv6" toml:"vnet_pub_ipv6"`
+}
+
 func (p *oneProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
 		panic("✗ one cluster")
@@ -68,11 +98,11 @@ func (p *oneProvisioner) String() string {
 	return "ready"
 }
 
-func (p *oneProvisioner) Initialize(m map[string]string, b map[string]string) error {
+func (p *oneProvisioner) Initialize(m interface{}, b map[string]string) error {
 	return p.initOneCluster(m)
 }
 
-func (p *oneProvisioner) initOneCluster(m map[string]string) error {
+func (p *oneProvisioner) initOneCluster(i interface{}) error {
 	var err error
 	if p.storage == nil {
 		p.storage, err = buildClusterStorage()
@@ -80,20 +110,61 @@ func (p *oneProvisioner) initOneCluster(m map[string]string) error {
 			return err
 		}
 	}
-	p.defaultImage = m[api.IMAGE]
-	p.vcpuThrottle = m[api.VCPU_PERCENTAGE]
-	var nodes []cluster.Node = []cluster.Node{cluster.Node{
-		Address:  m[api.ENDPOINT],
-		Metadata: m,
-	},
+
+  if w, ok := i.(One); ok {
+	var nodes  []cluster.Node
+	p.defaultImage = w.Image
+	p.vcpuThrottle = w.VCPUPercentage
+	for i:= 0; i < len(w.Regions); i++ {
+		m := w.Regions[i].toMap()
+		c := w.Regions[i].toClusterMap()
+		n := cluster.Node{
+			Address:  m[api.ENDPOINT],
+			Metadata: m,
+			Clusters: c,
+		}
+		nodes = append(nodes ,n)
 	}
-	//register nodes using the map.
+
+ //register nodes using the map.
 	p.cluster, err = cluster.New(p.storage, nodes...)
 	if err != nil {
 		return err
 	}
+ }
 	return nil
 }
+
+//convert the config to just a map.
+func (c Region) toMap() map[string]string {
+	m := make(map[string]string)
+	m[api.ONEZONE] = c.OneZone
+	m[api.ENDPOINT] = c.OneEndPoint
+	m[api.USERID] = c.OneUserid
+	m[api.PASSWORD] = c.OnePassword
+	m[api.TEMPLATE] = c.OneTemplate
+	m[api.IMAGE] = c.Image
+	m[api.VCPU_PERCENTAGE] = c.VCPUPercentage
+	return m
+}
+
+func (c Region) toClusterMap() map[string]map[string]string {
+	clData := make(map[string]map[string]string)
+	for i:= 0; i < len(c.Clusters); i++ {
+		mm, ok := clData[c.Clusters[i].ClusterId]
+		if !ok {
+	  mm = make(map[string]string)
+	  mm[utils.IPV4PRI] = c.Clusters[i].Vnet_pri_ipv4
+		mm[utils.IPV4PUB] = c.Clusters[i].Vnet_pub_ipv4
+		mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
+		mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
+	  clData[c.Clusters[i].ClusterId] = mm
+   }
+  }
+
+	return clData
+}
+
 
 func buildClusterStorage() (cluster.Storage, error) {
 	return &cluster.MapStorage{}, nil

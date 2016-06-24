@@ -38,6 +38,7 @@ type OneProvisioner interface {
 
 type Machine struct {
 	Name       string
+	Region     string
 	Id         string
 	CartonId   string
 	AccountsId string
@@ -62,24 +63,22 @@ type CreateArgs struct {
 
 
 func (m *Machine) Create(args *CreateArgs) error {
-	log.Infof("  creating machine in one (%s, %s)", m.Name, m.Image)
-ThrottleFactor, _  := strconv.Atoi(m.VCPUThrottle)
-cpuThrottleFactor :=float64(ThrottleFactor)
-res := strconv.FormatInt(int64(args.Box.GetCpushare()), 10)
-ICpu, _ := strconv.Atoi(res)
-throttle := float64(ICpu)
-realCPU :=throttle/cpuThrottleFactor
-opts := compute.VirtualMachine{
+	fmt.Println(args.Box.Compute.HDD)
+
+ opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
-		Cpu:     strconv.FormatFloat(realCPU, 'f', 6, 64),//ugly, compute has the info.
+		Region: args.Box.Region,
+		Cpu: strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
-			compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		Vnets: args.Box.Vnets,
 		}
+  fmt.Println(opts.HDD)
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
- _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts)
+ _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
 	if err != nil {
 		return err
 	}
@@ -113,7 +112,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
    opts := virtualmachine.Vnc {
 		VmId:   m.VMId,
 			}
- 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts)
+ 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts,m.Region)
 	if err != nil {
 		return err
 	}
@@ -163,6 +162,7 @@ func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
+		Region: m.Region,
 	}
 
 	err := p.Cluster().DestroyVM(opts)
@@ -206,6 +206,7 @@ func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
+		Region: m.Region,
 	}
 	err := p.Cluster().VM(opts, action)
 	if err != nil {
@@ -308,9 +309,10 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 }
 
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
-	log.Debugf("  removing machine in one (%s)", m.Name)
+	log.Debugf("  creating snap machine in one (%s)", m.Name)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
+		Region: m.Region,
 	}
 
 	err := p.Cluster().SnapVMDisk(opts)

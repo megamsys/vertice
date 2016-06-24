@@ -126,6 +126,9 @@ type Box struct {
 	Status       utils.Status
 	Provider     string
 	PublicIp     string
+	VMId         string
+	Region       string
+	Vnets        map[string]string
 	SSH          BoxSSH
 	Commit       string
 	Envs         []bind.EnvVar

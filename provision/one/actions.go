@@ -69,6 +69,7 @@ var updateStatusInScylla = action.Action{
 				Name:       args.box.GetFullName(),
 				Status:     args.machineStatus,
 				Image:      args.imageId,
+				Region:     args.box.Region,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
 			}
 		}

@@ -13,6 +13,7 @@ type Node struct {
 	Address        string `json:"_id"`
 	Healing        HealingData
 	Metadata       map[string]string
+	Clusters       map[string]map[string]string
 	CreationStatus string
 }
 

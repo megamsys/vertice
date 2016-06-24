@@ -50,6 +50,11 @@ func NewServer(c *Config, version string) (*Server, error) {
 }
 
 func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {
+	e := *d
+	if !e.One.Enabled {
+		log.Warn("skip oned service.")
+		return
+	}
 	srv := deployd.NewService(c, d)
 	s.Services = append(s.Services, srv)
 }

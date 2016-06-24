@@ -46,7 +46,7 @@ func (cy *LifecycleOpts) canCycle() bool {
 		cy.B.Status == constants.StatusStarted ||
 		cy.B.Status == constants.StatusStopped ||
 		cy.B.Status == constants.StatusUpgraded ||
-		cy.B.Status == constants.StatusSnapCreated 
+		cy.B.Status == constants.StatusSnapCreated
 }
 
 // Starts  the box.
@@ -58,6 +58,8 @@ func Start(cy *LifecycleOpts) error {
 		if err := ProvisionerMap[cy.B.Provider].Start(cy.B, "", cy.writer); err != nil {
 			return err
 		}
+	} else {
+		fmt.Fprintf(cy.writer, "    start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    start (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil
@@ -72,6 +74,8 @@ func Stop(cy *LifecycleOpts) error {
 		if err := ProvisionerMap[cy.B.Provider].Stop(cy.B, "", cy.writer); err != nil {
 			return err
 		}
+	} else {
+		fmt.Fprintf(cy.writer, "    start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    stop (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil
@@ -86,6 +90,8 @@ func Restart(cy *LifecycleOpts) error {
 		if err := ProvisionerMap[cy.B.Provider].Restart(cy.B, "", cy.writer); err != nil {
 			return err
 		}
+	} else {
+		fmt.Fprintf(cy.writer, "    restart (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    restart (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil
