@@ -19,7 +19,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"fmt"
 
 	"github.com/pivotal-golang/bytefmt"
 )
@@ -77,6 +76,7 @@ func (bc *BoxCompute) numSwap() uint64 {
 func (bc *BoxCompute) trimHDD() string {
 	sataRegex := regexp.MustCompile("[Ss][aA][Tt][aA].*")
 	ssdRegex := regexp.MustCompile("[Ss][sS][dD].*")
+
 	var hddTrim = ""
 	if len(sataRegex.FindStringSubmatch(bc.HDD)) > 0 {
 		hddTrim = strings.TrimSpace(sataRegex.ReplaceAllString(bc.HDD, ""))
@@ -89,7 +89,7 @@ func (bc *BoxCompute) trimHDD() string {
 }
 
 func (bc *BoxCompute) numHDD() uint64 {
-	if cp, err := bytefmt.ToMegabytes(bc.trimHDD()); err != nil {
+	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.HDD, " ", "", -1)); err != nil {
 		return 10240
 	} else {
 		return cp

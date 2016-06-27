@@ -63,7 +63,6 @@ type CreateArgs struct {
 
 
 func (m *Machine) Create(args *CreateArgs) error {
-	fmt.Println(args.Box.Compute.HDD)
 
  opts := compute.VirtualMachine{
 		Name:   m.Name,
@@ -76,7 +75,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		compute.ASSEMBLIES_ID: args.Box.CartonsId},
 		Vnets: args.Box.Vnets,
 		}
-  fmt.Println(opts.HDD)
+
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
  _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
 	if err != nil {
@@ -204,9 +203,11 @@ func (m *Machine) Deduct() error {
 
 func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
+	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
 		Region: m.Region,
+		VMId: id,
 	}
 	err := p.Cluster().VM(opts, action)
 	if err != nil {

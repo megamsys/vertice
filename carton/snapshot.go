@@ -8,7 +8,6 @@ import (
 		"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"strings"
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io"
 	"time"
