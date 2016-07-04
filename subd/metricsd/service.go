@@ -68,7 +68,7 @@ func (s *Service) runMetricsCollectors() error {
 	}
 
 	collectors := map[string]metrix.MetricCollector{
-		metrix.OPENNEBULA: &metrix.OpenNebula{Url: s.Deployd.OneEndPoint},
+		metrix.OPENNEBULA: &metrix.OpenNebula{Url: s.Deployd.One.Regions[0].OneEndPoint},
 	}
 
 	mh := &metrix.MetricHandler{}

@@ -35,9 +35,10 @@ import (
 const (
 	ASSEMBLYBUCKET = "assembly"
 	SSHKEY         = "sshkey"
-	VNCPORT       = "vncport"
-	VNCHOST       = "vnchost"
-	VMID         =  "vmid"
+	VNCPORT        = "vncport"
+	VNCHOST        = "vnchost"
+	VMID           = "vmid"
+	REGION         = "region"
 )
 
 type Policy struct {
@@ -109,6 +110,9 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		SSH:          a.newSSH(),
 		Provider:     a.provider(),
 		PublicIp:     a.publicIp(),
+		Region:       a.region(),
+		Vnets:        a.vnets(),
+		VMId:         a.vmId(),
 		//VncHost:      a.vncHost(),
 		//VncPort:      a.vncPort(),
 		Boxes:        &b,
@@ -333,6 +337,31 @@ func (a *Assembly) domain() string {
 
 func (a *Assembly) provider() string {
 	return a.Inputs.Match(utils.PROVIDER)
+}
+
+func (a *Assembly) region() string {
+	return a.Inputs.Match(REGION)
+}
+
+func (a *Assembly) vnets() map[string]string {
+	v := make(map[string]string)
+	v[utils.IPV4PUB]        = "true"
+	v[utils.IPV4PRI]        = a.ipv4Pri()
+	v[utils.IPV6PRI]				= a.ipv6Pub()
+	v[utils.IPV6PUB]        = a.ipv6Pri()
+  return v
+}
+
+func (a *Assembly) ipv4Pri() string {
+	return a.Inputs.Match(utils.IPV4PRI)
+}
+
+func (a *Assembly) ipv6Pri() string {
+	return a.Inputs.Match(utils.IPV6PRI)
+}
+
+func (a *Assembly) ipv6Pub() string {
+	return a.Inputs.Match(utils.IPV6PUB)
 }
 
 func (a *Assembly) publicIp() string {

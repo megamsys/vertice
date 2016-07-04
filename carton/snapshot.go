@@ -8,7 +8,6 @@ import (
 		"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"strings"
-	"fmt"
 	"gopkg.in/yaml.v2"
 	"io"
 	"time"
@@ -22,17 +21,17 @@ type DiskSaveOpts struct {
 type Snaps struct {
 	Id          string   `json:"snap_id" cql:"snap_id"`
 	OrgId       string   `json:"org_id" cql:"org_id"`
-	AccountId    string   `json:"account_id" cql:"account_id"`
+	AccountId   string   `json:"account_id" cql:"account_id"`
 	Name        string   `json:"name" cql:"name"`
-	AssemblyId  string `json:"asm_id" cql:"asm_id"`
-	Date        string   `json:"created_at" cql:"date"`
+	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
+	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
+	CreatedAt   string   `json:"created_at" cql:"created_at"`
 }
 
 func (a *Snaps) String() string {
 	if d, err := yaml.Marshal(a); err != nil {
 		return err.Error()
 	} else {
-		fmt.Println(string(d))
 		return string(d)
 	}
 }
@@ -66,7 +65,7 @@ func GetSnap(id string) (*Snaps, error) {
 	a := &Snaps{}
 	//ops := vdb.ScyllaOptions("snapshot", []string{"Snap_Id"}, []string{"org_id"}, map[string]string{"Id": id, "org_id":"ORG123"})
 	ops := ldb.Options{
-		TableName:   "snapshot",
+		TableName:   "snapshots",
 		Pks:         []string{"snap_id"},
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,

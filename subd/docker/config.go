@@ -89,3 +89,7 @@ func (c Config) toMap() map[string]string {
 	m[docker.DOCKER_CPUQUOTA] = c.CPUQuota.String()
 	return m
 }
+
+func (c Config) toInterface() interface{} {
+	return c.toMap()
+}

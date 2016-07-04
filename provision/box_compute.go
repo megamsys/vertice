@@ -45,7 +45,6 @@ func (bc *BoxCompute) numCpushare() uint64 {
 	if cs, err := strconv.ParseUint(bc.trimCore(), 10, 64); err != nil {
 		return 0
 	} else {
-
 		return cs
 	}
 }
@@ -90,8 +89,8 @@ func (bc *BoxCompute) trimHDD() string {
 }
 
 func (bc *BoxCompute) numHDD() uint64 {
-	if cp, err := bytefmt.ToMegabytes(bc.trimHDD()); err != nil {
-		return 10
+	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.HDD, " ", "", -1)); err != nil {
+		return 10240
 	} else {
 		return cp
 	}
