@@ -8,6 +8,7 @@ import (
 type Bridges []Bridge
 
 type Bridge struct {
+	Type string
 	Name    string
 	Network string
 	Gateway string

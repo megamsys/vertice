@@ -23,6 +23,7 @@ import (
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
 	_ "github.com/megamsys/vertice/router/route53"
+	"github.com/megamsys/vertice/toml"
 )
 
 var mainDockerProvisioner *dockerProvisioner
@@ -36,6 +37,27 @@ type dockerProvisioner struct {
 	cluster        *cluster.Cluster
 	collectionName string
 	storage        cluster.Storage
+}
+type Docker struct {
+	Enabled bool     `json:"enabled" toml:"enabled"`
+	Regions []Region `json:"region" toml:"region"`
+}
+
+type Region struct {
+	DockerZone     string        `json:"docker_zone" toml:"docker_zone"`
+	SwarmEndPoint  string        `json:"swarm" toml:"swarm"`
+	DockerGulpPort string        `json:"gulp_port" toml:"gulp_port"`
+	Registry       string        `toml:"registry"`
+	CPUPeriod      toml.Duration `toml:"cpu_period"`
+	CPUQuota       toml.Duration `toml:"cpu_quota"`
+	Bridges        []Bridge      `json:"cluster" toml:"bridges"`
+}
+
+type Bridge struct {
+	Type    string `json:"type" toml:"type"`
+	Name    string `json:"name" toml:"name"`
+	Network string `json:"network" toml:"network"`
+	Gateway string `json:"gateway" toml:"gateway"`
 }
 
 func (p *dockerProvisioner) Cluster() *cluster.Cluster {
@@ -52,11 +74,11 @@ func (p *dockerProvisioner) String() string {
 	return "ready"
 }
 
-func (p *dockerProvisioner) Initialize(m map[string]string, b map[string]string) error {
-	return p.initDockerCluster(m, b)
+func (p *dockerProvisioner) Initialize(m interface{}) error {
+	return p.initDockerCluster(m)
 }
 
-func (p *dockerProvisioner) initDockerCluster(m map[string]string, b map[string]string) error {
+func (p *dockerProvisioner) initDockerCluster(i interface{}) error {
 	var err error
 	if p.storage == nil {
 		p.storage, err = buildClusterStorage()
@@ -64,32 +86,55 @@ func (p *dockerProvisioner) initDockerCluster(m map[string]string, b map[string]
 			return err
 		}
 	}
+	if w, ok := i.(Docker); ok {
+		var nodes []cluster.Node
+		for i := 0; i < len(w.Regions); i++ {
+			m := w.Regions[i].toMap()
+			c := w.Regions[i].toBridgesMap()
+			n := cluster.Node{
+				Address:  m[cluster.DOCKER_SWARM], //swarm endpoint
+				Metadata: m,
+				Bridges:  c,
+			}
+			nodes = append(nodes, n)
+		}
 
-	var bridges []cluster.Bridge = []cluster.Bridge{
-		cluster.Bridge{
-			Name:    b[BRIDGE_NAME],
-			Network: b[BRIDGE_NETWORK],
-			Gateway: b[BRIDGE_GATEWAY],
-		},
-	}
-
-	var nodes []cluster.Node = []cluster.Node{
-		cluster.Node{
-			Address:  m[DOCKER_SWARM], //swarm endpoint
-			Metadata: m,
-		},
-	}
-
-	var gulp cluster.Gulp = cluster.Gulp{
-		Port: m[DOCKER_GULP],
-	}
-
-	//register nodes using the map.
-	p.cluster, err = cluster.New(p.storage, gulp, bridges, nodes...)
-	if err != nil {
-		return err
+		//register nodes using the map.
+		p.cluster, err = cluster.New(p.storage, nodes...)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+//convert the config to just a map.
+
+func (c Region) toMap() map[string]string {
+	m := make(map[string]string)
+	m[cluster.DOCKER_ZONE] = c.DockerZone
+	m[cluster.DOCKER_SWARM] = c.SwarmEndPoint
+	m[cluster.DOCKER_GULP] = c.DockerGulpPort
+	m[cluster.DOCKER_REGISTRY] = c.Registry
+	m[cluster.DOCKER_CPUPERIOD] = c.CPUPeriod.String()
+	m[cluster.DOCKER_CPUQUOTA] = c.CPUQuota.String()
+	return m
+}
+
+func (c Region) toBridgesMap() map[string]map[string]string {
+	brData := make(map[string]map[string]string)
+	for i := 0; i < len(c.Bridges); i++ {
+		mm, ok := brData[c.Bridges[i].Type]
+		if !ok {
+			mm = make(map[string]string)
+			mm[cluster.BRIDGE_NAME] = c.Bridges[i].Name
+			mm[cluster.BRIDGE_NETWORK] = c.Bridges[i].Network
+			mm[cluster.BRIDGE_GATEWAY] = c.Bridges[i].Gateway
+			brData[c.Bridges[i].Type] = mm
+		}
+	}
+
+	return brData
 }
 
 func buildClusterStorage() (cluster.Storage, error) {
@@ -161,6 +206,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		containerStatus: constants.StatusLaunching,
 		provisioner:     p,
 	}
+	fmt.Println(args)
 	err := pipeline.Execute(args)
 	if err != nil {
 

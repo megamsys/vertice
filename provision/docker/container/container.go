@@ -47,6 +47,7 @@ type Container struct {
 	LastSuccessStatusUpdate time.Time
 	LockedUntil             time.Time
 	Routable                bool
+	Region                  string
 }
 
 func (c *Container) ShortId() string {
@@ -85,10 +86,10 @@ func (c *Container) Create(args *CreateArgs) error {
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
 	}
-
-	//c.addEnvsToConfig(args, &config)
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
-	addr, cont, err := args.Provisioner.Cluster().CreateContainerSchedulerOpts(opts)
+	cl := args.Provisioner.Cluster()
+	cl.Region = args.Box.Region
+	addr, cont, err := cl.CreateContainerSchedulerOpts(opts)
 	if err != nil {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
@@ -251,8 +252,9 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-
-	ip, gateway, bridge, err := p.Cluster().GetIP() //gets the IP
+	cl := p.Cluster()
+	cl.Region = c.Region
+	ip, gateway, bridge, err := cl.GetIP() //gets the IP
 	if err != nil {
 		return netInfo, err
 	}

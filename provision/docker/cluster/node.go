@@ -14,6 +14,7 @@ type Node struct {
 	Address        string
 	Healing        HealingData
 	Metadata       map[string]string
+	Bridges        map[string]map[string]string
 	CreationStatus string
 }
 

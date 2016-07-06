@@ -4,13 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
+	"github.com/fsouza/go-dockerclient"
 	"math/rand"
 	"net"
 	"net/url"
 	"sync"
-
-	log "github.com/Sirupsen/logrus"
-	"github.com/fsouza/go-dockerclient"
 )
 
 type Container struct {
@@ -38,7 +37,11 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
 		nodes, err := c.Nodes()
-		addr = nodes[0].Address
+		for _, v := range nodes {
+			if v.Metadata[DOCKER_ZONE] == c.Region {
+				addr = v.Address
+			}
+		}
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
@@ -66,7 +69,7 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 	if err != nil {
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
-		err = c.storage().StoreContainer(container.ID, addr)
+	err = c.storage().StoreContainer(container.ID, addr)
 	err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }
@@ -90,11 +93,32 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 }
 
 func (c *Cluster) GetIP() (net.IP, string, string, error) {
-	var ip net.IP
-	var gateway string
-	var ind uint
-	var bridge string
-
+	var (
+		ip      net.IP
+		gateway string
+		ind     uint
+		bridge  string
+	)
+	nodlist, _ := c.Nodes()
+	br := make(map[string]string)
+	for _, v := range nodlist {
+		if v.Metadata[DOCKER_ZONE] == c.Region {
+			for k, _ := range v.Bridges {
+				for i, j := range v.Bridges[k] {
+					br[i] = j
+				}
+			}
+		}
+	}
+	var bridges []Bridge
+	br1 := Bridge{
+		Type:    br[BRIDGE_TYPE],
+		Name:    br[BRIDGE_NAME],
+		Network: br[BRIDGE_NETWORK],
+		Gateway: br[BRIDGE_GATEWAY],
+	}
+	bridges = append(bridges, br1)
+	c.bridges = bridges
 	for _, b := range c.bridges {
 		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
 		ind = uint(rand.Intn(1000))
@@ -130,7 +154,9 @@ func (c *Cluster) KillContainer(opts docker.KillContainerOptions) error {
 // ListContainers returns a slice of all containers in the cluster matching the
 // given criteria.
 func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.APIContainers, error) {
+	var addr string
 	nodes, err := c.Nodes()
+	fmt.Println(c.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -138,8 +164,11 @@ func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.AP
 	result := make(chan []docker.APIContainers, len(nodes))
 	errs := make(chan error, len(nodes))
 	for _, n := range nodes {
+		if n.Metadata[DOCKER_ZONE] == c.Region {
+			addr = n.Address
+		}
 		wg.Add(1)
-		client, _ := c.getNodeByAddr(n.Address)
+		client, _ := c.getNodeByAddr(addr)
 		go func(n node) {
 			defer wg.Done()
 			if containers, err := n.ListContainers(opts); err != nil {
@@ -314,9 +343,10 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 }
 
 func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string, cartonId string) error {
+	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway, CartonId: cartonId }
-	err := client.NetworkRequest(container.Node.IP, c.gulp.Port)
+	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway, CartonId: cartonId}
+	err := client.NetworkRequest(container.Node.IP, port)
 	if err != nil {
 		return err
 	}
@@ -324,10 +354,11 @@ func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string
 }
 
 func (c *Cluster) SetLogs(containerId string, containerName string) error {
+	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
 	client := DockerClient{ContainerId: containerId, ContainerName: containerName}
 
-	client.LogsRequest(container.Node.IP, c.gulp.Port)
+	client.LogsRequest(container.Node.IP, port)
 	return nil
 }
 
@@ -377,4 +408,14 @@ func (c *Cluster) InspectExec(execId, containerId string) (*docker.ExecInspect, 
 		return nil, wrapError(node, err)
 	}
 	return execInspect, nil
+}
+func (c *Cluster) GulpPort() string {
+	var gulpPort string
+	nodes, _ := c.Nodes()
+	for _, v := range nodes {
+		if v.Metadata[DOCKER_ZONE] == c.Region {
+			gulpPort = v.Metadata[DOCKER_GULP]
+		}
+	}
+	return gulpPort
 }

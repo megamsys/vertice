@@ -1,5 +1,5 @@
 package docker
-
+/*
 import (
 	"github.com/BurntSushi/toml"
 	"gopkg.in/check.v1"
@@ -19,3 +19,4 @@ func (s *S) TestDockerConfig_Parse(c *check.C) {
 
 	c.Assert(cm.Swarm, check.Equals, "http://192.168.1.241:2375")
 }
+*/

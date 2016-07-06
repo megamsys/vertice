@@ -128,14 +128,12 @@ var updateStatusInScylla = action.Action{
 	},
 }
 
-
 var createContainer = action.Action{
 	Name: "create-container",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		log.Debugf("  create container for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)
-
 		err := cont.Create(&container.CreateArgs{
 			ImageId:     args.imageId,
 			Box:         args.box,
@@ -321,7 +319,7 @@ var addNewRoute = action.Action{
 			}
 			c.Routable = true
 			toRollback <- c
-			
+
 			fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---> Added route to container (%s,%s)", c.BoxName, c.ShortId())))
 			return nil
 		}, func(c *container.Container) {
