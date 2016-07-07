@@ -12,6 +12,22 @@ import (
 	"github.com/fsouza/go-dockerclient"
 )
 
+const (
+	DOCKER_REGISTRY  = "registry"
+	DOCKER_ZONE      = "region"
+	DOCKER_SWARM     = "swarm"
+	DOCKER_GULP      = "gulp_port"
+	DOCKER_MEMSIZE   = "mem"
+	DOCKER_SWAPSIZE  = "swap"
+	DOCKER_CPUPERIOD = "cpuperiod"
+	DOCKER_CPUQUOTA  = "cpuquota"
+
+	BRIDGE_NAME    = "name"
+	BRIDGE_NETWORK = "network"
+	BRIDGE_GATEWAY = "gateway"
+	BRIDGE_CLUSTER    = "cluster_id"
+)
+
 var (
 	errStorageMandatory = errors.New("Storage parameter is mandatory")
 	errHealerInProgress = errors.New("Healer already running")
@@ -80,6 +96,7 @@ type Cluster struct {
 	bridges        Bridges
 	gulp           Gulp
 	monitoringDone chan bool
+	Region         string
 }
 
 type DockerNodeError struct {
@@ -118,7 +135,7 @@ func wrapErrorWithCmd(n node, err error, cmd string) error {
 // The scheduler parameter defines the scheduling strategy. It defaults
 // to round robin if nil.
 // The storage parameter is the storage the cluster instance will use.
-func New(storage Storage, gulp Gulp, bridges []Bridge, nodes ...Node) (*Cluster, error) {
+func New(storage Storage, nodes ...Node) (*Cluster, error) {
 	var (
 		c   Cluster
 		err error
@@ -127,8 +144,8 @@ func New(storage Storage, gulp Gulp, bridges []Bridge, nodes ...Node) (*Cluster,
 		return nil, errStorageMandatory
 	}
 	c.stor = storage
-	c.bridges = bridges
-	c.gulp = gulp
+	//	c.bridges = bridges
+	//	c.gulp = gulp
 	c.Healer = DefaultHealer{}
 
 	if len(nodes) > 0 {

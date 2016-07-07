@@ -56,8 +56,10 @@ func (s *Service) Open() error {
 		nsq.Start(true)
 		return nil
 	}()
-	if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
-		return err
+	if s.Deployd.One.Enabled {
+		if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -98,9 +100,9 @@ func (s *Service) setProvisioner(pt string) error {
 		return err
 	}
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
-	var b map[string]string
+
 	if initializableProvisioner, ok := tempProv.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Deployd.toMap(), b)
+		err = initializableProvisioner.Initialize(s.Deployd.toInterface())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
 		} else {

@@ -42,7 +42,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
-	s.appendDockerService(c.Meta, c.Docker, c.Bridges)
+	s.appendDockerService(c.Meta, c.Docker)
 	s.appendMetricsdService(c.Meta, c.Deployd, c.Metrics)
 	s.appendEventsdService(c.Meta, c.Events)
 	s.selfieDNS(c.DNS)
@@ -50,6 +50,11 @@ func NewServer(c *Config, version string) (*Server, error) {
 }
 
 func (s *Server) appendDeploydService(c *meta.Config, d *deployd.Config) {
+	e := *d
+	if !e.One.Enabled {
+		log.Warn("skip oned service.")
+		return
+	}
 	srv := deployd.NewService(c, d)
 	s.Services = append(s.Services, srv)
 }
@@ -64,12 +69,13 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 	s.Services = append(s.Services, srv)
 }
 
-func (s *Server) appendDockerService(c *meta.Config, d *docker.Config, b *docker.Bridges) {
-	if !d.Enabled {
+func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
+         e := *d
+	if !e.Docker.Enabled {
 		log.Warn("skip dockerd service.")
 		return
 	}
-	srv := docker.NewService(c, d, b)
+	srv := docker.NewService(c, d)
 	s.Services = append(s.Services, srv)
 }
 
