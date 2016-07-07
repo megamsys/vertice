@@ -1,0 +1,1 @@
+{"topics":[{"channels":[{"name":"engine","paused":false}],"name":"vms","paused":false},{"channels":[],"name":"events","paused":false},{"channels":[],"name":"testing","paused":false},{"channels":[{"name":"clients","paused":false}],"name":"hubsher_log","paused":false}],"version":"0.3.7"}
