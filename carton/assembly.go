@@ -146,6 +146,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				}
 				b.Compute = a.newCompute()
 				b.SSH = a.newSSH()
+				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
 				newBoxs = append(newBoxs, b)
 			}

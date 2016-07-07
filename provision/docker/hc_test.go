@@ -1,5 +1,5 @@
 package docker
-
+/*
 import (
 	"net/http"
 	"net/http/httptest"
@@ -66,3 +66,4 @@ func (s *S) TestHealthCheckDockerFailure(c *check.C) {
 	c.Assert(err, check.NotNil)
 	c.Assert(err.Error(), check.Equals, "ping failed - API error (500): something went wrong")
 }
+*/
