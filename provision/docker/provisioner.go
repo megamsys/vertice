@@ -54,7 +54,7 @@ type Region struct {
 }
 
 type Bridge struct {
-	Type    string `json:"type" toml:"type"`
+	ClusterId    string `json:"cluster_id" toml:"cluster_id"`
 	Name    string `json:"name" toml:"name"`
 	Network string `json:"network" toml:"network"`
 	Gateway string `json:"gateway" toml:"gateway"`
@@ -124,16 +124,15 @@ func (c Region) toMap() map[string]string {
 func (c Region) toBridgesMap() map[string]map[string]string {
 	brData := make(map[string]map[string]string)
 	for i := 0; i < len(c.Bridges); i++ {
-		mm, ok := brData[c.Bridges[i].Type]
+		mm, ok := brData[c.Bridges[i].ClusterId]
 		if !ok {
 			mm = make(map[string]string)
 			mm[cluster.BRIDGE_NAME] = c.Bridges[i].Name
 			mm[cluster.BRIDGE_NETWORK] = c.Bridges[i].Network
 			mm[cluster.BRIDGE_GATEWAY] = c.Bridges[i].Gateway
-			brData[c.Bridges[i].Type] = mm
+			brData[c.Bridges[i].ClusterId] = mm
 		}
 	}
-
 	return brData
 }
 

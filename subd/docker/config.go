@@ -44,7 +44,7 @@ const (
 	DefaultName = "eth0"
 
 	DefaultGulpPort = ":6666"
-	DefaultNetType  = "public"
+	DefaultNetType  = "cluster-a"
 
 	// DefaultSwarmEndpoint is the default address that the service binds to an IaaS (Swarm).
 	DefaultSwarmEndpoint = "tcp://localhost:2375"
@@ -59,7 +59,7 @@ func NewConfig() *Config {
 	cl := make([]docker.Bridge, 2)
 	rg := make([]docker.Region, 2)
 	c := docker.Bridge{
-		Type:    DefaultNetType,
+		ClusterId: DefaultNetType,
 		Name:    DefaultBridgeName,
 		Network: cluster.BRIDGE_NETWORK,
 		Gateway: cluster.BRIDGE_GATEWAY,
@@ -108,7 +108,7 @@ func (c Config) String() string {
 		b.Write([]byte(cluster.DOCKER_CPUQUOTA + "    \t" + c.Docker.Regions[i].CPUQuota.String() + "\n"))
 		for j := 0; j < len(c.Docker.Regions[i].Bridges); i++ {
 			fmt.Println(c.Docker.Regions[i].Bridges[j])
-			b.Write([]byte(cluster.BRIDGE_TYPE + "\t" + c.Docker.Regions[i].Bridges[j].Type + "\n"))
+			b.Write([]byte(cluster.BRIDGE_CLUSTER + "\t" + c.Docker.Regions[i].Bridges[j].ClusterId + "\n"))
 			b.Write([]byte(cluster.BRIDGE_NAME + "\t" + c.Docker.Regions[i].Bridges[j].Name + "\n"))
 			b.Write([]byte(cluster.BRIDGE_NETWORK + "\t" + c.Docker.Regions[i].Bridges[j].Network + "\n"))
 			b.Write([]byte(cluster.BRIDGE_GATEWAY + "\t" + c.Docker.Regions[i].Bridges[j].Gateway + "\n"))

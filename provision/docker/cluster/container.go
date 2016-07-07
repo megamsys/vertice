@@ -98,6 +98,7 @@ func (c *Cluster) GetIP() (net.IP, string, string, error) {
 		gateway string
 		ind     uint
 		bridge  string
+	 bridges []Bridge
 	)
 	nodlist, _ := c.Nodes()
 	br := make(map[string]string)
@@ -107,17 +108,16 @@ func (c *Cluster) GetIP() (net.IP, string, string, error) {
 				for i, j := range v.Bridges[k] {
 					br[i] = j
 				}
+				br1 := Bridge{
+					ClusterId:    br[BRIDGE_CLUSTER],
+					Name:    br[BRIDGE_NAME],
+					Network: br[BRIDGE_NETWORK],
+					Gateway: br[BRIDGE_GATEWAY],
+				}
+				bridges = append(bridges, br1)
 			}
 		}
 	}
-	var bridges []Bridge
-	br1 := Bridge{
-		Type:    br[BRIDGE_TYPE],
-		Name:    br[BRIDGE_NAME],
-		Network: br[BRIDGE_NETWORK],
-		Gateway: br[BRIDGE_GATEWAY],
-	}
-	bridges = append(bridges, br1)
 	c.bridges = bridges
 	for _, b := range c.bridges {
 		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
@@ -156,7 +156,6 @@ func (c *Cluster) KillContainer(opts docker.KillContainerOptions) error {
 func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.APIContainers, error) {
 	var addr string
 	nodes, err := c.Nodes()
-	fmt.Println(c.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +164,7 @@ func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.AP
 	errs := make(chan error, len(nodes))
 	for _, n := range nodes {
 		if n.Metadata[DOCKER_ZONE] == c.Region {
-			addr = n.Address
+			addr =n.Address
 		}
 		wg.Add(1)
 		client, _ := c.getNodeByAddr(addr)
