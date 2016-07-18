@@ -51,8 +51,10 @@ We are glad to help if you have questions, or request for new features..
 
 |                      |                                          |
 |:---------------------|:-----------------------------------------|
-| **Author:**          | Rajthilak (<rajthilak@megam.ion>)
+| **Author:**          | Rajthilak (<rajthilak@megam.io>)
 | 	                   | KishorekumarNeelamegam (<nkishore@megam.io>)
+|                      | Ranjitha  (<ranjithar@megam.io>)
+|                      | MVijaykanth  (<mvijaykanth@megam.io>)
 |                      | Yeshwanth Kumar (<getyesh@megam.io>)
 | **Copyright:**       | Copyright (c) 2013-2016 Megam Systems.
 | **License:**         | Apache License, Version 2.0

@@ -148,7 +148,7 @@ type MessageProvisioner interface {
 // method that should be called when the carton is started,
 //additionally provide a map of configuration info.
 type InitializableProvisioner interface {
-	Initialize(m interface{}, b map[string]string) error
+	Initialize(m interface{}) error
 }
 
 // ExtensibleProvisioner is a provisioner where administrators can manage

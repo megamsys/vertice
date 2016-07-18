@@ -13,6 +13,7 @@ func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Co
 		Name:     box.Name,
 		BoxName:  box.GetFullName(),
 		Level:    box.Level,
+		Region:   box.Region,
 		Status:   box.Status,
 	}, nil
 

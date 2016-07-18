@@ -17,7 +17,6 @@ type Config struct {
 	Deployd *deployd.Config  `toml:"deployd"`
 	HTTPD   *httpd.Config    `toml:"http"`
 	Docker  *docker.Config   `toml:"docker"`
-	Bridges *docker.Bridges  `toml:"bridges"`
 	Metrics *metricsd.Config `toml:"metrics"`
 	DNS     *dns.Config      `toml:"dns"`
 	Events  *eventsd.Config  `toml:"events"`
@@ -29,7 +28,6 @@ func (c Config) String() string {
 		c.Deployd.String() + "\n" +
 		c.HTTPD.String() + "\n" +
 		c.Docker.String() + "\n" +
-		c.Bridges.String() + "\n" +
 		c.Metrics.String() + "\n" +
 		c.DNS.String() + "\n" +
 		c.Events.String())
@@ -43,7 +41,6 @@ func NewConfig() *Config {
 	c.Deployd = deployd.NewConfig()
 	c.HTTPD = httpd.NewConfig()
 	c.Docker = docker.NewConfig()
-	c.Bridges = docker.NewBridgeConfig()
 	c.Metrics = metricsd.NewConfig()
 	c.Events = eventsd.NewConfig()
 	c.DNS = dns.NewConfig()
