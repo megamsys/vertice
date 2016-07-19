@@ -105,17 +105,16 @@ func (c Config) String() string {
 		cmd.Colorfy("Deployd", "cyan", "", "") + "\n"))
 	b.Write([]byte(constants.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.One.Enabled) + "\n"))
-	for i:= 0; i < len(c.One.Regions); i++ {
-  b.Write([]byte(api.ONEZONE + "\t" + c.One.Regions[i].OneZone + "\n"))
-	b.Write([]byte(api.ENDPOINT + "\t" + c.One.Regions[i].OneEndPoint + "\n"))
-	b.Write([]byte(api.USERID + "    \t" + c.One.Regions[i].OneUserid + "\n"))
-	b.Write([]byte(api.PASSWORD + "\t" + c.One.Regions[i].OnePassword + "\n"))
-	b.Write([]byte(api.TEMPLATE + "\t" + c.One.Regions[i].OneTemplate + "\n"))
-	b.Write([]byte(api.IMAGE + "    \t" + c.One.Regions[i].Image + "\n"))
-	b.Write([]byte(api.VCPU_PERCENTAGE + "\t" + c.One.Regions[i].VCPUPercentage + "\n"))
-	   for j:= 0; j < len(c.One.Regions[i].Clusters); i++ {
-	fmt.Println(c.One.Regions[i].Clusters[j])
-	b.Write([]byte(api.CLUSTER+ "\t" + c.One.Regions[i].Clusters[j].ClusterId + "\n"))
+	for _ ,v := range c.One.Regions {
+  b.Write([]byte(api.ONEZONE + "\t" + v.OneZone + "\n"))
+	b.Write([]byte(api.ENDPOINT + "\t" + v.OneEndPoint + "\n"))
+	b.Write([]byte(api.USERID + "    \t" + v.OneUserid + "\n"))
+	b.Write([]byte(api.PASSWORD + "\t" + v.OnePassword + "\n"))
+	b.Write([]byte(api.TEMPLATE + "\t" + v.OneTemplate + "\n"))
+	b.Write([]byte(api.IMAGE + "    \t" + v.Image + "\n"))
+	b.Write([]byte(api.VCPU_PERCENTAGE + "\t" + v.VCPUPercentage + "\n"))
+	   for _,k := range v.Clusters {
+	b.Write([]byte(api.CLUSTER+ "\t" + k.ClusterId + "\n"))
   }
 	b.Write([]byte("---\n"))
 }
