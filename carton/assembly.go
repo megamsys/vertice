@@ -103,6 +103,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		CartonsId:    aies, //assemblies id
 		Name:         a.Name,
 		Tosca:        a.Tosca,
+		AccountsId:    a.AccountId,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
@@ -112,8 +113,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Region:       a.region(),
 		Vnets:        a.vnets(),
 		VMId:         a.vmId(),
-		//VncHost:      a.vncHost(),
-		//VncPort:      a.vncPort(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 	}
@@ -133,6 +132,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.CartonId = a.Id
 				b.CartonsId = aies
 				b.CartonName = a.Name
+				b.AccountsId = a.AccountId
 				if len(strings.TrimSpace(b.Provider)) <= 0 {
 					b.Provider = a.provider()
 				}
@@ -355,6 +355,10 @@ func (a *Assembly) vnets() map[string]string {
 
 func (a *Assembly) ipv4Pub() string {
 	return a.Inputs.Match(utils.IPV4PUB)
+}
+
+func (a *Assembly) ipv4Pub() string {
+ 	return a.Inputs.Match(utils.IPV4PUB)
 }
 
 func (a *Assembly) ipv4Pri() string {
