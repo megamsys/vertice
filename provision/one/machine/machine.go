@@ -72,7 +72,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
-		compute.ASSEMBLIES_ID: args.Box.CartonsId},
+		compute.ASSEMBLIES_ID: args.Box.CartonsId,compute.ACCOUNTS_ID: m.AccountsId},
 		Vnets: args.Box.Vnets,
 		}
 

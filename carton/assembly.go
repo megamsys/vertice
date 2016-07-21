@@ -29,7 +29,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
-
 )
 
 const (
@@ -238,6 +237,7 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 				Timestamp:   time.Now().Local(),
 			},
 		})
+
 	return newEvent.Write()
 }
 
@@ -346,11 +346,15 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB]        = "true"
+	v[utils.IPV4PUB]        = a.ipv4Pub()
 	v[utils.IPV4PRI]        = a.ipv4Pri()
-	v[utils.IPV6PRI]				= a.ipv6Pub()
-	v[utils.IPV6PUB]        = a.ipv6Pri()
-  return v
+	v[utils.IPV6PUB]				= a.ipv6Pub()
+	v[utils.IPV6PRI]        = a.ipv6Pri()
+	return v
+}
+
+func (a *Assembly) ipv4Pub() string {
+	return a.Inputs.Match(utils.IPV4PUB)
 }
 
 func (a *Assembly) ipv4Pri() string {
