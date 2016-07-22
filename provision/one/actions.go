@@ -62,15 +62,15 @@ var updateStatusInScylla = action.Action{
 			mach = ctx.Previous.(machine.Machine)
 		} else {
 			mach = machine.Machine{
-				Id:         args.box.Id,
-				AccountsId: args.box.AccountsId,
-				CartonId:   args.box.CartonId,
-				Level:      args.box.Level,
-				Name:       args.box.GetFullName(),
-				Status:     args.machineStatus,
-				Image:      args.imageId,
-				Region:     args.box.Region,
-				VMId:       args.box.VMId,
+				Id:           args.box.Id,
+				AccountsId:   args.box.AccountsId,
+				CartonId:     args.box.CartonId,
+				Level:        args.box.Level,
+				Name:         args.box.GetFullName(),
+				Status:       args.machineStatus,
+				Image:        args.imageId,
+				Region:       args.box.Region,
+				VMId:         args.box.VMId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
 			}
 		}
@@ -89,6 +89,7 @@ var updateStatusInScylla = action.Action{
 
 var createMachine = action.Action{
 	Name: "create-machine",
+
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -125,8 +126,6 @@ var createMachine = action.Action{
 	},
 }
 
-
-
 var getVmHostIpPort = action.Action{
 	Name: "gethost-port",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -137,7 +136,7 @@ var getVmHostIpPort = action.Action{
 			writer = ioutil.Discard
 		}
 		err := mach.VmHostIpPort(&machine.CreateArgs{
-    	Provisioner: args.provisioner,
+			Provisioner: args.provisioner,
 		})
 		if err != nil {
 			return nil, err
@@ -150,7 +149,6 @@ var getVmHostIpPort = action.Action{
 
 	},
 }
-
 
 var updateVnchostInScylla = action.Action{
 	Name: "updateVnchost",
@@ -332,7 +330,13 @@ var changeStateofMachine = action.Action{
 			Name:     args.box.GetFullName(),
 		}
 		mach.ChangeState(args.machineStatus)
-		mach.Status = args.machineStatus
+		
+		if args.box.PublicIp != "" {
+			mach.Status = constants.StatusNetworkCreating
+
+		} else {
+			mach.Status = constants.StatusNetworkSkipped
+		}
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
@@ -357,8 +361,6 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
-		if args.box.PublicIp != "" {
-
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		err = r.SetCName(mach.Name, args.box.PublicIp)
 		if err != nil {
@@ -366,7 +368,7 @@ var addNewRoute = action.Action{
 		}
 		mach.SetRoutable(args.box.PublicIp)
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
-	}
+		mach.Status = constants.StatusNetworkCreated
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -511,4 +513,14 @@ var diskSaveAsImage = action.Action{
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
+}
+
+var setFinalState = action.Action{
+	Name: "set-final-state",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		mach.Status = constants.StatusStateup
+		fmt.Println("")
+		return ctx.Previous, nil
+	},
 }
