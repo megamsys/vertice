@@ -357,6 +357,7 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
+		if args.box.PublicIp != "" {
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		err = r.SetCName(mach.Name, args.box.PublicIp)
@@ -364,9 +365,8 @@ var addNewRoute = action.Action{
 			return mach, err
 		}
 		mach.SetRoutable(args.box.PublicIp)
-
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
-
+	}
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
