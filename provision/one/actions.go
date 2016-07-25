@@ -330,7 +330,7 @@ var changeStateofMachine = action.Action{
 			Name:     args.box.GetFullName(),
 		}
 		mach.ChangeState(args.machineStatus)
-		
+
 		if args.box.PublicIp != "" {
 			mach.Status = constants.StatusNetworkCreating
 
@@ -519,8 +519,7 @@ var setFinalState = action.Action{
 	Name: "set-final-state",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
-		mach.Status = constants.StatusStateup
-		fmt.Println("")
-		return ctx.Previous, nil
+		mach.Status = constants.StatusStateupping
+		return mach, nil
 	},
 }

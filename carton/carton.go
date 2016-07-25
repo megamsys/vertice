@@ -102,7 +102,7 @@ func (c *Carton) Destroy() error {
 // changing the boxes state to StatusStateup.
 func (c *Carton) Stateup() error {
 	for _, box := range *c.Boxes {
-		err := ChangeState(&StateChangeOpts{B: &box, Changed: utils.StatusStateup})
+		err := ChangeState(&StateChangeOpts{B: &box, Changed: utils.StatusStateupped})
 		if err != nil {
 			return err
 		}
