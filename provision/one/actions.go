@@ -141,7 +141,7 @@ var getVmHostIpPort = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusLaunched
+		mach.Status = constants.StatusVncHostUpdating
 
 		return mach, nil
 	},
@@ -158,7 +158,7 @@ var updateVnchostInScylla = action.Action{
 		if err != nil {
 			return nil, err
 		}
-
+		mach.Status = constants.StatusVncHostUpdated
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -329,6 +329,7 @@ var changeStateofMachine = action.Action{
 			Level:    args.box.Level,
 			Name:     args.box.GetFullName(),
 		}
+		mach.SetStatus(constants.StatusStateupping)
 		mach.ChangeState(args.machineStatus)
 
 		if args.box.PublicIp != "" {
@@ -519,7 +520,7 @@ var setFinalState = action.Action{
 	Name: "set-final-state",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
-		mach.Status = constants.StatusStateupping
+		mach.Status = constants.StatusStateupped
 		return mach, nil
 	},
 }
