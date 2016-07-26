@@ -357,10 +357,6 @@ func (a *Assembly) ipv4Pub() string {
 	return a.Inputs.Match(utils.IPV4PUB)
 }
 
-func (a *Assembly) ipv4Pub() string {
- 	return a.Inputs.Match(utils.IPV4PUB)
-}
-
 func (a *Assembly) ipv4Pri() string {
 	return a.Inputs.Match(utils.IPV4PRI)
 }
