@@ -124,12 +124,12 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
-  d := c.withOneClick()
+
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
 			Source:   c.Repo.Source,
-			OneClick: d,
+			OneClick: c.withOneClick(),
 			URL:      c.Repo.Rurl,
 		}
 		bt.Repo.Hook = BuildHook(c.Operations, repository.CIHOOK)
