@@ -103,12 +103,16 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	str := string(b)
 	spstr := strings.Split(str, ",")
 
-	if len(spstr[1]) < 5 {
-   vmid = spstr[1]
-	} else {
-		return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return "", "", Err
 	}
 
+	if !isSuccess {
+   return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
+   vmid = spstr[1]
 	return opts.Name, vmid, nil
 }
 
@@ -127,6 +131,22 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
 
 	res, err := opts.GetVm()
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return "", "", err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return "", "", Err
+	}
+
+	if !isSuccess {
+   	return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
 	vnchost := res.GetHostIp()
 	vncport := res.GetPort()
 
@@ -151,10 +171,28 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Delete()
+	res, err := opts.Delete()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return Err
+	}
+
+	if !isSuccess {
+   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
 	return nil
 }
 
@@ -183,10 +221,29 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Resume()
+	res, err := opts.Resume()
+
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return Err
+	}
+
+	if !isSuccess {
+   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
 	return nil
 }
 
@@ -203,10 +260,28 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Reboot()
+	res, err := opts.Reboot()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return Err
+	}
+
+	if !isSuccess {
+   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
 	return nil
 }
 
@@ -223,7 +298,24 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Poweroff()
+	res, err := opts.Poweroff()
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return Err
+	}
+
+	if !isSuccess {
+   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
 	if err != nil {
 		return wrapError(node, err)
 	}
@@ -249,10 +341,28 @@ func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.DiskSnap()
+	res, err := opts.DiskSnap()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	b, err := json.Marshal(res)
+
+	if err != nil {
+		return err
+	}
+	str := string(b)
+	spstr := strings.Split(str, ",")
+
+	isSuccess, Err := strconv.ParseBool(spstr[0])
+	if Err != nil {
+		return  Err
+	}
+
+	if !isSuccess {
+   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
+	}
+
 	return nil
 }
 
