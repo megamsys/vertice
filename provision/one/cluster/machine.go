@@ -86,6 +86,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 
 //create a vm in a node.
 func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
+	var vmid string
 	node, err := c.getNodeByAddr(nodeAddress)
 	if err != nil {
 		return "", "", err
@@ -101,12 +102,14 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	}
 	str := string(b)
 	spstr := strings.Split(str, ",")
-	vmres := spstr[1]
-	if err != nil {
-		return "", "", wrapErrorWithCmd(node, err, "createVM")
+
+	if len(spstr[1]) < 5 {
+   vmid = spstr[1]
+	} else {
+		return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
 	}
 
-	return opts.Name, vmres, nil
+	return opts.Name, vmid, nil
 }
 
 func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, string, error) {
