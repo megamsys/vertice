@@ -86,7 +86,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 
 //create a vm in a node.
 func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
-	var vmid string
+
 	node, err := c.getNodeByAddr(nodeAddress)
 	if err != nil {
 		return "", "", err
@@ -95,24 +95,15 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	opts.T = node.Client
 
 	res, err := opts.Create()
-	b, err := json.Marshal(res)
+	if err != nil {
+		return "", "",err
+	}
 
+	vmid, err := IsSuccess(node,res,"CreateVM")
 	if err != nil {
 		return "", "", err
 	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
 
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return "", "", Err
-	}
-
-	if !isSuccess {
-   return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
-	}
-
-   vmid = spstr[1]
 	return opts.Name, vmid, nil
 }
 
@@ -131,22 +122,14 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
 
 	res, err := opts.GetVm()
-	b, err := json.Marshal(res)
-
 	if err != nil {
 		return "", "", err
 	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return "", "", Err
+	_, err = IsSuccess(node,res,"HostIP")
+	if err != nil {
+		return "", "", err
 	}
 
-	if !isSuccess {
-   	return "", "", wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
-	}
 	vnchost := res.GetHostIp()
 	vncport := res.GetPort()
 
@@ -176,21 +159,9 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 		return wrapError(node, err)
 	}
 
-	b, err := json.Marshal(res)
-
+	_, err = IsSuccess(node,res,"DestroyVM")
 	if err != nil {
 		return err
-	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return Err
-	}
-
-	if !isSuccess {
-   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
 	}
 
 	return nil
@@ -227,21 +198,9 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 		return wrapError(node, err)
 	}
 
-	b, err := json.Marshal(res)
-
+	_, err = IsSuccess(node,res,"StartVM")
 	if err != nil {
 		return err
-	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return Err
-	}
-
-	if !isSuccess {
-   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
 	}
 
 	return nil
@@ -265,21 +224,9 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 		return wrapError(node, err)
 	}
 
-	b, err := json.Marshal(res)
-
+	_, err = IsSuccess(node,res,"RebootVM")
 	if err != nil {
 		return err
-	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return Err
-	}
-
-	if !isSuccess {
-   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
 	}
 
 	return nil
@@ -299,26 +246,16 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	opts.T = node.Client
 
 	res, err := opts.Poweroff()
-	b, err := json.Marshal(res)
-
-	if err != nil {
-		return err
-	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return Err
-	}
-
-	if !isSuccess {
-   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
-	}
-
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"StopVM")
+	if err != nil {
+		return err
+	}
+
+
 	return nil
 }
 
@@ -346,21 +283,9 @@ func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
 		return wrapError(node, err)
 	}
 
-	b, err := json.Marshal(res)
-
+	_, err = IsSuccess(node,res,"CreateSnap")
 	if err != nil {
 		return err
-	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-
-	isSuccess, Err := strconv.ParseBool(spstr[0])
-	if Err != nil {
-		return  Err
-	}
-
-	if !isSuccess {
-   return wrapErrorWithCmd(node, errors.New(spstr[1]), "createVM")
 	}
 
 	return nil
@@ -395,4 +320,23 @@ func (c *Cluster) getRegion(region string) (string, error) {
 	}
 
 	return addr, nil
+}
+
+func IsSuccess(n node,result interface{},cmd string)  (string, error) {
+	b, err := json.Marshal(result)
+
+	if err != nil {
+		return "", err
+	}
+
+	spstr := strings.Split(string(b), ",")
+	isSuccess, err := strconv.ParseBool(spstr[0])
+	if err != nil {
+		return "", err
+	}
+	if !isSuccess {
+	return "", wrapErrorWithCmd(n, errors.New(spstr[1]),cmd)
+	}
+  //spstr[1] is error message or ID of action vm,vnet,cluster and etc., 
+  return  spstr[1], nil
 }
