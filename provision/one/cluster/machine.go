@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/opennebula-go/api"
@@ -323,20 +324,21 @@ func (c *Cluster) getRegion(region string) (string, error) {
 }
 
 func IsSuccess(n node,result interface{},cmd string)  (string, error) {
-	b, err := json.Marshal(result)
+		reg, err := regexp.Compile("[^A-Za-z]+")
 
+	b, err := json.Marshal(result)
 	if err != nil {
 		return "", err
 	}
 
 	spstr := strings.Split(string(b), ",")
-	isSuccess, err := strconv.ParseBool(spstr[0])
+	isSuccess, err := strconv.ParseBool(strings.TrimSpace(reg.ReplaceAllString(spstr[0], "")))
 	if err != nil {
 		return "", err
 	}
 	if !isSuccess {
 	return "", wrapErrorWithCmd(n, errors.New(spstr[1]),cmd)
 	}
-  //spstr[1] is error message or ID of action vm,vnet,cluster and etc., 
+  //spstr[1] is error message or ID of action vm,vnet,cluster and etc.,
   return  spstr[1], nil
 }
