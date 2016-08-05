@@ -86,6 +86,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 
 //create a vm in a node.
 func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
+
 	node, err := c.getNodeByAddr(nodeAddress)
 	if err != nil {
 		return "", "", err
@@ -94,19 +95,16 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	opts.T = node.Client
 
 	res, err := opts.Create()
-	b, err := json.Marshal(res)
+	if err != nil {
+		return "", "",err
+	}
 
+	vmid, err := IsSuccess(node,res,"CreateVM")
 	if err != nil {
 		return "", "", err
 	}
-	str := string(b)
-	spstr := strings.Split(str, ",")
-	vmres := spstr[1]
-	if err != nil {
-		return "", "", wrapErrorWithCmd(node, err, "createVM")
-	}
 
-	return opts.Name, vmres, nil
+	return opts.Name, vmid, nil
 }
 
 func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, string, error) {
@@ -124,6 +122,14 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
 
 	res, err := opts.GetVm()
+	if err != nil {
+		return "", "", err
+	}
+	_, err = IsSuccess(node,res,"HostIP")
+	if err != nil {
+		return "", "", err
+	}
+
 	vnchost := res.GetHostIp()
 	vncport := res.GetPort()
 
@@ -148,10 +154,16 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Delete()
+	res, err := opts.Delete()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"DestroyVM")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -180,10 +192,17 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Resume()
+	res, err := opts.Resume()
+
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"StartVM")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -200,10 +219,16 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Reboot()
+	res, err := opts.Reboot()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"RebootVM")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -220,10 +245,17 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.Poweroff()
+	res, err := opts.Poweroff()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"StopVM")
+	if err != nil {
+		return err
+	}
+
+
 	return nil
 }
 
@@ -246,10 +278,16 @@ func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	_, err = opts.DiskSnap()
+	res, err := opts.DiskSnap()
 	if err != nil {
 		return wrapError(node, err)
 	}
+
+	_, err = IsSuccess(node,res,"CreateSnap")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -282,4 +320,23 @@ func (c *Cluster) getRegion(region string) (string, error) {
 	}
 
 	return addr, nil
+}
+
+func IsSuccess(n node,result interface{},cmd string)  (string, error) {
+	b, err := json.Marshal(result)
+
+	if err != nil {
+		return "", err
+	}
+
+	spstr := strings.Split(string(b), ",")
+	isSuccess, err := strconv.ParseBool(spstr[0])
+	if err != nil {
+		return "", err
+	}
+	if !isSuccess {
+	return "", wrapErrorWithCmd(n, errors.New(spstr[1]),cmd)
+	}
+  //spstr[1] is error message or ID of action vm,vnet,cluster and etc., 
+  return  spstr[1], nil
 }

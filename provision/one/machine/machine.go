@@ -158,9 +158,11 @@ func (m *Machine) UpdateVncPort() error {
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
+	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
 		Name: m.Name,
 		Region: m.Region,
+		VMId: id,
 	}
 
 	err := p.Cluster().DestroyVM(opts)
