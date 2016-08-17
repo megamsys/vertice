@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/url"
 	"sync"
+	"github.com/megamsys/vertice/carton"
+//	"time"
 )
 
 type Container struct {
@@ -42,10 +44,13 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 				addr = v.Address
 			}
 		}
+		fmt.Println("**************************************")
+		fmt.Println(addr)
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
 		container, err = c.createContainerInNode(opts, addr)
+		fmt.Println(container)
 		if err == nil {
 			c.handleNodeSuccess(addr)
 			break
@@ -85,6 +90,8 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 		}
 	}
 	node, err := c.getNodeByAddr(nodeAddress)
+	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+	fmt.Println(node)
 	if err != nil {
 		return nil, err
 	}
@@ -139,6 +146,8 @@ func (c *Cluster) InspectContainer(id string) (*docker.Container, error) {
 		return nil, err
 	}
 	cont, err := node.InspectContainer(id)
+	fmt.Println("*****************inspect*********")
+	fmt.Println(cont)
 	return cont, wrapError(node, err)
 }
 
@@ -341,24 +350,70 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	})
 }
 
-func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string, cartonId string) error {
+func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway, CartonId: cartonId}
+	fmt.Println("***********************det************")
+	fmt.Println(container.Node.IP)
+	fmt.Println(container.Node.Addr)
+	fmt.Printf("%#v",container.NetworkSettings.IPAddress)
+	ip := c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	fmt.Println(ip)
+	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
 	err := client.NetworkRequest(container.Node.IP, port)
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Cluster) SetLogs(containerId string, containerName string) error {
-	port := c.GulpPort()
-	container := c.getContainerObject(containerId)
-	client := DockerClient{ContainerId: containerId, ContainerName: containerName}
-
-	client.LogsRequest(container.Node.IP, port)
+func (c * Cluster) Ips(ip string, CartonId string) error {
+	var ips = make(map[string][]string)
+	pubipv4s := []string{}
+	pubipv4s = []string{ip}
+ ips[carton.PUBLICIPV4] = pubipv4s
+	if asm, err := carton.NewAmbly(CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
+		return err
+	}
 	return nil
+}
+
+func (c *Cluster) SetLogs(opts docker.LogsOptions) error {
+/*var addr string
+	//port := c.GulpPort()
+	//container := c.getContainerObject(containerId)
+	//client := DockerClient{ContainerId: containerId, ContainerName: containerName}
+	nodes, err := c.Nodes()
+	for _, v := range nodes {
+		if v.Metadata[DOCKER_ZONE] == c.Region {
+			addr = v.Address
+		}
+	}
+	node, err := c.getNodeByAddr(addr)
+	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+	fmt.Println(opts)
+	fmt.Println(node)
+	if err != nil {
+		return  err
+	}*/
+node, err :=c.getNodeForContainer(opts.Container)
+fmt.Println("*******************lnioww")
+fmt.Println(node)
+
+	log := node.Logs(opts)
+//	fmt.Println(opts.OutputStream)
+
+	fmt.Println("****************log5566***********")
+	fmt.Println(log)
+	if err != nil {
+		return err
+	}
+	return wrapError(node, log)
+	//client.LogsRequest(container.Node.IP, port)
+	//return nil
 }
 
 func (c *Cluster) getContainerObject(containerId string) *docker.Container {

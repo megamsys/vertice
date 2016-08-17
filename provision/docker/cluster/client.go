@@ -49,11 +49,11 @@ func (d *DockerClient) NetworkRequest(url string, port string) error {
 		return err
 	}
 
-	url = HTTP + url + port + DOCKER_NETWORK
-	err := request(d, url)
-	if err != nil {
-		return err
-	}
+	//url = HTTP + url + port + DOCKER_NETWORK
+	//err := request(d, url)
+//	if err != nil {
+	//	return err
+	//}
 	return nil
 }
 

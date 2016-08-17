@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/url"
 	"time"
+	"bytes"
+//	"os"
 	//	"encoding/json"
 	//"net/http"
 	log "github.com/Sirupsen/logrus"
@@ -15,6 +17,7 @@ import (
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
+	//"golang.org/x/net/context"
 )
 
 const (
@@ -48,6 +51,8 @@ type Container struct {
 	LockedUntil             time.Time
 	Routable                bool
 	Region                  string
+	closechan          chan bool
+
 }
 
 func (c *Container) ShortId() string {
@@ -99,6 +104,37 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
+func (c *Container) Logs(p DockerProvisioner) (int, error) {
+
+	var buf bytes.Buffer
+//	var errbuf bytes.Buffer
+
+ //writer := io.MultiWriter(&buf, os.Stdout)
+	  logopt := docker.LogsOptions{
+    Container:  c.Id,
+		OutputStream: &buf,
+		ErrorStream: &buf,
+			Follow:    false,
+			//	RawTerminal:  true,
+				Stdout:       true,
+				Stderr:       true,
+				Timestamps:   true,
+			//	Tail:         "100",
+		}
+		time.Sleep(time.Second * 10)
+	err := p.Cluster().SetLogs(logopt)
+
+	fmt.Println(buf)
+	fmt.Println(buf.String())
+//	fmt.Println(errbuf.String())
+	//fmt.Println(logopt.OutputStream)
+//	c.closechan <- true
+	if err != nil {
+		return 1, err
+	}
+	return 0, nil
+
+}
 func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string, error) {
 	nodes, err := p.Cluster().Nodes()
 	if err != nil {
@@ -254,23 +290,17 @@ func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
 	cl := p.Cluster()
 	cl.Region = c.Region
-	ip, gateway, bridge, err := cl.GetIP() //gets the IP
+//	ip, gateway, bridge, err := cl.GetIP() //gets the IP
+var err error
 	if err != nil {
 		return netInfo, err
 	}
-	netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge, c.CartonId)
+	//netInfo.IP = ip.String()
+	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId)
 	return netInfo, err
 }
 
-func (c *Container) Logs(p DockerProvisioner) (int, error) {
-	err := p.Cluster().SetLogs(c.Id, c.BoxName)
-	if err != nil {
-		return 1, err
-	}
-	return 0, nil
 
-}
 
 type Pty struct {
 	Width  int
