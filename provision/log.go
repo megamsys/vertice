@@ -2,7 +2,7 @@ package provision
 
 import (
 	"encoding/json"
-
+"fmt"
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"
 	nsqp "github.com/crackcomm/nsqueue/producer"
@@ -25,15 +25,20 @@ func logQueue(boxName string) string {
 }
 
 func NewLogListener(a *Box) (*LogListener, error) {
+	fmt.Println("***************LogListener*************")
 	b := make(chan Boxlog, maxInFlight)
+	fmt.Println(b)
 	cons := nsqc.New()
 	go func() {
 		defer close(b)
 		if err := cons.Register(logQueue(a.Name), "clients", maxInFlight, dumpLog(b)); err != nil {
+			fmt.Println("**************register*************")
+			fmt.Println(a.Name)
 			return
 		}
 
 		if err := cons.Connect(meta.MC.NSQd...); err != nil {
+			fmt.Println("************connect")
 			return
 		}
 		log.Debugf("%s: start", logQueue(a.Name))
@@ -51,8 +56,11 @@ func (l *LogListener) Close() (err error) {
 }
 
 func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
+	fmt.Println("*****************dumpLog****************")
+
 	return func(msg *nsqc.Message) {
 		go func(b chan Boxlog, msg *nsqc.Message) {
+			fmt.Println(msg.Body)
 			bl := Boxlog{}
 			if err := json.Unmarshal(msg.Body, &bl); err != nil {
 				log.Errorf("Unparsable log message, ignoring: %s", string(msg.Body))
@@ -64,6 +72,9 @@ func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 }
 
 func notify(boxName string, messages []interface{}) error {
+	fmt.Println("*************************notify****************8")
+	fmt.Println(boxName)
+	fmt.Println(messages)
 	pons := nsqp.New()
 
 	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
@@ -75,6 +86,9 @@ func notify(boxName string, messages []interface{}) error {
 	for _, msg := range messages {
 		log.Debugf("%s:%s", logQueue(boxName), msg)
 		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
+			fmt.Println("**********publish****************")
+			fmt.Println(logQueue(boxName))
+			fmt.Println(msg)
 			log.Errorf("Error on publish: %s", err.Error())
 		}
 	}

@@ -17,6 +17,8 @@ import (
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
+	//"github.com/megamsys/libgo/action"
+
 	//"golang.org/x/net/context"
 )
 
@@ -104,35 +106,52 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner) (int, error) {
-
-	var buf bytes.Buffer
+func (c *Container) Logs(p DockerProvisioner)  error {
+fmt.Println(c.BoxName)
+	var outBuffer bytes.Buffer
+		var closeChan chan bool
+		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
+		logWriter := carton.NewLogWriter(b)
+		writer := io.MultiWriter(&outBuffer, &logWriter)
+//	var buf bytes.Buffer
 //	var errbuf bytes.Buffer
 
- //writer := io.MultiWriter(&buf, os.Stdout)
 	  logopt := docker.LogsOptions{
     Container:  c.Id,
-		OutputStream: &buf,
-		ErrorStream: &buf,
-			Follow:    false,
+		OutputStream: writer,
+		ErrorStream: writer,
+			Follow:    true,
 			//	RawTerminal:  true,
 				Stdout:       true,
 				Stderr:       true,
 				Timestamps:   true,
 			//	Tail:         "100",
 		}
-		time.Sleep(time.Second * 10)
-	err := p.Cluster().SetLogs(logopt)
+	//	time.Sleep(time.Second * 10)
+	cs := make(chan []byte)
+  go p.Cluster().SetLogs(cs,logopt, closeChan)
 
-	fmt.Println(buf)
-	fmt.Println(buf.String())
+	go func(closeChan chan bool, logWriter carton.LogWriter) {
+		select {
+		case <-closeChan:
+			logWriter.Close()
+		default:
+		}
+	}(closeChan, logWriter)
+
+	fmt.Println(writer)
+	fmt.Printf("%#v",logWriter.Box)
+	fmt.Println(outBuffer.String())
+	//fmt.Println(buf.String())
 //	fmt.Println(errbuf.String())
 	//fmt.Println(logopt.OutputStream)
 //	c.closechan <- true
+var err error
 	if err != nil {
-		return 1, err
+		return err
 	}
-	return 0, nil
+//	return 0, nil
+return  nil
 
 }
 func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string, error) {

@@ -381,39 +381,25 @@ func (c * Cluster) Ips(ip string, CartonId string) error {
 	return nil
 }
 
-func (c *Cluster) SetLogs(opts docker.LogsOptions) error {
-/*var addr string
-	//port := c.GulpPort()
-	//container := c.getContainerObject(containerId)
-	//client := DockerClient{ContainerId: containerId, ContainerName: containerName}
-	nodes, err := c.Nodes()
-	for _, v := range nodes {
-		if v.Metadata[DOCKER_ZONE] == c.Region {
-			addr = v.Address
-		}
-	}
-	node, err := c.getNodeByAddr(addr)
-	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-	fmt.Println(opts)
-	fmt.Println(node)
-	if err != nil {
-		return  err
-	}*/
+func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool) {
+var err error
 node, err :=c.getNodeForContainer(opts.Container)
 fmt.Println("*******************lnioww")
 fmt.Println(node)
 
-	log := node.Logs(opts)
-//	fmt.Println(opts.OutputStream)
+//log :=
+ node.Logs(opts)
+	fmt.Println(err)
 
 	fmt.Println("****************log5566***********")
-	fmt.Println(log)
-	if err != nil {
-		return err
-	}
-	return wrapError(node, log)
+	closechan <- true
+//	fmt.Println(log)
+	//if err != nil {
+	//	return err
+	//}
+//	return wrapError(node, log)
 	//client.LogsRequest(container.Node.IP, port)
-	//return nil
+//	return nil
 }
 
 func (c *Cluster) getContainerObject(containerId string) *docker.Container {

@@ -3,7 +3,7 @@ package carton
 import (
 	"errors"
 	"time"
-
+"fmt"
 	log "github.com/Sirupsen/logrus"
 )
 
@@ -19,8 +19,10 @@ type LogWriter struct {
 }
 
 func NewLogWriter(l Logger) LogWriter {
+	fmt.Println("************logWriter************")
 	logWriter := LogWriter{Box: l}
 	logWriter.Async()
+	fmt.Println(logWriter)
 	return logWriter
 }
 
@@ -63,11 +65,16 @@ func (w *LogWriter) Write(data []byte) (int, error) {
 		return len(data), w.write(data)
 	}
 	copied := make([]byte, len(data))
+	fmt.Println("______________________________")
+	fmt.Println(copied)
+	fmt.Println(data)
 	copy(copied, data)
 	w.msgCh <- copied
 	return len(data), nil
 }
 
 func (w *LogWriter) write(data []byte) error {
+	fmt.Println("**********write********")
+	fmt.Println(data)
 	return w.Box.Log(string(data), "megd", "box")
 }

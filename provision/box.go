@@ -24,7 +24,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
+"fmt"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton/bind"
@@ -196,8 +196,14 @@ func (box *Box) GetRouter() (string, error) {
 // Log adds a log message to the app. Specifying a good source is good so the
 // user can filter where the message come from.
 func (box *Box) Log(message, source, unit string) error {
+	fmt.Println("****************Log&&&&&&&&&&&&&&&&&&&")
+	fmt.Println(message)
+	fmt.Println(source)
+	fmt.Println(unit)
 	messages := strings.Split(message, "\n")
+	fmt.Println(messages)
 	logs := make([]interface{}, 0, len(messages))
+	fmt.Println(logs)
 	for _, msg := range messages {
 		if len(strings.TrimSpace(msg)) > 0 {
 			bl := Boxlog{
@@ -210,8 +216,19 @@ func (box *Box) Log(message, source, unit string) error {
 			logs = append(logs, bl)
 		}
 	}
-	if len(logs) > 0 {
-		_ = notify(box.GetFullName(), logs)
+	fmt.Println("%%%%%%%%%%%%%%%%%%%%%%%")
+	fmt.Println(logs)
+ //if len(logs) > 0 {
+//	_ = notify(box.GetFullName(),logs)
+//	}
+
+if len(logs) > 0 {
+		if box.Tosca == "docker" {
+			_ = notify(box.Name, logs)
+		} else {
+			_ = notify(box.GetFullName(), logs)
+		}
 	}
+
 	return nil
 }

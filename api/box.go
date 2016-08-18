@@ -10,12 +10,14 @@ import (
 )
 
 func logHandler(so socketio.Socket) {
-
+fmt.Println("*****************loghand*************8")
 	so.On("logInit", func(msg string) {
 		var entry provision.Box
-		entry.Name = msg
+		entry.Name = msg 
+		fmt.Println(entry.Name)
+		fmt.Println(msg)
 		l, _ := provision.NewLogListener(&entry)
-
+//fmt.Println(entry)
 		go func() {
 			so.On("logDisconnect", func(data string) {
 				l.Close()

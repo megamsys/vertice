@@ -16,6 +16,7 @@ const (
 )
 
 func socketHandler(server *socketio.Server) {
+	fmt.Println("******************socket")
 	server.On("connection", func(so socketio.Socket) {
 		log.Debugf(cmd.Colorfy("  > [socket] ", "blue", "", "bold") + fmt.Sprintf("Connecting new client : %s", so.Id()))
 		so.On("category_connect", func(category string) {
