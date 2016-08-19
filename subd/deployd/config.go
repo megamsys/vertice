@@ -125,7 +125,5 @@ func (c Config) String() string {
 
 //convert the config to just an interface.
 func (c Config) toInterface() interface{} {
-//	var m interface{}
-	//m = c.One
   return c.One
 }
