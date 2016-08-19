@@ -29,6 +29,7 @@ func NewLogListener(a *Box) (*LogListener, error) {
 	b := make(chan Boxlog, maxInFlight)
 	fmt.Println(b)
 	cons := nsqc.New()
+	fmt.Printf("%#v", cons)
 	go func() {
 		defer close(b)
 		if err := cons.Register(logQueue(a.Name), "clients", maxInFlight, dumpLog(b)); err != nil {
@@ -42,11 +43,13 @@ func NewLogListener(a *Box) (*LogListener, error) {
 			return
 		}
 		log.Debugf("%s: start", logQueue(a.Name))
+		fmt.Println("^^^^^^^^^^^^^^^^^start^^^^^^^^^^")
 		cons.Start(true)
 		log.Debugf("%s: start OK", logQueue(a.Name))
 	}()
 
 	l := LogListener{B: b, c: cons}
+	fmt.Println(&l)
 	return &l, nil
 }
 
@@ -65,6 +68,8 @@ func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 			if err := json.Unmarshal(msg.Body, &bl); err != nil {
 				log.Errorf("Unparsable log message, ignoring: %s", string(msg.Body))
 			} else {
+				fmt.Println("+++++++++++++++++++++++++++")
+				fmt.Println(bl)
 				b <- bl
 			}
 		}(b, msg)

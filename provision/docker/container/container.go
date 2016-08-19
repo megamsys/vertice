@@ -18,7 +18,7 @@ import (
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
 	//"github.com/megamsys/libgo/action"
-
+//lb "github.com/megamsys/vertice/logbox"
 	//"golang.org/x/net/context"
 )
 
@@ -54,6 +54,7 @@ type Container struct {
 	Routable                bool
 	Region                  string
 	closechan          chan bool
+	w   io.Writer
 
 }
 
@@ -106,7 +107,7 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner)  error {
+func (c *Container) Logs(p DockerProvisioner)   error {
 fmt.Println(c.BoxName)
 	var outBuffer bytes.Buffer
 		var closeChan chan bool
@@ -124,7 +125,7 @@ fmt.Println(c.BoxName)
 			//	RawTerminal:  true,
 				Stdout:       true,
 				Stderr:       true,
-				Timestamps:   true,
+				Timestamps:   false,
 			//	Tail:         "100",
 		}
 	//	time.Sleep(time.Second * 10)
@@ -148,8 +149,11 @@ fmt.Println(c.BoxName)
 //	c.closechan <- true
 var err error
 	if err != nil {
-		return err
+	//	fmt.Fprintf(c.w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("  update logs for box failed\n%s\n", err.Error())))
+		return  err
 	}
+//	fmt.Fprintf(c.w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("  update logs for box (%s) OK\n", outBuffer.String())))
+
 //	return 0, nil
 return  nil
 

@@ -265,7 +265,8 @@ var followLogsAndCommit = action.Action{
 			return nil, errors.New("Previous result must be a container.")
 		}
 		args := ctx.Params[0].(runContainerActionsArgs)
-		 err := c.Logs(args.provisioner)
+	   err:= c.Logs(args.provisioner)
+
 		if err != nil {
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err
