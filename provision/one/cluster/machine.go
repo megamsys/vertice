@@ -126,10 +126,6 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	if err != nil {
 		return "", "", err
 	}
-	_, err = IsSuccess(node,res,"HostIP")
-	if err != nil {
-		return "", "", err
-	}
 
 	vnchost := res.GetHostIp()
 	vncport := res.GetPort()
@@ -324,6 +320,7 @@ func (c *Cluster) getRegion(region string) (string, error) {
 }
 
 func IsSuccess(n node,result interface{},cmd string)  (string, error) {
+	reg, err := regexp.Compile("[^A-Za-z]+")
 	b, err := json.Marshal(result)
 	if err != nil {
 		return "", err

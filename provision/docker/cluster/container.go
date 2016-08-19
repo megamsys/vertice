@@ -6,7 +6,6 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
-	"math/rand"
 	"net"
 	"net/url"
 	"sync"
@@ -44,13 +43,10 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts docker.CreateContainerOption
 				addr = v.Address
 			}
 		}
-		fmt.Println("**************************************")
-		fmt.Println(addr)
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
 		container, err = c.createContainerInNode(opts, addr)
-		fmt.Println(container)
 		if err == nil {
 			c.handleNodeSuccess(addr)
 			break
@@ -90,8 +86,6 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 		}
 	}
 	node, err := c.getNodeByAddr(nodeAddress)
-	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-	fmt.Println(node)
 	if err != nil {
 		return nil, err
 	}
@@ -99,44 +93,6 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
 
-func (c *Cluster) GetIP() (net.IP, string, string, error) {
-	var (
-		ip      net.IP
-		gateway string
-		ind     uint
-		bridge  string
-	 bridges []Bridge
-	)
-	nodlist, _ := c.Nodes()
-	br := make(map[string]string)
-	for _, v := range nodlist {
-		if v.Metadata[DOCKER_ZONE] == c.Region {
-			for k, _ := range v.Bridges {
-				for i, j := range v.Bridges[k] {
-					br[i] = j
-				}
-				br1 := Bridge{
-					ClusterId:    br[BRIDGE_CLUSTER],
-					Name:    br[BRIDGE_NAME],
-					Network: br[BRIDGE_NETWORK],
-					Gateway: br[BRIDGE_GATEWAY],
-				}
-				bridges = append(bridges, br1)
-			}
-		}
-	}
-	c.bridges = bridges
-	for _, b := range c.bridges {
-		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
-		ind = uint(rand.Intn(1000))
-		_, subnet, _ := net.ParseCIDR(b.Network)
-		ip = b.IPRequest(subnet, ind)
-		gateway = b.Gateway
-		bridge = b.Name
-		ind += 1
-	}
-	return ip, gateway, bridge, nil
-}
 
 // InspectContainer returns information about a container by its ID, getting
 // the information from the right node.
@@ -146,8 +102,6 @@ func (c *Cluster) InspectContainer(id string) (*docker.Container, error) {
 		return nil, err
 	}
 	cont, err := node.InspectContainer(id)
-	fmt.Println("*****************inspect*********")
-	fmt.Println(cont)
 	return cont, wrapError(node, err)
 }
 
@@ -353,12 +307,7 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	fmt.Println("***********************det************")
-	fmt.Println(container.Node.IP)
-	fmt.Println(container.Node.Addr)
-	fmt.Printf("%#v",container.NetworkSettings.IPAddress)
-	ip := c.Ips(container.NetworkSettings.IPAddress, cartonId)
-	fmt.Println(ip)
+	 c.Ips(container.NetworkSettings.IPAddress, cartonId)
 	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
 	err := client.NetworkRequest(container.Node.IP, port)
 
@@ -381,25 +330,14 @@ func (c * Cluster) Ips(ip string, CartonId string) error {
 	return nil
 }
 
-func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool) {
-var err error
+func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool)  error{
 node, err :=c.getNodeForContainer(opts.Container)
-fmt.Println("*******************lnioww")
-fmt.Println(node)
-
-//log :=
  node.Logs(opts)
-	fmt.Println(err)
-
-	fmt.Println("****************log5566***********")
 	closechan <- true
-//	fmt.Println(log)
-	//if err != nil {
-	//	return err
-	//}
-//	return wrapError(node, log)
-	//client.LogsRequest(container.Node.IP, port)
-//	return nil
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Cluster) getContainerObject(containerId string) *docker.Container {
