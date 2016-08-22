@@ -48,12 +48,6 @@ func (d *DockerClient) NetworkRequest(url string, port string) error {
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err
 	}
-
-	url = HTTP + url + port + DOCKER_NETWORK
-	err := request(d, url)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

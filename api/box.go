@@ -10,19 +10,17 @@ import (
 )
 
 func logHandler(so socketio.Socket) {
-
 	so.On("logInit", func(msg string) {
 		var entry provision.Box
 		entry.Name = msg
 		l, _ := provision.NewLogListener(&entry)
-
 		go func() {
 			so.On("logDisconnect", func(data string) {
 				l.Close()
 				log.Debugf(cmd.Colorfy("  > [nsqd] unsub   ", "blue", "", "bold") + fmt.Sprintf("Unsubscribing from the Queue"))
 			})
 			for logbox := range l.B {
-				//logData, _ := json.Marshal(logbox)
+			//	logData, _ := json.Marshal(logbox)
 				so.Emit(entry.Name, logbox)
 			}
 		}()
