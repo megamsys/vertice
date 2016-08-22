@@ -119,7 +119,6 @@ var createMachine = action.Action{
 		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  removing err machine %s", c.Name)))
 		err := c.Remove(args.provisioner)
 		if err != nil {
-
 			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
 	},
@@ -186,7 +185,6 @@ var updateVncportInScylla = action.Action{
 var deductCons = action.Action{
 	Name: "deduct-cons-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
-			fmt.Printf("\n**********ctx.Previous**************%#v***",ctx.Previous)
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer

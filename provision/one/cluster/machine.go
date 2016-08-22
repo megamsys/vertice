@@ -37,7 +37,6 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 	for ; maxTries > 0; maxTries-- {
 
 		nodlist, err := c.Nodes()
-  fmt.Println("*********************88sd",nodlist)
 		for _, v := range nodlist {
 			if v.Metadata[api.ONEZONE] == opts.Region {
 				addr = v.Address
@@ -53,7 +52,6 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 		if addr == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 		}
-    fmt.Println("*********************88sd")
 		if err == nil {
 			machine, vmid, err = c.createVMInNode(opts, addr)
 			if err == nil {
