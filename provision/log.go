@@ -2,7 +2,6 @@ package provision
 
 import (
 	"encoding/json"
-"fmt"
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"
 	nsqp "github.com/crackcomm/nsqueue/producer"
@@ -26,7 +25,6 @@ func logQueue(boxName string) string {
 
 func NewLogListener(a *Box) (*LogListener, error) {
 	b := make(chan Boxlog, maxInFlight)
-	fmt.Println(b)
 	cons := nsqc.New()
 	go func() {
 		defer close(b)
@@ -43,7 +41,6 @@ func NewLogListener(a *Box) (*LogListener, error) {
 	}()
 
 	l := LogListener{B: b, c: cons}
-	fmt.Println(&l)
 	return &l, nil
 }
 
@@ -55,7 +52,6 @@ func (l *LogListener) Close() (err error) {
 func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 	return func(msg *nsqc.Message) {
 		go func(b chan Boxlog, msg *nsqc.Message) {
-			fmt.Println(msg.Body)
 			bl := Boxlog{}
 			if err := json.Unmarshal(msg.Body, &bl); err != nil {
 				log.Errorf("Unparsable log message, ignoring: %s", string(msg.Body))
@@ -74,7 +70,6 @@ func notify(boxName string, messages []interface{}) error {
 	defer pons.Stop()
 	for _, msg := range messages {
 		log.Debugf("%s:%s", logQueue(boxName), msg)
-		fmt.Println(msg)
 		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {
 			log.Errorf("Error on publish: %s", err.Error())
 		}

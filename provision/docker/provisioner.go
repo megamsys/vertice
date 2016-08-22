@@ -50,14 +50,6 @@ type Region struct {
 	Registry       string        `toml:"registry"`
 	CPUPeriod      toml.Duration `toml:"cpu_period"`
 	CPUQuota       toml.Duration `toml:"cpu_quota"`
-	Bridges        []Bridge      `json:"cluster" toml:"bridges"`
-}
-
-type Bridge struct {
-	ClusterId    string `json:"cluster_id" toml:"cluster_id"`
-	Name    string `json:"name" toml:"name"`
-	Network string `json:"network" toml:"network"`
-	Gateway string `json:"gateway" toml:"gateway"`
 }
 
 func (p *dockerProvisioner) Cluster() *cluster.Cluster {
@@ -90,11 +82,9 @@ func (p *dockerProvisioner) initDockerCluster(i interface{}) error {
 		var nodes []cluster.Node
 		for i := 0; i < len(w.Regions); i++ {
 			m := w.Regions[i].toMap()
-			c := w.Regions[i].toBridgesMap()
 			n := cluster.Node{
 				Address:  m[cluster.DOCKER_SWARM], //swarm endpoint
 				Metadata: m,
-				Bridges:  c,
 			}
 			nodes = append(nodes, n)
 		}
@@ -119,21 +109,6 @@ func (c Region) toMap() map[string]string {
 	m[cluster.DOCKER_CPUPERIOD] = c.CPUPeriod.String()
 	m[cluster.DOCKER_CPUQUOTA] = c.CPUQuota.String()
 	return m
-}
-
-func (c Region) toBridgesMap() map[string]map[string]string {
-	brData := make(map[string]map[string]string)
-	for i := 0; i < len(c.Bridges); i++ {
-		mm, ok := brData[c.Bridges[i].ClusterId]
-		if !ok {
-			mm = make(map[string]string)
-			mm[cluster.BRIDGE_NAME] = c.Bridges[i].Name
-			mm[cluster.BRIDGE_NETWORK] = c.Bridges[i].Network
-			mm[cluster.BRIDGE_GATEWAY] = c.Bridges[i].Gateway
-			brData[c.Bridges[i].ClusterId] = mm
-		}
-	}
-	return brData
 }
 
 func buildClusterStorage() (cluster.Storage, error) {
