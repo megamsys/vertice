@@ -56,20 +56,10 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	cl := make([]docker.Bridge, 2)
 	rg := make([]docker.Region, 2)
-	c := docker.Bridge{
-		ClusterId: DefaultNetType,
-		Name:    DefaultBridgeName,
-		Network: cluster.BRIDGE_NETWORK,
-		Gateway: cluster.BRIDGE_GATEWAY,
-	}
-	fmt.Println(c)
 	r := docker.Region{
 		DockerZone:     DefaultDockerZone,
 		SwarmEndPoint:  DefaultSwarmEndpoint,
-		DockerGulpPort: DefaultGulpPort,
-		Bridges:        append(cl, c),
 		Registry:       DefaultRegistry,
 		CPUPeriod:      toml.Duration(DefaultCPUPeriod),
 		CPUQuota:       toml.Duration(DefaultCPUQuota),
@@ -82,7 +72,6 @@ func NewConfig() *Config {
 		//MemSize:   DefaultMemSize,
 		//SwapSize:  DefaultSwapSize,
 	}
-	fmt.Println(o)
 	return &Config{
 		Provider: DefaultProvider,
 		Docker:   o,
@@ -97,22 +86,15 @@ func (c Config) String() string {
 		cmd.Colorfy("docker", "cyan", "", "") + "\n"))
 	b.Write([]byte(constants.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Docker.Enabled) + "\n"))
-	for i := 0; i < len(c.Docker.Regions); i++ {
-		b.Write([]byte(cluster.DOCKER_ZONE + "\t" + c.Docker.Regions[i].DockerZone + "\n"))
-		b.Write([]byte(cluster.DOCKER_SWARM + "\t" + c.Docker.Regions[i].SwarmEndPoint + "\n"))
-		b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
-		b.Write([]byte(cluster.DOCKER_REGISTRY + "\t" + c.Docker.Regions[i].Registry + "\n"))
+	for  _, v := range c.Docker.Regions {
+		b.Write([]byte(cluster.DOCKER_ZONE + "\t" + v.DockerZone + "\n"))
+		b.Write([]byte(cluster.DOCKER_SWARM + "\t" + v.SwarmEndPoint + "\n"))
+	//	b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
+		//b.Write([]byte(cluster.DOCKER_REGISTRY + "\t" + c.Docker.Regions[i].Registry + "\n"))
 		//	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.Docker.Regions[i].MemSize) + "\n"))
 		//	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.Docker.Regions[i].SwapSize) + "\n"))
-		b.Write([]byte(cluster.DOCKER_CPUPERIOD + "    \t" + c.Docker.Regions[i].CPUPeriod.String() + "\n"))
-		b.Write([]byte(cluster.DOCKER_CPUQUOTA + "    \t" + c.Docker.Regions[i].CPUQuota.String() + "\n"))
-		for j := 0; j < len(c.Docker.Regions[i].Bridges); i++ {
-			fmt.Println(c.Docker.Regions[i].Bridges[j])
-			b.Write([]byte(cluster.BRIDGE_CLUSTER + "\t" + c.Docker.Regions[i].Bridges[j].ClusterId + "\n"))
-			b.Write([]byte(cluster.BRIDGE_NAME + "\t" + c.Docker.Regions[i].Bridges[j].Name + "\n"))
-			b.Write([]byte(cluster.BRIDGE_NETWORK + "\t" + c.Docker.Regions[i].Bridges[j].Network + "\n"))
-			b.Write([]byte(cluster.BRIDGE_GATEWAY + "\t" + c.Docker.Regions[i].Bridges[j].Gateway + "\n"))
-		}
+		b.Write([]byte(cluster.DOCKER_CPUPERIOD + "    \t" + v.CPUPeriod.String() + "\n"))
+		b.Write([]byte(cluster.DOCKER_CPUQUOTA + "    \t" + v.CPUQuota.String() + "\n"))
 		b.Write([]byte("---\n"))
 	}
 	fmt.Fprintln(w)

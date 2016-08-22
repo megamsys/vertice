@@ -31,5 +31,6 @@ func W(source, typ, message string) string {
 		Source:  source,
 		Type:    typ,
 		Message: message}
+
 	return a.String()
 }

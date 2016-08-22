@@ -265,14 +265,15 @@ var followLogsAndCommit = action.Action{
 			return nil, errors.New("Previous result must be a container.")
 		}
 		args := ctx.Params[0].(runContainerActionsArgs)
-		status, err := c.Logs(args.provisioner)
+	   err:= c.Logs(args.provisioner)
+
 		if err != nil {
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err
 		}
-		if status != 0 {
-			return nil, fmt.Errorf("Exit status %d", status)
-		}
+	//	if status != 0 {
+		//	return nil, fmt.Errorf("Exit status %d", status)
+	//	}
 		/*fmt.Fprintf(args.writer, "\n---- Building application image ----\n")
 		imageId, err := c.Commit(args.provisioner, args.writer)
 		if err != nil {

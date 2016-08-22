@@ -6,6 +6,8 @@ import (
 	"net"
 	"net/url"
 	"time"
+	"bytes"
+//	"os"
 	//	"encoding/json"
 	//"net/http"
 	log "github.com/Sirupsen/logrus"
@@ -48,6 +50,7 @@ type Container struct {
 	LockedUntil             time.Time
 	Routable                bool
 	Region                  string
+	closechan          chan bool
 }
 
 func (c *Container) ShortId() string {
@@ -99,6 +102,42 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
+func (c *Container) Logs(p DockerProvisioner)   error {
+	var outBuffer bytes.Buffer
+		var closeChan chan bool
+		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
+		logWriter := carton.NewLogWriter(b)
+		writer := io.MultiWriter(&outBuffer, &logWriter)
+	  logopt := docker.LogsOptions{
+    Container:  c.Id,
+		OutputStream: writer,
+		ErrorStream: writer,
+			Follow:    true,
+			//	RawTerminal:  true,
+				Stdout:       true,
+				Stderr:       true,
+				Timestamps:   false,
+			//	Tail:         "100",
+		}
+
+	cs := make(chan []byte)
+  go p.Cluster().SetLogs(cs,logopt, closeChan)
+
+	go func(closeChan chan bool, logWriter carton.LogWriter) {
+		select {
+		case <-closeChan:
+			logWriter.Close()
+		default:
+		}
+	}(closeChan, logWriter)
+
+var err error
+	if err != nil {
+		return  err
+	}
+return  nil
+
+}
 func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string, error) {
 	nodes, err := p.Cluster().Nodes()
 	if err != nil {
@@ -254,23 +293,17 @@ func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
 	cl := p.Cluster()
 	cl.Region = c.Region
-	ip, gateway, bridge, err := cl.GetIP() //gets the IP
+//	ip, gateway, bridge, err := cl.GetIP() //gets the IP
+var err error
 	if err != nil {
 		return netInfo, err
 	}
-	netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, netInfo.IP, gateway, bridge, c.CartonId)
+	//netInfo.IP = ip.String()
+	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId)
 	return netInfo, err
 }
 
-func (c *Container) Logs(p DockerProvisioner) (int, error) {
-	err := p.Cluster().SetLogs(c.Id, c.BoxName)
-	if err != nil {
-		return 1, err
-	}
-	return 0, nil
 
-}
 
 type Pty struct {
 	Width  int

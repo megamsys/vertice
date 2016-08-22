@@ -2,7 +2,6 @@ package provision
 
 import (
 	"encoding/json"
-
 	log "github.com/Sirupsen/logrus"
 	nsqc "github.com/crackcomm/nsqueue/consumer"
 	nsqp "github.com/crackcomm/nsqueue/producer"
@@ -65,13 +64,10 @@ func dumpLog(b chan Boxlog) func(m *nsqc.Message) {
 
 func notify(boxName string, messages []interface{}) error {
 	pons := nsqp.New()
-
 	if err := pons.Connect(meta.MC.NSQd[0]); err != nil {
 		return err
 	}
-
 	defer pons.Stop()
-
 	for _, msg := range messages {
 		log.Debugf("%s:%s", logQueue(boxName), msg)
 		if err := pons.PublishJSONAsync(logQueue(boxName), msg, nil); err != nil {

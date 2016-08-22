@@ -6,10 +6,11 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
-	"math/rand"
 	"net"
 	"net/url"
 	"sync"
+	"github.com/megamsys/vertice/carton"
+//	"time"
 )
 
 type Container struct {
@@ -92,44 +93,6 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
 
-func (c *Cluster) GetIP() (net.IP, string, string, error) {
-	var (
-		ip      net.IP
-		gateway string
-		ind     uint
-		bridge  string
-	 bridges []Bridge
-	)
-	nodlist, _ := c.Nodes()
-	br := make(map[string]string)
-	for _, v := range nodlist {
-		if v.Metadata[DOCKER_ZONE] == c.Region {
-			for k, _ := range v.Bridges {
-				for i, j := range v.Bridges[k] {
-					br[i] = j
-				}
-				br1 := Bridge{
-					ClusterId:    br[BRIDGE_CLUSTER],
-					Name:    br[BRIDGE_NAME],
-					Network: br[BRIDGE_NETWORK],
-					Gateway: br[BRIDGE_GATEWAY],
-				}
-				bridges = append(bridges, br1)
-			}
-		}
-	}
-	c.bridges = bridges
-	for _, b := range c.bridges {
-		//ind := c.storage().GetIPIndex(net.ParseCIDR(b.Network)) //returns ip index
-		ind = uint(rand.Intn(1000))
-		_, subnet, _ := net.ParseCIDR(b.Network)
-		ip = b.IPRequest(subnet, ind)
-		gateway = b.Gateway
-		bridge = b.Name
-		ind += 1
-	}
-	return ip, gateway, bridge, nil
-}
 
 // InspectContainer returns information about a container by its ID, getting
 // the information from the right node.
@@ -341,23 +304,39 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	})
 }
 
-func (c *Cluster) SetNetworkinNode(containerId string, ip string, gateway string, bridge string, cartonId string) error {
+func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	client := DockerClient{Bridge: bridge, ContainerId: containerId, IpAddr: ip, Gateway: gateway, CartonId: cartonId}
-	err := client.NetworkRequest(container.Node.IP, port)
+	 err :=c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
+	err = client.NetworkRequest(container.Node.IP, port)
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Cluster) SetLogs(containerId string, containerName string) error {
-	port := c.GulpPort()
-	container := c.getContainerObject(containerId)
-	client := DockerClient{ContainerId: containerId, ContainerName: containerName}
+func (c * Cluster) Ips(ip string, CartonId string) error {
+	var ips = make(map[string][]string)
+	pubipv4s := []string{}
+	pubipv4s = []string{ip}
+ ips[carton.PUBLICIPV4] = pubipv4s
+	if asm, err := carton.NewAmbly(CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
+		return err
+	}
+	return nil
+}
 
-	client.LogsRequest(container.Node.IP, port)
+func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool)  error{
+node, err :=c.getNodeForContainer(opts.Container)
+ node.Logs(opts)
+	closechan <- true
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
