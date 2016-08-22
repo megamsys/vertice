@@ -126,10 +126,6 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	if err != nil {
 		return "", "", err
 	}
-	_, err = IsSuccess(node,res,"HostIP")
-	if err != nil {
-		return "", "", err
-	}
 
 	vnchost := res.GetHostIp()
 	vncport := res.GetPort()
