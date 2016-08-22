@@ -186,6 +186,7 @@ var updateVncportInScylla = action.Action{
 var deductCons = action.Action{
 	Name: "deduct-cons-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
+			fmt.Printf("\n**********ctx.Previous**************%#v***",ctx.Previous)
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
