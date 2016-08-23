@@ -224,7 +224,6 @@ func (m *Machine) SetStatus(status utils.Status) error {
 	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
-
 		return err
 	}
 

@@ -119,7 +119,6 @@ var createMachine = action.Action{
 		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  removing err machine %s", c.Name)))
 		err := c.Remove(args.provisioner)
 		if err != nil {
-
 			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
 	},
@@ -194,7 +193,11 @@ var deductCons = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
-		mach.Deduct()
+		err := mach.Deduct()
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
@@ -225,7 +228,7 @@ var destroyOldMachine = action.Action{
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error remove machine ( %s)", args.box.GetFullName())))
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -253,7 +256,7 @@ var startMachine = action.Action{
 	},
 
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -280,6 +283,7 @@ var stopMachine = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 		//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
@@ -329,9 +333,16 @@ var changeStateofMachine = action.Action{
 			Level:    args.box.Level,
 			Name:     args.box.GetFullName(),
 		}
-		mach.SetStatus(constants.StatusStateupping)
-		mach.ChangeState(args.machineStatus)
-
+		err := mach.SetStatus(constants.StatusStateupping)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error change state of machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		err := mach.ChangeState(args.machineStatus)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error publish state change of machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
 		if args.box.PublicIp != "" {
 			mach.Status = constants.StatusNetworkCreating
 
@@ -413,7 +424,6 @@ var destroyOldRoute = action.Action{
 			w = ioutil.Discard
 		}
 		mach.SetRoutable(args.box.PublicIp)
-
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("destroy routes from created machine")))
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
