@@ -228,7 +228,7 @@ var destroyOldMachine = action.Action{
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error remove machine ( %s)", args.box.GetFullName())))
+
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -247,6 +247,7 @@ var startMachine = action.Action{
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, START)
 		if err != nil {
+				fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		mach.Status = constants.StatusStarted
@@ -256,7 +257,7 @@ var startMachine = action.Action{
 	},
 
 	Backward: func(ctx action.BWContext) {
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+		//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -275,6 +276,7 @@ var stopMachine = action.Action{
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, STOP)
 		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		mach.Status = constants.StatusStopped
@@ -283,7 +285,6 @@ var stopMachine = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 		//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
@@ -338,7 +339,7 @@ var changeStateofMachine = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error change state of machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
-		err := mach.ChangeState(args.machineStatus)
+		err = mach.ChangeState(args.machineStatus)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error publish state change of machine ( %s)", args.box.GetFullName())))
 			return nil, err
