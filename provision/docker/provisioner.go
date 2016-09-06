@@ -382,7 +382,7 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 	return container.Exec(p, stdout, stderr, cmd, args...)
 }
 
-func (p *dockerProvisioner) MetricEnvs(s, e int64, w io.Writer) ([]interface{}, error) {
+func (p *dockerProvisioner) MetricEnvs(s, e int64, point string ,w io.Writer) ([]interface{}, error) {
 	return nil, nil
 }
 

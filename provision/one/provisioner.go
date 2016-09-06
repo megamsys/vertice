@@ -458,10 +458,10 @@ func (*oneProvisioner) Addr(box *provision.Box) (string, error) {
 	return addr, nil
 }
 
-func (p *oneProvisioner) MetricEnvs(start int64, end int64, w io.Writer) ([]interface{}, error) {
+func (p *oneProvisioner) MetricEnvs(start int64, end int64,point string, w io.Writer) ([]interface{}, error) {
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)", start, end)))
-	res, err := p.Cluster().Showback(start, end)
+	res, err := p.Cluster().Showback(start, end, point)
 	if err != nil {
 
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
