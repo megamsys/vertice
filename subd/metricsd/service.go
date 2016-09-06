@@ -67,14 +67,16 @@ func (s *Service) runMetricsCollectors() error {
 		ScyllaAddress: s.Meta.Scylla,
 	}
 
-	collectors := map[string]metrix.MetricCollector{
-		metrix.OPENNEBULA: &metrix.OpenNebula{Url: s.Deployd.One.Regions[0].OneEndPoint},
-	}
+	for _, region := range s.Deployd.One.Regions {
+		collectors := map[string]metrix.MetricCollector{
+			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint},
+		}
 
-	mh := &metrix.MetricHandler{}
+		mh := &metrix.MetricHandler{}
 
-	for _, collector := range collectors {
-		go s.Handler.processCollector(mh, output, collector)
+		for _, collector := range collectors {
+			go s.Handler.processCollector(mh, output, collector)
+		}
 	}
 	return nil
 }
