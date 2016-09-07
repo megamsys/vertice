@@ -9,22 +9,12 @@ import (
 )
 
 // Showback returns the metrics of the one cluster
-func (c *Cluster) Showback(start int64, end int64) ([]interface{}, error) {
+func (c *Cluster) Showback(start int64, end int64,point string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
-	var (
-		addr string
-	)
-	nodlist, err := c.Nodes()
 
-	if err != nil || len(nodlist) <= 0 {
-		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
-	} else {
-		addr = nodlist[0].Address
-	}
-
-	node, err := c.getNodeByAddr(addr)
+	node, err := c.getNodeByAddr(point)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 	}
 	opts := metrics.Accounting{Api: node.Client, StartTime: start, EndTime: end}
 

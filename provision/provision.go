@@ -137,7 +137,7 @@ type Provisioner interface {
 	Addr(*Box) (string, error)
 
 	// Returns the metric backend collected
-	MetricEnvs(int64, int64, io.Writer) ([]interface{}, error)
+	MetricEnvs(int64, int64,string,io.Writer) ([]interface{}, error)
 }
 
 type MessageProvisioner interface {

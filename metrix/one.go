@@ -37,7 +37,7 @@ func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
 		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(),
-			time.Now().Unix(), ioutil.Discard)
+			time.Now().Unix(),on.Url,ioutil.Discard)
 		if e != nil {
 			return
 		}
