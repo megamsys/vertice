@@ -204,7 +204,11 @@ func (box *Box) Log(message, source, unit string) error {
 	} else if sp[0] == "INFO" {
 		lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, sp[1])
 	} else {
+		if box.Tosca == "docker" {
 		lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, message)
+	} else {
+	lo = message
+}
 	}
 	messages := strings.Split(lo, "\n")
 	logs := make([]interface{}, 0, len(messages))
