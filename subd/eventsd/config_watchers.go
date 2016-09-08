@@ -12,6 +12,7 @@ import (
 type Mailgun struct {
 	ApiKey string `toml:"api_key"`
 	Domain string `toml:"domain"`
+	Sender string `toml:"sender"`
 	Logo   string `toml:"logo"`
 	Nilavu string `toml:"nilavu"`
 }
@@ -20,6 +21,7 @@ func NewMaingun() Mailgun {
 	return Mailgun{
 		ApiKey: "team",
 		Domain: "ojamail.megambox.com",
+		Sender: "Megam Systems <support@megam.io>",
 		Logo:   "https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/megam_vertice.png",
 		Nilavu: "localhost:3000",
 	}
@@ -29,6 +31,7 @@ func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[constants.API_KEY] = m.ApiKey
 	mp[constants.DOMAIN] = m.Domain
+	mp[constants.SENDER] = m.Sender
 	mp[constants.NILAVU] = m.Nilavu
 	mp[constants.LOGO] = m.Logo
 	return mp
@@ -40,6 +43,7 @@ func (m Mailgun) String() string {
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Mailgun", "green", "", "") + "\n"))
 	b.Write([]byte("api_key" + "\t" + m.ApiKey + "\n"))
+	b.Write([]byte("sender" + "\t" + m.Sender + "\n"))
 	b.Write([]byte("domain" + "\t" + m.Domain + "\n"))
 	b.Write([]byte("nilavu    " + "\t" + m.Nilavu + "\n"))
 	b.Write([]byte("logo      " + "\t" + m.Logo + "\n"))
