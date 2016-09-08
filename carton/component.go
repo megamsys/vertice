@@ -133,10 +133,6 @@ func (c *Component) mkBox() (provision.Box, error) {
 			OneClick: c.withOneClick(),
 			URL:      c.Repo.Rurl,
 		}
-		// if bt.Repo.URL == "" && bt.Repo.Source == VERTICE && bt.Repo.Type == IMAGE {
-		// 	bt.Repo.URL = strings.Split(c.Tosca,".")[2]
-		// }
-
 		bt.Repo.Hook = BuildHook(c.Operations, repository.CIHOOK)
 	}
 	return bt, nil
