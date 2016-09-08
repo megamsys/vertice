@@ -16,6 +16,7 @@
 package carton
 
 import (
+	"fmt"
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
@@ -36,6 +37,7 @@ const (
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
 	HOSTIP        = "hostip"
+  TRUE          = "true"
 )
 
 type Artifacts struct {
@@ -124,7 +126,9 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
-
+ fmt.Println("***********Component*********")
+fmt.Println(c)
+fmt.Println("_______",c.Repo)
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
@@ -132,6 +136,10 @@ func (c *Component) mkBox() (provision.Box, error) {
 			OneClick: c.withOneClick(),
 			URL:      c.Repo.Rurl,
 		}
+		// if bt.Repo.URL == "" && bt.Repo.Source == VERTICE && bt.Repo.Type == IMAGE {
+		// 	bt.Repo.URL = strings.Split(c.Tosca,".")[2]
+		// }
+
 		bt.Repo.Hook = BuildHook(c.Operations, repository.CIHOOK)
 	}
 	return bt, nil
@@ -232,7 +240,7 @@ func (c *Component) publicIp() string {
 }
 
 func (c *Component) withOneClick() bool {
-	return (len(strings.TrimSpace(c.Envs.Match(ONECLICK))) > 0)
+	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE)
 }
 
 //all the variables in the inputs shall be treated as ENV.

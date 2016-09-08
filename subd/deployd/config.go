@@ -65,6 +65,7 @@ func NewConfig() *Config {
 	rg := make([]one.Region,2)
 
   c := one.Cluster{
+		Enabled: false,
 		ClusterId: DefaultOneCluster,
 		Vnet_pri_ipv4: DefaultOneVnetPri,
 		Vnet_pub_ipv4: DefaultOneVnetPub,
@@ -114,8 +115,10 @@ func (c Config) String() string {
 	b.Write([]byte(api.IMAGE + "    \t" + v.Image + "\n"))
 	b.Write([]byte(api.VCPU_PERCENTAGE + "\t" + v.VCPUPercentage + "\n"))
 	   for _,k := range v.Clusters {
-	b.Write([]byte(api.CLUSTER+ "\t" + k.ClusterId + "\n"))
-  }
+			if k.Enabled {
+				b.Write([]byte(api.CLUSTER+ "\t" + k.ClusterId + "\n"))
+			}
+	}
 	b.Write([]byte("---\n"))
 }
 	fmt.Fprintln(w)
