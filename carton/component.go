@@ -16,7 +16,6 @@
 package carton
 
 import (
-	"fmt"
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
@@ -126,9 +125,6 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
- fmt.Println("***********Component*********")
-fmt.Println(c)
-fmt.Println("_______",c.Repo)
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
