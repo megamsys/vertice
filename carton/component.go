@@ -36,6 +36,7 @@ const (
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
 	HOSTIP        = "hostip"
+	VERTICE       = "vertice"
   TRUE          = "true"
 )
 
@@ -236,7 +237,7 @@ func (c *Component) publicIp() string {
 }
 
 func (c *Component) withOneClick() bool {
-	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE)
+	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE && c.Repo.Source == VERTICE)
 }
 
 //all the variables in the inputs shall be treated as ENV.
