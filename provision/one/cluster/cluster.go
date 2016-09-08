@@ -267,13 +267,12 @@ func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 //return vnets and cluster id which is choosen
 func (c *Cluster) getVnets(nodeo Node, m map[string]string) (map[string]string,string) {
    res := make(map[string]string)
-for k,_ := range nodeo.Clusters {
-  	for i,j := range nodeo.Clusters[k] {
+  	for i,j := range nodeo.Clusters[0] {
        if m[i] == "true" {
 				res[i] = j
 			}
 		}
 		return res,k
-	}
+
 	return res , "0"
 }
