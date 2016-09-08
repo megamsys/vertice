@@ -36,6 +36,8 @@ const (
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
 	HOSTIP        = "hostip"
+	VERTICE       = "vertice"
+  TRUE          = "true"
 )
 
 type Artifacts struct {
@@ -124,7 +126,6 @@ func (c *Component) mkBox() (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 	}
-
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
 			Type:     c.Repo.Rtype,
@@ -232,7 +233,7 @@ func (c *Component) publicIp() string {
 }
 
 func (c *Component) withOneClick() bool {
-	return (len(strings.TrimSpace(c.Envs.Match(ONECLICK))) > 0)
+	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE && c.Repo.Source == VERTICE)
 }
 
 //all the variables in the inputs shall be treated as ENV.

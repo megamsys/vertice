@@ -150,14 +150,16 @@ func (c Region) toMap() map[string]string {
 func (c Region) toClusterMap() map[string]map[string]string {
 	clData := make(map[string]map[string]string)
 	for i := 0; i < len(c.Clusters); i++ {
-		mm, ok := clData[c.Clusters[i].ClusterId]
-		if !ok {
-			mm = make(map[string]string)
-			mm[utils.IPV4PRI] = c.Clusters[i].Vnet_pri_ipv4
-			mm[utils.IPV4PUB] = c.Clusters[i].Vnet_pub_ipv4
-			mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
-			mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
-			clData[c.Clusters[i].ClusterId] = mm
+		if c.Clusters[i].Enabled {
+			mm, ok := clData[c.Clusters[i].ClusterId]
+			if !ok {
+				mm = make(map[string]string)
+				mm[utils.IPV4PRI] = c.Clusters[i].Vnet_pri_ipv4
+				mm[utils.IPV4PUB] = c.Clusters[i].Vnet_pub_ipv4
+				mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
+				mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
+				clData[c.Clusters[i].ClusterId] = mm
+			}
 		}
 	}
 
