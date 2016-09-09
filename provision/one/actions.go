@@ -42,6 +42,7 @@ type runMachineActionsArgs struct {
 	imageId       string
 	isDeploy      bool
 	machineStatus utils.Status
+	machineState  utils.State
 	provisioner   *oneProvisioner
 }
 
@@ -68,6 +69,7 @@ var updateStatusInScylla = action.Action{
 				Level:        args.box.Level,
 				Name:         args.box.GetFullName(),
 				Status:       args.machineStatus,
+				State:        args.machineState,
 				Image:        args.imageId,
 				Region:       args.box.Region,
 				VMId:         args.box.VMId,
@@ -533,7 +535,6 @@ var MileStoneUpdate = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		mach.State = constants.StateLaunched
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.SetMileStone(mach.State); err != nil {
 			return err, nil
