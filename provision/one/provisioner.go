@@ -228,6 +228,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createMachine,
+		&MileStoneUpdate,
 		&getVmHostIpPort,
 		&updateStatusInScylla,
 		&updateVnchostInScylla,
@@ -245,6 +246,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		writer:        w,
 		isDeploy:      true,
 		machineStatus: constants.StatusLaunching,
+		machineState: constants.StateLaunched,
 		provisioner:   p,
 	}
 
@@ -361,12 +363,14 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusBootstrapped,
+    machineState:  constants.StateRunning,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&restartMachine,
+		&MileStoneUpdate,
 		&updateStatusInScylla,
 	}
 
@@ -391,12 +395,14 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusStarting,
+		machineState:  constants.StateRunning,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&startMachine,
+		&MileStoneUpdate,
 		&updateStatusInScylla,
 	}
 
@@ -421,11 +427,13 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusStopping,
+		machineState:  constants.StateStopped,
 		provisioner:   p,
 	}
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&stopMachine,
+		&MileStoneUpdate,
 		&updateStatusInScylla,
 	}
 

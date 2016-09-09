@@ -51,6 +51,7 @@ type Machine struct {
 	VNCPort      string
 	Routable   bool
 	Status     utils.Status
+	State      utils.State
 }
 
 type CreateArgs struct {
@@ -233,6 +234,27 @@ func (m *Machine) SetStatus(status utils.Status) error {
 		if comp, err := carton.NewComponent(m.Id); err != nil {
 			return err
 		} else if err = comp.SetStatus(status); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Machine) SetMileStone(state utils.State) error {
+	log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
+
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.SetState(state); err != nil {
+		return err
+	}
+
+	if m.Level == provision.BoxSome {
+		log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
+
+		if comp, err := carton.NewComponent(m.Id); err != nil {
+			return err
+		} else if err = comp.SetState(state); err != nil {
 			return err
 		}
 	}

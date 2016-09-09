@@ -37,7 +37,7 @@ const (
 	ONECLICK      = "oneclick"
 	HOSTIP        = "hostip"
 	VERTICE       = "vertice"
-  TRUE          = "true"
+	TRUE          = "true"
 )
 
 type Artifacts struct {
@@ -66,6 +66,7 @@ type Component struct {
 	RelatedComponents []string        `json:"related_components"`
 	Operations        []*Operations   `json:"operations"`
 	Status            string          `json:"status"`
+	State             string          `json:"state"`
 	CreatedAt         string          `json:"created_at"`
 }
 
@@ -81,6 +82,7 @@ type ComponentTable struct {
 	RelatedComponents []string `json:"related_components" cql:"related_components"`
 	Operations        []string `json:"operations" cql:"operations"`
 	Status            string   `json:"status" cql:"status"`
+	State             string   `json:"state" cql:"state"`
 	CreatedAt         string   `json:"created_at" cql:"created_at"`
 }
 
@@ -148,6 +150,24 @@ func (c *Component) SetStatus(status utils.Status) error {
 	update_fields := make(map[string]interface{})
 	update_fields["Inputs"] = c.Inputs.ToString()
 	update_fields["Status"] = status.String()
+	ops := ldb.Options{
+		TableName:   COMPBUCKET,
+		Pks:         []string{"Id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"Id": c.Id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Updatedb(ops, update_fields); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Component) SetState(state utils.State) error {
+	update_fields := make(map[string]interface{})
+	update_fields["State"] = state.String()
 	ops := ldb.Options{
 		TableName:   COMPBUCKET,
 		Pks:         []string{"Id"},
