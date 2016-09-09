@@ -58,6 +58,7 @@ type Ambly struct {
 	Outputs    []string `json:"outputs" cql:"outputs"`
 	Policies   []string `json:"policies" cql:"policies"`
 	Status     string   `json:"status" cql:"status"`
+	State      string   `json:"state" cql:"state"`
 	CreatedAt  string   `json:"created_at" cql:"created_at"`
 	Components []string `json:"components" cql:"components"`
 }
@@ -213,6 +214,25 @@ func (a *Ambly) SetStatus(status utils.Status) error {
 	return a.trigger_event(status)
 
 }
+
+func (a *Ambly) SetState(state utils.State) error {
+	update_fields := make(map[string]interface{})
+	update_fields["State"] = state.String()
+	ops := ldb.Options{
+		TableName:   ASSEMBLYBUCKET,
+		Pks:         []string{"id"},
+		Ccms:        []string{"org_id"},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"id": a.Id},
+		CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
+	}
+	if err := ldb.Updatedb(ops, update_fields); err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func (a *Ambly) trigger_event(status utils.Status) error {
 	mi := make(map[string]string)
