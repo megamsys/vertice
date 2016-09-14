@@ -188,3 +188,67 @@ func (s DiskSaveProcess) Process(ca Cartons) error {
 	}
 	return nil
 }
+
+// DiskSaveProcs represents a command for delete cartons.
+type SnapDestoryProcess struct {
+	Name string
+}
+
+func (s SnapDestoryProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("SNAP DELETE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s SnapDestoryProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.DeleteImage(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskAttachProcess represents a command for delete cartons.
+type DiskAttachProcess struct {
+	Name string
+}
+
+func (s DiskAttachProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DISK ADD CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s DiskAttachProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.AttachDisk(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+
+// DiskDettachProcess represents a command for delete cartons.
+type DiskDettachProcess struct {
+	Name string
+}
+
+func (s DiskDettachProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DISK REMOVE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s DiskDettachProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.DettachDisk(); err != nil {
+			return err
+		}
+	}
+	return nil
+}

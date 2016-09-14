@@ -109,6 +109,19 @@ type BoxDeploy struct {
 	Unit    string
 }
 
+// BoxResource represents a provision unit. Can be a resources of machine, container or anything
+// IP-addressable.
+type BoxResource struct {
+	Id         string
+	AccountsId string
+	CartonsId  string
+	CartonId   string
+	CartonName string
+	Size       string
+	Cpu        string
+	RAM        string
+}
+
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
@@ -205,10 +218,10 @@ func (box *Box) Log(message, source, unit string) error {
 		lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, sp[1])
 	} else {
 		if box.Tosca == "docker" {
-		lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, message)
-	} else {
-	lo = message
-}
+			lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, message)
+		} else {
+			lo = message
+		}
 	}
 	messages := strings.Split(lo, "\n")
 	logs := make([]interface{}, 0, len(messages))

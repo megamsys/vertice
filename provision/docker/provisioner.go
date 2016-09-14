@@ -389,3 +389,19 @@ func (p *dockerProvisioner) MetricEnvs(s, e int64, point string ,w io.Writer) ([
 func (p *dockerProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	return nil
 }
+
+func (p *dockerProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) DettachDisk(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) TriggerBills(account_id,cat_id,name string) error {
+	return nil
+}

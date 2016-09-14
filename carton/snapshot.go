@@ -26,6 +26,20 @@ type Snaps struct {
 	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
 	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
 	CreatedAt   string   `json:"created_at" cql:"created_at"`
+	Status      string   `json:"status" cql:"status"`
+}
+
+type Disks struct {
+	Id          string   `json:"snap_id" cql:"snap_id"`
+  DiskId      string   `json:"disk_id" cql:"disk_id"`
+	OrgId       string   `json:"org_id" cql:"org_id"`
+	AccountId   string   `json:"account_id" cql:"account_id"`
+	Name        string   `json:"name" cql:"name"`
+	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
+	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
+	CreatedAt   string   `json:"created_at" cql:"created_at"`
+	Size        string   `json:"size" cql:"size"`
+	Status      string   `json:"status" cql:"status"`
 }
 
 func (a *Snaps) String() string {
@@ -58,6 +72,26 @@ func SaveImage(opts *DiskSaveOpts) error {
 	return nil
 }
 
+
+// ChangeState runs a state increment of a machine or a container.
+func DeleteImage(opts *DiskSaveOpts) error {
+	return nil
+}
+
+
+
+// ChangeState runs a state increment of a machine or a container.
+func AttachDisk(opts *DiskSaveOpts) error {
+	return nil
+}
+
+
+// ChangeState runs a state increment of a machine or a container.
+func DettachDisk(opts *DiskSaveOpts) error {
+	return nil
+}
+
+
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func GetSnap(id string) (*Snaps, error) {
@@ -80,11 +114,46 @@ func GetSnap(id string) (*Snaps, error) {
 	return a, nil
 }
 
+/** A public function which pulls the disks that attached to vm.
+and any others we do. **/
+func GetDisks(id string) (*Disks, error) {
+	d := &Disks{}
+	ops := ldb.Options{
+		TableName:   "disks",
+		Pks:         []string{"id"},
+		Ccms:        []string{},
+		Hosts:       meta.MC.Scylla,
+		Keyspace:    meta.MC.ScyllaKeyspace,
+		PksClauses:  map[string]interface{}{"id": id},
+		CcmsClauses: make(map[string]interface{}),
+	}
+	if err := ldb.Fetchdb(ops, d); err != nil {
+		return nil, err
+	}
+	log.Debugf("Disks acctached %v", d)
+	return d, nil
+}
+
 //make cartons from snaps.
 func (a *Snaps) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
 		if len(strings.TrimSpace(a.AssemblyId)) > 1 {
 			if ca, err := mkCarton(a.Id, a.AssemblyId); err != nil {
+				return nil, err
+			} else {
+				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
+				newCs = append(newCs, ca) //on success append carton
+			}
+		}
+	log.Debugf("Cartons %v", newCs)
+	return newCs, nil
+}
+
+//make cartons from snaps.
+func (d *Disks) MkCartons() (Cartons, error) {
+	newCs := make(Cartons, 0, 1)
+		if len(strings.TrimSpace(d.AssemblyId)) > 1 {
+			if ca, err := mkCarton(d.Id, d.AssemblyId); err != nil {
 				return nil, err
 			} else {
 				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero

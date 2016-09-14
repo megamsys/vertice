@@ -24,16 +24,17 @@ type ReqOperator struct {
 	Id        string
 	CartonsId string
 	Category  string
+	Action    string
 }
 
 // NewReqOperator returns a new instance of ReqOperator
 // for the operatable id (Assemblies)
-func NewReqOperator(id ,cat string) *ReqOperator {
-	return &ReqOperator{Id: id, Category: cat}
+func NewReqOperator(id ,cat,action string) *ReqOperator {
+	return &ReqOperator{Id: id, Category: cat, Action: action}
 }
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
-	c, err := p.Get(p.Id,p.Category)
+	c, err := p.Get()
 	if err != nil {
 		return err
 	}
@@ -42,19 +43,29 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 	return md.Process(c)
 }
 
-func (p *ReqOperator) Get(cat_id,cat string) (Cartons, error) {
-  if cat == SNAPSHOT {
-		a, err := GetSnap(cat_id)
+func (p *ReqOperator) Get() (Cartons, error) {
+  if p.Category == SNAPSHOT {
+		s, err := GetSnap(p.Id)
 		if err != nil {
 			return nil, err
 		}
-		c, err := a.MkCartons()
+		c, err := s.MkCartons()
+		if err != nil {
+			return nil, err
+		}
+		return c, nil
+	} else if p.Category == DISKS {
+		d, err := GetDisks(p.Id)
+		if err != nil {
+			return nil, err
+		}
+		c, err := d.MkCartons()
 		if err != nil {
 			return nil, err
 		}
 		return c, nil
 	} else {
-		a, err := Get(cat_id)
+		a, err := Get(p.Id)
 		if err != nil {
 			return nil, err
 		}

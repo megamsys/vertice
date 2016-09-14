@@ -37,6 +37,7 @@ import (
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
+	"github.com/megamsys/vertice/provision/one/machine"
 	_ "github.com/megamsys/vertice/router/route53"
 )
 
@@ -293,7 +294,6 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
-
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -306,6 +306,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&diskSaveAsImage,
+	//	&updateIdInSnapTable,
 		&updateStatusInScylla,
 	}
 
@@ -322,6 +323,19 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	err = doneNotify(box, w, alerts.SNAPSHOTTED)
 	return nil
 }
+
+func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
+ return nil
+}
+
+func (p *oneProvisioner) DettachDisk(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
 
 func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto utils.Status) error {
 
@@ -482,6 +496,21 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64,point string, w io.Wr
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
 	return res, nil
 }
+
+func (p *oneProvisioner) TriggerBills(account_id,cat_id, name string) error {
+  mach := &machine.Machine{
+		Name: name,
+		CartonId: cat_id,
+		AccountsId: account_id,
+		}
+	err :=	mach.Deduct()
+  if err != nil {
+		return err
+	}
+ return nil
+}
+
+
 
 func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
 

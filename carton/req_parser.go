@@ -43,7 +43,11 @@ var (
 
 	//snapshot actions
 	SNAPSHOT   = "snapshot"
+	DISKS      = "disks"
 	DISKSAVEAS = "disksaveas"
+	SNAPDELETE = "snapremove"
+	ATTACHDISK = "attachdisk"
+	DETTACHDISK = "dettachdisk"
 
 )
 
@@ -73,6 +77,8 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 		return p.parseOperations(action)
 	case SNAPSHOT:
 		return p.parseSnapshot(action)
+	case DISKS:
+	  return p.parseDisks(action)
 	default:
 		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS})
 	}
@@ -139,8 +145,27 @@ func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 		return DiskSaveProcess{
 			Name: p.name,
 		}, nil
+	case SNAPDELETE:
+		return SnapDestoryProcess{
+			Name: p.name,
+		}, nil
 	default:
-		return nil, newParseError([]string{SNAPSHOT, action}, []string{DISKSAVEAS})
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{DISKSAVEAS,SNAPDELETE})
+	}
+}
+
+func (p *ReqParser) parseDisks(action string) (MegdProcessor, error) {
+	switch action {
+	case ATTACHDISK:
+		return DiskAttachProcess{
+			Name: p.name,
+		}, nil
+	case DETTACHDISK:
+		return DiskDettachProcess{
+			Name: p.name,
+		}, nil
+	default:
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{ATTACHDISK,DETTACHDISK})
 	}
 }
 

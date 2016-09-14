@@ -2,7 +2,6 @@ package metricsd
 
 import (
 	"time"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
