@@ -232,6 +232,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		&getVmHostIpPort,
 		&updateStatusInScylla,
 		&updateVnchostInScylla,
+		&MileStoneUpdate,
 		&updateStatusInScylla,
 	  &updateVncportInScylla,
 		&updateStatusInScylla,
@@ -246,7 +247,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		writer:        w,
 		isDeploy:      true,
 		machineStatus: constants.StatusLaunching,
-		machineState: constants.StateLaunched,
+		machineState:  constants.StateInitializing,
 		provisioner:   p,
 	}
 

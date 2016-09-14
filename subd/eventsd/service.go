@@ -2,7 +2,6 @@ package eventsd
 
 import (
 	"sync"
-
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
 	"github.com/megamsys/libgo/events"

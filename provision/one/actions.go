@@ -159,6 +159,7 @@ var updateVnchostInScylla = action.Action{
 			return nil, err
 		}
 		mach.Status = constants.StatusVncHostUpdated
+		mach.State = constants.StateInitialized
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
