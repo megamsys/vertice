@@ -7,6 +7,7 @@ import (
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/subd/deployd"
+	"github.com/megamsys/vertice/subd/docker"
 )
 
 const (
@@ -22,15 +23,17 @@ type Service struct {
 	stop    chan struct{}
 	Meta    *meta.Config
 	Deployd *deployd.Config
+	Dockerd *docker.Config
 	Config  *Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, d *deployd.Config, f *Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config,doc *docker.Config, f *Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
-		Deployd: d,
+		Deployd: one,
+		Dockerd: doc,
 		Config:  f,
 	}
 	s.Handler = NewHandler()
@@ -78,6 +81,21 @@ func (s *Service) runMetricsCollectors() error {
 			go s.Handler.processCollector(mh, output, collector)
 		}
 	}
+
+	for _, region := range s.Dockerd.Docker.Regions {
+		collectors := map[string]metrix.MetricCollector{
+			metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},
+		}
+
+		mh := &metrix.MetricHandler{}
+
+		for _, collector := range collectors {
+			go s.Handler.processCollector(mh, output, collector)
+		}
+	}
+
+
+
 	return nil
 }
 
