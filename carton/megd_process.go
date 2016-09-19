@@ -232,21 +232,21 @@ func (s DiskAttachProcess) Process(ca Cartons) error {
 }
 
 
-// DiskDettachProcess represents a command for delete cartons.
-type DiskDettachProcess struct {
+// DiskDetachProcess represents a command for delete cartons.
+type DiskDetachProcess struct {
 	Name string
 }
 
-func (s DiskDettachProcess) String() string {
+func (s DiskDetachProcess) String() string {
 	var buf bytes.Buffer
 	_, _ = buf.WriteString("DISK REMOVE CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
 
-func (s DiskDettachProcess) Process(ca Cartons) error {
+func (s DiskDetachProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.DettachDisk(); err != nil {
+		if err := c.DetachDisk(); err != nil {
 			return err
 		}
 	}

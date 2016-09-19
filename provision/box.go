@@ -109,19 +109,6 @@ type BoxDeploy struct {
 	Unit    string
 }
 
-// BoxResource represents a provision unit. Can be a resources of machine, container or anything
-// IP-addressable.
-type BoxResource struct {
-	Id         string
-	AccountsId string
-	CartonsId  string
-	CartonId   string
-	CartonName string
-	Size       string
-	Cpu        string
-	RAM        string
-}
-
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {

@@ -35,9 +35,9 @@ import (
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
+	"github.com/megamsys/vertice/provision/one/machine"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
-	"github.com/megamsys/vertice/provision/one/machine"
 	_ "github.com/megamsys/vertice/router/route53"
 )
 
@@ -229,13 +229,13 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createMachine,
-		&MileStoneUpdate,
+		&mileStoneUpdate,
 		&getVmHostIpPort,
 		&updateStatusInScylla,
 		&updateVnchostInScylla,
-		&MileStoneUpdate,
+		&mileStoneUpdate,
 		&updateStatusInScylla,
-	  &updateVncportInScylla,
+		&updateVncportInScylla,
 		&updateStatusInScylla,
 		&deductCons,
 		&followLogs,
@@ -306,7 +306,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&diskSaveAsImage,
-	//	&updateIdInSnapTable,
+		&updateIdInSnapTable,
 		&updateStatusInScylla,
 	}
 
@@ -325,17 +325,88 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusDiskDetaching,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&updateStatusInScylla,
+		&removeSnapShot,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- removing snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)OK", box.GetFullName())))
 	return nil
 }
 
 func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
- return nil
-}
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- adding new storage to box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusDiskAttaching,
+		provisioner:   p,
+	}
 
-func (p *oneProvisioner) DettachDisk(box *provision.Box, w io.Writer) error {
+	actions := []*action.Action{
+		&updateStatusInScylla,
+		&addNewStorage,
+		&updateIdInDiskTable,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := doneNotify(box, w, alerts.SNAPSHOTTING)
+	err = pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- adding new storage to box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- adding new storage to box (%s)OK", box.GetFullName())))
+	err = doneNotify(box, w, alerts.SNAPSHOTTED)
 	return nil
 }
 
+func (p *oneProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- removing existing storage from box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusDiskDetaching,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&updateStatusInScylla,
+		&removeDiskStorage,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- removing existing storage from box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- removing existing storage from box (%s)OK", box.GetFullName())))
+	return nil
+}
 
 func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto utils.Status) error {
 
@@ -348,7 +419,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto util
 	}
 
 	stateAction := make([]*action.Action, 0, 4)
-	stateAction = append(stateAction,&changeStateofMachine)
+	stateAction = append(stateAction, &changeStateofMachine)
 	if args.box.PublicIp != "" {
 		stateAction = append(stateAction, &updateStatusInScylla, &addNewRoute, &updateStatusInScylla)
 	} else {
@@ -378,14 +449,14 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusBootstrapped,
-    machineState:  constants.StateRunning,
+		machineState:  constants.StateRunning,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&restartMachine,
-		&MileStoneUpdate,
+		&mileStoneUpdate,
 		&updateStatusInScylla,
 	}
 
@@ -417,7 +488,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&startMachine,
-		&MileStoneUpdate,
+		&mileStoneUpdate,
 		&updateStatusInScylla,
 	}
 
@@ -448,7 +519,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&stopMachine,
-		&MileStoneUpdate,
+		&mileStoneUpdate,
 		&updateStatusInScylla,
 	}
 
@@ -483,7 +554,7 @@ func (*oneProvisioner) Addr(box *provision.Box) (string, error) {
 	return addr, nil
 }
 
-func (p *oneProvisioner) MetricEnvs(start int64, end int64,point string, w io.Writer) ([]interface{}, error) {
+func (p *oneProvisioner) MetricEnvs(start int64, end int64, point string, w io.Writer) ([]interface{}, error) {
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)", start, end)))
 	res, err := p.Cluster().Showback(start, end, point)
@@ -497,20 +568,18 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64,point string, w io.Wr
 	return res, nil
 }
 
-func (p *oneProvisioner) TriggerBills(account_id,cat_id, name string) error {
-  mach := &machine.Machine{
-		Name: name,
-		CartonId: cat_id,
+func (p *oneProvisioner) TriggerBills(account_id, cat_id, name string) error {
+	mach := &machine.Machine{
+		Name:       name,
+		CartonId:   cat_id,
 		AccountsId: account_id,
-		}
-	err :=	mach.Deduct()
-  if err != nil {
+	}
+	err := mach.Deduct()
+	if err != nil {
 		return err
 	}
- return nil
+	return nil
 }
-
-
 
 func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
 

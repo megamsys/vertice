@@ -132,8 +132,8 @@ type Provisioner interface {
   // AttachDisk add additional disk to current state of the running VM
   AttachDisk(*Box, io.Writer) error
 
-	// DettachDisk remove additional disk from current state of the running VM
-	DettachDisk(*Box, io.Writer) error
+	// DetachDisk remove additional disk from current state of the running VM
+	DetachDisk(*Box, io.Writer) error
 
 	// Open a remote shel in one of the boxs in the carton.
 	Shell(ShellOptions) error

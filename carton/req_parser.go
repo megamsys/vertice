@@ -47,7 +47,7 @@ var (
 	DISKSAVEAS = "disksaveas"
 	SNAPDELETE = "snapremove"
 	ATTACHDISK = "attachdisk"
-	DETTACHDISK = "dettachdisk"
+	DETACHDISK = "detachdisk"
 
 )
 
@@ -160,12 +160,12 @@ func (p *ReqParser) parseDisks(action string) (MegdProcessor, error) {
 		return DiskAttachProcess{
 			Name: p.name,
 		}, nil
-	case DETTACHDISK:
-		return DiskDettachProcess{
+	case DETACHDISK:
+		return DiskDetachProcess{
 			Name: p.name,
 		}, nil
 	default:
-		return nil, newParseError([]string{SNAPSHOT, action}, []string{ATTACHDISK,DETTACHDISK})
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{ATTACHDISK,DETACHDISK})
 	}
 }
 

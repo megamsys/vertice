@@ -398,7 +398,7 @@ func (p *dockerProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *dockerProvisioner) DettachDisk(box *provision.Box, w io.Writer) error {
+func (p *dockerProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
