@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/megamsys/libgo/cmd"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/vertice/carton"
 	"net"
 	"net/url"
 	"sync"
-	"github.com/megamsys/vertice/carton"
-//	"time"
+	//	"time"
 )
 
 type Container struct {
@@ -93,7 +94,6 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
 
-
 // InspectContainer returns information about a container by its ID, getting
 // the information from the right node.
 func (c *Cluster) InspectContainer(id string) (*docker.Container, error) {
@@ -127,7 +127,7 @@ func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.AP
 	errs := make(chan error, len(nodes))
 	for _, n := range nodes {
 		if n.Metadata[DOCKER_ZONE] == c.Region {
-			addr =n.Address
+			addr = n.Address
 		}
 		wg.Add(1)
 		client, _ := c.getNodeByAddr(addr)
@@ -307,7 +307,7 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	 err :=c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	err := c.Ips(container.NetworkSettings.IPAddress, cartonId)
 	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
 	err = client.NetworkRequest(container.Node.IP, port)
 
@@ -317,11 +317,11 @@ func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	return nil
 }
 
-func (c * Cluster) Ips(ip string, CartonId string) error {
+func (c *Cluster) Ips(ip string, CartonId string) error {
 	var ips = make(map[string][]string)
 	pubipv4s := []string{}
 	pubipv4s = []string{ip}
- ips[carton.PUBLICIPV4] = pubipv4s
+	ips[carton.PUBLICIPV4] = pubipv4s
 	if asm, err := carton.NewAmbly(CartonId); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
@@ -330,9 +330,9 @@ func (c * Cluster) Ips(ip string, CartonId string) error {
 	return nil
 }
 
-func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool)  error{
-node, err :=c.getNodeForContainer(opts.Container)
- node.Logs(opts)
+func (c *Cluster) SetLogs(cs chan []byte, opts docker.LogsOptions, closechan chan bool) error {
+	node, err := c.getNodeForContainer(opts.Container)
+	node.Logs(opts)
 	closechan <- true
 	if err != nil {
 		return err
@@ -396,4 +396,47 @@ func (c *Cluster) GulpPort() string {
 		}
 	}
 	return gulpPort
+}
+
+// Showback returns the metrics of the swarm containers stats
+func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{}, error) {
+	log.Debugf("showback (%d, %d)", start, end)
+	var resultStats []*docker.Stats
+	node, err := c.getNodeByAddr(point)
+	if err != nil {
+		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	}
+	opts := docker.ListContainersOptions{All: true}
+	ps, err := node.ListContainers(opts)
+	for _, v := range ps {
+		id := v.ID
+		errC := make(chan error, 1)
+		statsC := make(chan *docker.Stats)
+		done := make(chan bool)
+		defer close(done)
+		go func() {
+			errC <- node.Stats(docker.StatsOptions{ID: id, Stats: statsC, Stream: false, Done: done})
+			close(errC)
+		}()
+
+		for {
+			stats, ok := <-statsC
+			if !ok {
+				break
+			}
+			fmt.Println("Success ")
+			resultStats = append(resultStats, stats)
+		}
+		err := <-errC
+		if err != nil {
+			fmt.Println("******Error: 3 ", err)
+		}
+
+	}
+	if err != nil {
+		return nil, wrapError(node, err)
+	}
+	var a []interface{}
+	log.Debugf("showback (%d, %d) OK", start, end)
+	return a, nil
 }

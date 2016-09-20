@@ -68,7 +68,7 @@ func (s *Service) runMetricsCollectors() error {
 	output := &metrix.OutputHandler{
 		ScyllaAddress: s.Meta.Scylla,
 	}
-
+/*
 	for _, region := range s.Deployd.One.Regions {
 		collectors := map[string]metrix.MetricCollector{
 			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint},
@@ -80,7 +80,7 @@ func (s *Service) runMetricsCollectors() error {
 			go s.Handler.processCollector(mh, output, collector)
 		}
 	}
-
+*/
 	for _, region := range s.Dockerd.Docker.Regions {
 		collectors := map[string]metrix.MetricCollector{
 			metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},

@@ -9,7 +9,6 @@ import (
 	"bytes"
 //	"os"
 	//	"encoding/json"
-	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/utils"
@@ -88,6 +87,8 @@ func (c *Container) Create(args *CreateArgs) error {
 		Memory:       int64(args.Box.ConGetMemory()),
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
+		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId,
+			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountsId},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()

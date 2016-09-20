@@ -382,8 +382,16 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 	return container.Exec(p, stdout, stderr, cmd, args...)
 }
 
-func (p *dockerProvisioner) MetricEnvs(s, e int64, point string ,w io.Writer) ([]interface{}, error) {
-	return nil, nil
+func (p *dockerProvisioner) MetricEnvs(start, end int64, point string ,w io.Writer) ([]interface{}, error) {
+		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n--- metrics collect for node (%s) ----", point)))
+		res, err := p.Cluster().Showback(start, end, point)
+		if err != nil {
+			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+			return nil, err
+		}
+
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
+		return res, nil
 }
 
 func (p *dockerProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
