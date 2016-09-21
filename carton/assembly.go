@@ -93,8 +93,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	b, err := a.mkBoxes(aies)
+  vnet := a.vnets()
+	b, err := a.mkBoxes(aies,vnet)
 	if err != nil {
 		return nil, err
 	}
@@ -117,17 +117,18 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 	}
+
 	return c, nil
 }
 
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
 //A "colored component" externalized with what we need.
-func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
+func (a *Assembly) mkBoxes(aies string,vnet map[string]string) ([]provision.Box, error) {
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
-			if b, err := comp.mkBox(); err != nil {
+			if b, err := comp.mkBox(vnet); err != nil {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
@@ -148,6 +149,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.SSH = a.newSSH()
 				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
+				b.Vnets = vnet
 				newBoxs = append(newBoxs, b)
 			}
 		}

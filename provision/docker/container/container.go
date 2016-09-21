@@ -97,6 +97,7 @@ func (c *Container) Create(args *CreateArgs) error {
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
 	cl.Region = args.Box.Region
+	cl.VNets = args.Box.Vnets
 	addr, cont, err := cl.CreateContainerSchedulerOpts(opts)
 	if err != nil {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)

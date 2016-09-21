@@ -158,7 +158,6 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 }
 
 func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-
 	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	actions := []*action.Action{
 		&updateStatusInScylla,

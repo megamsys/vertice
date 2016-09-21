@@ -28,6 +28,7 @@ const (
 var ErrConnRefused = errors.New("connection refused")
 
 func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, string, string, error) {
+
 	var (
 		addr    string
 		machine string

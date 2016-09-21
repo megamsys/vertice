@@ -95,6 +95,7 @@ type Cluster struct {
 	stor           Storage
 	bridges        Bridges
 	gulp           Gulp
+	VNets          map[string]string
 	monitoringDone chan bool
 	Region         string
 }

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/megamsys/libgo/cmd"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/cmd"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/metrix"
-	constants "github.com/megamsys/libgo/utils"
 	"net"
 	"net/url"
 	"sync"
@@ -321,15 +321,23 @@ func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 
 func (c *Cluster) Ips(ip string, CartonId string) error {
 	var ips = make(map[string][]string)
-	pubipv4s := []string{}
-	pubipv4s = []string{ip}
-	ips[carton.PUBLICIPV4] = pubipv4s
+	pubipv4s := []string{ip}
+	ips[c.getIps()] = pubipv4s
 	if asm, err := carton.NewAmbly(CartonId); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (c *Cluster) getIps() string {
+	for k, v := range c.VNets {
+		if v == "true" {
+			return k
+		}
+	}
+	return ""
 }
 
 func (c *Cluster) SetLogs(cs chan []byte, opts docker.LogsOptions, closechan chan bool) error {
@@ -410,8 +418,8 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 	}
 	opts := docker.ListContainersOptions{
 		All: true,
-	//	Filters: map[string][]string{"status": {"running","paused","stopped"}},
-		}
+		//	Filters: map[string][]string{"status": {"running","paused","stopped"}},
+	}
 	ps, err := node.ListContainers(opts)
 	for _, v := range ps {
 		id := v.ID
@@ -429,8 +437,7 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 			if !ok {
 				break
 			}
-			fmt.Println("Success ")
-			resultStats = append(resultStats, parseContainerStats(v,stats))
+			resultStats = append(resultStats, parseContainerStats(v, stats))
 		}
 		err := <-errC
 		if err != nil {
@@ -446,30 +453,30 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 	return resultStats, nil
 }
 
-func parseContainerStats(d docker.APIContainers,stats *docker.Stats) (*metrix.Stats) {
+func parseContainerStats(d docker.APIContainers, stats *docker.Stats) *metrix.Stats {
 	return &metrix.Stats{
-		ContainerId: d.ID,
+		ContainerId:  d.ID,
 		MemoryUsage:  stats.MemoryStats.Usage,
 		SystemMemory: stats.MemoryStats.Limit,
-		CPUStats:     metrix.CPUStats{
-			PercpuUsage: stats.CPUStats.CPUUsage.PercpuUsage,
-			UsageInUsermode: stats.CPUStats.CPUUsage.UsageInUsermode,
-			TotalUsage: stats.CPUStats.CPUUsage.TotalUsage,
+		CPUStats: metrix.CPUStats{
+			PercpuUsage:       stats.CPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode:   stats.CPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage:        stats.CPUStats.CPUUsage.TotalUsage,
 			UsageInKernelmode: stats.CPUStats.CPUUsage.UsageInKernelmode,
-		  SystemCPUUsage: stats.CPUStats.SystemCPUUsage,
+			SystemCPUUsage:    stats.CPUStats.SystemCPUUsage,
 		},
-		PreCPUStats:  metrix.CPUStats{
-			PercpuUsage: stats.PreCPUStats.CPUUsage.PercpuUsage,
-			UsageInUsermode: stats.PreCPUStats.CPUUsage.UsageInUsermode,
-			TotalUsage: stats.PreCPUStats.CPUUsage.TotalUsage,
+		PreCPUStats: metrix.CPUStats{
+			PercpuUsage:       stats.PreCPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode:   stats.PreCPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage:        stats.PreCPUStats.CPUUsage.TotalUsage,
 			UsageInKernelmode: stats.PreCPUStats.CPUUsage.UsageInKernelmode,
-		  SystemCPUUsage: stats.PreCPUStats.SystemCPUUsage,
+			SystemCPUUsage:    stats.PreCPUStats.SystemCPUUsage,
 		},
 		AccountId:    d.Labels[constants.ACCOUNT_ID],
 		AssemblyId:   d.Labels[constants.ASSEMBLY_ID],
 		AssembliesId: d.Labels[constants.ASSEMBLIES_ID],
 		AssemblyName: d.Labels[constants.ASSEMBLY_NAME],
-		AuditPeriod: stats.Read,
-		Status: d.State,
+		AuditPeriod:  stats.Read,
+		Status:       d.State,
 	}
 }
