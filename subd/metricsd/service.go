@@ -1,7 +1,6 @@
 package metricsd
 
 import (
-	"fmt"
 	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"

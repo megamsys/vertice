@@ -22,6 +22,7 @@ type runContainerActionsArgs struct {
 	box              *provision.Box
 	imageId          string
 	containerStatus  utils.Status
+	containerState   utils.State
 	destinationHosts []string
 	writer           io.Writer
 	isDeploy         bool
@@ -114,17 +115,18 @@ var updateStatusInScylla = action.Action{
 		} else {
 			ncont, _ := args.provisioner.GetContainerByBox(args.box)
 			cont = *ncont
-			cont.Image = args.imageId
+			cont.Status = args.containerStatus
+			cont.State  = args.containerState
+			cont.Image  = args.imageId
 		}
-
-		if err := cont.SetStatus(args.containerStatus); err != nil {
+		if err := cont.SetStatus(cont.Status); err != nil {
 			return nil, err
 		}
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(container.Container)
-		c.SetStatus(constants.StatusError)
+		c.SetStatus(constants.StatusContainerError)
 	},
 }
 
@@ -133,7 +135,7 @@ var createContainer = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
-		log.Debugf("  create container for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)
+		log.Debugf(" create container for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)
 		err := cont.Create(&container.CreateArgs{
 			ImageId:     args.imageId,
 			Box:         args.box,
@@ -144,7 +146,8 @@ var createContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		cont.Status = constants.StatusLaunched
+		cont.State = constants.StateInitialized
+		cont.Status = constants.StatusContainerLaunched
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -156,6 +159,21 @@ var createContainer = action.Action{
 		if err != nil {
 			log.Errorf("---- [start-container:Backward]\n     %s", err.Error())
 		}
+	},
+}
+
+var MileStoneUpdate = action.Action{
+	Name: "set-final-state",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		cont := ctx.Previous.(container.Container)
+		args := ctx.Params[0].(runContainerActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
+		if err := cont.SetMileStone(cont.State); err != nil {
+			return err, nil
+		}
+		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)OK", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
+		return cont, nil
 	},
 }
 
@@ -173,7 +191,8 @@ var startContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		c.Status = constants.StatusStarted
+		c.State  = constants.StateBootstrapped
+		c.Status = constants.StatusContainerBootstrapped
 		return c, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -197,15 +216,14 @@ var stopContainer = action.Action{
 		if err := cont.Stop(args.provisioner); err != nil {
 			return nil, err
 		}
-
-		cont.Status = constants.StatusStopped
+		cont.State = constants.StateStopped
+		cont.Status = constants.StatusContainerStopped
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		args := ctx.Params[0].(runContainerActionsArgs)
 		c := ctx.FWResult.(container.Container)
-		c.Status = constants.StatusStopping
-
+		c.Status = constants.StatusContainerStopping
 		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
 	},
 }
@@ -253,7 +271,14 @@ var setNetworkInfo = action.Action{
 		}
 		c.PublicIp = info.IP
 		c.HostPort = info.HTTPHostPort
+		c.Status = constants.StatusContainerNetworkSuccess
 		return c, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		args := ctx.Params[0].(runContainerActionsArgs)
+		c := ctx.FWResult.(container.Container)
+		c.Status = constants.StatusContainerNetworkFailure
+		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
 	},
 }
 
@@ -265,15 +290,17 @@ var followLogsAndCommit = action.Action{
 			return nil, errors.New("Previous result must be a container.")
 		}
 		args := ctx.Params[0].(runContainerActionsArgs)
-	   err:= c.Logs(args.provisioner)
-
+		err := c.Logs(args.provisioner)
 		if err != nil {
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err
 		}
-	//	if status != 0 {
+		c.State  = constants.StateRunning
+		c.Status = constants.StatusContainerRunning
+
+		//	if status != 0 {
 		//	return nil, fmt.Errorf("Exit status %d", status)
-	//	}
+		//	}
 		/*fmt.Fprintf(args.writer, "\n---- Building application image ----\n")
 		imageId, err := c.Commit(args.provisioner, args.writer)
 		if err != nil {
@@ -284,7 +311,7 @@ var followLogsAndCommit = action.Action{
 		c.Remove(args.provisioner)
 		return imageId, nil
 		*/
-		return "", nil
+		return c, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},

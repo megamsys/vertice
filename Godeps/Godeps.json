@@ -16,6 +16,11 @@
 			"Rev": "99064174e013895bbd9b025c31100bd1d9b590ca"
 		},
 		{
+			"ImportPath": "github.com/Microsoft/go-winio",
+			"Comment": "v0.3.5-2-gce2922f",
+			"Rev": "ce2922f643c8fd76b46cadc7f404a06282678b34"
+		},
+		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.10.0-38-g3ec0642",
 			"Rev": "3ec0642a7fb6488f65b06f9040adc67e3990296a"
@@ -42,68 +47,68 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api/types/filters",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api/types/versions",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/opts",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/archive",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/fileutils",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/idtools",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/ioutils",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/longpath",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/pools",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/promise",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/stdcopy",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/system",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1570-g45a8f68",
-			"Rev": "45a8f680263558657e98c899204a632153b60cde"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
+			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
 		},
 		{
 			"ImportPath": "github.com/docker/engine-api/types/mount",
@@ -122,11 +127,11 @@
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
-			"Rev": "115a62abaa0222394f95cb9351b0d4e980175360"
+			"Rev": "f83f10ba227dccf272242322738e7d26226fc2cb"
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient/testing",
-			"Rev": "115a62abaa0222394f95cb9351b0d4e980175360"
+			"Rev": "f83f10ba227dccf272242322738e7d26226fc2cb"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -138,7 +143,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "6c0472a7690bdb983189bb16aa31512ae1928e6e"
+			"Rev": "94a3cd9f531888fe4a03487276c0adb887428e77"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -180,8 +185,8 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Comment": "v1.1-25-g0a192a1",
-			"Rev": "0a192a193177452756c362c20087ddafcf6829c4"
+			"Comment": "v1.1-27-g757bef9",
+			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
@@ -249,63 +254,63 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/addons",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/alerts",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/bills",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/fs",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/os",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/pairs",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/utils",
-			"Rev": "34e9bfeb1fa6b590364d2445d2967455d4f50be7"
+			"Rev": "40b1663612c1c7a72930c6d56f3b6d7186a3d66c"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
@@ -360,13 +365,13 @@
 		},
 		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/system",
-			"Comment": "v1.0.0-rc1-208-g38e0df9",
-			"Rev": "38e0df9ec67c05e73b656c02c9222f24c1683d73"
+			"Comment": "v1.0.0-rc1-214-gce5d8cf",
+			"Rev": "ce5d8cf94124a683af6a874f343375d3ec9230b4"
 		},
 		{
 			"ImportPath": "github.com/opencontainers/runc/libcontainer/user",
-			"Comment": "v1.0.0-rc1-208-g38e0df9",
-			"Rev": "38e0df9ec67c05e73b656c02c9222f24c1683d73"
+			"Comment": "v1.0.0-rc1-214-gce5d8cf",
+			"Rev": "ce5d8cf94124a683af6a874f343375d3ec9230b4"
 		},
 		{
 			"ImportPath": "github.com/pborman/uuid",
@@ -407,19 +412,19 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
-			"Rev": "119f50887f8fe324fe2386421c27a11af014b64e"
+			"Rev": "6ab629be5e31660579425a738ba8870beb5b7404"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "de35ec43e7a9aabd6a9c54d2898220ea7e44de7d"
+			"Rev": "f4fe4abe3c785295ddf81c7f1823bcd3bad391b6"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "de35ec43e7a9aabd6a9c54d2898220ea7e44de7d"
+			"Rev": "f4fe4abe3c785295ddf81c7f1823bcd3bad391b6"
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "de35ec43e7a9aabd6a9c54d2898220ea7e44de7d"
+			"Rev": "f4fe4abe3c785295ddf81c7f1823bcd3bad391b6"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
@@ -431,7 +436,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "30de6d19a3bd89a5f38ae4028e23aaa5582648af"
+			"Rev": "8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/windows",
+			"Rev": "8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9"
 		},
 		{
 			"ImportPath": "gopkg.in/check.v1",

@@ -163,10 +163,16 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createContainer,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
 		&startContainer,
+		&MileStoneUpdate,
 		&updateStatusInScylla,
 		&setNetworkInfo,
+		&updateStatusInScylla,
 		&followLogsAndCommit,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -177,10 +183,10 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		writer:          w,
 		isDeploy:        true,
 		buildingImage:   imageId,
-		containerStatus: constants.StatusLaunching,
+		containerState:  constants.StateInitializing,
+		containerStatus: constants.StatusContainerLaunching,
 		provisioner:     p,
 	}
-	fmt.Println(args)
 	err := pipeline.Execute(args)
 	if err != nil {
 
@@ -231,7 +237,7 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 		if err != nil {
 			return err
 		}
-		c.SetStatus(constants.StatusStarting)
+		c.SetStatus(constants.StatusContainerStarting)
 		if info, err := c.NetworkInfo(p); err == nil {
 			p.fixContainer(c, info)
 		}

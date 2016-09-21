@@ -35,7 +35,7 @@ const (
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
 	ONECLICK      = "oneclick"
-	HOSTIP        = "hostip"
+	HOSTIP        = "vnchost"
 	VERTICE       = "vertice"
 	TRUE          = "true"
 )
@@ -273,7 +273,7 @@ func (a *ComponentTable) getInputs() pairs.JsonPairs {
 		parseStringToStruct(in, &inputs)
 		keys = append(keys, &inputs)
 	}
-	return keys
+		return keys
 }
 
 func (a *ComponentTable) getOutputs() pairs.JsonPairs {
