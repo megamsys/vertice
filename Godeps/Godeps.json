@@ -47,68 +47,68 @@
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api/types/filters",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api/types/versions",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/opts",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/archive",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/fileutils",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/homedir",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/idtools",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/ioutils",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/longpath",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/pools",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/promise",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/stdcopy",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/system",
-			"Comment": "docs-v1.12.0-rc4-2016-07-15-1662-gfd1037b",
-			"Rev": "fd1037b4325c1ae5b2e68d6f39ee0cd58a0a7d48"
+			"Comment": "docs-v1.12.0-rc4-2016-07-15-1664-g340f50c",
+			"Rev": "340f50c1c4e1c0dc54f1d94b4dedf3f46db0d12b"
 		},
 		{
 			"ImportPath": "github.com/docker/engine-api/types/mount",
@@ -318,10 +318,6 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "2e38313a58664afb47ec05d82cb7c573b88cfe8b"
-		},
-		{
-			"ImportPath": "github.com/megamsys/opennebula-go/disk",
 			"Rev": "2e38313a58664afb47ec05d82cb7c573b88cfe8b"
 		},
 		{
