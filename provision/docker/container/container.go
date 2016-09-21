@@ -44,6 +44,7 @@ type Container struct {
 	Version                 string
 	Image                   string
 	Status                  utils.Status
+	State										utils.State
 	BuildingImage           string
 	LastStatusUpdate        time.Time
 	LastSuccessStatusUpdate time.Time
@@ -61,7 +62,7 @@ func (c *Container) ShortId() string {
 }
 
 func (c *Container) Available() bool {
-	return c.Status.String() == constants.StatusStarted.String() || c.Status.String() == constants.StatusStarting.String()
+	return c.Status.String() == constants.StatusContainerStarted.String() || c.Status.String() == constants.StatusContainerStarting.String()
 }
 
 func (c *Container) Address() *url.URL {
@@ -151,6 +152,26 @@ func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string,
 	return "", fmt.Errorf("Host `%s` not found", host)
 }
 
+func (c *Container) SetMileStone(state utils.State) error {
+	log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
+	if asm, err := carton.NewAmbly(c.CartonId); err != nil {
+		return err
+	} else if err = asm.SetState(state); err != nil {
+		return err
+	}
+
+	if c.Level == provision.BoxSome {
+		log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
+
+		if comp, err := carton.NewComponent(c.BoxId); err != nil {
+			return err
+		} else if err = comp.SetState(state); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func urlToHost(urlStr string) string {
 	url, _ := url.Parse(urlStr)
 	if url == nil || url.Host == "" {
@@ -211,22 +232,22 @@ func (c *Container) Start(args *StartArgs) error {
 	if err != nil {
 		return err
 	}
-	initialStatus := constants.StatusStarting
+	initialStatus := constants.StatusContainerStarted
 	if args.Deploy {
-		initialStatus = constants.StatusLaunching
+		initialStatus = constants.StatusContainerBootstrapping
 	}
 	return c.SetStatus(initialStatus)
 }
 
 func (c *Container) Stop(p DockerProvisioner) error {
-	if c.Status.String() == constants.StatusStopped.String() {
+	if c.Status.String() == constants.StatusContainerStopped.String() {
 		return nil
 	}
 	err := p.Cluster().StopContainer(c.Id, 10)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
 	}
-	c.SetStatus(constants.StatusStopped)
+	c.SetStatus(constants.StatusContainerStopped)
 	return nil
 }
 
