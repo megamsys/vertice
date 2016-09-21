@@ -110,7 +110,7 @@ var createMachine = action.Action{
 		if err != nil {
 			return nil, err
 		}
-
+		mach.State = constants.StateInitialized
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		return mach, nil
 	},
@@ -159,7 +159,6 @@ var updateVnchostInScylla = action.Action{
 			return nil, err
 		}
 		mach.Status = constants.StatusVncHostUpdated
-		mach.State = constants.StateInitialized
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
