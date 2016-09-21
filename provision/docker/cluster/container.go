@@ -8,6 +8,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/metrix"
+	constants "github.com/megamsys/libgo/utils"
 	"net"
 	"net/url"
 	"sync"
@@ -401,12 +403,15 @@ func (c *Cluster) GulpPort() string {
 // Showback returns the metrics of the swarm containers stats
 func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
-	var resultStats []*docker.Stats
+	var resultStats []interface{}
 	node, err := c.getNodeByAddr(point)
 	if err != nil {
 		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 	}
-	opts := docker.ListContainersOptions{All: true}
+	opts := docker.ListContainersOptions{
+		All: true,
+	//	Filters: map[string][]string{"status": {"running","paused","stopped"}},
+		}
 	ps, err := node.ListContainers(opts)
 	for _, v := range ps {
 		id := v.ID
@@ -425,18 +430,46 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 				break
 			}
 			fmt.Println("Success ")
-			resultStats = append(resultStats, stats)
+			resultStats = append(resultStats, parseContainerStats(v,stats))
 		}
 		err := <-errC
 		if err != nil {
-			fmt.Println("******Error: 3 ", err)
+			return nil, wrapError(node, err)
 		}
 
 	}
 	if err != nil {
 		return nil, wrapError(node, err)
 	}
-	var a []interface{}
+
 	log.Debugf("showback (%d, %d) OK", start, end)
-	return a, nil
+	return resultStats, nil
+}
+
+func parseContainerStats(d docker.APIContainers,stats *docker.Stats) (*metrix.Stats) {
+	return &metrix.Stats{
+		ContainerId: d.ID,
+		MemoryUsage:  stats.MemoryStats.Usage,
+		SystemMemory: stats.MemoryStats.Limit,
+		CPUStats:     metrix.CPUStats{
+			PercpuUsage: stats.CPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode: stats.CPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage: stats.CPUStats.CPUUsage.TotalUsage,
+			UsageInKernelmode: stats.CPUStats.CPUUsage.UsageInKernelmode,
+		  SystemCPUUsage: stats.CPUStats.SystemCPUUsage,
+		},
+		PreCPUStats:  metrix.CPUStats{
+			PercpuUsage: stats.PreCPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode: stats.PreCPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage: stats.PreCPUStats.CPUUsage.TotalUsage,
+			UsageInKernelmode: stats.PreCPUStats.CPUUsage.UsageInKernelmode,
+		  SystemCPUUsage: stats.PreCPUStats.SystemCPUUsage,
+		},
+		AccountId:    d.Labels[constants.ACCOUNT_ID],
+		AssemblyId:   d.Labels[constants.ASSEMBLY_ID],
+		AssembliesId: d.Labels[constants.ASSEMBLIES_ID],
+		AssemblyName: d.Labels[constants.ASSEMBLY_NAME],
+		AuditPeriod: stats.Read,
+		Status: d.State,
+	}
 }

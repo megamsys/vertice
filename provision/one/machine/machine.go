@@ -24,15 +24,6 @@ import (
 	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
-const (
-	ACCOUNTID    = "AccountId"
-	ASSEMBLYID   = "AssemblyId"
-	ASSEMBLYNAME = "AssemblyName"
-	CONSUMED     = "Consumed"
-	STARTTIME    = "StartTime"
-	ENDTIME      = "EndTime"
-)
-
 type OneProvisioner interface {
 	Cluster() *cluster.Cluster
 }
@@ -177,12 +168,12 @@ func (m *Machine) Remove(p OneProvisioner) error {
 //trigger multi event in the order
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
-	mi[ACCOUNTID] = m.AccountsId
-	mi[ASSEMBLYID] = m.CartonId
-	mi[ASSEMBLYNAME] = m.Name
-	mi[CONSUMED] = "0.1"
-	mi[STARTTIME] = time.Now().String()
-	mi[ENDTIME] = time.Now().String()
+	mi[constants.ACCOUNTID] = m.AccountsId
+	mi[constants.ASSEMBLYID] = m.CartonId
+	mi[constants.ASSEMBLYNAME] = m.Name
+	mi[constants.CONSUMED] = "0.1"
+	mi[constants.START_TIME] = time.Now().String()
+	mi[constants.END_TIME] = time.Now().String()
 
 	newEvent := events.NewMulti(
 		[]*events.Event{

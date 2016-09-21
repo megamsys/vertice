@@ -1,6 +1,7 @@
 package metricsd
 
 import (
+	"fmt"
 	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
@@ -8,12 +9,6 @@ import (
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
 )
-
-const (
-	RIAK = "riak"
-)
-
-var OUTPUTS = []string{RIAK}
 
 // Service manages the listener and handler for an HTTP endpoint.
 type Service struct {
@@ -68,7 +63,7 @@ func (s *Service) runMetricsCollectors() error {
 	output := &metrix.OutputHandler{
 		ScyllaAddress: s.Meta.Scylla,
 	}
-/*
+
 	for _, region := range s.Deployd.One.Regions {
 		collectors := map[string]metrix.MetricCollector{
 			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint},
@@ -80,7 +75,7 @@ func (s *Service) runMetricsCollectors() error {
 			go s.Handler.processCollector(mh, output, collector)
 		}
 	}
-*/
+
 	for _, region := range s.Dockerd.Docker.Regions {
 		collectors := map[string]metrix.MetricCollector{
 			metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},
@@ -92,8 +87,6 @@ func (s *Service) runMetricsCollectors() error {
 			go s.Handler.processCollector(mh, output, collector)
 		}
 	}
-
-
 
 	return nil
 }
