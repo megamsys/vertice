@@ -15,6 +15,7 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
@@ -23,35 +24,27 @@ import (
 	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
-const (
-	ACCOUNTID    = "AccountId"
-	ASSEMBLYID   = "AssemblyId"
-	ASSEMBLYNAME = "AssemblyName"
-	CONSUMED     = "Consumed"
-	STARTTIME    = "StartTime"
-	ENDTIME      = "EndTime"
-)
-
 type OneProvisioner interface {
 	Cluster() *cluster.Cluster
 }
 
 type Machine struct {
-	Name       string
-	Region     string
-	Id         string
-	CartonId   string
-	AccountsId string
-	Level      provision.BoxLevel
-	SSH        provision.BoxSSH
-	Image      string
+	Name         string
+	Region       string
+	Id           string
+	CartonId     string
+	AccountsId   string
+	Level        provision.BoxLevel
+	SSH          provision.BoxSSH
+	Image        string
 	VCPUThrottle string
-	VMId        string
+	VMId         string
 	VNCHost      string
 	VNCPort      string
-	Routable   bool
-	Status     utils.Status
-	State      utils.State
+	ImageId      string
+	Routable     bool
+	Status       utils.Status
+	State        utils.State
 }
 
 type CreateArgs struct {
@@ -62,36 +55,35 @@ type CreateArgs struct {
 	Provisioner OneProvisioner
 }
 
-
 func (m *Machine) Create(args *CreateArgs) error {
- opts := compute.VirtualMachine{
+	opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,
 		Region: args.Box.Region,
-		Cpu: strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,
-		compute.ASSEMBLIES_ID: args.Box.CartonsId,compute.ACCOUNTS_ID: args.Box.AccountsId},
+			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
-		}
+	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
- _,	_, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
 	if err != nil {
 		return err
 	}
 	m.VMId = vmid
 
 	var id = make(map[string][]string)
-		vm := []string{}
-		vm = []string{m.VMId}
-	 id[carton.VMID] = vm
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(id); err != nil {
-			return err
-		}
+	vm := []string{}
+	vm = []string{m.VMId}
+	id[carton.VMID] = vm
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(id); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -99,19 +91,19 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 
 	//time.Sleep(time.Second * 25)
 
-  var Wait int
-    ch := make(chan int)
-		for i := 0; i < 100; i++ {
-		    go player(ch)
-		}
-    ch <- Wait
-    time.Sleep(25 * time.Second)
-    <-ch
+	var Wait int
+	ch := make(chan int)
+	for i := 0; i < 100; i++ {
+		go player(ch)
+	}
+	ch <- Wait
+	time.Sleep(25 * time.Second)
+	<-ch
 
-   opts := virtualmachine.Vnc {
-		VmId:   m.VMId,
-			}
- 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts,m.Region)
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts, m.Region)
 	if err != nil {
 		return err
 	}
@@ -121,49 +113,49 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 }
 
 func player(ch chan int) {
-    for {
-        wait := <-ch
-        wait++
-        time.Sleep(150 * time.Millisecond)
-        ch <- wait
-    }
+	for {
+		wait := <-ch
+		wait++
+		time.Sleep(150 * time.Millisecond)
+		ch <- wait
+	}
 }
 
 func (m *Machine) UpdateVncHost() error {
 
 	var vnchost = make(map[string][]string)
-		host := []string{}
-		host = []string{m.VNCHost}
-	 vnchost[carton.VNCHOST] = host
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
-			return err
-		}
-		return nil
+	host := []string{}
+	host = []string{m.VNCHost}
+	vnchost[carton.VNCHOST] = host
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Machine) UpdateVncPort() error {
 
 	var vncport = make(map[string][]string)
-		port := []string{}
-		port = []string{m.VNCPort}
-	 vncport[carton.VNCPORT] = port
-		if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-			return err
-		} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
-			return err
-		}
-		return nil
+	port := []string{}
+	port = []string{m.VNCPort}
+	vncport[carton.VNCPORT] = port
+	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
-		Name: m.Name,
+		Name:   m.Name,
 		Region: m.Region,
-		VMId: id,
+		VMId:   id,
 	}
 
 	err := p.Cluster().DestroyVM(opts)
@@ -176,12 +168,12 @@ func (m *Machine) Remove(p OneProvisioner) error {
 //trigger multi event in the order
 func (m *Machine) Deduct() error {
 	mi := make(map[string]string)
-	mi[ACCOUNTID] = m.AccountsId
-	mi[ASSEMBLYID] = m.CartonId
-	mi[ASSEMBLYNAME] = m.Name
-	mi[CONSUMED] = "0.1"
-	mi[STARTTIME] = time.Now().String()
-	mi[ENDTIME] = time.Now().String()
+	mi[constants.ACCOUNTID] = m.AccountsId
+	mi[constants.ASSEMBLYID] = m.CartonId
+	mi[constants.ASSEMBLYNAME] = m.Name
+	mi[constants.CONSUMED] = "0.1"
+	mi[constants.START_TIME] = time.Now().String()
+	mi[constants.END_TIME] = time.Now().String()
 
 	newEvent := events.NewMulti(
 		[]*events.Event{
@@ -207,9 +199,9 @@ func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
-		Name: m.Name,
+		Name:   m.Name,
 		Region: m.Region,
-		VMId: id,
+		VMId:   id,
 	}
 	err := p.Cluster().VM(opts, action)
 	if err != nil {
@@ -239,6 +231,7 @@ func (m *Machine) SetStatus(status utils.Status) error {
 	}
 	return nil
 }
+
 
 func (m *Machine) SetMileStone(state utils.State) error {
 	log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
@@ -332,27 +325,143 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 }
 
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
-	log.Debugf("  creating snap machine in one (%s)", m.Name)
-	opts := compute.VirtualMachine{
-		Name: m.Name,
-		Region: m.Region,
-	}
-
-	err := p.Cluster().SnapVMDisk(opts)
-
-	//time.Sleep(time.Second * 25)
-
-	var Wait int
-		ch := make(chan int)
-		for i := 0; i < 100; i++ {
-				go player(ch)
-		}
-		ch <- Wait
-		time.Sleep(45 * time.Second)
-		<-ch
-
+		log.Debugf("  creating snap machine in one (%s)", m.Name)
+	snp, err := carton.GetSnap(m.CartonId)
 	if err != nil {
 		return err
 	}
+
+  vmid,_ := strconv.Atoi(m.VMId)
+	opts := compute.Image{
+		Name:   snp.Name,
+		Region: m.Region,
+		VMId:   vmid,
+	}
+
+	id, err := p.Cluster().SnapVMDisk(opts)
+	if err != nil {
+		return err
+	}
+	//time.Sleep(time.Second * 25)
+  m.ImageId = id
+	var Wait int
+	ch := make(chan int)
+	for i := 0; i < 100; i++ {
+		go player(ch)
+	}
+	ch <- Wait
+	time.Sleep(45 * time.Second)
+	<-ch
+	return nil
+}
+
+
+//it possible to have a Notifier interface that does this, duck typed by Snap id
+func (m *Machine) AttachNewDisk(p OneProvisioner) error {
+
+	dsk, err := carton.GetDisks(m.CartonId)
+	if err != nil {
+		return err
+	}
+
+  id,_ := strconv.Atoi(m.VMId)
+	opts := &disk.VmDisk{
+		VmId: id,
+		Vm:  disk.Vm{Disk: disk.Disk{Size: dsk.Size}},
+	}
+
+	err = p.Cluster().AttachDisk(opts,m.Region)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) UpdateSnap() error {
+	update_fields := make(map[string]interface{},2)
+	update_fields["Snap_Id"] = m.ImageId
+	update_fields["Status"] = "created"
+
+	d := &carton.Snaps{Id: m.CartonId}
+
+	err := d.UpdateSnap(update_fields)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) UpdateDisk() error {
+	id ,_ := strconv.Atoi(m.VMId)
+  vd := &disk.VmDisk{VmId: id}
+
+  dsk, err := vd.ListDisk()
+	if err != nil {
+		return err
+	}
+
+	l := dsk.GetDiskIds()
+	update_fields := make(map[string]interface{},2)
+	update_fields["Disk_Id"] = strconv.Itoa(l[len(l)-1])
+	update_fields["Status"] = "Success"
+
+	d := carton.Disks{Id: m.CartonId}
+
+	err = d.UpdateDisk(update_fields)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Machine) RemoveDisk(p OneProvisioner) error {
+	dsk, err := carton.GetDisks(m.CartonId)
+	if err != nil {
+		return err
+	}
+
+  id,_ := strconv.Atoi(m.VMId)
+	did,_ := strconv.Atoi(dsk.DiskId)
+	opts := &disk.VmDisk{
+		VmId:  id,
+		Vm:   disk.Vm{Disk: disk.Disk{Disk_Id: did}},
+	}
+
+	err = p.Cluster().DetachDisk(opts,m.Region)
+	if err != nil {
+		return err
+	}
+
+	err = dsk.RemoveDisk()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
+	snp, err := carton.GetSnap(m.CartonId)
+	if err != nil {
+		return err
+	}
+  id, _ := strconv.Atoi(snp.ImageId)
+	log.Debugf("  remove snap machine in one (%s)", m.Name)
+	opts := compute.Image{
+		Name:   snp.Name,
+		Region: m.Region,
+		ImageId: id,
+	}
+	err = p.Cluster().RemoveSnap(opts)
+	if err != nil {
+		return err
+	}
+
+	err = snp.RemoveSnap()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -530,8 +530,30 @@ var diskSaveAsImage = action.Action{
 	MinParams: 1,
 }
 
-var MileStoneUpdate = action.Action{
-	Name: "set-final-state",
+var removeSnapShot = action.Action{
+	Name: "remove-snap-shot",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		if err := mach.RemoveSnapshot(args.provisioner); err != nil {
+			return err, nil
+		}
+		mach.Status = constants.StatusDiskDetached
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var mileStoneUpdate = action.Action{
+	Name: "change-milestone-state",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -544,6 +566,11 @@ var MileStoneUpdate = action.Action{
 
 		return mach, nil
 	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
 }
 
 var setFinalState = action.Action{
@@ -553,4 +580,90 @@ var setFinalState = action.Action{
 		mach.Status = constants.StatusStateupped
 		return mach, nil
 	},
+}
+
+var addNewStorage = action.Action{
+	Name: "add-new-storage",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  attaching new disk to machine %s ----", mach.Name)))
+		err := mach.AttachNewDisk(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusDiskAttaching
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  attaching new disk to machine (%s, %s) OK", mach.Id, mach.Name)))
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var updateIdInSnapTable = action.Action{
+	Name: "update-snap-table",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		if err := mach.UpdateSnap(); err != nil {
+			return err, nil
+		}
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var updateIdInDiskTable = action.Action{
+	Name: "update-snap-table",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		if err := mach.UpdateDisk(); err != nil {
+			return err, nil
+		}
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var removeDiskStorage = action.Action{
+	Name: "remove-disk-storage",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		if err := mach.RemoveDisk(args.provisioner); err != nil {
+			return err, nil
+		}
+		mach.Status = constants.StatusDiskDetached
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
 }

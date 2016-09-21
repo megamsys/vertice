@@ -158,7 +158,6 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 }
 
 func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-
 	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	actions := []*action.Action{
 		&updateStatusInScylla,
@@ -388,10 +387,43 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 	return container.Exec(p, stdout, stderr, cmd, args...)
 }
 
-func (p *dockerProvisioner) MetricEnvs(s, e int64, point string ,w io.Writer) ([]interface{}, error) {
-	return nil, nil
+func (p *dockerProvisioner) MetricEnvs(start, end int64, point string, w io.Writer) ([]interface{}, error) {
+	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n--- metrics collect for node (%s) ----", point)))
+	res, err := p.Cluster().Showback(start, end, point)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+		return nil, err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
+	return res, nil
 }
 
 func (p *dockerProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) TriggerBills(account_id, cat_id, name string) error {
+	cont := &container.Container{
+		Name:       name,
+		CartonId:   cat_id,
+		AccountsId: account_id,
+	}
+	err := cont.Deduct()
+	if err != nil {
+		return err
+	}
 	return nil
 }

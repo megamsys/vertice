@@ -8,6 +8,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"net"
@@ -27,6 +28,7 @@ const (
 var ErrConnRefused = errors.New("connection refused")
 
 func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, string, string, error) {
+
 	var (
 		addr    string
 		machine string
@@ -260,7 +262,33 @@ func (c *Cluster) getNodeByAddr(addr string) (node, error) {
 	})
 }
 
-func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
+func (c *Cluster) SnapVMDisk(opts compute.Image) (string, error) {
+
+	addr, err := c.getRegion(opts.Region)
+	if err != nil {
+		return "", err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return "", err
+	}
+	opts.T = node.Client
+
+	res, err := opts.DiskSnap()
+	if err != nil {
+		return "",wrapError(node, err)
+	}
+
+	imageId, err := IsSuccess(node,res,"CreateSnap")
+	if err != nil {
+		return "", err
+	}
+
+	return imageId,nil
+}
+
+func (c *Cluster) RemoveSnap(opts compute.Image) error {
 
 	addr, err := c.getRegion(opts.Region)
 	if err != nil {
@@ -273,12 +301,65 @@ func (c *Cluster) SnapVMDisk(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.DiskSnap()
+	res, err := opts.RemoveImage()
 	if err != nil {
 		return wrapError(node, err)
 	}
 
-	_, err = IsSuccess(node,res,"CreateSnap")
+	_, err = IsSuccess(node,res,"DeleteSnap")
+	if err != nil {
+		return  err
+	}
+
+	return nil
+}
+
+
+func (c *Cluster) AttachDisk(v *disk.VmDisk,region string) error {
+
+	addr, err := c.getRegion(region)
+	if err != nil {
+		return err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	v.T = node.Client
+
+	res, err := v.AttachDisk()
+	if err != nil {
+		return wrapError(node, err)
+	}
+
+	_, err = IsSuccess(node,res,"AttachDisk")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Cluster) DetachDisk(v *disk.VmDisk,region string) error {
+
+	addr, err := c.getRegion(region)
+	if err != nil {
+		return err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	v.T = node.Client
+
+	res, err := v.DetachDisk()
+	if err != nil {
+		return wrapError(node, err)
+	}
+
+	_, err = IsSuccess(node,res,"DetachDisk")
 	if err != nil {
 		return err
 	}

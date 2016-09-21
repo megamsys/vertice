@@ -123,8 +123,17 @@ type Provisioner interface {
 	// parameter represeting the name of the process to stop.
 	Stop(*Box, string, io.Writer) error
 
-	// DiskSave creates the image for current state of the running VM
+	// DiskSave(SnapShot) creates the image for current state of the running VM
   SaveImage(*Box, io.Writer) error
+
+	// DeleteImage removes the image from storage created from running VM
+	DeleteImage(*Box, io.Writer) error
+
+  // AttachDisk add additional disk to current state of the running VM
+  AttachDisk(*Box, io.Writer) error
+
+	// DetachDisk remove additional disk from current state of the running VM
+	DetachDisk(*Box, io.Writer) error
 
 	// Open a remote shel in one of the boxs in the carton.
 	Shell(ShellOptions) error
@@ -138,6 +147,8 @@ type Provisioner interface {
 
 	// Returns the metric backend collected
 	MetricEnvs(int64, int64,string,io.Writer) ([]interface{}, error)
+
+	TriggerBills(string,string,string) error
 }
 
 type MessageProvisioner interface {

@@ -9,10 +9,11 @@ import (
 	"bytes"
 //	"os"
 	//	"encoding/json"
-	//"net/http"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/utils"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
@@ -33,6 +34,7 @@ type DockerProvisioner interface {
 type Container struct {
 	Id                      string //container id.
 	BoxId                   string
+	AccountsId              string
 	CartonId                string
 	Name                    string
 	BoxName                 string
@@ -51,7 +53,7 @@ type Container struct {
 	LockedUntil             time.Time
 	Routable                bool
 	Region                  string
-	closechan          chan bool
+	closechan               chan bool
 }
 
 func (c *Container) ShortId() string {
@@ -89,10 +91,13 @@ func (c *Container) Create(args *CreateArgs) error {
 		Memory:       int64(args.Box.ConGetMemory()),
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
+		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId, utils.ASSEMBLY_NAME: c.BoxName,
+			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountsId},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
 	cl.Region = args.Box.Region
+	cl.VNets = args.Box.Vnets
 	addr, cont, err := cl.CreateContainerSchedulerOpts(opts)
 	if err != nil {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
@@ -303,6 +308,36 @@ func (c *Container) SetStatus(status utils.Status) error {
 		}
 	}
 	return nil
+}
+
+//trigger multi event in the order
+func (c *Container) Deduct() error {
+	mi := make(map[string]string)
+	mi[constants.ACCOUNTID] = c.AccountsId
+	mi[constants.ASSEMBLYID] = c.CartonId
+	mi[constants.ASSEMBLYNAME] = c.Name
+	mi[constants.CONSUMED] = "0.1"
+	mi[constants.START_TIME] = time.Now().String()
+	mi[constants.END_TIME] = time.Now().String()
+
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  c.AccountsId,
+				EventAction: alerts.DEDUCT,
+				EventType:   constants.EventBill,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+			&events.Event{
+				AccountsId:  c.AccountsId,
+				EventAction: alerts.TRANSACTION, //Change type to transaction
+				EventType:   constants.EventBill,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	return newEvent.Write()
 }
 
 type NetworkInfo struct {

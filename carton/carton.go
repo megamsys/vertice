@@ -171,7 +171,42 @@ func (c *Carton) Restart() error {
 // DiskSave a carton, which creates an image by current state of its box.
 func (c *Carton) SaveImage() error {
 	for _, box := range *c.Boxes {
-		err := SaveImage(&DiskSaveOpts{B: &box})
+		err := SaveImage(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+
+
+// DiskSave a carton, which creates an image by current state of its box.
+func (c *Carton) DeleteImage() error {
+	for _, box := range *c.Boxes {
+		err := DeleteImage(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskSave a carton, which creates an image by current state of its box.
+func (c *Carton) AttachDisk() error {
+	for _, box := range *c.Boxes {
+		err := AttachDisk(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskSave a carton, which creates an image by current state of its box.
+func (c *Carton) DetachDisk() error {
+	for _, box := range *c.Boxes {
+		err := DetachDisk(&DiskOpts{B: &box})
 		if err != nil {
 			return err
 		}

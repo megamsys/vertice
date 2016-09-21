@@ -19,6 +19,16 @@ func (on *OpenNebula) Prefix() string {
 	return "one"
 }
 
+func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
+	for _,mc := range c.Sensors {
+	 e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
+		if e != nil {
+			return
+		}
+	}
+ return
+}
+
 func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 	b, e := on.ReadStatus()
 	if e != nil {
@@ -30,6 +40,8 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 		return
 	}
 	on.CollectMetricsFromStats(c, s)
+
+	e = on.DeductBill(c)
 	return
 }
 

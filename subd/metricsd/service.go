@@ -2,19 +2,12 @@ package metricsd
 
 import (
 	"time"
-
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
 )
-
-const (
-	RIAK = "riak"
-)
-
-var OUTPUTS = []string{RIAK}
 
 // Service manages the listener and handler for an HTTP endpoint.
 type Service struct {
@@ -93,8 +86,6 @@ func (s *Service) runMetricsCollectors() error {
 			go s.Handler.processCollector(mh, output, collector)
 		}
 	}
-
-
 
 	return nil
 }

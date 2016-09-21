@@ -6,11 +6,14 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
+	"github.com/megamsys/libgo/cmd"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/metrix"
 	"net"
 	"net/url"
 	"sync"
-	"github.com/megamsys/vertice/carton"
-//	"time"
+	//	"time"
 )
 
 type Container struct {
@@ -93,7 +96,6 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 	return cont, wrapErrorWithCmd(node, err, "createContainer")
 }
 
-
 // InspectContainer returns information about a container by its ID, getting
 // the information from the right node.
 func (c *Cluster) InspectContainer(id string) (*docker.Container, error) {
@@ -127,7 +129,7 @@ func (c *Cluster) ListContainers(opts docker.ListContainersOptions) ([]docker.AP
 	errs := make(chan error, len(nodes))
 	for _, n := range nodes {
 		if n.Metadata[DOCKER_ZONE] == c.Region {
-			addr =n.Address
+			addr = n.Address
 		}
 		wg.Add(1)
 		client, _ := c.getNodeByAddr(addr)
@@ -307,7 +309,7 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	 err :=c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	err := c.Ips(container.NetworkSettings.IPAddress, cartonId)
 	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
 	err = client.NetworkRequest(container.Node.IP, port)
 
@@ -317,11 +319,10 @@ func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	return nil
 }
 
-func (c * Cluster) Ips(ip string, CartonId string) error {
+func (c *Cluster) Ips(ip string, CartonId string) error {
 	var ips = make(map[string][]string)
-	pubipv4s := []string{}
-	pubipv4s = []string{ip}
- ips[carton.PUBLICIPV4] = pubipv4s
+	pubipv4s := []string{ip}
+	ips[c.getIps()] = pubipv4s
 	if asm, err := carton.NewAmbly(CartonId); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
@@ -330,9 +331,18 @@ func (c * Cluster) Ips(ip string, CartonId string) error {
 	return nil
 }
 
-func (c *Cluster) SetLogs(cs chan []byte,opts docker.LogsOptions, closechan chan bool)  error{
-node, err :=c.getNodeForContainer(opts.Container)
- node.Logs(opts)
+func (c *Cluster) getIps() string {
+	for k, v := range c.VNets {
+		if v == "true" {
+			return k
+		}
+	}
+	return ""
+}
+
+func (c *Cluster) SetLogs(cs chan []byte, opts docker.LogsOptions, closechan chan bool) error {
+	node, err := c.getNodeForContainer(opts.Container)
+	node.Logs(opts)
 	closechan <- true
 	if err != nil {
 		return err
@@ -396,4 +406,77 @@ func (c *Cluster) GulpPort() string {
 		}
 	}
 	return gulpPort
+}
+
+// Showback returns the metrics of the swarm containers stats
+func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{}, error) {
+	log.Debugf("showback (%d, %d)", start, end)
+	var resultStats []interface{}
+	node, err := c.getNodeByAddr(point)
+	if err != nil {
+		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
+	}
+	opts := docker.ListContainersOptions{
+		All: true,
+		//	Filters: map[string][]string{"status": {"running","paused","stopped"}},
+	}
+	ps, err := node.ListContainers(opts)
+	for _, v := range ps {
+		id := v.ID
+		errC := make(chan error, 1)
+		statsC := make(chan *docker.Stats)
+		done := make(chan bool)
+		defer close(done)
+		go func() {
+			errC <- node.Stats(docker.StatsOptions{ID: id, Stats: statsC, Stream: false, Done: done})
+			close(errC)
+		}()
+
+		for {
+			stats, ok := <-statsC
+			if !ok {
+				break
+			}
+			resultStats = append(resultStats, parseContainerStats(v, stats))
+		}
+		err := <-errC
+		if err != nil {
+			return nil, wrapError(node, err)
+		}
+
+	}
+	if err != nil {
+		return nil, wrapError(node, err)
+	}
+
+	log.Debugf("showback (%d, %d) OK", start, end)
+	return resultStats, nil
+}
+
+func parseContainerStats(d docker.APIContainers, stats *docker.Stats) *metrix.Stats {
+	return &metrix.Stats{
+		ContainerId:  d.ID,
+		MemoryUsage:  stats.MemoryStats.Usage,
+		SystemMemory: stats.MemoryStats.Limit,
+		CPUStats: metrix.CPUStats{
+			PercpuUsage:       stats.CPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode:   stats.CPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage:        stats.CPUStats.CPUUsage.TotalUsage,
+			UsageInKernelmode: stats.CPUStats.CPUUsage.UsageInKernelmode,
+			SystemCPUUsage:    stats.CPUStats.SystemCPUUsage,
+		},
+		PreCPUStats: metrix.CPUStats{
+			PercpuUsage:       stats.PreCPUStats.CPUUsage.PercpuUsage,
+			UsageInUsermode:   stats.PreCPUStats.CPUUsage.UsageInUsermode,
+			TotalUsage:        stats.PreCPUStats.CPUUsage.TotalUsage,
+			UsageInKernelmode: stats.PreCPUStats.CPUUsage.UsageInKernelmode,
+			SystemCPUUsage:    stats.PreCPUStats.SystemCPUUsage,
+		},
+		AccountId:    d.Labels[constants.ACCOUNT_ID],
+		AssemblyId:   d.Labels[constants.ASSEMBLY_ID],
+		AssembliesId: d.Labels[constants.ASSEMBLIES_ID],
+		AssemblyName: d.Labels[constants.ASSEMBLY_NAME],
+		AuditPeriod:  stats.Read,
+		Status:       d.State,
+	}
 }
