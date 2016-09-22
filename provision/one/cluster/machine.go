@@ -1,12 +1,12 @@
 package cluster
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
+	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/compute"
@@ -14,7 +14,6 @@ import (
 	"net"
 	"net/url"
 	"strconv"
-	"strings"
 )
 
 // CreateVM creates a vm in the specified node.
@@ -99,12 +98,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	if err != nil {
 		return "", "",err
 	}
-
-	vmid, err := IsSuccess(node,res,"CreateVM")
-	if err != nil {
-		return "", "", err
-	}
-
+  vmid := res.(string)
 	return opts.Name, vmid, nil
 }
 
@@ -121,14 +115,24 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	}
 	//opts.TemplateName = node.template
 	opts.T = node.Client
+  res := &virtualmachine.VM{}
 
-	res, err := opts.GetVm()
-	if err != nil {
-		return "", "", err
-	}
+   	err = safe.WaitCondition(5*time.Minute, 20*time.Second, func() bool {
+			res, _ = opts.GetVm()
+			//strings.Contains(err.Error(),"getsockopt: connection refused")
+			 fmt.Printf("---------------1-%#v",res.VmTemplate.Graphics)
+			fmt.Printf("---------------2-%#v",res.HistoryRecords.History)
 
-	vnchost := res.GetHostIp()
-	vncport := res.GetPort()
+			return res.HistoryRecords.History != nil
+		})
+
+		if err != nil {
+			return "", "", err
+		}
+    fmt.Println(res)
+		vnchost := res.GetHostIp()
+		vncport := res.GetPort()
+
 
 	if err != nil {
 		return "", "", wrapErrorWithCmd(node, err, "createVM")
@@ -136,6 +140,8 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 
 	return vnchost, vncport, nil
 }
+
+
 
 // DestroyVM kills a vm, returning an error in case of failure.
 func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
@@ -151,14 +157,9 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.Delete()
+	_, err = opts.Delete()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"DestroyVM")
-	if err != nil {
-		return err
+		return wrapErrorWithCmd(node, err,"DestroyVM")
 	}
 
 	return nil
@@ -189,15 +190,9 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.Resume()
-
+	_, err = opts.Resume()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"StartVM")
-	if err != nil {
-		return err
+		return wrapErrorWithCmd(node, err,"StartVM")
 	}
 
 	return nil
@@ -216,14 +211,9 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.Reboot()
+	_, err = opts.Reboot()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"RebootVM")
-	if err != nil {
-		return err
+		return wrapErrorWithCmd(node, err,"RebootVM")
 	}
 
 	return nil
@@ -242,16 +232,10 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.Poweroff()
+	_, err = opts.Poweroff()
 	if err != nil {
-		return wrapError(node, err)
+		return wrapErrorWithCmd(node, err,"StopVM")
 	}
-
-	_, err = IsSuccess(node,res,"StopVM")
-	if err != nil {
-		return err
-	}
-
 
 	return nil
 }
@@ -277,14 +261,9 @@ func (c *Cluster) SnapVMDisk(opts compute.Image) (string, error) {
 
 	res, err := opts.DiskSnap()
 	if err != nil {
-		return "",wrapError(node, err)
+		return "",wrapErrorWithCmd(node, err,"CreateSnap")
 	}
-
-	imageId, err := IsSuccess(node,res,"CreateSnap")
-	if err != nil {
-		return "", err
-	}
-
+  imageId := res.(string)
 	return imageId,nil
 }
 
@@ -301,14 +280,9 @@ func (c *Cluster) RemoveSnap(opts compute.Image) error {
 	}
 	opts.T = node.Client
 
-	res, err := opts.RemoveImage()
+	_, err = opts.RemoveImage()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"DeleteSnap")
-	if err != nil {
-		return  err
+		return wrapErrorWithCmd(node, err,"DeleteSnap")
 	}
 
 	return nil
@@ -328,14 +302,9 @@ func (c *Cluster) AttachDisk(v *disk.VmDisk,region string) error {
 	}
 	v.T = node.Client
 
-	res, err := v.AttachDisk()
+	_, err = v.AttachDisk()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"AttachDisk")
-	if err != nil {
-		return err
+		return wrapErrorWithCmd(node, err,"AttachDisk")
 	}
 
 	return nil
@@ -354,15 +323,10 @@ func (c *Cluster) DetachDisk(v *disk.VmDisk,region string) error {
 	}
 	v.T = node.Client
 
-	res, err := v.DetachDisk()
+	_, err = v.DetachDisk()
 	if err != nil {
-		return wrapError(node, err)
-	}
-
-	_, err = IsSuccess(node,res,"DetachDisk")
-	if err != nil {
-		return err
-	}
+		return wrapErrorWithCmd(node, err,"DetachDisk")
+ }
 
 	return nil
 }
@@ -396,23 +360,4 @@ func (c *Cluster) getRegion(region string) (string, error) {
 	}
 
 	return addr, nil
-}
-
-func IsSuccess(n node,result interface{},cmd string)  (string, error) {
-	reg, err := regexp.Compile("[^A-Za-z]+")
-	b, err := json.Marshal(result)
-	if err != nil {
-		return "", err
-	}
-
-	spstr := strings.Split(string(b), ",")
-	isSuccess, err := strconv.ParseBool(strings.TrimSpace(reg.ReplaceAllString(spstr[0], "")))
-	if err != nil {
-		return "", err
-	}
-	if !isSuccess {
-	return "", wrapErrorWithCmd(n, errors.New(spstr[1]),cmd)
-	}
-  //spstr[1] is error message or ID of action vm,vnet,cluster and etc.,
-  return  spstr[1], nil
 }
