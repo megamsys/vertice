@@ -38,8 +38,6 @@ const (
 	VNCHOST        = "vnchost"
 	VMID           = "vmid"
 	REGION         = "region"
-	PUBLICIPV4    = "publicipv4"
-  PRIVATEIPV4   = "privateipv4"
 	PUBLICIPV6    = "publicipv6"
 	PRIVATEIPV6   = "privateipv6"
 )
