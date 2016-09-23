@@ -53,8 +53,9 @@ func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 		if e != nil {
 			return
 		}
-		on.RawStatus = []byte(res[1].(string))
+		on.RawStatus = []byte(res[0].(string))
 	}
+	
 	b = on.RawStatus
 	return
 }

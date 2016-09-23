@@ -331,10 +331,19 @@ func (c *Cluster) Ips(ip string, CartonId string) error {
 	return nil
 }
 
-func (c *Cluster) getIps() string {
+func (c *Cluster) getIps() string {	
 	for k, v := range c.VNets {
 		if v == "true" {
-			return k
+			switch k {
+			case utils.IPV4PUB:
+				return carton.PUBLICIPV4
+			case utils.IPV6PUB:
+				return carton.PUBLICIPV6
+			case utils.IPV4PRI:
+				return carton.PRIVATEIPV4
+			case utils.IPV6PRI:
+        return carton.PRIVATEIPV6
+			}
 		}
 	}
 	return ""

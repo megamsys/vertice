@@ -89,20 +89,10 @@ func (m *Machine) Create(args *CreateArgs) error {
 
 func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 
-	//time.Sleep(time.Second * 25)
-
-	var Wait int
-	ch := make(chan int)
-	for i := 0; i < 100; i++ {
-		go player(ch)
-	}
-	ch <- Wait
-	time.Sleep(25 * time.Second)
-	<-ch
-
 	opts := virtualmachine.Vnc{
 		VmId: m.VMId,
 	}
+
 	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts, m.Region)
 	if err != nil {
 		return err
@@ -112,14 +102,6 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	return nil
 }
 
-func player(ch chan int) {
-	for {
-		wait := <-ch
-		wait++
-		time.Sleep(150 * time.Millisecond)
-		ch <- wait
-	}
-}
 
 func (m *Machine) UpdateVncHost() error {
 
@@ -324,6 +306,15 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 	*/
 }
 
+func player(ch chan int) {
+	for {
+		wait := <-ch
+		wait++
+		time.Sleep(150 * time.Millisecond)
+		ch <- wait
+	}
+}
+
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 		log.Debugf("  creating snap machine in one (%s)", m.Name)
 	snp, err := carton.GetSnap(m.CartonId)
@@ -363,11 +354,11 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-
+  size := dsk.NumMemory()
   id,_ := strconv.Atoi(m.VMId)
 	opts := &disk.VmDisk{
 		VmId: id,
-		Vm:  disk.Vm{Disk: disk.Disk{Size: dsk.Size}},
+		Vm:  disk.Vm{Disk: disk.Disk{Size: size}},
 	}
 
 	err = p.Cluster().AttachDisk(opts,m.Region)

@@ -19,7 +19,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
 	"github.com/pivotal-golang/bytefmt"
 )
 
@@ -34,6 +33,7 @@ func (bc *BoxCompute) trimCore() string {
 	coreRegex := regexp.MustCompile("[Cc][Oo][Rr][Ee].*")
 	return strings.TrimSpace(coreRegex.ReplaceAllString(bc.Cpushare, ""))
 }
+
 func (bc *BoxCompute) trimMemory() string {
 	coreRegex := regexp.MustCompile("[Bb].*")
 	s := strings.TrimSpace(coreRegex.ReplaceAllString(bc.Memory, ""))
