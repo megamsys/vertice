@@ -354,11 +354,11 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-
+  size := dsk.NumMemory()
   id,_ := strconv.Atoi(m.VMId)
 	opts := &disk.VmDisk{
 		VmId: id,
-		Vm:  disk.Vm{Disk: disk.Disk{Size: dsk.Size}},
+		Vm:  disk.Vm{Disk: disk.Disk{Size: size}},
 	}
 
 	err = p.Cluster().AttachDisk(opts,m.Region)

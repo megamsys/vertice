@@ -117,12 +117,8 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
   res := &virtualmachine.VM{}
 
-   	err = safe.WaitCondition(5*time.Minute, 20*time.Second, func() bool {
+   	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() bool {
 			res, _ = opts.GetVm()
-			//strings.Contains(err.Error(),"getsockopt: connection refused")
-			 fmt.Printf("---------------1-%#v",res.VmTemplate.Graphics)
-			fmt.Printf("---------------2-%#v",res.HistoryRecords.History)
-
 			return res.HistoryRecords.History != nil
 		})
 

@@ -117,8 +117,6 @@ var createMachine = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-
-		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  removing err machine %s", c.Name)))
 		err := c.Remove(args.provisioner)
 		if err != nil {
 			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
@@ -162,8 +160,7 @@ var updateVnchostInScylla = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusError)
+   //
 	},
 }
 
@@ -259,7 +256,7 @@ var startMachine = action.Action{
 	},
 
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+     //do you want to add it back.
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -287,7 +284,7 @@ var stopMachine = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+	   	//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -566,8 +563,14 @@ var mileStoneUpdate = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
-	},
+			c := ctx.FWResult.(machine.Machine)
+			args := ctx.Params[0].(runMachineActionsArgs)
+			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+      err := c.SetMileStone(constants.StatePreError)
+			if err != nil {
+				log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
+			}
+		},
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
