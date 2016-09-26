@@ -2,14 +2,16 @@ package carton
 
 import (
 	"bytes"
+	"strconv"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	ldb "github.com/megamsys/libgo/db"
-		"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
-	"strings"
+	"github.com/pivotal-golang/bytefmt"
 	"gopkg.in/yaml.v2"
 	"io"
+	"strings"
 	"time"
 )
 
@@ -24,28 +26,28 @@ type DiskOpts struct {
 
 //The grand elephant for megam cloud platform.
 type Snaps struct {
-	Id          string   `json:"snap_id" cql:"snap_id"`
-	ImageId     string   `json:"image_id" cql:"image_id"`
-	OrgId       string   `json:"org_id" cql:"org_id"`
-	AccountId   string   `json:"account_id" cql:"account_id"`
-	Name        string   `json:"name" cql:"name"`
-	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
-	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
-	CreatedAt   string   `json:"created_at" cql:"created_at"`
-	Status      string   `json:"status" cql:"status"`
+	Id         string `json:"snap_id" cql:"snap_id"`
+	ImageId    string `json:"image_id" cql:"image_id"`
+	OrgId      string `json:"org_id" cql:"org_id"`
+	AccountId  string `json:"account_id" cql:"account_id"`
+	Name       string `json:"name" cql:"name"`
+	AssemblyId string `json:"asm_id" cql:"asm_id"`
+	JsonClaz   string `json:"json_claz" cql:"json_claz"`
+	CreatedAt  string `json:"created_at" cql:"created_at"`
+	Status     string `json:"status" cql:"status"`
 }
 
 type Disks struct {
-	Id          string   `json:"snap_id" cql:"snap_id"`
-  DiskId      string   `json:"disk_id" cql:"disk_id"`
-	OrgId       string   `json:"org_id" cql:"org_id"`
-	AccountId   string   `json:"account_id" cql:"account_id"`
-	Name        string   `json:"name" cql:"name"`
-	AssemblyId  string   `json:"asm_id" cql:"asm_id"`
-	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
-	CreatedAt   string   `json:"created_at" cql:"created_at"`
-	Size        string   `json:"size" cql:"size"`
-	Status      string   `json:"status" cql:"status"`
+	Id         string `json:"snap_id" cql:"snap_id"`
+	DiskId     string `json:"disk_id" cql:"disk_id"`
+	OrgId      string `json:"org_id" cql:"org_id"`
+	AccountId  string `json:"account_id" cql:"account_id"`
+	Name       string `json:"name" cql:"name"`
+	AssemblyId string `json:"asm_id" cql:"asm_id"`
+	JsonClaz   string `json:"json_claz" cql:"json_claz"`
+	CreatedAt  string `json:"created_at" cql:"created_at"`
+	Size       string `json:"size" cql:"size"`
+	Status     string `json:"status" cql:"status"`
 }
 
 func (a *Snaps) String() string {
@@ -78,7 +80,6 @@ func SaveImage(opts *DiskOpts) error {
 	return nil
 }
 
-
 // ChangeState runs a state increment of a machine or a container.
 func DeleteImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
@@ -100,8 +101,6 @@ func DeleteImage(opts *DiskOpts) error {
 		cmd.Colorfy(slog, "yellow", "", ""))
 	return nil
 }
-
-
 
 // ChangeState runs a state increment of a machine or a container.
 func AttachDisk(opts *DiskOpts) error {
@@ -125,7 +124,6 @@ func AttachDisk(opts *DiskOpts) error {
 	return nil
 }
 
-
 // ChangeState runs a state increment of a machine or a container.
 func DetachDisk(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
@@ -147,7 +145,6 @@ func DetachDisk(opts *DiskOpts) error {
 		cmd.Colorfy(slog, "yellow", "", ""))
 	return nil
 }
-
 
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
@@ -184,7 +181,7 @@ func (a *Snaps) UpdateSnap(update_fields map[string]interface{}) error {
 		return err
 	}
 
- return nil
+	return nil
 
 }
 
@@ -213,13 +210,13 @@ func (a *Disks) GetDisks() (*[]Disks, error) {
 	ops := ldb.Options{
 		TableName:   DISKSBUCKET,
 		Pks:         []string{},
-		Ccms:        []string{"account_id","asm_id"},
+		Ccms:        []string{"account_id", "asm_id"},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
-		PksClauses:  map[string]interface{}{"account_id":a.AccountId,"asm_id": a.AssemblyId},
+		PksClauses:  map[string]interface{}{"account_id": a.AccountId, "asm_id": a.AssemblyId},
 		CcmsClauses: make(map[string]interface{}),
 	}
-	if err := ldb.FetchListdb(ops, 10,d,ds); err != nil {
+	if err := ldb.FetchListdb(ops, 10, d, ds); err != nil {
 		return nil, err
 	}
 
@@ -272,22 +269,21 @@ func (a *Disks) UpdateDisk(update_fields map[string]interface{}) error {
 		return err
 	}
 
- return nil
+	return nil
 
 }
-
 
 //make cartons from snaps.
 func (a *Snaps) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
-		if len(strings.TrimSpace(a.AssemblyId)) > 1 {
-			if ca, err := mkCarton(a.Id, a.AssemblyId); err != nil {
-				return nil, err
-			} else {
-				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
-				newCs = append(newCs, ca) //on success append carton
-			}
+	if len(strings.TrimSpace(a.AssemblyId)) > 1 {
+		if ca, err := mkCarton(a.Id, a.AssemblyId); err != nil {
+			return nil, err
+		} else {
+			ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
+			newCs = append(newCs, ca) //on success append carton
 		}
+	}
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
 }
@@ -295,14 +291,22 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 //make cartons from snaps.
 func (d *Disks) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
-		if len(strings.TrimSpace(d.AssemblyId)) > 1 {
-			if ca, err := mkCarton(d.Id, d.AssemblyId); err != nil {
-				return nil, err
-			} else {
-				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
-				newCs = append(newCs, ca) //on success append carton
-			}
+	if len(strings.TrimSpace(d.AssemblyId)) > 1 {
+		if ca, err := mkCarton(d.Id, d.AssemblyId); err != nil {
+			return nil, err
+		} else {
+			ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
+			newCs = append(newCs, ca) //on success append carton
 		}
+	}
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
+}
+
+func (bc *Disks) NumMemory() string {
+	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.Size, " ", "", -1)); err != nil {
+		return strconv.FormatUint(0, 64)
+	} else {
+		return strconv.FormatUint(cp, 64)
+	}
 }

@@ -23,6 +23,8 @@ func (c *Cluster) Showback(start int64, end int64,point string) ([]interface{}, 
 	if err != nil {
 		return nil, wrapError(node, err)
 	}
+	var a []interface{}
+	a = append(a,sb)
 	log.Debugf("showback (%d, %d) OK", start, end)
-	return sb, nil
+	return a, nil
 }

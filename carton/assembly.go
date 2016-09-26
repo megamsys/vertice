@@ -38,6 +38,8 @@ const (
 	VNCHOST        = "vnchost"
 	VMID           = "vmid"
 	REGION         = "region"
+	PUBLICIPV6    = "publicipv6"
+	PRIVATEIPV6   = "privateipv6"
 )
 
 type Policy struct {
