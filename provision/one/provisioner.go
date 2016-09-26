@@ -238,6 +238,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		&updateVncportInScylla,
 		&updateStatusInScylla,
 		&deductCons,
+		&updateStatusInScylla,
 		&followLogs,
 	}
 	pipeline := action.NewPipeline(actions...)
