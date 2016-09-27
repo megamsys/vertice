@@ -197,8 +197,9 @@ var deductCons = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
-    mach.Status = constants.StatusVMBooting
 		
+    mach.Status = constants.StatusVMBooting
+
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
