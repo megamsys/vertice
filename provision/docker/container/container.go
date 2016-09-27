@@ -177,6 +177,20 @@ func (c *Container) SetMileStone(state utils.State) error {
 	return nil
 }
 
+func (c *Container) UpdateContId() error {
+	log.Debugf("  update Id[%s] of container (%s) in cassandra", c.Id, c.Name)
+
+	var ids = make(map[string][]string)
+	cid := []string{c.Id}
+	ids["containerId"] = cid
+	if asm, err := carton.NewAmbly(c.CartonId); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
+		return err
+	}
+	return nil
+}
+
 func urlToHost(urlStr string) string {
 	url, _ := url.Parse(urlStr)
 	if url == nil || url.Host == "" {

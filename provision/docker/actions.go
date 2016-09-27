@@ -162,8 +162,25 @@ var createContainer = action.Action{
 	},
 }
 
+var updateContainerIdInScylla = action.Action{
+	Name: "update-container-id",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		cont := ctx.Previous.(container.Container)
+		args := ctx.Params[0].(runContainerActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
+		if err := cont.UpdateContId(); err != nil {
+			return err, nil
+		}
+		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)OK", args.box.GetFullName(), cont.Id)))
+		return cont, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
 var MileStoneUpdate = action.Action{
-	Name: "set-final-state",
+	Name: "update-milestone-state",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)

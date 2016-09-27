@@ -162,6 +162,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createContainer,
+		&updateContainerIdInScylla,
 		&MileStoneUpdate,
 		&updateStatusInScylla,
 		&startContainer,
