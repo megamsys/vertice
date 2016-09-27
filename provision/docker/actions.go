@@ -170,7 +170,7 @@ var updateContainerIdInScylla = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
 		if err := cont.UpdateContId(); err != nil {
-			return err, nil
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)OK", args.box.GetFullName(), cont.Id)))
 		return cont, nil
@@ -187,7 +187,7 @@ var MileStoneUpdate = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
 		if err := cont.SetMileStone(cont.State); err != nil {
-			return err, nil
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)OK", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
 		return cont, nil

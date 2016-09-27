@@ -306,7 +306,8 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&updateStatusInScylla,
-		&diskSaveAsImage,
+		&createSnapImage,
+		&waitUntillImageReady,
 		&updateIdInSnapTable,
 		&updateStatusInScylla,
 	}
@@ -331,7 +332,7 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: constants.StatusDiskDetaching,
+		machineStatus: constants.StatusSnapDeleting,
 		provisioner:   p,
 	}
 

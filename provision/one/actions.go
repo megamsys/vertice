@@ -66,6 +66,7 @@ var updateStatusInScylla = action.Action{
 				Id:           args.box.Id,
 				AccountsId:   args.box.AccountsId,
 				CartonId:     args.box.CartonId,
+				CartonsId:    args.box.CartonsId,
 				Level:        args.box.Level,
 				Name:         args.box.GetFullName(),
 				Status:       args.machineStatus,
@@ -77,7 +78,7 @@ var updateStatusInScylla = action.Action{
 			}
 		}
 		if err := mach.SetStatus(mach.Status); err != nil {
-			return err, nil
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 
@@ -197,7 +198,7 @@ var deductCons = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
-		
+
     mach.Status = constants.StatusVMBooting
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
@@ -500,8 +501,8 @@ var rollbackNotice = func(ctx action.FWContext, err error) {
 	}
 }
 
-var diskSaveAsImage = action.Action{
-	Name: "disk-saveas-image",
+var createSnapImage = action.Action{
+	Name: "create-snapshot-image",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -519,7 +520,7 @@ var diskSaveAsImage = action.Action{
 		mach.Status = constants.StatusSnapCreated
 
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" creating snapshot machine (%s, %s) OK", mach.Id, mach.Name)))
-		return ctx.Previous, nil
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 		//do you want to add it back.
@@ -536,9 +537,9 @@ var removeSnapShot = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.RemoveSnapshot(args.provisioner); err != nil {
-			return err, nil
+			return nil, err
 		}
-		mach.Status = constants.StatusDiskDetached
+		mach.Status = constants.StatusSnapDeleted
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
@@ -558,7 +559,7 @@ var mileStoneUpdate = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.SetMileStone(mach.State); err != nil {
-			return err, nil
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
@@ -616,7 +617,7 @@ var updateIdInSnapTable = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.UpdateSnap(); err != nil {
-			return err, nil
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
@@ -629,15 +630,36 @@ var updateIdInSnapTable = action.Action{
 	MinParams: 1,
 }
 
+var waitUntillImageReady = action.Action{
+	Name: "wait-for-image-ready",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" waiting to snapshot creating for machine (%s, %s)", args.box.GetFullName(),constants.SNAPSHOTTING )))
+		if err := mach.IsSnapReady(args.provisioner); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" waiting to snapshot creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
 var updateIdInDiskTable = action.Action{
-	Name: "update-snap-table",
+	Name: "update-disk-table",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
-		if err := mach.UpdateDisk(); err != nil {
-			return err, nil
+		if err := mach.UpdateDisk(args.provisioner); err != nil {
+			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
@@ -658,7 +680,7 @@ var removeDiskStorage = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.RemoveDisk(args.provisioner); err != nil {
-			return err, nil
+			return nil, err
 		}
 		mach.Status = constants.StatusDiskDetached
 		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))

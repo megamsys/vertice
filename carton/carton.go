@@ -168,7 +168,7 @@ func (c *Carton) Restart() error {
 	return nil
 }
 
-// DiskSave a carton, which creates an image by current state of its box.
+// SnapCreate a carton, which creates an image by current state of its box.
 func (c *Carton) SaveImage() error {
 	for _, box := range *c.Boxes {
 		err := SaveImage(&DiskOpts{B: &box})
@@ -181,7 +181,7 @@ func (c *Carton) SaveImage() error {
 
 
 
-// DiskSave a carton, which creates an image by current state of its box.
+// SnapDelete a carton, which removes an existing image created from state of its box.
 func (c *Carton) DeleteImage() error {
 	for _, box := range *c.Boxes {
 		err := DeleteImage(&DiskOpts{B: &box})
@@ -192,7 +192,7 @@ func (c *Carton) DeleteImage() error {
 	return nil
 }
 
-// DiskSave a carton, which creates an image by current state of its box.
+// AttachDisk a carton, which creates a disk storage by current state of its box.
 func (c *Carton) AttachDisk() error {
 	for _, box := range *c.Boxes {
 		err := AttachDisk(&DiskOpts{B: &box})
@@ -203,7 +203,7 @@ func (c *Carton) AttachDisk() error {
 	return nil
 }
 
-// DiskSave a carton, which creates an image by current state of its box.
+// DetachDisk a carton, which removes an existing disk storage by current state of its box.
 func (c *Carton) DetachDisk() error {
 	for _, box := range *c.Boxes {
 		err := DetachDisk(&DiskOpts{B: &box})

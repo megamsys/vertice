@@ -168,19 +168,19 @@ func (s StateupProcess) Process(ca Cartons) error {
 }
 
 
-// DiskSaveProcs represents a command for delete cartons.
-type DiskSaveProcess struct {
+// SnapCreateProcess represents a command for delete cartons.
+type SnapCreateProcess struct {
 	Name string
 }
 
-func (s DiskSaveProcess) String() string {
+func (s SnapCreateProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("DISKSAVEAS CARTON ")
+	_, _ = buf.WriteString("SNAPSHOT CREATE CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
 
-func (s DiskSaveProcess) Process(ca Cartons) error {
+func (s SnapCreateProcess) Process(ca Cartons) error {
 	for _, c := range ca {
 		if err := c.SaveImage(); err != nil {
 			return err

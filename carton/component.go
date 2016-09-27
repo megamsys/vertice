@@ -116,7 +116,7 @@ func NewComponent(id string) (*Component, error) {
 }
 
 //make a box with the details for a provisioner.
-func (c *Component) mkBox(vnet map[string]string) (provision.Box, error) {
+func (c *Component) mkBox(vnet map[string]string,vmid string) (provision.Box, error) {
 	bt := provision.Box{
 		Id:         c.Id,
 		Level:      provision.BoxSome,
@@ -128,6 +128,7 @@ func (c *Component) mkBox(vnet map[string]string) (provision.Box, error) {
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
 		Vnets:      vnet,
+		VMId:       vmid,
 	}
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{

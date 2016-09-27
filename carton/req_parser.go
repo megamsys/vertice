@@ -44,7 +44,7 @@ var (
 	//snapshot actions
 	SNAPSHOT   = "snapshot"
 	DISKS      = "disks"
-	DISKSAVEAS = "disksaveas"
+	SNAPCREATE = "snapcreate"
 	SNAPDELETE = "snapremove"
 	ATTACHDISK = "attachdisk"
 	DETACHDISK = "detachdisk"
@@ -141,8 +141,8 @@ func (p *ReqParser) parseOperations(action string) (MegdProcessor, error) {
 
 func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 	switch action {
-	case DISKSAVEAS:
-		return DiskSaveProcess{
+	case SNAPCREATE:
+		return SnapCreateProcess{
 			Name: p.name,
 		}, nil
 	case SNAPDELETE:
@@ -150,7 +150,7 @@ func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 			Name: p.name,
 		}, nil
 	default:
-		return nil, newParseError([]string{SNAPSHOT, action}, []string{DISKSAVEAS,SNAPDELETE})
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{SNAPCREATE,SNAPDELETE})
 	}
 }
 

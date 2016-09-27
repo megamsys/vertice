@@ -18,6 +18,8 @@ import (
 const (
 	SNAPSHOTBUCKET = "snapshots"
 	DISKSBUCKET    = "disks"
+	ACCOUNTID      = "account_id"
+	ASSEMBLYID     = "asm_id"
 )
 
 type DiskOpts struct {
@@ -38,11 +40,10 @@ type Snaps struct {
 }
 
 type Disks struct {
-	Id         string `json:"snap_id" cql:"snap_id"`
+	Id         string `json:"id" cql:"id"`
 	DiskId     string `json:"disk_id" cql:"disk_id"`
 	OrgId      string `json:"org_id" cql:"org_id"`
 	AccountId  string `json:"account_id" cql:"account_id"`
-	Name       string `json:"name" cql:"name"`
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
 	CreatedAt  string `json:"created_at" cql:"created_at"`
@@ -170,12 +171,12 @@ func GetSnap(id string) (*Snaps, error) {
 func (a *Snaps) UpdateSnap(update_fields map[string]interface{}) error {
 	ops := ldb.Options{
 		TableName:   SNAPSHOTBUCKET,
-		Pks:         []string{},
-		Ccms:        []string{"id"},
+		Pks:         []string{"snap_id"},
+		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
-		PksClauses:  map[string]interface{}{},
-		CcmsClauses: map[string]interface{}{"id": a.Id},
+		PksClauses:  map[string]interface{}{"snap_id": a.Id},
+		CcmsClauses: map[string]interface{}{ACCOUNTID: a.Id,ASSEMBLYID:a.AssemblyId},
 	}
 	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
@@ -210,10 +211,10 @@ func (a *Disks) GetDisks() (*[]Disks, error) {
 	ops := ldb.Options{
 		TableName:   DISKSBUCKET,
 		Pks:         []string{},
-		Ccms:        []string{"account_id", "asm_id"},
+		Ccms:        []string{ACCOUNTID, ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
-		PksClauses:  map[string]interface{}{"account_id": a.AccountId, "asm_id": a.AssemblyId},
+		PksClauses:  map[string]interface{}{ACCOUNTID: a.AccountId, ASSEMBLYID: a.AssemblyId},
 		CcmsClauses: make(map[string]interface{}),
 	}
 	if err := ldb.FetchListdb(ops, 10, d, ds); err != nil {
@@ -242,11 +243,11 @@ func (a *Disks) RemoveDisk() error {
 func (a *Snaps) RemoveSnap() error {
 	ops := ldb.Options{
 		TableName:   SNAPSHOTBUCKET,
-		Pks:         []string{"id"},
+		Pks:         []string{"snap_id"},
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
-		PksClauses:  map[string]interface{}{"id": a.Id},
+		PksClauses:  map[string]interface{}{"snap_id": a.Id},
 		CcmsClauses: map[string]interface{}{},
 	}
 	if err := ldb.Deletedb(ops, Snaps{}); err != nil {
@@ -258,12 +259,12 @@ func (a *Snaps) RemoveSnap() error {
 func (a *Disks) UpdateDisk(update_fields map[string]interface{}) error {
 	ops := ldb.Options{
 		TableName:   DISKSBUCKET,
-		Pks:         []string{},
-		Ccms:        []string{"id"},
+		Pks:         []string{"id"},
+		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
-		PksClauses:  map[string]interface{}{},
-		CcmsClauses: map[string]interface{}{"id": a.Id},
+		PksClauses:  map[string]interface{}{"id": a.Id},
+		CcmsClauses: map[string]interface{}{ACCOUNTID:a.AccountId, ASSEMBLYID:a.AssemblyId},
 	}
 	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
@@ -305,8 +306,8 @@ func (d *Disks) MkCartons() (Cartons, error) {
 
 func (bc *Disks) NumMemory() string {
 	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.Size, " ", "", -1)); err != nil {
-		return strconv.FormatUint(0, 64)
+		return strconv.FormatUint(0, 10)
 	} else {
-		return strconv.FormatUint(cp, 64)
+		return strconv.FormatUint(cp, 10)
 	}
 }
