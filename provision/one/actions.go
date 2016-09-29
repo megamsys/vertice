@@ -28,6 +28,7 @@ import (
 	"github.com/megamsys/libgo/events/alerts"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision/one/machine"
 )
 
@@ -93,7 +94,7 @@ var updateStatusInScylla = action.Action{
 			w = ioutil.Discard
 		}
 		c.SetStatus(constants.StatusError)
-		err := doneNotify(args.box, w, alerts.FAILURE)
+		err := carton.DoneNotify(args.box, w, alerts.FAILURE)
 		fmt.Println("Error:", err)
 	},
 }

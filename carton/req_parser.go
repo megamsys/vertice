@@ -25,11 +25,14 @@ var (
 
 	//the state actions available are.
 	STATE        = "state"
+	DONE         = "done"
 	CREATE       = "create"
 	BOOTSTRAPPED = "bootstrapped"
 	DESTROY      = "destroy"
 	STATEUP      = "stateup"
 	STATEDOWN    = "statedown"
+	RUNNING      = "running"
+	FAILURE      = "failure"
 
 	//the control actions available are.
 	CONTROL = "control"
@@ -79,6 +82,8 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 		return p.parseSnapshot(action)
 	case DISKS:
 	  return p.parseDisks(action)
+	case DONE:
+		return p.parseDone(action)
 	default:
 		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS})
 	}
@@ -138,6 +143,20 @@ func (p *ReqParser) parseOperations(action string) (MegdProcessor, error) {
 	}
 }
 
+func (p *ReqParser) parseDone(action string) (MegdProcessor, error) {
+	switch action {
+	case RUNNING:
+		return RunningProcess{
+			Name: p.name,
+		}, nil
+	case FAILURE:
+		return FailureProcess{
+			Name: p.name,
+		}, nil
+	default:
+		return nil, newParseError([]string{OPERATIONS, action}, []string{UPGRADE})
+	}
+}
 
 func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 	switch action {

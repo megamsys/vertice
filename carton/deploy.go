@@ -20,6 +20,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -125,5 +126,21 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	}
 	return db.Store(compid or assmid, &struct)
 	*/
+	return nil
+}
+
+
+// Deploy runs a deployment of an application. It will first try to run an
+// image based deploy, and then fallback to the Git based deployment.
+func Running(opts *DeployOpts) error {
+	var outBuffer bytes.Buffer
+	logWriter := LogWriter{Box: opts.B}
+	logWriter.Async()
+	defer logWriter.Close()
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	err := DoneNotify(opts.B,writer, alerts.RUNNING)
+	if err != nil {
+		return err
+	}
 	return nil
 }

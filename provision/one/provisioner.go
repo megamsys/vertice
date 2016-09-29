@@ -22,18 +22,17 @@ import (
 	"io"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/provision/one/machine"
 	"github.com/megamsys/vertice/repository"
@@ -290,7 +289,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- destroying box (%s)OK", box.GetFullName())))
-	err = doneNotify(box, w, alerts.DESTROYED)
+	err = carton.DoneNotify(box, w, alerts.DESTROYED)
 	return nil
 }
 
@@ -435,7 +434,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto util
 	}
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- stateto %s OK", box.GetFullName())))
-	err = doneNotify(box, w, alerts.LAUNCHED)
+	err = carton.DoneNotify(box, w, alerts.LAUNCHED)
 	return err
 }
 
@@ -660,24 +659,4 @@ func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provi
 		return box.Exec(p, stdout, stderr, cmd, args...)
 	*/
 	return nil
-}
-
-func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
-	mi := make(map[string]string)
-	mi[constants.VERTNAME] = box.GetFullName()
-	mi[constants.VERTTYPE] = box.Tosca
-	mi[constants.EMAIL] = box.AccountsId
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  box.AccountsId,
-				EventAction: evtAction,
-				EventType:   constants.EventMachine,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
-	return newEvent.Write()
 }

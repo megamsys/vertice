@@ -87,6 +87,17 @@ func (c *Carton) Deploy() error {
 	return nil
 }
 
+func (c *Carton) Running() error {
+	for _, box := range *c.Boxes {
+		err := Running(&DeployOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+
 // Destroys a carton, which deletes its boxes.
 func (c *Carton) Destroy() error {
 	for _, box := range *c.Boxes {

@@ -16,9 +16,12 @@
 package carton
 
 import (
+	"fmt"
+	"io"
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
@@ -265,6 +268,26 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 			},
 		})
 
+	return newEvent.Write()
+}
+
+func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
+	mi := make(map[string]string)
+	mi[constants.VERTNAME] = box.GetFullName()
+	mi[constants.VERTTYPE] = box.Tosca
+	mi[constants.EMAIL] = box.AccountsId
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  box.AccountsId,
+				EventAction: evtAction,
+				EventType:   constants.EventMachine,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
 	return newEvent.Write()
 }
 
