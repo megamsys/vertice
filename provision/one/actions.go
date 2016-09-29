@@ -25,6 +25,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/libgo/events/alerts"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/machine"
@@ -86,7 +87,14 @@ var updateStatusInScylla = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		w := args.writer
+		if w == nil {
+			w = ioutil.Discard
+		}
 		c.SetStatus(constants.StatusError)
+		err := doneNotify(args.box, w, alerts.FAILURE)
+		fmt.Println("Error:", err)
 	},
 }
 

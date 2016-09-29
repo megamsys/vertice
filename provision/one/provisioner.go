@@ -313,8 +313,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	}
 
 	pipeline := action.NewPipeline(actions...)
-	err := doneNotify(box, w, alerts.SNAPSHOTTING)
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
@@ -322,7 +321,6 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
-	err = doneNotify(box, w, alerts.SNAPSHOTTED)
 	return nil
 }
 
@@ -371,15 +369,13 @@ func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	}
 
 	pipeline := action.NewPipeline(actions...)
-	err := doneNotify(box, w, alerts.SNAPSHOTTING)
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- adding new storage to box (%s)--> %s", box.GetFullName(), err)))
 		return err
 	}
 
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- adding new storage to box (%s)OK", box.GetFullName())))
-	err = doneNotify(box, w, alerts.SNAPSHOTTED)
 	return nil
 }
 
@@ -667,17 +663,17 @@ func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provi
 }
 
 func doneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
-
 	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
 	mi := make(map[string]string)
 	mi[constants.VERTNAME] = box.GetFullName()
 	mi[constants.VERTTYPE] = box.Tosca
+	mi[constants.EMAIL] = box.AccountsId
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  box.AccountsId,
 				EventAction: evtAction,
-				EventType:   constants.EventUser,
+				EventType:   constants.EventMachine,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
