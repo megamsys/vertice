@@ -168,19 +168,19 @@ func (s StateupProcess) Process(ca Cartons) error {
 }
 
 
-// DiskSaveProcs represents a command for delete cartons.
-type DiskSaveProcess struct {
+// SnapCreateProcess represents a command for delete cartons.
+type SnapCreateProcess struct {
 	Name string
 }
 
-func (s DiskSaveProcess) String() string {
+func (s SnapCreateProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("DISKSAVEAS CARTON ")
+	_, _ = buf.WriteString("SNAPSHOT CREATE CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
 
-func (s DiskSaveProcess) Process(ca Cartons) error {
+func (s SnapCreateProcess) Process(ca Cartons) error {
 	for _, c := range ca {
 		if err := c.SaveImage(); err != nil {
 			return err
@@ -250,5 +250,43 @@ func (s DiskDetachProcess) Process(ca Cartons) error {
 			return err
 		}
 	}
+	return nil
+}
+
+
+// UpgradeProcs represents a command for starting  cartons.
+type RunningProcess struct {
+	Name string
+}
+
+func (s RunningProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DONE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s RunningProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.Running(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// UpgradeProcs represents a command for starting  cartons.
+type FailureProcess struct {
+	Name string
+}
+
+func (s FailureProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("FAILURE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s FailureProcess) Process(ca Cartons) error {
 	return nil
 }

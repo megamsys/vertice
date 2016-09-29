@@ -310,6 +310,9 @@ func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
 	err := c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	if err != nil {
+		return err
+	}
 	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
 	err = client.NetworkRequest(container.Node.IP, port)
 

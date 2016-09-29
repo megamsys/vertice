@@ -9,6 +9,7 @@ import (
 	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/disk"
+	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"net"
@@ -117,15 +118,17 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
   res := &virtualmachine.VM{}
 
-   	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() bool {
-			res, _ = opts.GetVm()
-			return res.HistoryRecords.History != nil
+   	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() (bool,error) {
+			res, err = opts.GetVm()
+			if err != nil {
+				return false, err
+			}
+			return res.HistoryRecords.History != nil, nil
 		})
 
 		if err != nil {
 			return "", "", err
 		}
-    fmt.Println(res)
 		vnchost := res.GetHostIp()
 		vncport := res.GetPort()
 
@@ -284,6 +287,51 @@ func (c *Cluster) RemoveSnap(opts compute.Image) error {
 	return nil
 }
 
+
+func (c *Cluster) IsSnapReady(v *images.Image,region string) error {
+
+	addr, err := c.getRegion(region)
+	if err != nil {
+		return err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	v.T = node.Client
+	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() (bool,error) {
+	res, err := v.ImageShow()
+	if err != nil {
+		return false, err
+	}
+	return res.State_string() == "ready", nil
+  })
+
+	return nil
+}
+
+func (c *Cluster) GetDiskId(vd *disk.VmDisk,region string) ([]int, error) {
+	var a []int
+	addr, err := c.getRegion(region)
+	if err != nil {
+		return a,err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return a,err
+	}
+	vd.T = node.Client
+
+	dsk, err := vd.ListDisk()
+	if err != nil {
+		return a,err
+	}
+
+	a = dsk.GetDiskIds()
+  return a, nil
+}
 
 func (c *Cluster) AttachDisk(v *disk.VmDisk,region string) error {
 

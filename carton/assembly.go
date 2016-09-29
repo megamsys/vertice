@@ -16,9 +16,12 @@
 package carton
 
 import (
+	"fmt"
+	"io"
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
@@ -95,8 +98,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 	if err != nil {
 		return nil, err
 	}
-  vnet := a.vnets()
-	b, err := a.mkBoxes(aies,vnet)
+
+	b, err := a.mkBoxes(aies)
 	if err != nil {
 		return nil, err
 	}
@@ -126,11 +129,13 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
 //A "colored component" externalized with what we need.
-func (a *Assembly) mkBoxes(aies string,vnet map[string]string) ([]provision.Box, error) {
+func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
+	vnet := a.vnets()
+	vmid := a.vmId()
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
-			if b, err := comp.mkBox(vnet); err != nil {
+			if b, err := comp.mkBox(vnet,vmid); err != nil {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
@@ -152,6 +157,7 @@ func (a *Assembly) mkBoxes(aies string,vnet map[string]string) ([]provision.Box,
 				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
 				b.Vnets = vnet
+				b.VMId  = vmid
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -262,6 +268,26 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 			},
 		})
 
+	return newEvent.Write()
+}
+
+func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
+	mi := make(map[string]string)
+	mi[constants.VERTNAME] = box.GetFullName()
+	mi[constants.VERTTYPE] = box.Tosca
+	mi[constants.EMAIL] = box.AccountsId
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  box.AccountsId,
+				EventAction: evtAction,
+				EventType:   constants.EventMachine,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
 	return newEvent.Write()
 }
 

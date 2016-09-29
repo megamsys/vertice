@@ -16,6 +16,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/disk"
+	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
@@ -33,6 +34,7 @@ type Machine struct {
 	Region       string
 	Id           string
 	CartonId     string
+	CartonsId    string
 	AccountsId   string
 	Level        provision.BoxLevel
 	SSH          provision.BoxSSH
@@ -306,18 +308,9 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 	*/
 }
 
-func player(ch chan int) {
-	for {
-		wait := <-ch
-		wait++
-		time.Sleep(150 * time.Millisecond)
-		ch <- wait
-	}
-}
-
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 		log.Debugf("  creating snap machine in one (%s)", m.Name)
-	snp, err := carton.GetSnap(m.CartonId)
+	snp, err := carton.GetSnap(m.CartonsId)
 	if err != nil {
 		return err
 	}
@@ -333,24 +326,27 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-	//time.Sleep(time.Second * 25)
   m.ImageId = id
-	var Wait int
-	ch := make(chan int)
-	for i := 0; i < 100; i++ {
-		go player(ch)
-	}
-	ch <- Wait
-	time.Sleep(45 * time.Second)
-	<-ch
 	return nil
 }
 
+func (m * Machine) IsSnapReady(p OneProvisioner) error {
+  id, _ := strconv.Atoi(m.ImageId)
+	opts := &images.Image{
+		Id: id,
+	}
+	err := p.Cluster().IsSnapReady(opts,m.Region)
+  if err != nil {
+	  return err
+  }
+
+return nil
+}
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
 func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 
-	dsk, err := carton.GetDisks(m.CartonId)
+	dsk, err := carton.GetDisks(m.CartonsId)
 	if err != nil {
 		return err
 	}
@@ -370,44 +366,46 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 
 func (m *Machine) UpdateSnap() error {
 	update_fields := make(map[string]interface{},2)
-	update_fields["Snap_Id"] = m.ImageId
+	update_fields["Image_Id"] = m.ImageId
 	update_fields["Status"] = "created"
+  sns,err := carton.GetSnap(m.CartonsId)
+	if err != nil {
+		return err
+	}
+	//d := &carton.Snaps{Id: m.CartonsId}
 
-	d := &carton.Snaps{Id: m.CartonId}
-
-	err := d.UpdateSnap(update_fields)
+	err = sns.UpdateSnap(update_fields)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *Machine) UpdateDisk() error {
+func (m *Machine) UpdateDisk(p OneProvisioner) error {
 	id ,_ := strconv.Atoi(m.VMId)
   vd := &disk.VmDisk{VmId: id}
 
-  dsk, err := vd.ListDisk()
+	l, err := p.Cluster().GetDiskId(vd,m.Region)
 	if err != nil {
 		return err
 	}
-
-	l := dsk.GetDiskIds()
 	update_fields := make(map[string]interface{},2)
 	update_fields["Disk_Id"] = strconv.Itoa(l[len(l)-1])
 	update_fields["Status"] = "Success"
 
-	d := carton.Disks{Id: m.CartonId}
-
+	d,err := carton.GetDisks(m.CartonsId)
+	if err != nil {
+		return err
+	}
 	err = d.UpdateDisk(update_fields)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (m *Machine) RemoveDisk(p OneProvisioner) error {
-	dsk, err := carton.GetDisks(m.CartonId)
+	dsk, err := carton.GetDisks(m.CartonsId)
 	if err != nil {
 		return err
 	}
@@ -433,7 +431,7 @@ func (m *Machine) RemoveDisk(p OneProvisioner) error {
 }
 
 func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
-	snp, err := carton.GetSnap(m.CartonId)
+	snp, err := carton.GetSnap(m.CartonsId)
 	if err != nil {
 		return err
 	}
