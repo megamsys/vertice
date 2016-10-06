@@ -116,6 +116,7 @@ type Box struct {
 	AccountsId   string
 	CartonsId    string
 	CartonId     string
+	OrgId        string
 	CartonName   string
 	Name         string
 	Level        BoxLevel
