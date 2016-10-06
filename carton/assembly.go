@@ -16,20 +16,20 @@
 package carton
 
 import (
-	"fmt"
-	"io"
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
-	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
+	"io"
 	"strings"
 	"time"
 )
@@ -41,8 +41,8 @@ const (
 	VNCHOST        = "vnchost"
 	VMID           = "vmid"
 	REGION         = "region"
-	PUBLICIPV6    = "publicipv6"
-	PRIVATEIPV6   = "privateipv6"
+	PUBLICIPV6     = "publicipv6"
+	PRIVATEIPV6    = "privateipv6"
 )
 
 type Policy struct {
@@ -107,9 +107,10 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 	c := &Carton{
 		Id:           ay,   //assembly id
 		CartonsId:    aies, //assemblies id
+		OrgId:        a.OrgId,
 		Name:         a.Name,
 		Tosca:        a.Tosca,
-		AccountsId:    a.AccountId,
+		AccountsId:   a.AccountId,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
 		Compute:      a.newCompute(),
@@ -135,13 +136,14 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
-			if b, err := comp.mkBox(vnet,vmid); err != nil {
+			if b, err := comp.mkBox(vnet, vmid, a.OrgId); err != nil {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
 				b.CartonsId = aies
 				b.CartonName = a.Name
 				b.AccountsId = a.AccountId
+				b.OrgId = a.OrgId
 				if len(strings.TrimSpace(b.Provider)) <= 0 {
 					b.Provider = a.provider()
 				}
@@ -157,7 +159,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
 				b.Vnets = vnet
-				b.VMId  = vmid
+				b.VMId = vmid
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -242,7 +244,6 @@ func (a *Ambly) SetState(state utils.State) error {
 	}
 	return nil
 }
-
 
 func (a *Ambly) trigger_event(status utils.Status) error {
 	mi := make(map[string]string)
@@ -396,10 +397,10 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB]        = a.ipv4Pub()
-	v[utils.IPV4PRI]        = a.ipv4Pri()
-	v[utils.IPV6PUB]				= a.ipv6Pub()
-	v[utils.IPV6PRI]        = a.ipv6Pri()
+	v[utils.IPV4PUB] = a.ipv4Pub()
+	v[utils.IPV4PRI] = a.ipv4Pri()
+	v[utils.IPV6PUB] = a.ipv6Pub()
+	v[utils.IPV6PRI] = a.ipv6Pri()
 	return v
 }
 
