@@ -105,6 +105,8 @@ func NewComponent(id string) (*Component, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"Id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -159,6 +161,8 @@ func (c *Component) SetStatus(status utils.Status) error {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Password:    meta.MC.ScyllaPassword,
+		Username:    meta.MC.ScyllaUsername,
 		PksClauses:  map[string]interface{}{"Id": c.Id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -177,6 +181,8 @@ func (c *Component) SetState(state utils.State) error {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"Id": c.Id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -207,6 +213,8 @@ func (c *Component) Delete(compid string) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": compid},
 		CcmsClauses: make(map[string]interface{}),
 	}

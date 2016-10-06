@@ -29,6 +29,8 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 			Ccms:        []string{"account_id", "assembly_id"},
 			Hosts:       meta.MC.Scylla,
 			Keyspace:    meta.MC.ScyllaKeyspace,
+			Username:    meta.MC.ScyllaUsername,
+			Password:    meta.MC.ScyllaPassword,
 			PksClauses:  map[string]interface{}{"sensor_type": m.SensorType},
 			CcmsClauses: map[string]interface{}{"account_id": m.AccountId, "assembly_id": m.AssemblyId},
 		}

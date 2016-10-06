@@ -158,6 +158,8 @@ func GetSnap(id string) (*Snaps, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:   meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"snap_id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -175,6 +177,8 @@ func (a *Snaps) UpdateSnap(update_fields map[string]interface{}) error {
 		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"snap_id": a.Id},
 		CcmsClauses: map[string]interface{}{ACCOUNTID: a.Id,ASSEMBLYID:a.AssemblyId},
 	}
@@ -196,6 +200,8 @@ func GetDisks(id string) (*Disks, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -214,6 +220,8 @@ func (a *Disks) GetDisks() (*[]Disks, error) {
 		Ccms:        []string{ACCOUNTID, ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{ACCOUNTID: a.AccountId, ASSEMBLYID: a.AssemblyId},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -231,6 +239,8 @@ func (a *Disks) RemoveDisk() error {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": a.Id},
 		CcmsClauses: map[string]interface{}{},
 	}
@@ -247,6 +257,8 @@ func (a *Snaps) RemoveSnap() error {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"snap_id": a.Id},
 		CcmsClauses: map[string]interface{}{},
 	}
@@ -263,6 +275,8 @@ func (a *Disks) UpdateDisk(update_fields map[string]interface{}) error {
 		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": a.Id},
 		CcmsClauses: map[string]interface{}{ACCOUNTID:a.AccountId, ASSEMBLYID:a.AssemblyId},
 	}

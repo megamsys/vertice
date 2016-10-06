@@ -175,6 +175,8 @@ func getBig(id string) (*Ambly, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"Id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -217,6 +219,8 @@ func (a *Ambly) SetStatus(status utils.Status) error {
 		Ccms:        []string{"org_id"},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": a.Id},
 		CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
 	}
@@ -236,6 +240,8 @@ func (a *Ambly) SetState(state utils.State) error {
 		Ccms:        []string{"org_id"},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": a.Id},
 		CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
 	}
@@ -306,6 +312,8 @@ func (a *Ambly) NukeAndSetOutputs(m map[string][]string) error {
 			Ccms:        []string{"org_id"},
 			Hosts:       meta.MC.Scylla,
 			Keyspace:    meta.MC.ScyllaKeyspace,
+			Username:    meta.MC.ScyllaUsername,
+			Password:    meta.MC.ScyllaPassword,
 			PksClauses:  map[string]interface{}{"id": a.Id},
 			CcmsClauses: map[string]interface{}{"org_id": a.OrgId},
 		}
@@ -325,6 +333,8 @@ func (c *Assembly) Delete(asmid string) {
 		Ccms:        []string{"org_id"},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"id": asmid},
 		CcmsClauses: map[string]interface{}{"org_id": c.OrgId},
 	}
@@ -343,6 +353,8 @@ func get(id string) (*Assembly, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"Id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}

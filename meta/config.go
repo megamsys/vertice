@@ -25,6 +25,9 @@ const (
 	// DefaultScyllaKeyspace is the default Scyllakeyspace if one is not provided.
 	DefaultScyllaKeyspace = "vertice"
 
+	DefaultScyllaUsername = "vertadmin"
+	DefaultScyllaPassword = "vertadmin"
+
 	//default user
 	DefaultUser = "megam"
 
@@ -38,6 +41,8 @@ type Config struct {
 	NSQd           []string `toml:"nsqd"`
 	Scylla         []string `toml:"scylla"`
 	ScyllaKeyspace string   `toml:"scylla_keyspace"`
+	ScyllaUsername string   `toml:"scylla_username"`
+	ScyllaPassword string   `toml:"scylla_password"`
 	Api            string   `toml:"api"`
 	User           string   `toml:"user"`
 }
@@ -55,6 +60,8 @@ func (c Config) String() string {
 	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
 	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))
 	b.Write([]byte("Scylla    " + "\t" + strings.Join(c.Scylla, ",") + "\n"))
+	b.Write([]byte("ScyllaUsername" + "\t" + c.ScyllaUsername + "\n"))
+	b.Write([]byte("ScyllaPassword" + "\t" + c.ScyllaPassword + "\n"))
 	b.Write([]byte("ScyllaKeyspace" + "\t" + c.ScyllaKeyspace + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)
@@ -83,6 +90,8 @@ func NewConfig() *Config {
 		Api:            DefaultApi,
 		NSQd:           []string{DefaultNSQd},
 		Scylla:         []string{DefaultScylla},
+		ScyllaUsername: DefaultScyllaUsername,
+		ScyllaPassword: DefaultScyllaPassword,
 		ScyllaKeyspace: DefaultScyllaKeyspace,
 	}
 }
@@ -92,6 +101,8 @@ func (c *Config) ToMap() map[string]string {
 	mp["home"] = c.Home
 	mp["dir"] = c.Dir
 	mp["scylla_host"] = strings.Join(c.Scylla, ",")
+	mp["scylla_username"] = c.ScyllaUsername
+	mp["scylla_password"] = c.ScyllaPassword
 	mp["scylla_keyspace"] = c.ScyllaKeyspace
 	return mp
 }

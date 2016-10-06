@@ -61,6 +61,8 @@ func Get(id string) (*Assemblies, error) {
 		Ccms:        []string{},
 		Hosts:       meta.MC.Scylla,
 		Keyspace:    meta.MC.ScyllaKeyspace,
+		Username:    meta.MC.ScyllaUsername,
+		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"Id": id},
 		CcmsClauses: make(map[string]interface{}),
 	}
@@ -103,6 +105,8 @@ func (a *Assemblies) Delete(asmid string, removedAssemblys []string) {
 			Ccms:        []string{"org_id"},
 			Hosts:       meta.MC.Scylla,
 			Keyspace:    meta.MC.ScyllaKeyspace,
+			Username:    meta.MC.ScyllaUsername,
+			Password:    meta.MC.ScyllaPassword,
 			PksClauses:  map[string]interface{}{"id": asmid},
 			CcmsClauses: map[string]interface{}{"org_id": a.AccountsId},
 		}
