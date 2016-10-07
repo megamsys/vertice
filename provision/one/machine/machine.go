@@ -25,10 +25,6 @@ import (
 	"github.com/megamsys/vertice/provision/one/cluster"
 )
 
-const (
-	ORG_ID = "org_id"
-)
-
 type OneProvisioner interface {
 	Cluster() *cluster.Cluster
 }
@@ -69,7 +65,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
-		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,ORG_ID: args.Box.OrgId,
+		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
 	}
