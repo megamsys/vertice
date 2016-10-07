@@ -123,7 +123,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 	}
-
 	return c, nil
 }
 
@@ -370,6 +369,7 @@ func (a *Ambly) dig() (Assembly, error) {
 	asm.Id = a.Id
 	asm.AccountId = a.AccountId
 	asm.Name = a.Name
+	asm.OrgId = a.OrgId
 	asm.Tosca = a.Tosca
 	asm.JsonClaz = a.JsonClaz
 	asm.Inputs = a.getInputs()
