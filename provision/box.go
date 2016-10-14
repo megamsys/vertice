@@ -126,6 +126,7 @@ type Box struct {
 	Compute      BoxCompute
 	Repo         *repository.Repo
 	Status       utils.Status
+	State        utils.State
 	Provider     string
 	PublicIp     string
 	VMId         string
