@@ -99,7 +99,6 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	b, err := a.mkBoxes(aies)
 	if err != nil {
 		return nil, err
@@ -379,6 +378,7 @@ func (a *Ambly) dig() (Assembly, error) {
 	asm.Outputs = a.getOutputs()
 	asm.Policies = a.getPolicies()
 	asm.Status = a.Status
+	asm.State = a.Status
 	asm.CreatedAt = a.CreatedAt
 	asm.Components = make(map[string]*Component)
 	for _, cid := range a.Components {
