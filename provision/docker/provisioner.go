@@ -158,7 +158,7 @@ func (p *dockerProvisioner) ImageDeploy(box *provision.Box, imageId string, w io
 }
 
 func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createContainer,
@@ -190,7 +190,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 	err := pipeline.Execute(args)
 	if err != nil {
 
-		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("deploy pipeline for box (%s) --> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("deploy pipeline for box (%s) --> %s", box.GetFullName(), err)))
 		return "", err
 	}
 	return imageId, nil
@@ -198,11 +198,11 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 
 func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 
-	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n--- destroying box (%s) ----", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n--- destroying box (%s) ----", box.GetFullName())))
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
 
-		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 		return err
 	}
 	args := changeUnitsPipelineArgs{
@@ -227,7 +227,7 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
 
-		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Start(&container.StartArgs{
@@ -248,8 +248,7 @@ func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Write
 func (p *dockerProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-
-		fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 	}
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Stop(p)
@@ -280,7 +279,7 @@ func (*dockerProvisioner) Addr(box *provision.Box) (string, error) {
 
 func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status utils.Status) error {
 
-	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- status %s box %s ----", box.GetFullName(), status.String())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("---- status %s box %s ----", box.GetFullName(), status.String())))
 	actions := []*action.Action{
 		&updateStatusInScylla,
 	}
@@ -389,14 +388,14 @@ func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *pr
 }
 
 func (p *dockerProvisioner) MetricEnvs(start, end int64, point string, w io.Writer) ([]interface{}, error) {
-	fmt.Fprintf(w, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n--- metrics collect for node (%s) ----", point)))
+	fmt.Fprintf(w, lb.W(lb.BILLING, lb.INFO, fmt.Sprintf("\n--- metrics collect for node (%s) ----", point)))
 	res, err := p.Cluster().Showback(start, end, point)
 	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
 		return nil, err
 	}
 
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
+	fmt.Fprintf(w, lb.W(lb.BILLING, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)OK", start, end)))
 	return res, nil
 }
 

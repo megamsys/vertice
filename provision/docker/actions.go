@@ -154,7 +154,7 @@ var createContainer = action.Action{
 		c := ctx.FWResult.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 
-		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Removing old container %s ----\n", c.Name)))
+		fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Removing old container %s ----\n", c.Name)))
 		err := args.provisioner.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
 		if err != nil {
 			log.Errorf("---- [start-container:Backward]\n     %s", err.Error())
@@ -168,11 +168,11 @@ var updateContainerIdInScylla = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
 		if err := cont.UpdateContId(); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)OK", args.box.GetFullName(), cont.Id)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)OK", args.box.GetFullName(), cont.Id)))
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -185,11 +185,11 @@ var MileStoneUpdate = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
 		if err := cont.SetMileStone(cont.State); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)OK", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)OK", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
 		return cont, nil
 	},
 }
@@ -215,8 +215,7 @@ var startContainer = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
-
-		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Stopping old container %s ----", c.Id)))
+		fmt.Fprintf(args.writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("\n---- Stopping old container %s ----", c.Id)))
 		err := args.provisioner.Cluster().StopContainer(c.Id, 10)
 		if err != nil {
 			log.Errorf("---- [stop-container:Backward]\n     %s", err.Error())
@@ -241,7 +240,7 @@ var stopContainer = action.Action{
 		args := ctx.Params[0].(runContainerActionsArgs)
 		c := ctx.FWResult.(container.Container)
 		c.Status = constants.StatusContainerStopping
-		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
+		fmt.Fprintf(args.writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
 	},
 }
 
@@ -259,7 +258,7 @@ var destroyOldContainers = action.Action{
 			plural = "s"
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
+		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
 		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
 
 			err := c.Remove(args.provisioner)
@@ -267,7 +266,7 @@ var destroyOldContainers = action.Action{
 				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
 			}
 
-			fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
+			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
 			return nil
 		}, nil, true)
 		return ctx.Previous, nil
@@ -295,7 +294,7 @@ var setNetworkInfo = action.Action{
 		args := ctx.Params[0].(runContainerActionsArgs)
 		c := ctx.FWResult.(container.Container)
 		c.Status = constants.StatusContainerNetworkFailure
-		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
 	},
 }
 
@@ -354,7 +353,7 @@ var addNewRoute = action.Action{
 		newContainers := []container.Container{c}
 		if len(newContainers) > 0 {
 
-			fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- Adding routes to new containers ----")))
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("---- Adding routes to new containers ----")))
 		}
 
 		return newContainers, runInContainers(newContainers, func(c *container.Container, toRollback chan *container.Container) error {
@@ -365,7 +364,7 @@ var addNewRoute = action.Action{
 			c.Routable = true
 			toRollback <- c
 
-			fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---> Added route to container (%s,%s)", c.BoxName, c.ShortId())))
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("---> Added route to container (%s,%s)", c.BoxName, c.ShortId())))
 			return nil
 		}, func(c *container.Container) {
 			r.UnsetCName(c.BoxName, c.PublicIp)
@@ -381,7 +380,7 @@ var addNewRoute = action.Action{
 
 		newContainers := []container.Container{c}
 
-		fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- Destroying routes from created containers  (%s, %s)", c.BoxName, c.ShortId())))
+		fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("---- Destroying routes from created containers  (%s, %s)", c.BoxName, c.ShortId())))
 		for _, cont := range newContainers {
 			if !cont.Routable {
 				continue
@@ -391,7 +390,7 @@ var addNewRoute = action.Action{
 				log.Errorf("---- [add-new-routes:Backward] (%s, %s)\n    %s", c.BoxName, args.box.PublicIp, err.Error())
 			}
 
-			fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- Destroyed route from machine (%s, %s)", c.BoxName, c.ShortId())))
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("---- Destroyed route from machine (%s, %s)", c.BoxName, c.ShortId())))
 		}
 	},
 }
@@ -410,7 +409,7 @@ var removeOldRoutes = action.Action{
 		}
 		if len(args.toRemove) > 0 {
 
-			fmt.Fprintf(writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---- Removing routes from old containers ----")))
+			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("---- Removing routes from old containers ----")))
 
 		}
 		return ctx.Previous, runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
@@ -427,7 +426,7 @@ var removeOldRoutes = action.Action{
 			c.Routable = true
 			toRollback <- c
 
-			fmt.Fprintf(args.writer, lb.W(lb.CONTAINER_DEPLOY, lb.INFO, fmt.Sprintf("---> Removed route from container (%s, %s)", c.BoxName, c.ShortId())))
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("---> Removed route from container (%s, %s)", c.BoxName, c.ShortId())))
 			return nil
 		}, func(c *container.Container) {
 			r.SetCName(c.BoxName, c.PublicIp)

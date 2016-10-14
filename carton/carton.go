@@ -27,6 +27,7 @@ type Carton struct {
 	Vnets        map[string]string
 	Boxes        *[]provision.Box
 	Status       utils.Status
+	State        utils.State
 }
 
 //Global provisioners set by the subd daemons.
@@ -72,6 +73,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Vnets:        c.Vnets,
 			Tosca:        c.Tosca,
 			Status:       c.Status,
+			State:        c.State,
 		},
 		}
 	}

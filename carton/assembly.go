@@ -79,6 +79,7 @@ type Assembly struct {
 	Outputs    pairs.JsonPairs `json:"outputs" cql:"outputs"`
 	Policies   []*Policy       `json:"policies" cql:"policies"`
 	Status     string          `json:"status" cql:"status"`
+	State      string          `json:"state" cql:"state"`
 	CreatedAt  string          `json:"created_at" cql:"created_at"`
 	Components map[string]*Component
 }
@@ -122,6 +123,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		VMId:         a.vmId(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
+		State:        utils.State(a.State),
 	}
 	return c, nil
 }
@@ -157,6 +159,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.SSH = a.newSSH()
 				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
+				b.State = utils.State(a.State)
 				b.Vnets = vnet
 				b.VMId = vmid
 				newBoxs = append(newBoxs, b)
@@ -278,7 +281,7 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 }
 
 func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
 	mi := make(map[string]string)
 	mi[constants.VERTNAME] = box.GetFullName()
 	mi[constants.VERTTYPE] = box.Tosca
@@ -293,7 +296,7 @@ func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) e
 				Timestamp:   time.Now().Local(),
 			},
 		})
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
 	return newEvent.Write()
 }
 

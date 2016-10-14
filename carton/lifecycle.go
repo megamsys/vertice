@@ -41,12 +41,13 @@ func (cy *LifecycleOpts) setLogger() {
 
 //if the state is in running, started, stopped, restarted then allow it to be lcycled.
 // to-do: allow states that ends with "*ing or *ed" that should fix this generically.
-func (cy *LifecycleOpts) canCycle() bool {
-	return cy.B.Status == constants.StatusRunning ||
-		cy.B.Status == constants.StatusStarted ||
-		cy.B.Status == constants.StatusStopped ||
-		cy.B.Status == constants.StatusUpgraded ||
-		cy.B.Status == constants.StatusSnapCreated
+func (cy *LifecycleOpts) canCycleStart() bool {
+	return cy.B.State == constants.StateStopped
+}
+
+func (cy *LifecycleOpts) canCycleStop() bool {
+	return cy.B.State == constants.StateRunning ||
+		cy.B.State == constants.StatePostError 
 }
 
 // Starts  the box.
@@ -54,7 +55,7 @@ func Start(cy *LifecycleOpts) error {
 	log.Debugf("  start cycle for box (%s, %s)", cy.B.Id, cy.B.GetFullName())
 	cy.setLogger()
 	defer cy.logWriter.Close()
-	if cy.canCycle() {
+	if cy.canCycleStart() {
 		if err := ProvisionerMap[cy.B.Provider].Start(cy.B, "", cy.writer); err != nil {
 			return err
 		}
@@ -70,7 +71,7 @@ func Stop(cy *LifecycleOpts) error {
 	log.Debugf("  stop cycle for box (%s, %s)", cy.B.Id, cy.B.GetFullName())
 	cy.setLogger()
 	defer cy.logWriter.Close()
-	if cy.canCycle() {
+	if cy.canCycleStop() {
 		if err := ProvisionerMap[cy.B.Provider].Stop(cy.B, "", cy.writer); err != nil {
 			return err
 		}
@@ -86,7 +87,7 @@ func Restart(cy *LifecycleOpts) error {
 	log.Debugf("  restart cycle for box (%s, %s)", cy.B.Id, cy.B.GetFullName())
 	cy.setLogger()
 	defer cy.logWriter.Close()
-	if cy.canCycle() {
+	if cy.canCycleStop() {
 		if err := ProvisionerMap[cy.B.Provider].Restart(cy.B, "", cy.writer); err != nil {
 			return err
 		}

@@ -126,6 +126,7 @@ type Box struct {
 	Compute      BoxCompute
 	Repo         *repository.Repo
 	Status       utils.Status
+	State        utils.State
 	Provider     string
 	PublicIp     string
 	VMId         string
@@ -201,12 +202,12 @@ func (box *Box) Log(message, source, unit string) error {
 	var lo string
 	sp := strings.Split(message, ":")
 	if sp[0] == "error" {
-		lo = lb.W(lb.CONTAINER_DEPLOY, lb.ERROR, sp[1])
+		lo = lb.W(lb.DEPLOY, lb.ERROR, sp[1])
 	} else if sp[0] == "INFO" {
-		lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, sp[1])
+		lo = lb.W(lb.DEPLOY, lb.INFO, sp[1])
 	} else {
 		if box.Tosca == "docker" {
-			lo = lb.W(lb.CONTAINER_DEPLOY, lb.INFO, message)
+			lo = lb.W(lb.DEPLOY, lb.INFO, message)
 		} else {
 			lo = message
 		}
