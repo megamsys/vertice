@@ -94,8 +94,6 @@ var updateStatusInScylla = action.Action{
 			w = ioutil.Discard
 		}
 		c.SetStatus(constants.StatusPreError)
-		err := carton.DoneNotify(args.box, w, alerts.FAILURE)
-		fmt.Println("Error:", err)
 	},
 }
 
@@ -118,6 +116,7 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
+			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
 		mach.State = constants.StateInitialized
@@ -147,6 +146,7 @@ var getVmHostIpPort = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
+			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
 		mach.Status = constants.StatusVncHostUpdating
