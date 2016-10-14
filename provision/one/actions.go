@@ -93,7 +93,7 @@ var updateStatusInScylla = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		c.SetStatus(constants.StatusError)
+		c.SetStatus(constants.StatusPreError)
 		err := carton.DoneNotify(args.box, w, alerts.FAILURE)
 		fmt.Println("Error:", err)
 	},
@@ -187,7 +187,7 @@ var updateVncportInScylla = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusError)
+		c.SetStatus(constants.StatusPreError)
 	},
 }
 
@@ -215,7 +215,7 @@ var deductCons = action.Action{
 	},
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusError)
+		c.SetStatus(constants.StatusPreError)
 	},
 }
 
