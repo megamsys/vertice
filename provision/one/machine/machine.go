@@ -368,7 +368,6 @@ func (m *Machine) UpdateSnap() error {
 	update_fields := make(map[string]interface{},2)
 	update_fields["Image_Id"] = m.ImageId
 	update_fields["Status"] = "ready"
-	fmt.Println("*******************************")
   sns,err := carton.GetSnap(m.CartonsId)
 	if err != nil {
 		return err
