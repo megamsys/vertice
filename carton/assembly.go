@@ -281,7 +281,7 @@ func (a *Ambly) trigger_event(status utils.Status) error {
 }
 
 func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
 	mi := make(map[string]string)
 	mi[constants.VERTNAME] = box.GetFullName()
 	mi[constants.VERTTYPE] = box.Tosca
@@ -296,7 +296,7 @@ func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) e
 				Timestamp:   time.Now().Local(),
 			},
 		})
-	fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box OK", box.GetFullName())))
 	return newEvent.Write()
 }
 

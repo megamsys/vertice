@@ -59,7 +59,7 @@ var updateStatusInScylla = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		var mach machine.Machine
 		if ctx.Previous != nil {
 			mach = ctx.Previous.(machine.Machine)
@@ -82,7 +82,7 @@ var updateStatusInScylla = action.Action{
 		if err := mach.SetStatus(mach.Status); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 
 		return mach, nil
 	},
@@ -110,7 +110,7 @@ var createMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		err := mach.Create(&machine.CreateArgs{
 			Box:         args.box,
 			Compute:     args.box.Compute,
@@ -121,7 +121,7 @@ var createMachine = action.Action{
 			return nil, err
 		}
 		mach.State = constants.StateInitialized
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -129,7 +129,7 @@ var createMachine = action.Action{
 		args := ctx.Params[0].(runMachineActionsArgs)
 		err := c.Remove(args.provisioner)
 		if err != nil {
-			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
 	},
 }
@@ -201,16 +201,16 @@ var deductCons = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		err := mach.Deduct()
 		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 
     mach.Status = constants.StatusVMBooting
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -229,13 +229,13 @@ var destroyOldMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
 		err := mach.Remove(args.provisioner)
 		if err != nil {
 			return nil, err
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroyed old machine (%s, %s) OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroyed old machine (%s, %s) OK", mach.Id, mach.Name)))
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -255,15 +255,15 @@ var startMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, START)
 		if err != nil {
-				fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+				fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		mach.Status = constants.StatusStarted
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  starting  machine (%s, %s) OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine (%s, %s) OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 
@@ -284,15 +284,15 @@ var stopMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, STOP)
 		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
+			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		mach.Status = constants.StatusStopped
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n   stopping  machine (%s, %s)OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine (%s, %s)OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -312,14 +312,14 @@ var restartMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("restarting  machine %s", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.RESTARTING, lb.INFO, fmt.Sprintf("restarting  machine %s", mach.Name)))
 		err := mach.LifecycleOps(args.provisioner, RESTART)
 		if err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusRunning
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("restarting  machine (%s, %s)OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.RESTARTING, lb.INFO, fmt.Sprintf("restarting  machine (%s, %s)OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -338,7 +338,7 @@ var changeStateofMachine = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		mach := machine.Machine{
 			Id:       args.box.Id,
 			CartonId: args.box.CartonId,
@@ -347,12 +347,12 @@ var changeStateofMachine = action.Action{
 		}
 		err := mach.SetStatus(constants.StatusStateupping)
 		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error change state of machine ( %s)", args.box.GetFullName())))
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error change state of machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		err = mach.ChangeState(args.machineStatus)
 		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  error publish state change of machine ( %s)", args.box.GetFullName())))
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error publish state change of machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		if args.box.PublicIp != "" {
@@ -362,7 +362,7 @@ var changeStateofMachine = action.Action{
 			mach.Status = constants.StatusNetworkSkipped
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  change state of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -385,13 +385,13 @@ var addNewRoute = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		err = r.SetCName(mach.Name, args.box.PublicIp)
 		if err != nil {
 			return mach, err
 		}
 		mach.SetRoutable(args.box.PublicIp)
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("adding route to machine (%s, %s)OK", mach.Name, args.box.PublicIp)))
 		mach.Status = constants.StatusNetworkCreated
 		return mach, nil
 	},
@@ -405,18 +405,18 @@ var addNewRoute = action.Action{
 		}
 		if err != nil {
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf(" destroy route error    %s", err.Error())))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf(" destroy route error    %s", err.Error())))
 		}
 
-		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("   destroy routes from created machine  (%s, %s)", mach.Id, mach.Name)))
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("   destroy routes from created machine  (%s, %s)", mach.Id, mach.Name)))
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
 
-				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)    %s", mach.Name, args.box.PublicIp, err.Error())))
+				fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)    %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("destroy route from machine (%s, %s) OK", mach.Id, mach.Name)))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("destroy route from machine (%s, %s) OK", mach.Id, mach.Name)))
 		}
 	},
 	OnError: rollbackNotice,
@@ -436,18 +436,18 @@ var destroyOldRoute = action.Action{
 			w = ioutil.Discard
 		}
 		mach.SetRoutable(args.box.PublicIp)
-		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("destroy routes from created machine")))
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("destroy routes from created machine")))
 		if mach.Routable {
 			err = r.UnsetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
 
-				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
+				fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  destroy route from machine (%s, %s)", mach.Name, args.box.PublicIp)))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  destroy route from machine (%s, %s)", mach.Name, args.box.PublicIp)))
 		} else {
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
 
 		return mach, nil
@@ -462,18 +462,18 @@ var destroyOldRoute = action.Action{
 		}
 		if err != nil {
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("   destroy route error (%s, %s)   %s", mach.Name, args.box.PublicIp, err.Error())))
 		}
 
-		fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  addding back routes to old machine")))
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  addding back routes to old machine")))
 		if mach.Routable {
 			err = r.SetCName(mach.Name, args.box.PublicIp)
 			if err != nil {
 
-				fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("destroy error (%s, %s)     %s", mach.Name, args.box.PublicIp, err.Error())))
+				fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("destroy error (%s, %s)     %s", mach.Name, args.box.PublicIp, err.Error())))
 			}
 
-			fmt.Fprintf(w, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("   adding route to machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("   adding route to machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
 	},
 	OnError:   rollbackNotice,
@@ -505,7 +505,7 @@ var rollbackNotice = func(ctx action.FWContext, err error) {
 	args := ctx.Params[0].(runMachineActionsArgs)
 	if args.writer != nil {
 
-		fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.ERROR, fmt.Sprintf("==> ROLLBACK     %s", err)))
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("==> ROLLBACK     %s", err)))
 
 	}
 }
@@ -520,7 +520,7 @@ var createSnapImage = action.Action{
 			writer = ioutil.Discard
 		}
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  creating snapshot machine %s ----", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("  creating snapshot machine %s ----", mach.Name)))
 		err := mach.CreateDiskSnap(args.provisioner)
 		if err != nil {
 			return nil, err
@@ -528,7 +528,7 @@ var createSnapImage = action.Action{
 
 		mach.Status = constants.StatusSnapCreated
 
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" creating snapshot machine (%s, %s) OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" creating snapshot machine (%s, %s) OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -544,12 +544,12 @@ var removeSnapShot = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.RemoveSnapshot(args.provisioner); err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusSnapDeleted
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
@@ -566,18 +566,18 @@ var mileStoneUpdate = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.SetMileStone(mach.State); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 			c := ctx.FWResult.(machine.Machine)
 			args := ctx.Params[0].(runMachineActionsArgs)
-			fmt.Fprintf(args.writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+			fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
       err := c.SetMileStone(constants.StatePreError)
 			if err != nil {
 				log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
@@ -602,13 +602,13 @@ var addNewStorage = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  attaching new disk to machine %s ----", mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("  attaching new disk to machine %s ----", mach.Name)))
 		err := mach.AttachNewDisk(args.provisioner)
 		if err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusDiskAttaching
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf("  attaching new disk to machine (%s, %s) OK", mach.Id, mach.Name)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("  attaching new disk to machine (%s, %s) OK", mach.Id, mach.Name)))
 		return ctx.Previous, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -624,11 +624,11 @@ var updateIdInSnapTable = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.UpdateSnap(); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
@@ -645,11 +645,11 @@ var waitUntillImageReady = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" waiting to snapshot creating for machine (%s, %s)", args.box.GetFullName(),constants.SNAPSHOTTING )))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to snapshot creating for machine (%s, %s)", args.box.GetFullName(),constants.SNAPSHOTTING )))
 		if err := mach.IsSnapReady(args.provisioner); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" waiting to snapshot creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to snapshot creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
 
 		return mach, nil
 	},
@@ -666,11 +666,11 @@ var updateIdInDiskTable = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.UpdateDisk(args.provisioner); err != nil {
 			return nil, err
 		}
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update disks status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
@@ -687,12 +687,12 @@ var removeDiskStorage = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)", args.box.GetFullName(),constants.LAUNCHED )))
 		if err := mach.RemoveDisk(args.provisioner); err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusDiskDetached
-		fmt.Fprintf(writer, lb.W(lb.VM_DEPLOY, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
