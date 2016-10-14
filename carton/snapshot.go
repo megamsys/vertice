@@ -180,7 +180,7 @@ func (a *Snaps) UpdateSnap(update_fields map[string]interface{}) error {
 		Username:    meta.MC.ScyllaUsername,
 		Password:    meta.MC.ScyllaPassword,
 		PksClauses:  map[string]interface{}{"snap_id": a.Id},
-		CcmsClauses: map[string]interface{}{ACCOUNTID: a.Id,ASSEMBLYID:a.AssemblyId},
+		CcmsClauses: map[string]interface{}{ACCOUNTID: a.AccountId,ASSEMBLYID:a.AssemblyId},
 	}
 	if err := ldb.Updatedb(ops, update_fields); err != nil {
 		return err
@@ -303,7 +303,7 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 	return newCs, nil
 }
 
-//make cartons from snaps.
+//make cartons from disks.
 func (d *Disks) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
 	if len(strings.TrimSpace(d.AssemblyId)) > 1 {
