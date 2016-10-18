@@ -105,29 +105,16 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 }
 
 
-func (m *Machine) UpdateVncHost() error {
-
-	var vnchost = make(map[string][]string)
-	host := []string{}
+func (m *Machine) UpdateVncHostPost() error {
+	var vnc = make(map[string][]string)
+	var port, host  []string
 	host = []string{m.VNCHost}
-	vnchost[carton.VNCHOST] = host
-	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
-		return err
-	} else if err = asm.NukeAndSetOutputs(vnchost); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *Machine) UpdateVncPort() error {
-
-	var vncport = make(map[string][]string)
-	port := []string{}
 	port = []string{m.VNCPort}
-	vncport[carton.VNCPORT] = port
+	vnc[carton.VNCHOST] = host
+	vnc[carton.VNCPORT] = port
 	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
 		return err
-	} else if err = asm.NukeAndSetOutputs(vncport); err != nil {
+	} else if err = asm.NukeAndSetOutputs(vnc); err != nil {
 		return err
 	}
 	return nil
