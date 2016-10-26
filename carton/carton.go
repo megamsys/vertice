@@ -17,6 +17,8 @@ type Carton struct {
 	OrgId        string
 	Tosca        string
 	ImageVersion string
+	ImageName    string
+	Snapshot     bool
 	Compute      provision.BoxCompute
 	SSH          provision.BoxSSH
 	DomainName   string
@@ -65,6 +67,8 @@ func (c *Carton) toBox() error { //assemblies id.
 			DomainName:   c.DomainName,
 			Level:        c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			ImageVersion: c.ImageVersion,
+			ImageName:    c.ImageName,
+			Snapshot:      c.Snapshot,
 			Compute:      c.Compute,
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,

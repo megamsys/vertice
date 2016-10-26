@@ -40,6 +40,7 @@ const (
 	VNCPORT        = "vncport"
 	VNCHOST        = "vnchost"
 	VMID           = "vmid"
+	YES            = "yes"
 	REGION         = "region"
 	PUBLICIPV6     = "publicipv6"
 	PRIVATEIPV6    = "privateipv6"
@@ -120,6 +121,8 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		Region:       a.region(),
 		Vnets:        a.vnets(),
 		VMId:         a.vmId(),
+		Snapshot:     a.isSnap(),
+		ImageName:    a.imageName(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 		State:        utils.State(a.State),
@@ -449,6 +452,14 @@ func (a *Assembly) vmId() string {
 }
 func (a *Assembly) imageVersion() string {
 	return a.Inputs.Match(IMAGE_VERSION)
+}
+
+func (a *Assembly) imageName() string {
+		return a.Inputs.Match(SNAPSHOTNAME)
+}
+
+func (a *Assembly) isSnap() bool {
+	return (strings.TrimSpace(a.Inputs.Match(SNAPSHOT)) == YES)
 }
 
 func (a *Assembly) newCompute() provision.BoxCompute {
