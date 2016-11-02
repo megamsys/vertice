@@ -123,6 +123,8 @@ type Box struct {
 	DomainName   string
 	Tosca        string
 	ImageVersion string
+	ImageName    string
+	Snapshot     bool
 	Compute      BoxCompute
 	Repo         *repository.Repo
 	Status       utils.Status
