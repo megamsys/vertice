@@ -22,10 +22,11 @@ func (on *OpenNebula) Prefix() string {
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _,mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyName != "" {
-			e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
-			 if e != nil {
-				 return
-			 }
+			mkBalance(mc)
+			// e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
+			//  if e != nil {
+			// 	 return
+			//  }
 		}
 	}
  return
@@ -87,6 +88,7 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.AuditPeriodDelta = h.Elapsed()
 		sc.addMetric("cpu_cost", h.CpuCost(), h.Cpu(), "delta")
 		sc.addMetric("memory_cost", h.MemoryCost(), h.Memory(), "delta")
+		sc.addMetric("disk_cost", h.DiskCost(), h.DiskSize(), "delta")
 		mc.Add(sc)
 	}
 	return

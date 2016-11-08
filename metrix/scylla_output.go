@@ -40,7 +40,7 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 			continue
 		}
 		//make it posted in a background lowpriority channel
-		mkBalance(m)
+	  //mkBalance(m)
 	}
 	log.Debugf("sent %d metrics in %.06f\n", len(metrics), time.Since(started).Seconds())
 	return nil
@@ -52,7 +52,7 @@ func mkBalance(s *Sensor) error {
 	mi[ACCOUNTID] = s.AccountId
 	mi[ASSEMBLYID] = s.AssemblyId
 	mi[ASSEMBLYNAME] = s.AssemblyName
-	mi[CONSUMED] = m //stick the cost from metrics
+	mi[CONSUMED] = m        //stick the cost from metrics
 	mi[STARTTIME] = s.AuditPeriodBeginning
 	mi[ENDTIME] = s.AuditPeriodEnding
 

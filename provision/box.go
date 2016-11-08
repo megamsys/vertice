@@ -151,6 +151,9 @@ func (b *Box) String() string {
 func (b *Box) GetMemory() uint64 {
 	return b.Compute.numMemory()
 }
+func (b *Box) GetMemCost() float64 {
+	return b.Compute.memCost()
+}
 func (b *Box) ConGetMemory() uint64 {
 	return b.Compute.ConnumMemory()
 }
@@ -163,8 +166,16 @@ func (b *Box) GetCpushare() uint64 {
 	return b.Compute.numCpushare()
 }
 
+func (b *Box) GetCpuCost() float64 {
+	return b.Compute.cpuCost()
+}
+
 func (b *Box) GetHDD() uint64 {
 	return b.Compute.numHDD()
+}
+
+func (b *Box) GetDiskCost() float64 {
+	return b.Compute.hddCost()
 }
 
 // GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.

@@ -63,12 +63,16 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Image:  m.Image,
 		Region: args.Box.Region,
 		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
+		MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
 	}
+
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
