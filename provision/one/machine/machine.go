@@ -143,9 +143,8 @@ func (m *Machine) Deduct() error {
 	mi[constants.ASSEMBLYID] = m.CartonId
 	mi[constants.ASSEMBLYNAME] = m.Name
 	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().String()
+	mi[constants.START_TIME] = time.Now().Add(-10 * time.Minute).String()
 	mi[constants.END_TIME] = time.Now().String()
-
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
