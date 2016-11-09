@@ -97,6 +97,30 @@ var updateStatusInScylla = action.Action{
 	},
 }
 
+var checkBalances = action.Action{
+	Name: "balance-check",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountsId,args.box.GetFullName())))
+		err := mach.CheckCredits(args.box,writer)
+		if err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusBalanceVerified
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountsId, args.box.GetFullName())))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+
 var createMachine = action.Action{
 	Name: "create-machine",
 

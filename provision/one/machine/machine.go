@@ -12,6 +12,7 @@ import (
 	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/events/bills"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
@@ -89,6 +90,27 @@ func (m *Machine) Create(args *CreateArgs) error {
 		return err
 	} else if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
+  evt := &events.MultiEvent{}
+	if evt.IsEnabled() {
+		bal,err := bills.NewBalances(b.AccountsId,meta.MC.ToMap())
+		if err != nil {
+			return err
+		}
+		i, err := strconv.ParseFloat(bal.Credit, 64)
+		if err != nil {
+			return err
+		}
+
+		if i < 0 {
+			carton.DoneNotify(b, w, alerts.LOWFUND)
+			log.Debugf(" credit balance on negative range for the user (%s)", b.AccountsId)
+			return fmt.Errorf("credit balance on negative range")
+		}
 	}
 	return nil
 }

@@ -228,6 +228,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&mileStoneUpdate,
+		&checkBalances,
 		&createMachine,
 		&mileStoneUpdate,
 		&getVmHostIpPort,
