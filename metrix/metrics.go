@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 )
+// Have to bring out to conf 
 var	defaultCpuUnit  float64 = 1
 var	defaultDiskUnit  float64 = 24576
 var	defaultRamUnit  float64  = 1024
@@ -50,6 +51,9 @@ func parseStringToStruct(str string, data interface{}) error {
 }
 
 func (m *Metrics) Totalcost() string {
+
+	//have to calculate metrics based on discount when flavour increases
+
 	cost := 0.0
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
