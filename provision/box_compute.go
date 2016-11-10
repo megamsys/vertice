@@ -22,6 +22,7 @@ import (
 	"github.com/pivotal-golang/bytefmt"
 )
 
+
 type BoxCompute struct {
 	Cpushare string
 	Memory   string

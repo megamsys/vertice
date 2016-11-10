@@ -151,6 +151,7 @@ func (b *Box) String() string {
 func (b *Box) GetMemory() uint64 {
 	return b.Compute.numMemory()
 }
+
 func (b *Box) ConGetMemory() uint64 {
 	return b.Compute.ConnumMemory()
 }

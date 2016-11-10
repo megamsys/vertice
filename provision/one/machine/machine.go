@@ -12,6 +12,7 @@ import (
 	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/events/bills"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
@@ -65,10 +66,14 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		// CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
+	  // MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
+		// HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
 	}
+
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
@@ -85,6 +90,29 @@ func (m *Machine) Create(args *CreateArgs) error {
 		return err
 	} else if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
+	}
+	return nil
+}
+
+func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
+  evt := &events.MultiEvent{}
+	if evt.IsEnabled() {
+		bal,err := bills.NewBalances(b.AccountsId,meta.MC.ToMap())
+		if err != nil || bal == nil {
+			return nil
+		}
+
+		//have to decide what to do whether balance record is empty
+		i, err := strconv.ParseFloat(bal.Credit, 64)
+		if err != nil {
+			return err
+		}
+
+		if i < 0 {
+			carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
+			log.Debugf(" credit balance on negative range for the user (%s)", b.AccountsId)
+			return fmt.Errorf("credit balance on negative range")
+		}
 	}
 	return nil
 }
@@ -143,9 +171,8 @@ func (m *Machine) Deduct() error {
 	mi[constants.ASSEMBLYID] = m.CartonId
 	mi[constants.ASSEMBLYNAME] = m.Name
 	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().String()
+	mi[constants.START_TIME] = time.Now().Add(-10 * time.Minute).String()
 	mi[constants.END_TIME] = time.Now().String()
-
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{

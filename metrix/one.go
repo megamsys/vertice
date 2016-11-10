@@ -8,7 +8,12 @@ import (
 	"time"
 )
 
-const OPENNEBULA = "one"
+const (
+	OPENNEBULA = "one"
+	CPU_COST = "cpu_cost"
+	MEMORY_COST = "memory_cost"
+	DISK_COST   = "disk_cost"
+)
 
 type OpenNebula struct {
 	Url       string
@@ -21,9 +26,12 @@ func (on *OpenNebula) Prefix() string {
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _,mc := range c.Sensors {
-	 e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
-		if e != nil {
-			return
+		if mc.AccountId != "" && mc.AssemblyName != "" {
+			mkBalance(mc)
+			// e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
+			//  if e != nil {
+			// 	 return
+			//  }
 		}
 	}
  return
@@ -40,7 +48,6 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 		return
 	}
 	on.CollectMetricsFromStats(c, s)
-
 	e = on.DeductBill(c)
 	return
 }
@@ -48,14 +55,13 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
-		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(),
-			time.Now().Unix(),on.Url,ioutil.Discard)
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(),time.Now().Unix(),on.Url,ioutil.Discard)
 		if e != nil {
 			return
 		}
 		on.RawStatus = []byte(res[0].(string))
 	}
-	
+
 	b = on.RawStatus
 	return
 }
@@ -85,8 +91,9 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.AuditPeriodBeginning = time.Unix(metrics.TimeAsInt64(h.VM.Stime), 0).String()
 		sc.AuditPeriodEnding = time.Unix(metrics.TimeAsInt64(h.VM.Etime), 0).String()
 		sc.AuditPeriodDelta = h.Elapsed()
-		sc.addMetric("cpu_cost", h.CpuCost(), h.Cpu(), "delta")
-		sc.addMetric("memory_cost", h.MemoryCost(), h.Memory(), "delta")
+		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
+		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
+		sc.addMetric(DISK_COST, h.DiskCost(), h.DiskSize(), "delta")
 		mc.Add(sc)
 	}
 	return

@@ -228,6 +228,8 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&mileStoneUpdate,
+		&checkBalances,
+		&updateStatusInScylla,
 		&createMachine,
 		&mileStoneUpdate,
 		&getVmHostIpPort,
@@ -249,6 +251,8 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		machineState:  constants.StateInitializing,
 		provisioner:   p,
 	}
+	lastStatus =  constants.StatusLaunching
+	lastState  =   constants.StateInitializing
 
 	err := pipeline.Execute(args)
 	if err != nil {

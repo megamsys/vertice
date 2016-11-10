@@ -75,17 +75,17 @@ func (s *Service) runMetricsCollectors() error {
 		}
 	}
 
-	for _, region := range s.Dockerd.Docker.Regions {
-		collectors := map[string]metrix.MetricCollector{
-			metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},
-		}
-
-		mh := &metrix.MetricHandler{}
-
-		for _, collector := range collectors {
-			go s.Handler.processCollector(mh, output, collector)
-		}
-	}
+	// for _, region := range s.Dockerd.Docker.Regions {
+	// 	collectors := map[string]metrix.MetricCollector{
+	// 		metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},
+	// 	}
+	//
+	// 	mh := &metrix.MetricHandler{}
+	//
+	// 	for _, collector := range collectors {
+	// 		go s.Handler.processCollector(mh, output, collector)
+	// 	}
+	// }
 
 	return nil
 }

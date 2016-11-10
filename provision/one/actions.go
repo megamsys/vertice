@@ -38,6 +38,9 @@ const (
 	RESTART = "restart"
 )
 
+var lastState utils.State
+var lastStatus utils.Status
+
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer
@@ -58,7 +61,6 @@ var updateStatusInScylla = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		var mach machine.Machine
 		if ctx.Previous != nil {
@@ -93,9 +95,41 @@ var updateStatusInScylla = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		c.SetStatus(constants.StatusPreError)
+		if lastStatus == constants.StatusInsufficientFund {
+			c.SetStatus(lastStatus)
+		} else {
+			c.SetStatus(constants.StatusPreError)
+		}
+
 	},
 }
+
+var checkBalances = action.Action{
+	Name: "balance-check",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountsId,args.box.GetFullName())))
+		err := mach.CheckCredits(args.box,writer)
+		if err != nil {
+			lastStatus = constants.StatusInsufficientFund
+			lastState = constants.StateMachineParked
+			args.machineStatus = lastStatus
+			args.machineState = lastState
+			return nil, err
+		}
+		mach.Status = constants.StatusBalanceVerified
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountsId, args.box.GetFullName())))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
 
 var createMachine = action.Action{
 	Name: "create-machine",
@@ -560,10 +594,16 @@ var mileStoneUpdate = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		var err error
 			c := ctx.FWResult.(machine.Machine)
 			args := ctx.Params[0].(runMachineActionsArgs)
 			fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
-      err := c.SetMileStone(constants.StatePreError)
+				if lastState == constants.StateMachineParked {
+					err = c.SetMileStone(constants.StateMachineParked)
+				} else {
+					err = c.SetMileStone(constants.StatePreError)
+				}
+
 			if err != nil {
 				log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 			}
