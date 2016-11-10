@@ -23,10 +23,6 @@ import (
 )
 
 
-var	defaultUnitCost float64 = 0.1
-var	defaultDiskUnit  float64 = 24576
-var	defaultRamUnit  float64  = 1024
-
 type BoxCompute struct {
 	Cpushare string
 	Memory   string
@@ -99,21 +95,6 @@ func (bc *BoxCompute) numHDD() uint64 {
 	} else {
 		return cp
 	}
-}
-
-func (bc *BoxCompute) cpuCost() float64 {
-  c := bc.numCpushare()
-  return float64(c) * defaultUnitCost
-}
-
-func (bc *BoxCompute) hddCost() float64 {
-  ds := bc.numHDD()
-	return (float64(ds)/defaultDiskUnit) * defaultUnitCost
-}
-
-func (bc *BoxCompute) memCost() float64 {
-  m := bc.numMemory()
-	return (float64(m)/defaultRamUnit) * defaultUnitCost
 }
 
 func (bc *BoxCompute) String() string {

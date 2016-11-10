@@ -7,6 +7,10 @@ import (
 	"strconv"
 	"strings"
 )
+var	defaultCpuUnit  float64 = 1
+var	defaultDiskUnit  float64 = 24576
+var	defaultRamUnit  float64  = 1024
+
 
 type MetricsMap map[string]int64
 
@@ -49,7 +53,15 @@ func (m *Metrics) Totalcost() string {
 	cost := 0.0
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
-		cost = cost + consume
+		unit,_     := strconv.ParseFloat(in.MetricUnits, 64)
+    switch in.MetricName {
+    case CPU_COST:
+        cost = cost + (unit / defaultCpuUnit ) * consume
+		case MEMORY_COST:
+        cost = cost + ( unit / defaultRamUnit ) * consume
+		case DISK_COST:
+        cost = cost + (unit / defaultDiskUnit) * consume
+    }
 	}
-	return strconv.FormatFloat(cost, 'f', 2, 64)
+	return strconv.FormatFloat(cost, 'f', 3, 64)
 }

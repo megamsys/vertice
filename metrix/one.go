@@ -8,7 +8,12 @@ import (
 	"time"
 )
 
-const OPENNEBULA = "one"
+const (
+	OPENNEBULA = "one"
+	CPU_COST = "cpu_cost"
+	MEMORY_COST = "memory_cost"
+	DISK_COST   = "disk_cost"
+)
 
 type OpenNebula struct {
 	Url       string
@@ -86,9 +91,9 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.AuditPeriodBeginning = time.Unix(metrics.TimeAsInt64(h.VM.Stime), 0).String()
 		sc.AuditPeriodEnding = time.Unix(metrics.TimeAsInt64(h.VM.Etime), 0).String()
 		sc.AuditPeriodDelta = h.Elapsed()
-		sc.addMetric("cpu_cost", h.CpuCost(), h.Cpu(), "delta")
-		sc.addMetric("memory_cost", h.MemoryCost(), h.Memory(), "delta")
-		sc.addMetric("disk_cost", h.DiskCost(), h.DiskSize(), "delta")
+		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
+		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
+		sc.addMetric(DISK_COST, h.DiskCost(), h.DiskSize(), "delta")
 		mc.Add(sc)
 	}
 	return

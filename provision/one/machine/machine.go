@@ -64,11 +64,11 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Image:  m.Image,
 		Region: args.Box.Region,
 		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
-		CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
-		MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
-		HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
+		// CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
+	  // MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
+		// HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
@@ -98,16 +98,18 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
   evt := &events.MultiEvent{}
 	if evt.IsEnabled() {
 		bal,err := bills.NewBalances(b.AccountsId,meta.MC.ToMap())
-		if err != nil {
-			return err
+		if err != nil || bal == nil {
+			return nil
 		}
+
+		//have to decide what to do whether balance record is empty
 		i, err := strconv.ParseFloat(bal.Credit, 64)
 		if err != nil {
 			return err
 		}
 
 		if i < 0 {
-			carton.DoneNotify(b, w, alerts.LOWFUND)
+			carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
 			log.Debugf(" credit balance on negative range for the user (%s)", b.AccountsId)
 			return fmt.Errorf("credit balance on negative range")
 		}
