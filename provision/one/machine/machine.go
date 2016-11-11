@@ -67,13 +67,12 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		// CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
-	  // MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
+		// MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
 		// HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
-		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId,compute.ORG_ID: args.Box.OrgId,
+		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
 	}
-
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
@@ -95,9 +94,9 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
-  evt := &events.MultiEvent{}
+	evt := &events.MultiEvent{}
 	if evt.IsEnabled() {
-		bal,err := bills.NewBalances(b.AccountsId,meta.MC.ToMap())
+		bal, err := bills.NewBalances(b.AccountsId, meta.MC.ToMap())
 		if err != nil || bal == nil {
 			return nil
 		}
@@ -108,7 +107,7 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 			return err
 		}
 
-		if i < 0 {
+		if i <= 0 {
 			carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
 			log.Debugf(" credit balance on negative range for the user (%s)", b.AccountsId)
 			return fmt.Errorf("credit balance on negative range")
@@ -132,10 +131,9 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	return nil
 }
 
-
 func (m *Machine) UpdateVncHostPost() error {
 	var vnc = make(map[string][]string)
-	var port, host  []string
+	var port, host []string
 	host = []string{m.VNCHost}
 	port = []string{m.VNCPort}
 	vnc[carton.VNCHOST] = host
@@ -230,7 +228,6 @@ func (m *Machine) SetStatus(status utils.Status) error {
 	return nil
 }
 
-
 func (m *Machine) SetMileStone(state utils.State) error {
 	log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
 
@@ -323,13 +320,13 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 }
 
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
-		log.Debugf("  creating snap machine in one (%s)", m.Name)
+	log.Debugf("  creating snap machine in one (%s)", m.Name)
 	snp, err := carton.GetSnap(m.CartonsId)
 	if err != nil {
 		return err
 	}
 
-  vmid,_ := strconv.Atoi(m.VMId)
+	vmid, _ := strconv.Atoi(m.VMId)
 	opts := compute.Image{
 		Name:   snp.Name,
 		Region: m.Region,
@@ -340,21 +337,21 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-  m.ImageId = id
+	m.ImageId = id
 	return nil
 }
 
-func (m * Machine) IsSnapReady(p OneProvisioner) error {
-  id, _ := strconv.Atoi(m.ImageId)
+func (m *Machine) IsSnapReady(p OneProvisioner) error {
+	id, _ := strconv.Atoi(m.ImageId)
 	opts := &images.Image{
 		Id: id,
 	}
-	err := p.Cluster().IsSnapReady(opts,m.Region)
-  if err != nil {
-	  return err
-  }
+	err := p.Cluster().IsSnapReady(opts, m.Region)
+	if err != nil {
+		return err
+	}
 
-return nil
+	return nil
 }
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
@@ -364,14 +361,14 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-  size := dsk.NumMemory()
-  id,_ := strconv.Atoi(m.VMId)
+	size := dsk.NumMemory()
+	id, _ := strconv.Atoi(m.VMId)
 	opts := &disk.VmDisk{
 		VmId: id,
-		Vm:  disk.Vm{Disk: disk.Disk{Size: size}},
+		Vm:   disk.Vm{Disk: disk.Disk{Size: size}},
 	}
 
-	err = p.Cluster().AttachDisk(opts,m.Region)
+	err = p.Cluster().AttachDisk(opts, m.Region)
 	if err != nil {
 		return err
 	}
@@ -379,10 +376,10 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 }
 
 func (m *Machine) UpdateSnap() error {
-	update_fields := make(map[string]interface{},2)
+	update_fields := make(map[string]interface{}, 2)
 	update_fields["Image_Id"] = m.ImageId
 	update_fields["Status"] = "ready"
-  sns,err := carton.GetSnap(m.CartonsId)
+	sns, err := carton.GetSnap(m.CartonsId)
 	if err != nil {
 		return err
 	}
@@ -396,18 +393,18 @@ func (m *Machine) UpdateSnap() error {
 }
 
 func (m *Machine) UpdateDisk(p OneProvisioner) error {
-	id ,_ := strconv.Atoi(m.VMId)
-  vd := &disk.VmDisk{VmId: id}
+	id, _ := strconv.Atoi(m.VMId)
+	vd := &disk.VmDisk{VmId: id}
 
-	l, err := p.Cluster().GetDiskId(vd,m.Region)
+	l, err := p.Cluster().GetDiskId(vd, m.Region)
 	if err != nil {
 		return err
 	}
-	update_fields := make(map[string]interface{},2)
+	update_fields := make(map[string]interface{}, 2)
 	update_fields["Disk_Id"] = strconv.Itoa(l[len(l)-1])
 	update_fields["Status"] = "Success"
 
-	d,err := carton.GetDisks(m.CartonsId)
+	d, err := carton.GetDisks(m.CartonsId)
 	if err != nil {
 		return err
 	}
@@ -424,14 +421,14 @@ func (m *Machine) RemoveDisk(p OneProvisioner) error {
 		return err
 	}
 
-  id,_ := strconv.Atoi(m.VMId)
-	did,_ := strconv.Atoi(dsk.DiskId)
+	id, _ := strconv.Atoi(m.VMId)
+	did, _ := strconv.Atoi(dsk.DiskId)
 	opts := &disk.VmDisk{
-		VmId:  id,
+		VmId: id,
 		Vm:   disk.Vm{Disk: disk.Disk{Disk_Id: did}},
 	}
 
-	err = p.Cluster().DetachDisk(opts,m.Region)
+	err = p.Cluster().DetachDisk(opts, m.Region)
 	if err != nil {
 		return err
 	}
@@ -449,11 +446,11 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-  id, _ := strconv.Atoi(snp.ImageId)
+	id, _ := strconv.Atoi(snp.ImageId)
 	log.Debugf("  remove snap machine in one (%s)", m.Name)
 	opts := compute.Image{
-		Name:   snp.Name,
-		Region: m.Region,
+		Name:    snp.Name,
+		Region:  m.Region,
 		ImageId: id,
 	}
 	err = p.Cluster().RemoveSnap(opts)

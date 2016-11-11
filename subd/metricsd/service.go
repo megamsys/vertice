@@ -1,12 +1,12 @@
 package metricsd
 
 import (
-	"time"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
+	"time"
 )
 
 // Service manages the listener and handler for an HTTP endpoint.
@@ -21,7 +21,7 @@ type Service struct {
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, one *deployd.Config,doc *docker.Config, f *Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
@@ -65,7 +65,10 @@ func (s *Service) runMetricsCollectors() error {
 
 	for _, region := range s.Deployd.One.Regions {
 		collectors := map[string]metrix.MetricCollector{
-			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint},
+			metrix.OPENNEBULA: &metrix.OpenNebula{
+				Url:          region.OneEndPoint,
+				DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit},
+			},
 		}
 
 		mh := &metrix.MetricHandler{}

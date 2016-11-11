@@ -7,11 +7,12 @@ import (
 	"strconv"
 	"strings"
 )
-// Have to bring out to conf 
-var	defaultCpuUnit  float64 = 1
-var	defaultDiskUnit  float64 = 24576
-var	defaultRamUnit  float64  = 1024
 
+const (
+	CPU_UNIT    = "cpu_unit"
+	MEMORY_UNIT = "memory_unit"
+	DISK_UNIT   = "disk_unit"
+)
 
 type MetricsMap map[string]int64
 
@@ -50,22 +51,25 @@ func parseStringToStruct(str string, data interface{}) error {
 	return nil
 }
 
-func (m *Metrics) Totalcost() string {
+func (m *Metrics) Totalcost(units map[string]string) string {
 
 	//have to calculate metrics based on discount when flavour increases
 
 	cost := 0.0
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
-		unit,_     := strconv.ParseFloat(in.MetricUnits, 64)
-    switch in.MetricName {
-    case CPU_COST:
-        cost = cost + (unit / defaultCpuUnit ) * consume
+		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
+		switch in.MetricName {
+		case CPU_COST:
+			defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
+			cost = cost + (unit/defaultCpuUnit)*consume
 		case MEMORY_COST:
-        cost = cost + ( unit / defaultRamUnit ) * consume
+			defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
+			cost = cost + (unit/defaultRamUnit)*consume
 		case DISK_COST:
-        cost = cost + (unit / defaultDiskUnit) * consume
-    }
+			defaultDiskUnit, _ := strconv.ParseFloat(units[DISK_UNIT], 64)
+			cost = cost + (unit/defaultDiskUnit)*consume
+		}
 	}
 	return strconv.FormatFloat(cost, 'f', 3, 64)
 }

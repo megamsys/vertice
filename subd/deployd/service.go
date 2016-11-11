@@ -69,7 +69,6 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 	if err != nil {
 		return
 	}
-
 	re, err := p.Convert()
 	if err != nil {
 		return

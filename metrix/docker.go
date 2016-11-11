@@ -14,18 +14,18 @@ type Swarm struct {
 	RawStatus []interface{}
 }
 
-type Stats struct{
+type Stats struct {
 	ContainerId  string
-	MemoryUsage  uint64   //in bytes
+	MemoryUsage  uint64 //in bytes
 	SystemMemory uint64
-	CPUStats     CPUStats  //in percentage of total cpu used
+	CPUStats     CPUStats //in percentage of total cpu used
 	PreCPUStats  CPUStats
 	NetworkIn    uint64
 	NetworkOut   uint64
- 	AccountId    string
+	AccountId    string
 	AssemblyId   string
 	AssemblyName string
-  AssembliesId string
+	AssembliesId string
 	Status       string
 	AuditPeriod  time.Time
 }
@@ -35,7 +35,7 @@ type CPUStats struct {
 	UsageInUsermode   uint64
 	TotalUsage        uint64
 	UsageInKernelmode uint64
-  SystemCPUUsage    uint64
+	SystemCPUUsage    uint64
 }
 
 func (s *Swarm) Prefix() string {
@@ -44,7 +44,7 @@ func (s *Swarm) Prefix() string {
 
 func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 	fmt.Println(s)
-	 e = s.ReadStatus()
+	e = s.ReadStatus()
 	if e != nil {
 		return
 	}
@@ -53,40 +53,40 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 	if e != nil {
 		return
 	}
-	 s.CollectMetricsFromStats(c, stats)
+	s.CollectMetricsFromStats(c, stats)
 
-	 e = s.DeductBill(c)
-	 return
+	e = s.DeductBill(c)
+	return
 }
 
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
-	for _,mc := range c.Sensors {
-	 e = carton.ProvisionerMap[s.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
+	for _, mc := range c.Sensors {
+		e = carton.ProvisionerMap[s.Prefix()].TriggerBills(mc.AccountId, mc.AssemblyId, mc.AssemblyName)
 		if e != nil {
 			return
 		}
 	}
- return
+	return
 }
 
-func (s *Swarm) ParseStatus(a []interface{}) ([]*Stats,error) {
+func (s *Swarm) ParseStatus(a []interface{}) ([]*Stats, error) {
 	var stats []*Stats
-	for _,v := range a {
+	for _, v := range a {
 		f, ok := v.(*Stats)
 		if !ok {
 			fmt.Println("failed to converter")
 		}
-		stats = append(stats,f)
+		stats = append(stats, f)
 	}
 	return stats, nil
 }
 
 func (s *Swarm) ReadStatus() (e error) {
-		s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(), time.Now().Unix(),s.Url,ioutil.Discard)
-		if e != nil {
-			return
-		}
-  return
+	s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(), time.Now().Unix(), s.Url, ioutil.Discard)
+	if e != nil {
+		return
+	}
+	return
 }
 
 //actually the NewSensor can create trypes based on the event type.
@@ -102,9 +102,9 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.Source = s.Prefix()
 		sc.Message = "container billing"
 		sc.Status = h.Status
-		sc.AuditPeriodBeginning = time.Now().Add(-10*time.Minute).String()
+		sc.AuditPeriodBeginning = time.Now().Add(-10 * time.Minute).String()
 		sc.AuditPeriodEnding = time.Now().String()
-	 	sc.AuditPeriodDelta = time.Now().String()
+		sc.AuditPeriodDelta = time.Now().String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
 		sc.addMetric("cpu_cost", "2", "0.021", "delta")
 		sc.addMetric("memory_cost", "2", "450", "delta")
