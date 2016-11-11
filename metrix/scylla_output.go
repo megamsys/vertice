@@ -1,14 +1,13 @@
 package metrix
 
 import (
-	"time"
-
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/meta"
+	"time"
 )
 
 const (
@@ -40,19 +39,19 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 			continue
 		}
 		//make it posted in a background lowpriority channel
-	  //mkBalance(m)
+		//mkBalance(m)
 	}
 	log.Debugf("sent %d metrics in %.06f\n", len(metrics), time.Since(started).Seconds())
 	return nil
 }
 
-func mkBalance(s *Sensor) error {
+func mkBalance(s *Sensor, du map[string]string) error {
 	mi := make(map[string]string)
-	m := s.Metrics.Totalcost()
+	m := s.Metrics.Totalcost(du)
 	mi[ACCOUNTID] = s.AccountId
 	mi[ASSEMBLYID] = s.AssemblyId
 	mi[ASSEMBLYNAME] = s.AssemblyName
-	mi[CONSUMED] = m        //stick the cost from metrics
+	mi[CONSUMED] = m //stick the cost from metrics
 	mi[STARTTIME] = s.AuditPeriodBeginning
 	mi[ENDTIME] = s.AuditPeriodEnding
 

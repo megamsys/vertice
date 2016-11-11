@@ -22,5 +22,5 @@ func (h *Handler) processCollector(mh *metrix.MetricHandler,
 	if err = output.WriteMetrics(all); err != nil {
 		return err
 	}
-  return nil
+	return nil
 }

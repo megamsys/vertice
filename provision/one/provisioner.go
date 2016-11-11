@@ -30,9 +30,9 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
+	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
-	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision/one/cluster"
 	"github.com/megamsys/vertice/provision/one/machine"
 	"github.com/megamsys/vertice/repository"
@@ -72,6 +72,9 @@ type Region struct {
 	VCPUPercentage string    `json:"vcpu_percentage" toml:"vcpu_percentage"`
 	Certificate    string    `json:"certificate" toml:"certificate"`
 	Clusters       []Cluster `json:"cluster" toml:"cluster"`
+	CpuUnit        string    `json:"cpu_unit" toml:"cpu_unit"`
+	MemoryUnit     string    `json:"memory_unit" toml:"memory_unit"`
+	DiskUnit       string    `json:"disk_unit" toml:"disk_unit"`
 }
 
 type Cluster struct {
@@ -251,8 +254,8 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		machineState:  constants.StateInitializing,
 		provisioner:   p,
 	}
-	lastStatus =  constants.StatusLaunching
-	lastState  =   constants.StateInitializing
+	lastStatus = constants.StatusLaunching
+	lastState = constants.StateInitializing
 
 	err := pipeline.Execute(args)
 	if err != nil {

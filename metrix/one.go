@@ -9,15 +9,16 @@ import (
 )
 
 const (
-	OPENNEBULA = "one"
-	CPU_COST = "cpu_cost"
+	OPENNEBULA  = "one"
+	CPU_COST    = "cpu_cost"
 	MEMORY_COST = "memory_cost"
 	DISK_COST   = "disk_cost"
 )
 
 type OpenNebula struct {
-	Url       string
-	RawStatus []byte
+	Url          string
+	DefaultUnits map[string]string
+	RawStatus    []byte
 }
 
 func (on *OpenNebula) Prefix() string {
@@ -25,16 +26,12 @@ func (on *OpenNebula) Prefix() string {
 }
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
-	for _,mc := range c.Sensors {
+	for _, mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyName != "" {
-			mkBalance(mc)
-			// e = carton.ProvisionerMap[on.Prefix()].TriggerBills(mc.AccountId,mc.AssemblyId, mc.AssemblyName)
-			//  if e != nil {
-			// 	 return
-			//  }
+			mkBalance(mc, on.DefaultUnits)
 		}
 	}
- return
+	return
 }
 
 func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
@@ -55,7 +52,7 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
-		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(),time.Now().Unix(),on.Url,ioutil.Discard)
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
 		if e != nil {
 			return
 		}
