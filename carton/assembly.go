@@ -123,6 +123,7 @@ func mkCarton(aies string, ay string) (*Carton, error) {
 		VMId:         a.vmId(),
 		Snapshot:     a.isSnap(),
 		ImageName:    a.imageName(),
+		StorageType:  a.storageType(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 		State:        utils.State(a.State),
@@ -147,6 +148,7 @@ func (a *Assembly) mkBoxes(aies string) ([]provision.Box, error) {
 				b.CartonName = a.Name
 				b.AccountsId = a.AccountId
 				b.OrgId = a.OrgId
+				b.StorageType = a.storageType()
 				if len(strings.TrimSpace(b.Provider)) <= 0 {
 					b.Provider = a.provider()
 				}
@@ -456,6 +458,10 @@ func (a *Assembly) imageVersion() string {
 
 func (a *Assembly) imageName() string {
 		return a.Inputs.Match(SNAPSHOTNAME)
+}
+
+func (a *Assembly) storageType() string {
+ return	strings.ToLower(a.Inputs.Match(utils.STORAGE_TYPE))
 }
 
 func (a *Assembly) isSnap() bool {

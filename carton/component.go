@@ -130,6 +130,7 @@ func (c *Component) mkBox(vnet map[string]string,vmid,orgid string) (provision.B
 		Commit:     "",
 		Provider:   c.provider(),
 		PublicIp:   c.publicIp(),
+		StorageType: c.storageType(),
 		Vnets:      vnet,
 		VMId:       vmid,
 		OrgId:      orgid,
@@ -260,6 +261,10 @@ func (c *Component) provider() string {
 	return c.Inputs.Match(utils.PROVIDER)
 }
 
+func (c *Component) storageType() string {
+ return	strings.ToLower(c.Inputs.Match(utils.STORAGE_TYPE))
+}
+
 func (c *Component) publicIp() string {
 	return c.Outputs.Match(PUBLICIPV4)
 }
@@ -267,6 +272,7 @@ func (c *Component) publicIp() string {
 func (c *Component) withOneClick() bool {
 	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE && c.Repo.Source == VERTICE)
 }
+
 
 //all the variables in the inputs shall be treated as ENV.
 //we can use a filtered approach as well.
