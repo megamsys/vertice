@@ -67,6 +67,7 @@ type Region struct {
 	OneEndPoint    string    `json:"one_endpoint" toml:"one_endpoint"`
 	OneUserid      string    `json:"one_user" toml:"one_user"`
 	OnePassword    string    `json:"one_password" toml:"one_password"`
+	OneMasterKey   string    `json:"one_masterkey" toml:"one_masterkey"`
 	OneTemplate    string    `json:"one_template" toml:"one_template"`
 	Image          string    `json:"image" toml:"image"`
 	VCPUPercentage string    `json:"vcpu_percentage" toml:"vcpu_percentage"`
@@ -79,6 +80,7 @@ type Region struct {
 
 type Cluster struct {
 	Enabled       bool   `json:"enabled" toml:"enabled"`
+	StorageType   string `json:"storage_hddtype" toml:"storage_hddtype"`
 	ClusterId     string `json:"cluster_id" toml:"cluster_id"`
 	Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
 	Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
@@ -161,6 +163,7 @@ func (c Region) toClusterMap() map[string]map[string]string {
 				mm[utils.IPV4PUB] = c.Clusters[i].Vnet_pub_ipv4
 				mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
 				mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
+				mm[utils.STORAGE_TYPE] = c.Clusters[i].StorageType
 				clData[c.Clusters[i].ClusterId] = mm
 			}
 		}

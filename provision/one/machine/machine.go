@@ -45,6 +45,7 @@ type Machine struct {
 	VNCHost      string
 	VNCPort      string
 	ImageId      string
+	StorageType  string
 	Routable     bool
 	Status       utils.Status
 	State        utils.State
@@ -75,7 +76,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	}
 
 	//m.addEnvsToContext(m.BoxEnvs, &vm)
-	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle)
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle,m.StorageType)
 	if err != nil {
 		return err
 	}
@@ -109,8 +110,8 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 
 		if i <= 0 {
 			carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
-			log.Debugf(" credit balance on negative range for the user (%s)", b.AccountsId)
-			return fmt.Errorf("credit balance on negative range")
+			log.Debugf(" credit balance insufficient for the user (%s)", b.AccountsId)
+			return fmt.Errorf("credit balance insufficient")
 		}
 	}
 	return nil

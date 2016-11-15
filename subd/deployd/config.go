@@ -66,6 +66,7 @@ func NewConfig() *Config {
 
 	c := one.Cluster{
 		Enabled:       false,
+		StorageType:  "hdd",
 		ClusterId:     DefaultOneCluster,
 		Vnet_pri_ipv4: DefaultOneVnetPri,
 		Vnet_pub_ipv4: DefaultOneVnetPub,
@@ -120,7 +121,7 @@ func (c Config) String() string {
 		b.Write([]byte("Resource Basic Units :\n\t\t Memory: " + v.MemoryUnit + "\tCpu: " + v.CpuUnit + "\tStorage: " + v.DiskUnit+ "\n"))
 		for _, k := range v.Clusters {
 			if k.Enabled {
-				b.Write([]byte(api.CLUSTER + "\t" + k.ClusterId + "\n"))
+				b.Write([]byte(api.CLUSTER + "\t" + k.ClusterId + "  storage type" + k.StorageType + "\n"))
 			}
 		}
 		b.Write([]byte("---\n"))

@@ -3,7 +3,6 @@ package eventsd
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 	"text/tabwriter"
 
@@ -24,7 +23,7 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		Enabled: false,
+		Enabled: true,
 	}
 }
 
@@ -34,7 +33,6 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Eventsd", "cyan", "", "") + "\n"))
-	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 	b.Write([]byte(c.Mailgun.String()))
 	b.Write([]byte(c.Infobip.String()))
 	b.Write([]byte(c.Slack.String() + "\n"))

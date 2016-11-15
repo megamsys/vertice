@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync/atomic"
 	"time"
-  //"github.com/megamsys/libgo/utils"
+  "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 )
 
@@ -265,15 +265,17 @@ func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 }
 
 //return vnets and cluster id which is choosen
-func (c *Cluster) getVnets(nodeo Node, m map[string]string) (map[string]string,string) {
+func (c *Cluster) getVnets(nodeo Node, m map[string]string, st string) (map[string]string,string) {
 	res := make(map[string]string)
-	for k,_ := range nodeo.Clusters {
-		for i,j := range nodeo.Clusters[k] {
-				if m[i] == "true" {
-				res[i] = j
+	for k,v := range nodeo.Clusters {
+		if v[utils.STORAGE_TYPE] == st {
+			for i,j := range nodeo.Clusters[k] {
+					if m[i] == "true" {
+					res[i] = j
+				}
 			}
+			return res,k
 		}
-		return res,k
 	}
-	return res , "0"
+	return res , ""
 }

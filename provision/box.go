@@ -122,6 +122,7 @@ type Box struct {
 	Level        BoxLevel
 	DomainName   string
 	Tosca        string
+	StorageType  string
 	ImageVersion string
 	ImageName    string
 	Snapshot     bool

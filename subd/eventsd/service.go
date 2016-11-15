@@ -4,6 +4,7 @@ import (
 	"sync"
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
+	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/vertice/meta"
 )
@@ -24,13 +25,14 @@ type Service struct {
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, e *Config) *Service {
+func NewService(c *meta.Config, e *Config, d *deployd.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Eventsd: e,
 	}
 	s.Handler = NewHandler(nil)
+	s.Handler.Deployd = d
 	return s
 }
 
@@ -66,7 +68,8 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 	if err != nil {
 		return
 	}
-	go s.Handler.serveNSQ(e)
+
+	go s.Handler.serveNSQ(e,pe.Inputs.Match("email"))
 	return
 }
 

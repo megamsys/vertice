@@ -76,6 +76,7 @@ var updateStatusInScylla = action.Action{
 				Status:       args.machineStatus,
 				State:        args.machineState,
 				Image:        args.imageId,
+				StorageType:  args.box.StorageType,
 				Region:       args.box.Region,
 				VMId:         args.box.VMId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,

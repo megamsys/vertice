@@ -27,7 +27,7 @@ const (
 
 var ErrConnRefused = errors.New("connection refused")
 
-func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, string, string, error) {
+func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle,storage string) (string, string, string, error) {
 
 	var (
 		addr    string
@@ -42,16 +42,16 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, t string) (string, strin
 		for _, v := range nodlist {
 			if v.Metadata[api.ONEZONE] == opts.Region {
 				addr = v.Address
-				opts.Vnets, opts.ClusterId = c.getVnets(v, opts.Vnets)
+				opts.Vnets, opts.ClusterId = c.getVnets(v, opts.Vnets,storage)
 				if v.Metadata[api.VCPU_PERCENTAGE] != "" {
 					opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
 				} else {
-					opts.Cpu = cpuThrottle(t, opts.Cpu)
+					opts.Cpu = cpuThrottle(throttle, opts.Cpu)
 				}
 			}
 		}
-
-		if addr == "" {
+		
+		if addr == "" || opts.ClusterId == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {

@@ -5,16 +5,18 @@ import (
 	"fmt"
 	"github.com/megamsys/libgo/cmd"
 	constants "github.com/megamsys/libgo/utils"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 )
 
 type Mailgun struct {
-	ApiKey string `toml:"api_key"`
-	Domain string `toml:"domain"`
-	Sender string `toml:"sender"`
-	Logo   string `toml:"logo"`
-	Nilavu string `toml:"nilavu"`
+	Enabled bool   `toml:"enabled"`
+	ApiKey  string `toml:"api_key"`
+	Domain  string `toml:"domain"`
+	Sender  string `toml:"sender"`
+	Logo    string `toml:"logo"`
+	Nilavu  string `toml:"nilavu"`
 }
 
 func NewMaingun() Mailgun {
@@ -29,6 +31,7 @@ func NewMaingun() Mailgun {
 
 func (m Mailgun) toMap() map[string]string {
 	mp := make(map[string]string)
+	mp[constants.ENABLED] = strconv.FormatBool(m.Enabled)
 	mp[constants.API_KEY] = m.ApiKey
 	mp[constants.DOMAIN] = m.Domain
 	mp[constants.SENDER] = m.Sender
@@ -42,6 +45,7 @@ func (m Mailgun) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Mailgun", "green", "", "") + "\n"))
+	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(m.Enabled) + "\n"))
 	b.Write([]byte("api_key" + "\t" + m.ApiKey + "\n"))
 	b.Write([]byte("sender" + "\t" + m.Sender + "\n"))
 	b.Write([]byte("domain" + "\t" + m.Domain + "\n"))
@@ -53,12 +57,14 @@ func (m Mailgun) String() string {
 }
 
 type Slack struct {
+	Enabled bool   `toml:"enabled"`
 	Token   string `toml:"token"`
 	Channel string `toml:"channel"`
 }
 
 func (s Slack) toMap() map[string]string {
 	mp := make(map[string]string)
+	mp[constants.ENABLED] = strconv.FormatBool(s.Enabled)
 	mp[constants.TOKEN] = s.Token
 	mp[constants.CHANNEL] = s.Channel
 	return mp
@@ -69,6 +75,7 @@ func (s Slack) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nSlack", "green", "", "") + "\n"))
+	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(s.Enabled) + "\n"))
 	b.Write([]byte("token" + "\t" + s.Token + "\n"))
 	b.Write([]byte("channel" + "\t" + s.Channel + "\n"))
 	fmt.Fprintln(w)
@@ -77,6 +84,7 @@ func (s Slack) String() string {
 }
 
 type Infobip struct {
+	Enabled       bool   `toml:"enabled"`
 	Username      string `toml:"username"`
 	Password      string `toml:"password"`
 	ApiKey        string `toml:"api_key"`
@@ -86,6 +94,7 @@ type Infobip struct {
 
 func (i Infobip) toMap() map[string]string {
 	mp := make(map[string]string)
+	mp[constants.ENABLED] = strconv.FormatBool(i.Enabled)
 	mp[constants.USERNAME] = i.Username
 	mp[constants.PASSWORD] = i.Password
 	mp[constants.API_KEY] = i.ApiKey
@@ -99,6 +108,7 @@ func (i Infobip) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nInfobip", "green", "", "") + "\n"))
+	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(i.Enabled) + "\n"))
 	b.Write([]byte("username" + "\t" + i.Username + "\n"))
 	b.Write([]byte("password" + "\t" + i.Password + "\n"))
 	b.Write([]byte("api_key" + "\t" + i.ApiKey + "\n"))
@@ -110,6 +120,7 @@ func (i Infobip) String() string {
 }
 
 type BillMgr struct {
+	Enabled        bool     `toml:"enabled"`
 	WHMCSAccessKey string   `toml:"whmcs_key"`
 	WHMCSUserName  string   `toml:"whmcs_username"`
 	WHMCSPassword  string   `toml:"whmcs_password"`
@@ -119,6 +130,7 @@ type BillMgr struct {
 
 func (l BillMgr) toMap() map[string]string {
 	mp := make(map[string]string)
+	mp[constants.ENABLED] = strconv.FormatBool(l.Enabled)
 	mp[constants.USERNAME] = l.WHMCSUserName
 	mp[constants.PASSWORD] = l.WHMCSPassword
 	mp[constants.API_KEY] = l.WHMCSAccessKey
@@ -133,6 +145,7 @@ func (l BillMgr) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nBillmgr", "green", "", "") + "\n"))
+	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(l.Enabled) + "\n"))
 	b.Write([]byte("piggybanks    " + "\t" + strings.Join(l.PiggyBanks, ",") + "\n"))
 	b.Write([]byte("whmcs_username" + "\t" + l.WHMCSUserName + "\n"))
 	b.Write([]byte("whmcs_password" + "\t" + l.WHMCSPassword + "\n"))
