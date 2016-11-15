@@ -7,7 +7,6 @@ import (
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/vertice/meta"
-	"fmt"
 )
 
 const (
@@ -60,18 +59,16 @@ func (s *Service) Open() error {
 }
 
 func (s *Service) processNSQ(msg *nsq.Message) {
-	fmt.Println("***********events msg***********",string(msg.Body))
 	pe, err := events.NewParseEvent(msg.Body)
 	if err != nil {
 		return
 	}
-fmt.Println("***********events msg******payload*****",pe)
 
 	e, err := pe.AsEvent()
 	if err != nil {
 		return
 	}
-	fmt.Println("***********events msg****events*******",e)
+
 	go s.Handler.serveNSQ(e,pe.Inputs.Match("email"))
 	return
 }

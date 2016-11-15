@@ -50,7 +50,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle,storage string)
 				}
 			}
 		}
-    fmt.Println("*********************************88",opts.Vnets,opts.ClusterId)
+		
 		if addr == "" || opts.ClusterId == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 		}
