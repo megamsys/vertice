@@ -95,8 +95,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
-	evt := &events.MultiEvent{}
-	if evt.IsEnabled() {
+	if events.IsEnabled(constants.BILLMGR) {
 		bal, err := bills.NewBalances(b.AccountsId, meta.MC.ToMap())
 		if err != nil || bal == nil {
 			return nil
