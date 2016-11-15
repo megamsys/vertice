@@ -413,7 +413,7 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/whmcs_go/whmcs",
-			"Rev": "3f0fa13c71ad04596000212475f199a67836c5f8"
+			"Rev": "a7b3b969b1fe89534069a9a0ed4b3eb39048274b"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
