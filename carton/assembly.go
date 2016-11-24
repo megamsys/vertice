@@ -46,6 +46,8 @@ const (
 	PRIVATEIPV6    = "privateipv6"
 )
 
+var ERROR_MSG error = nil
+
 type Policy struct {
 	Name    string   `json:"name" cql:"name"`
 	Type    string   `json:"type" cql:"type"`
@@ -258,12 +260,17 @@ func (a *Ambly) SetState(state utils.State) error {
 }
 
 func (a *Ambly) trigger_event(status utils.Status) error {
+	var msg string
 	mi := make(map[string]string)
-
 	js := make(pairs.JsonPairs, 0)
 	m := make(map[string][]string, 2)
 	m["status"] = []string{status.String()}
-	m["description"] = []string{status.Description(a.Name)}
+	if status == utils.StatusPreError && ERROR_MSG != nil {
+			msg =  strings.Replace(strings.Replace(ERROR_MSG.Error(),"[0;31;10m","",1),"[0m","",1)
+		m["description"] = []string{status.DescriptionError(a.Name,msg)}
+	} else{
+		m["description"] = []string{status.Description(a.Name)}
+	}
 	js.NukeAndSet(m) //just nuke the matching output key:
 
 	mi[constants.ASSEMBLY_ID] = a.Id

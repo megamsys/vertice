@@ -52,6 +52,7 @@ type DeployOpts struct {
 func Deploy(opts *DeployOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
+	ERROR_MSG = nil
 	logWriter := LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()

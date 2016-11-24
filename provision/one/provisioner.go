@@ -278,13 +278,17 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusDestroying,
+		machineState: constants.StateDestroying,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
 		&updateStatusInScylla,
+		&mileStoneUpdate,
 		&destroyOldMachine,
 		&destroyOldRoute,
+		&mileStoneUpdate,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)

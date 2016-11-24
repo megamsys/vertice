@@ -150,6 +150,7 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
+			carton.ERROR_MSG = err
 			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
@@ -180,6 +181,7 @@ var getVmHostIpPort = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
+			carton.ERROR_MSG = err
 			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
@@ -198,6 +200,7 @@ var updateVnchostPostInScylla = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		err := mach.UpdateVncHostPost()
 		if err != nil {
+			carton.ERROR_MSG = err
 			return nil, err
 		}
 		mach.Status = constants.StatusVncHostUpdated
@@ -467,7 +470,8 @@ var destroyOldRoute = action.Action{
 
 			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
-
+    mach.Status = constants.StatusDestroyed
+		mach.State = constants.StateDestroyed
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -586,6 +590,7 @@ var mileStoneUpdate = action.Action{
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
 		if err := mach.SetMileStone(mach.State); err != nil {
+			carton.ERROR_MSG = err
 			return nil, err
 		}
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
