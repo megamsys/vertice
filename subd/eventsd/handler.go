@@ -2,8 +2,8 @@ package eventsd
 
 import (
 	"github.com/megamsys/libgo/events"
-	"github.com/megamsys/libgo/events/alerts"
-	constants "github.com/megamsys/libgo/utils"
+	// "github.com/megamsys/libgo/events/alerts"
+	// constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/users"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/vertice/subd/deployd"
@@ -21,11 +21,11 @@ func NewHandler(c *Config) *Handler {
 }
 
 func (h *Handler) serveNSQ(e *events.Event,email string) error {
-	if e.EventAction == alerts.ONBOARD && e.EventType == constants.EventUser {
-    if err := h.userProviderOnboard(email); err !=nil {
-       return err
-		}
-	}
+	// if e.EventAction == alerts.ONBOARD && e.EventType == constants.EventUser {
+  //   if err := h.userProviderOnboard(email); err !=nil {
+  //      return err
+	// 	}
+	// }
 	if err := events.W.Write(e); err != nil {
 		return err
 	}
