@@ -232,10 +232,10 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 
 	actions := []*action.Action{
-		&updateStatusInScylla,
-		&mileStoneUpdate,
+		&machCreating,
 		&checkBalances,
 		&updateStatusInScylla,
+		&mileStoneUpdate,
 		&createMachine,
 		&mileStoneUpdate,
 		&getVmHostIpPort,
@@ -278,13 +278,18 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusDestroying,
+		machineState: constants.StateDestroying,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
+		&mileStoneUpdate,
 		&destroyOldMachine,
 		&destroyOldRoute,
+		&mileStoneUpdate,
+		&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -312,6 +317,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&createSnapImage,
 		&waitUntillImageReady,
@@ -341,6 +347,7 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&removeSnapShot,
 		&updateStatusInScylla,
@@ -368,6 +375,7 @@ func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&addNewStorage,
 		&updateIdInDiskTable,
@@ -396,6 +404,7 @@ func (p *oneProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&removeDiskStorage,
 		&updateStatusInScylla,
@@ -423,7 +432,7 @@ func (p *oneProvisioner) SetState(box *provision.Box, w io.Writer, changeto util
 	}
 
 	stateAction := make([]*action.Action, 0, 4)
-	stateAction = append(stateAction, &changeStateofMachine)
+	stateAction = append(stateAction, &machCreating, &changeStateofMachine)
 	if args.box.PublicIp != "" {
 		stateAction = append(stateAction, &updateStatusInScylla, &addNewRoute, &updateStatusInScylla)
 	} else {
@@ -458,6 +467,7 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&restartMachine,
 		&mileStoneUpdate,
@@ -489,6 +499,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	}
 
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&startMachine,
 		&mileStoneUpdate,
@@ -520,6 +531,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		provisioner:   p,
 	}
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 		&stopMachine,
 		&mileStoneUpdate,
@@ -588,6 +600,7 @@ func (p *oneProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status ut
 
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- status %s box %s", box.GetFullName(), status.String())))
 	actions := []*action.Action{
+		&machCreating,
 		&updateStatusInScylla,
 	}
 	pipeline := action.NewPipeline(actions...)

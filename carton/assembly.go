@@ -259,7 +259,6 @@ func (a *Ambly) SetState(state utils.State) error {
 
 func (a *Ambly) trigger_event(status utils.Status) error {
 	mi := make(map[string]string)
-
 	js := make(pairs.JsonPairs, 0)
 	m := make(map[string][]string, 2)
 	m["status"] = []string{status.String()}

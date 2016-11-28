@@ -53,20 +53,17 @@ type runMachineActionsArgs struct {
 
 //If there is a previous machine created and it has a status, we use that.
 // eg: if it we have deployed, then make it created after a machine is created in ONE.
-var updateStatusInScylla = action.Action{
-	Name: "update-status-scylla",
+
+var machCreating = action.Action{
+	Name: "machine-struct-creating",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
-		var mach machine.Machine
-		if ctx.Previous != nil {
-			mach = ctx.Previous.(machine.Machine)
-		} else {
-			mach = machine.Machine{
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
+			mach := machine.Machine{
 				Id:           args.box.Id,
 				AccountsId:   args.box.AccountsId,
 				CartonId:     args.box.CartonId,
@@ -80,8 +77,25 @@ var updateStatusInScylla = action.Action{
 				Region:       args.box.Region,
 				VMId:         args.box.VMId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
-			}
+	    }
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+
+var updateStatusInScylla = action.Action{
+	Name: "update-status-scylla",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
 		}
+		mach := ctx.Previous.(machine.Machine)
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		if err := mach.SetStatus(mach.Status); err != nil {
 			return nil, err
 		}
@@ -96,12 +110,7 @@ var updateStatusInScylla = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		if lastStatus == constants.StatusInsufficientFund {
-			c.SetStatus(lastStatus)
-		} else {
-			c.SetStatus(constants.StatusPreError)
-		}
-
+		c.SetStatus(constants.StatusPreError)
 	},
 }
 
@@ -117,13 +126,11 @@ var checkBalances = action.Action{
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountsId, args.box.GetFullName())))
 		err := mach.CheckCredits(args.box, writer)
 		if err != nil {
-			lastStatus = constants.StatusInsufficientFund
-			lastState = constants.StateMachineParked
-			args.machineStatus = lastStatus
-			args.machineState = lastState
+			_ = mach.SetMileStone(constants.StateMachineParked)
+			_ = mach.SetStatus(constants.StatusInsufficientFund)
 			return nil, err
 		}
-		mach.Status = constants.StatusBalanceVerified
+		mach.SetStatus(constants.StatusBalanceVerified)
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountsId, args.box.GetFullName())))
 		return mach, nil
 	},
@@ -467,7 +474,8 @@ var destroyOldRoute = action.Action{
 
 			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
-
+    mach.Status = constants.StatusDestroyed
+		mach.State = constants.StateDestroyed
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -597,12 +605,7 @@ var mileStoneUpdate = action.Action{
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
-		if lastState == constants.StateMachineParked {
-			err = c.SetMileStone(constants.StateMachineParked)
-		} else {
 			err = c.SetMileStone(constants.StatePreError)
-		}
-
 		if err != nil {
 			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 		}
