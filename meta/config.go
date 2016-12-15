@@ -16,11 +16,16 @@ const (
 	// DefaultApi is the default megam gateway if one is not provided.
 	DefaultApi = "http://localhost:9000/v2/"
 
+	//DefaultMasterKey is the defualt vertice gateway authendication key if no one is provided
+
+	DefaultMasterKey = "fakemasterkey"
+
 	// DefaultNSQ is the default nsqd if its not provided.
 	DefaultNSQd = "localhost:4161"
 
 	// DefaultScylla is the default scylla if one is not provided.
 	DefaultScylla = "localhost"
+
 
 	// DefaultScyllaKeyspace is the default Scyllakeyspace if one is not provided.
 	DefaultScyllaKeyspace = "vertice"
@@ -44,6 +49,7 @@ type Config struct {
 	ScyllaUsername string   `toml:"scylla_username"`
 	ScyllaPassword string   `toml:"scylla_password"`
 	Api            string   `toml:"api"`
+	MasterKey      string   `toml:master_key`
 	User           string   `toml:"user"`
 }
 
@@ -88,6 +94,7 @@ func NewConfig() *Config {
 		Dir:            defaultDir,
 		User:           DefaultUser,
 		Api:            DefaultApi,
+		MasterKey:      DefaultMasterKey,
 		NSQd:           []string{DefaultNSQd},
 		Scylla:         []string{DefaultScylla},
 		ScyllaUsername: DefaultScyllaUsername,

@@ -68,7 +68,7 @@ type Component struct {
 	Operations        []*Operations   `json:"operations"`
 	Status            string          `json:"status"`
 	State             string          `json:"state"`
-	CreatedAt         string          `json:"created_at"`
+	CreatedAt         time.Time          `json:"created_at"`
 }
 
 type ComponentTable struct {
@@ -84,7 +84,7 @@ type ComponentTable struct {
 	Operations        []string `json:"operations" cql:"operations"`
 	Status            string   `json:"status" cql:"status"`
 	State             string   `json:"state" cql:"state"`
-	CreatedAt         string   `json:"created_at" cql:"created_at"`
+	CreatedAt         time.Time   `json:"created_at" cql:"created_at"`
 }
 
 func (a *Component) String() string {

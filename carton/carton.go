@@ -33,6 +33,7 @@ type Carton struct {
 	State        utils.State
 }
 
+
 //Global provisioners set by the subd daemons.
 var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
@@ -70,7 +71,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Level:        c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			ImageVersion: c.ImageVersion,
 			ImageName:    c.ImageName,
-			Snapshot:      c.Snapshot,
+			Snapshot:     c.Snapshot,
 			Compute:      c.Compute,
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
@@ -106,7 +107,6 @@ func (c *Carton) Running() error {
 	}
 	return nil
 }
-
 
 // Destroys a carton, which deletes its boxes.
 func (c *Carton) Destroy() error {
@@ -199,8 +199,6 @@ func (c *Carton) SaveImage() error {
 	}
 	return nil
 }
-
-
 
 // SnapDelete a carton, which removes an existing image created from state of its box.
 func (c *Carton) DeleteImage() error {

@@ -22,6 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const (
@@ -38,7 +39,7 @@ type Assemblies struct {
 	Name        string   `json:"name" cql:"name"`
 	AssemblysId []string `json:"assemblies" cql:"assemblies"`
 	Inputs      []string `json:"inputs" cql:"inputs"`
-	CreatedAt   string   `json:"created_at" cql:"created_at"`
+	CreatedAt   time.Time   `json:"created_at" cql:"created_at"`
 }
 
 func (a *Assemblies) String() string {

@@ -244,6 +244,15 @@ var deductCons = action.Action{
 	},
 }
 
+var setFinalStatus = action.Action{
+	Name: "set-final-status",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		mach.Status = constants.StatusVMBooting
+		return mach, nil
+	},
+}
+
 var destroyOldMachine = action.Action{
 	Name: "destroy-old-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

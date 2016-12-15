@@ -65,7 +65,7 @@ type Ambly struct {
 	Policies   []string `json:"policies" cql:"policies"`
 	Status     string   `json:"status" cql:"status"`
 	State      string   `json:"state" cql:"state"`
-	CreatedAt  string   `json:"created_at" cql:"created_at"`
+	CreatedAt  time.Time   `json:"created_at" cql:"created_at"`
 	Components []string `json:"components" cql:"components"`
 }
 
@@ -81,7 +81,7 @@ type Assembly struct {
 	Policies   []*Policy       `json:"policies" cql:"policies"`
 	Status     string          `json:"status" cql:"status"`
 	State      string          `json:"state" cql:"state"`
-	CreatedAt  string          `json:"created_at" cql:"created_at"`
+	CreatedAt  time.Time       `json:"created_at" cql:"created_at"`
 	Components map[string]*Component
 }
 
@@ -212,7 +212,7 @@ func (a *Ambly) SetStatus(status utils.Status) error {
 	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
 	m := make(map[string][]string, 2)
 	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
-	m["status"] = []string{status.String()}
+	//m["status"] = []string{status.String()}
 	js.NukeAndSet(m) //just nuke the matching output key:
 	a.Status = status.String()
 

@@ -65,10 +65,7 @@ func (s *Service) runMetricsCollectors() error {
 
 	for _, region := range s.Deployd.One.Regions {
 		collectors := map[string]metrix.MetricCollector{
-			metrix.OPENNEBULA: &metrix.OpenNebula{
-				Url:          region.OneEndPoint,
-				DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit},
-			},
+			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint, DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit}},
 		}
 
 		mh := &metrix.MetricHandler{}

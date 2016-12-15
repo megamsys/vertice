@@ -40,7 +40,7 @@ type Sensor struct {
 	AuditPeriodEnding    string  `json:"audit_period_ending" cql:"audit_period_ending"`
 	AuditPeriodDelta     string  `json:"audit_period_delta" cql:"audit_period_delta"`
 	Metrics              Metrics `json:"metrics" cql:"metrics"`
-	CreatedAt            string  `json:"created_at" cql:"created_at"`
+	CreatedAt            time.Time  `json:"created_at" cql:"created_at"`
 }
 
 type SensorScylla struct {
@@ -59,7 +59,7 @@ type SensorScylla struct {
 	AuditPeriodEnding    string   `json:"audit_period_ending" cql:"audit_period_ending"`
 	AuditPeriodDelta     string   `json:"audit_period_delta" cql:"audit_period_delta"`
 	Metrics              []string `json:"metrics" cql:"metrics"`
-	CreatedAt            string   `json:"created_at" cql:"created_at"`
+	CreatedAt            time.Time   `json:"created_at" cql:"created_at"`
 }
 
 func (s *Sensor) String() string {
@@ -72,7 +72,7 @@ func NewSensor(senstype string) *Sensor {
 	s := &Sensor{
 		Id:         api.Uid(""),
 		SensorType: senstype,
-		CreatedAt:  time.Now().Local().Format(time.RFC822),
+		CreatedAt:  time.Now(),
 	}
 	return s
 }

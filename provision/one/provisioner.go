@@ -242,7 +242,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		&updateStatusInScylla,
 		&updateVnchostPostInScylla,
 		&updateStatusInScylla,
-		&deductCons,
+		&setFinalStatus,
 		&updateStatusInScylla,
 		&followLogs,
 	}

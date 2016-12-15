@@ -35,7 +35,7 @@ type Snaps struct {
 	Name       string `json:"name" cql:"name"`
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	CreatedAt  string `json:"created_at" cql:"created_at"`
+	CreatedAt  time.Time `json:"created_at" cql:"created_at"`
 	Status     string `json:"status" cql:"status"`
 }
 
@@ -46,7 +46,7 @@ type Disks struct {
 	AccountId  string `json:"account_id" cql:"account_id"`
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	CreatedAt  string `json:"created_at" cql:"created_at"`
+	CreatedAt  time.Time `json:"created_at" cql:"created_at"`
 	Size       string `json:"size" cql:"size"`
 	Status     string `json:"status" cql:"status"`
 }
