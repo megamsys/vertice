@@ -47,6 +47,7 @@ const (
 	REGION         = "region"
 	PUBLICIPV6     = "publicipv6"
 	PRIVATEIPV6    = "privateipv6"
+	QUOTAID        = "quota_id"
 )
 
 type Policy struct {
@@ -391,6 +392,11 @@ func (a *Assembly) imageVersion() string {
 func (a *Assembly) imageName() string {
 	return a.Inputs.Match(SNAPSHOTNAME)
 }
+
+func (a *Assembly) QuotaID() string {
+		return a.Inputs.Match(QUOTAID)
+}
+
 
 func (a *Assembly) storageType() string {
 	return strings.ToLower(a.Inputs.Match(utils.STORAGE_TYPE))

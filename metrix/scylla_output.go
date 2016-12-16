@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/meta"
@@ -45,7 +46,27 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 	return nil
 }
 
+func quotaChecker(id string) (bool, error) {
+	asm, err := carton.NewAssembly(id)
+	if err != nil {
+		return false, err
+	}
+
+  qid := asm.QuotaID()
+	if len(qid) > 0 {
+		return false, nil
+	}
+
+	return true, nil
+
+}
+
 func mkBalance(s *Sensor, du map[string]string) error {
+
+	if flag, err := quotaChecker(s.AssemblyId); !flag {
+		return err
+	}
+
 	mi := make(map[string]string)
 	m := s.Metrics.Totalcost(du)
 	mi[ACCOUNTID] = s.AccountId
