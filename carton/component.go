@@ -16,14 +16,16 @@
 package carton
 
 import (
-	ldb "github.com/megamsys/libgo/db"
+	"encoding/json"
+	"fmt"
+	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton/bind"
-	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"strings"
 	"time"
 )
@@ -55,6 +57,11 @@ type Repo struct {
 	Rurl     string `json:"url" cql:"url"`
 }
 
+type ApiComponent struct {
+	JsonClaz string    `json:"json_claz"`
+	Results  Component `json:"results"`
+}
+
 type Component struct {
 	Id                string          `json:"id"`
 	Name              string          `json:"name"`
@@ -68,23 +75,7 @@ type Component struct {
 	Operations        []*Operations   `json:"operations"`
 	Status            string          `json:"status"`
 	State             string          `json:"state"`
-	CreatedAt         time.Time          `json:"created_at"`
-}
-
-type ComponentTable struct {
-	Id                string   `json:"id" cql:"id"`
-	Name              string   `json:"name" cql:"name"`
-	Tosca             string   `json:"tosca_type" cql:"tosca_type"`
-	Inputs            []string `json:"inputs" cql:"inputs"`
-	Outputs           []string `json:"outputs" cql:"outputs"`
-	Envs              []string `json:"envs" cql:"envs"`
-	Repo              string   `json:"repo" cql:"repo"`
-	Artifacts         string   `json:"artifacts" cql:"artifacts"`
-	RelatedComponents []string `json:"related_components" cql:"related_components"`
-	Operations        []string `json:"operations" cql:"operations"`
-	Status            string   `json:"status" cql:"status"`
-	State             string   `json:"state" cql:"state"`
-	CreatedAt         time.Time   `json:"created_at" cql:"created_at"`
+	CreatedAt         time.Time       `json:"created_at"`
 }
 
 func (a *Component) String() string {
@@ -98,42 +89,57 @@ func (a *Component) String() string {
 /**
 **fetch the component json from riak and parse the json to struct
 **/
-func NewComponent(id string) (*Component, error) {
-	c := &ComponentTable{Id: id}
-	ops := ldb.Options{
-		TableName:   COMPBUCKET,
-		Pks:         []string{"Id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"Id": id},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.Fetchdb(ops, c); err != nil {
+
+func NewComponent(id, email, org string) (*Component, error) {
+	args := newArgs(email, org)
+	args.Path = "/assembly/" + id
+	cl := api.NewClient(args)
+	response, err := cl.Get()
+	if err != nil {
 		return nil, err
 	}
-	com, _ := c.dig()
-	return &com, nil
+	htmlData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ac := &ApiComponent{}
+	err = json.Unmarshal(htmlData, ac)
+	if err != nil {
+		fmt.Println("Error while json parsing  :", err)
+		return nil, err
+	}
+	return &ac.Results, nil
+}
+
+func (c *Component) updateComponent(email, org string) error {
+	args := newArgs(email, org)
+	args.Path = "/components/update"
+	args.Org_Id = org
+	cl := api.NewClient(args)
+	_, err := cl.Post(c)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 //make a box with the details for a provisioner.
-func (c *Component) mkBox(vnet map[string]string,vmid,orgid string) (provision.Box, error) {
+func (c *Component) mkBox(vnet map[string]string, vmid, orgid string) (provision.Box, error) {
 	bt := provision.Box{
-		Id:         c.Id,
-		Level:      provision.BoxSome,
-		Name:       c.Name,
-		DomainName: c.domain(),
-		Envs:       c.envs(),
-		Tosca:      c.Tosca,
-		Commit:     "",
-		Provider:   c.provider(),
-		PublicIp:   c.publicIp(),
+		Id:          c.Id,
+		Level:       provision.BoxSome,
+		Name:        c.Name,
+		DomainName:  c.domain(),
+		Envs:        c.envs(),
+		Tosca:       c.Tosca,
+		Commit:      "",
+		Provider:    c.provider(),
+		PublicIp:    c.publicIp(),
 		StorageType: c.storageType(),
-		Vnets:      vnet,
-		VMId:       vmid,
-		OrgId:      orgid,
+		Vnets:       vnet,
+		VMId:        vmid,
+		OrgId:       orgid,
 	}
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
@@ -147,51 +153,19 @@ func (c *Component) mkBox(vnet map[string]string,vmid,orgid string) (provision.B
 	return bt, nil
 }
 
-func (c *Component) SetStatus(status utils.Status) error {
+func (c *Component) SetStatus(status utils.Status, email, org string) error {
 	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
 	m := make(map[string][]string, 2)
 	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
 	m["status"] = []string{status.String()}
 	c.Inputs.NukeAndSet(m) //just nuke the matching output key:
-
-	update_fields := make(map[string]interface{})
-	update_fields["Inputs"] = c.Inputs.ToString()
-	update_fields["Status"] = status.String()
-	ops := ldb.Options{
-		TableName:   COMPBUCKET,
-		Pks:         []string{"Id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Password:    meta.MC.ScyllaPassword,
-		Username:    meta.MC.ScyllaUsername,
-		PksClauses:  map[string]interface{}{"Id": c.Id},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.Updatedb(ops, update_fields); err != nil {
-		return err
-	}
-	return nil
+	c.Status = status.String()
+	return c.updateComponent(email, org)
 }
 
-func (c *Component) SetState(state utils.State) error {
-	update_fields := make(map[string]interface{})
-	update_fields["State"] = state.String()
-	ops := ldb.Options{
-		TableName:   COMPBUCKET,
-		Pks:         []string{"Id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"Id": c.Id},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.Updatedb(ops, update_fields); err != nil {
-		return err
-	}
-	return nil
+func (c *Component) SetState(state utils.State, email, org string) error {
+	c.State = state.String()
+	return c.updateComponent(email, org)
 }
 
 /*func (c *Component) UpdateOpsRun(opsRan upgrade.OperationsRan) error {
@@ -208,21 +182,16 @@ func (c *Component) SetState(state utils.State) error {
 	return nil
 }*/
 
-func (c *Component) Delete(compid string) {
-	ops := ldb.Options{
-		TableName:   COMPBUCKET,
-		Pks:         []string{"id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"id": compid},
-		CcmsClauses: make(map[string]interface{}),
+func (c *Component) Delete(email, orgid string) error {
+	args := newArgs(email, orgid)
+	args.Path = "/components/" + c.Id
+	args.Org_Id = orgid
+	cl := api.NewClient(args)
+	_, err := cl.Delete()
+	if err != nil {
+		return err
 	}
-	if err := ldb.Deletedb(ops, ComponentTable{}); err != nil {
-		return
-	}
+	return nil
 }
 
 func (c *Component) setDeployData(dd DeployData) error {
@@ -236,23 +205,6 @@ func (c *Component) setDeployData(dd DeployData) error {
 
 }
 
-func (a *ComponentTable) dig() (Component, error) {
-	asm := Component{}
-	asm.Id = a.Id
-	asm.Name = a.Name
-	asm.Tosca = a.Tosca
-	asm.Inputs = a.getInputs()
-	asm.Outputs = a.getOutputs()
-	asm.Envs = a.getEnvs()
-	asm.Repo = a.getRepo()
-	asm.Artifacts = a.getArtifacts()
-	asm.RelatedComponents = a.RelatedComponents
-	asm.Operations = a.getOperations()
-	asm.Status = a.Status
-	asm.CreatedAt = a.CreatedAt
-	return asm, nil
-}
-
 func (c *Component) domain() string {
 	return c.Inputs.Match(DOMAIN)
 }
@@ -262,7 +214,7 @@ func (c *Component) provider() string {
 }
 
 func (c *Component) storageType() string {
- return	strings.ToLower(c.Inputs.Match(utils.STORAGE_TYPE))
+	return strings.ToLower(c.Inputs.Match(utils.STORAGE_TYPE))
 }
 
 func (c *Component) publicIp() string {
@@ -273,7 +225,6 @@ func (c *Component) withOneClick() bool {
 	return (strings.TrimSpace(c.Repo.Oneclick) == TRUE && c.Repo.Source == VERTICE)
 }
 
-
 //all the variables in the inputs shall be treated as ENV.
 //we can use a filtered approach as well.
 func (c *Component) envs() []bind.EnvVar {
@@ -282,56 +233,4 @@ func (c *Component) envs() []bind.EnvVar {
 		envs = append(envs, bind.EnvVar{Name: i.K, Value: i.V})
 	}
 	return envs
-}
-
-func (a *ComponentTable) getInputs() pairs.JsonPairs {
-	keys := make([]*pairs.JsonPair, 0)
-	for _, in := range a.Inputs {
-		inputs := pairs.JsonPair{}
-		parseStringToStruct(in, &inputs)
-		keys = append(keys, &inputs)
-	}
-		return keys
-}
-
-func (a *ComponentTable) getOutputs() pairs.JsonPairs {
-	keys := make([]*pairs.JsonPair, 0)
-	for _, in := range a.Outputs {
-		outputs := pairs.JsonPair{}
-		parseStringToStruct(in, &outputs)
-		keys = append(keys, &outputs)
-	}
-	return keys
-}
-
-func (a *ComponentTable) getEnvs() pairs.JsonPairs {
-	keys := make([]*pairs.JsonPair, 0)
-	for _, in := range a.Envs {
-		outputs := pairs.JsonPair{}
-		parseStringToStruct(in, &outputs)
-		keys = append(keys, &outputs)
-	}
-	return keys
-}
-
-func (a *ComponentTable) getRepo() Repo {
-	outputs := Repo{}
-	parseStringToStruct(a.Repo, &outputs)
-	return outputs
-}
-
-func (a *ComponentTable) getArtifacts() *Artifacts {
-	outputs := Artifacts{}
-	parseStringToStruct(a.Artifacts, &outputs)
-	return &outputs
-}
-
-func (a *ComponentTable) getOperations() []*Operations {
-	keys := make([]*Operations, 0)
-	for _, in := range a.Operations {
-		p := Operations{}
-		parseStringToStruct(in, &p)
-		keys = append(keys, &p)
-	}
-	return keys
 }

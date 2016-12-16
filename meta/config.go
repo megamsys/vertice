@@ -49,7 +49,7 @@ type Config struct {
 	ScyllaUsername string   `toml:"scylla_username"`
 	ScyllaPassword string   `toml:"scylla_password"`
 	Api            string   `toml:"api"`
-	MasterKey      string   `toml:master_key`
+	MasterKey      string   `toml:"master_key"`
 	User           string   `toml:"user"`
 }
 
@@ -111,6 +111,8 @@ func (c *Config) ToMap() map[string]string {
 	mp["scylla_username"] = c.ScyllaUsername
 	mp["scylla_password"] = c.ScyllaPassword
 	mp["scylla_keyspace"] = c.ScyllaKeyspace
+	mp["host"] = c.Api
+	mp["master_key"] = c.MasterKey
 	return mp
 }
 

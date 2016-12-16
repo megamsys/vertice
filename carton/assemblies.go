@@ -79,7 +79,7 @@ func (a *Assemblies) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, len(a.AssemblysId))
 	for _, ay := range a.AssemblysId {
 		if len(strings.TrimSpace(ay)) > 1 {
-			if ca, err := mkCarton(a.Id, ay); err != nil {
+			if ca, err := mkCarton(a.Id, ay, a.AccountsId); err != nil {
 				return nil, err
 			} else {
 				ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero

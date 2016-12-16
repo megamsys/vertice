@@ -1,10 +1,9 @@
 package carton
 
 import (
-	ldb "github.com/megamsys/libgo/db"
-	"github.com/megamsys/vertice/meta"
-	"fmt"
 	"encoding/json"
+	"github.com/megamsys/libgo/api"
+	"io/ioutil"
 	"time"
 )
 
@@ -12,19 +11,9 @@ const (
 	ACCOUNTSBUCKET = "accounts"
 )
 
-
-type AccountDb struct {
-	Id           string `json:"id" cql:"id"`
-	Name         string `json:"name" cql:"name"`
-	Phone        string `json:"phone" cql"phone"`
-	Email        string `json:"email" cql:"email"`
-	Dates        string `json:"dates" cql:"dates"`
-	ApiKey       string `json:"api_key" cql:"api_key"`
-	Password     string `json:"password" cql:"password"`
-	Approval     string `json:"approval" cql:"approval"`
-	Suspend      string `json:"suspend" cql:"suspend"`
-	RegIpAddress string `json:"registration_ip_address" cql:"registration_ip_address"`
-	States       string `json:"states" cql:"states"`
+type AccountApi struct {
+	JsonClaz string  `json:"json_claz"`
+	Results  Account `json:"results"`
 }
 
 type Account struct {
@@ -49,7 +38,7 @@ type Name struct {
 type Password struct {
 	Password            string `json:"password" cql:"password"`
 	PasswordResetKey    string `json:"password_reset_key" cql:"password_reset_key"`
-	PasswordResetSentAt time.Time `json:"password_reset_sent_at" cql:"password_reset_sent_at"`
+	PasswordResetSentAt string `json:"password_reset_sent_at" cql:"password_reset_sent_at"`
 }
 
 type Phone struct {
@@ -58,13 +47,13 @@ type Phone struct {
 }
 
 type Approval struct {
-	Approved     string `json:"approved" cql:"approved"`
-	ApprovedById string `json:"approved_by_id" cql:"approved_by_id"`
+	Approved     string    `json:"approved" cql:"approved"`
+	ApprovedById string    `json:"approved_by_id" cql:"approved_by_id"`
 	ApprovedAt   time.Time `json:"approved_at" cql:"approved_at"`
 }
 
 type Suspend struct {
-	Suspended     string `json:"suspended" cql:"suspended"`
+	Suspended     string    `json:"suspended" cql:"suspended"`
 	SuspendedAt   time.Time `json:"suspended_at" cql:"suspended_at"`
 	SuspendedTill time.Time `json:"suspended_till" cql:"suspended_till"`
 }
@@ -85,48 +74,26 @@ type States struct {
 }
 
 func NewAccounts(email string) (*Account, error) {
-	a := new(AccountDb)
-	a.Email = email
-	return a.get()
+	a := new(Account)
+	args := newArgs(email, "")
+	args.Path = "/accounts/" + email
+	return a.get(args)
 }
 
-func (a *AccountDb) get() (*Account, error) {
-	ops := ldb.Options{
-		TableName:   ACCOUNTSBUCKET,
-		Pks:         []string{},
-		Ccms:        []string{"email"},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  make(map[string]interface{}),
-		CcmsClauses: map[string]interface{}{"email": a.Email},
-	}
-	if err := ldb.Fetchdb(ops, a); err != nil {
+func (a *Account) get(args api.ApiArgs) (*Account, error) {
+	cl := api.NewClient(args)
+	response, err := cl.Get()
+	if err != nil {
 		return nil, err
 	}
-	return a.convertAccount()
-}
-
-func (a *AccountDb) convertAccount() (*Account, error) {
-	b := &Account{}
-	a.parseStringToStruct([]byte(a.Name), &b.Name)
-	a.parseStringToStruct([]byte(a.Phone), &b.Phone)
-	a.parseStringToStruct([]byte(a.Password), &b.Password)
-	a.parseStringToStruct([]byte(a.Suspend), &b.Suspend)
-	a.parseStringToStruct([]byte(a.Approval), &b.Approval)
-	a.parseStringToStruct([]byte(a.States), &b.States)
-	a.parseStringToStruct([]byte(a.Dates), &b.Dates)
-	b.Id = a.Id
-	b.Email = a.Email
-	b.ApiKey = a.ApiKey
-	b.RegIpAddress = a.RegIpAddress
-	return b, nil
-}
-
-func (a *AccountDb) parseStringToStruct(b []byte, i interface{}) {
-	err := json.Unmarshal(b, i)
+	htmlData, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
+	ac := &AccountApi{}
+	err = json.Unmarshal(htmlData, ac)
+	if err != nil {
+		return nil, err
+	}
+	return &ac.Results, nil
 }

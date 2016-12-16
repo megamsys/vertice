@@ -67,15 +67,11 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
 		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
 		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
-		// CpuCost: strconv.FormatFloat(args.Box.GetCpuCost(), 'E', -1, 64),
-		// MemoryCost: strconv.FormatFloat(args.Box.GetMemCost(), 'E', -1, 64),
-		// HDDCost: strconv.FormatFloat(args.Box.GetDiskCost(), 'E', -1, 64),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountsId},
 		Vnets: args.Box.Vnets,
 	}
 
-	//m.addEnvsToContext(m.BoxEnvs, &vm)
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle,m.StorageType)
 	if err != nil {
 		return err
@@ -86,7 +82,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	vm := []string{}
 	vm = []string{m.VMId}
 	id[carton.VMID] = vm
-	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountsId,""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
@@ -138,7 +134,7 @@ func (m *Machine) UpdateVncHostPost() error {
 	port = []string{m.VNCPort}
 	vnc[carton.VNCHOST] = host
 	vnc[carton.VNCPORT] = port
-	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountsId,""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(vnc); err != nil {
 		return err
@@ -210,7 +206,7 @@ func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 func (m *Machine) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
-	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountsId, ""); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
 		return err
@@ -219,9 +215,9 @@ func (m *Machine) SetStatus(status utils.Status) error {
 	if m.Level == provision.BoxSome {
 		log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
-		if comp, err := carton.NewComponent(m.Id); err != nil {
+		if comp, err := carton.NewComponent(m.Id, m.AccountsId, ""); err != nil {
 			return err
-		} else if err = comp.SetStatus(status); err != nil {
+		} else if err = comp.SetStatus(status,m.AccountsId, ""); err != nil {
 			return err
 		}
 	}
@@ -231,7 +227,7 @@ func (m *Machine) SetStatus(status utils.Status) error {
 func (m *Machine) SetMileStone(state utils.State) error {
 	log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
 
-	if asm, err := carton.NewAmbly(m.CartonId); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountsId, ""); err != nil {
 		return err
 	} else if err = asm.SetState(state); err != nil {
 		return err
@@ -240,9 +236,9 @@ func (m *Machine) SetMileStone(state utils.State) error {
 	if m.Level == provision.BoxSome {
 		log.Debugf("  set state[%s] of machine (%s, %s)", m.Id, m.Name, state.String())
 
-		if comp, err := carton.NewComponent(m.Id); err != nil {
+		if comp, err := carton.NewComponent(m.Id, m.AccountsId, ""); err != nil {
 			return err
-		} else if err = comp.SetState(state); err != nil {
+		} else if err = comp.SetState(state,m.AccountsId, ""); err != nil {
 			return err
 		}
 	}
