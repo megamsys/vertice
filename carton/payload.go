@@ -21,6 +21,7 @@ import (
 	"github.com/megamsys/libgo/api"
 	"io/ioutil"
 	"strings"
+	"time"
 )
 
 type Payload struct {
@@ -30,7 +31,7 @@ type Payload struct {
 	AccountId string `json:"email" cql:"-"`
 	CatType   string `json:"cattype" cql:"cattype"`
 	Category  string `json:"category" cql:"category"`
-	CreatedAt string `json:"created_at" cql:"created_at"`
+	CreatedAt time.Time `json:"created_at" cql:"created_at"`
 }
 
 type PayloadConvertor interface {

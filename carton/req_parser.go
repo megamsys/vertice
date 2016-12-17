@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"strings"
+	"time"
 )
 
 var (
@@ -210,7 +211,7 @@ type Requests struct {
 	CatId     string `json:"cat_id" cql:"cat_id"`
 	Action    string `json:"action" cql:"action"`
 	Category  string `json:"category" cql:"category"`
-	CreatedAt string `json:"created_at" cql:"created_at"`
+	CreatedAt time.Time `json:"created_at" cql:"created_at"`
 }
 
 type ApiRequests struct {

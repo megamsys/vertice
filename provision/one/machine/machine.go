@@ -259,7 +259,8 @@ func (m *Machine) ChangeState(status utils.Status) error {
 			CatId:     m.CartonId,
 			Action:    status.String(),
 			Category:  carton.STATE,
-			CreatedAt: time.Now().String(),
+			AccountId: m.AccountId,
+			CreatedAt: time.Now(),
 		})
 
 	if err != nil {
