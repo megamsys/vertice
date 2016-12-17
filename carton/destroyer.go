@@ -23,6 +23,10 @@ func Destroy(opts *DestroyOpts) error {
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	err := ProvisionerMap[opts.B.Provider].Destroy(opts.B, writer)
 	elapsed := time.Since(start)
+	log.Debugf("%s in (%s)\n%s",
+		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
 	// saveErr := saveDestroyedData(opts, outBuffer.String(), elapsed, err)
 	// if saveErr != nil {
 	// 	log.Errorf("WARNING: couldn't save destroyed data, destroy opts: %#v", opts)
