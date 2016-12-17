@@ -216,7 +216,7 @@ type Requests struct {
 
 type ApiRequests struct {
 	JsonClaz string `json:"json_claz" cql:"json_claz"`
-	Results  Requests `json:"results" cql:"results"`
+	Results  []Requests `json:"results" cql:"results"`
 }
 
 func (r *Requests) String() string {

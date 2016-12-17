@@ -91,9 +91,9 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
-		asm, err := carton.NewAssembly(id)
+		asm, err := carton.NewAssembly(m.CartonId,m.AccountId,b.OrgId)
 		if err != nil {
-			return false, err
+			return err
 		}
 	if events.IsEnabled(constants.BILLMGR) && !(len(asm.QuotaID()) > 0) {
 		bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())

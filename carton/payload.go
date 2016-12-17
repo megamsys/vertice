@@ -87,7 +87,7 @@ func listReqsById(id, email string) (*Requests, error) {
 	if err != nil {
 		return nil, err
 	}
-	r := &res.Results
+	r := &res.Results[0]
 	log.Debugf("Requests %v", r)
 	return r, nil
 }
