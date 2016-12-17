@@ -65,7 +65,7 @@ var machCreating = action.Action{
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 			mach := machine.Machine{
 				Id:           args.box.Id,
-				AccountsId:   args.box.AccountsId,
+				AccountId:   args.box.AccountId,
 				CartonId:     args.box.CartonId,
 				CartonsId:    args.box.CartonsId,
 				Level:        args.box.Level,
@@ -123,7 +123,7 @@ var checkBalances = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountsId, args.box.GetFullName())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountId, args.box.GetFullName())))
 		err := mach.CheckCredits(args.box, writer)
 		if err != nil {
 			_ = mach.SetMileStone(constants.StateMachineParked)
@@ -131,7 +131,7 @@ var checkBalances = action.Action{
 			return nil, err
 		}
 		mach.SetStatus(constants.StatusBalanceVerified)
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountsId, args.box.GetFullName())))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountId, args.box.GetFullName())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {

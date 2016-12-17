@@ -52,6 +52,7 @@ type Artifacts struct {
 /* Repository represents a repository managed by the manager. */
 type Repo struct {
 	Rtype    string `json:"rtype" cql:"rtype"`
+	Branch   string `json:"branch" cql:"branch"`
 	Source   string `json:"source" cql:"source"`
 	Oneclick string `json:"oneclick" cql:"oneclick"`
 	Rurl     string `json:"url" cql:"url"`
@@ -92,7 +93,7 @@ func (a *Component) String() string {
 
 func NewComponent(id, email, org string) (*Component, error) {
 	args := newArgs(email, org)
-	args.Path = "/assembly/" + id
+	args.Path = "/components/" + id
 	cl := api.NewClient(args)
 	response, err := cl.Get()
 	if err != nil {
@@ -115,7 +116,6 @@ func NewComponent(id, email, org string) (*Component, error) {
 func (c *Component) updateComponent(email, org string) error {
 	args := newArgs(email, org)
 	args.Path = "/components/update"
-	args.Org_Id = org
 	cl := api.NewClient(args)
 	_, err := cl.Post(c)
 	if err != nil {
@@ -125,7 +125,7 @@ func (c *Component) updateComponent(email, org string) error {
 }
 
 //make a box with the details for a provisioner.
-func (c *Component) mkBox(vnet map[string]string, vmid, orgid string) (provision.Box, error) {
+func (c *Component) mkBox(vnet map[string]string, vmid string, args api.ApiArgs) (provision.Box, error) {
 	bt := provision.Box{
 		Id:          c.Id,
 		Level:       provision.BoxSome,
@@ -139,7 +139,8 @@ func (c *Component) mkBox(vnet map[string]string, vmid, orgid string) (provision
 		StorageType: c.storageType(),
 		Vnets:       vnet,
 		VMId:        vmid,
-		OrgId:       orgid,
+		OrgId:       args.Org_Id,
+		ApiArgs:     args,
 	}
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{

@@ -5,12 +5,13 @@ import (
 	"strconv"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	ldb "github.com/megamsys/libgo/db"
-	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/vertice/provision"
 	"github.com/pivotal-golang/bytefmt"
 	"gopkg.in/yaml.v2"
 	"io"
+	"io/ioutil"
+	"encoding/json"
 	"strings"
 	"time"
 )
@@ -25,6 +26,17 @@ const (
 type DiskOpts struct {
 	B *provision.Box
 }
+
+type ApiSnaps struct {
+	JsonClaz   string `json:"json_claz" cql:"json_claz"`
+	Results    []Snaps  `json:"results" cql:"results"`
+}
+
+type ApiDisks struct {
+	JsonClaz   string `json:"json_claz" cql:"json_claz"`
+	Results    []Disks  `json:"results" cql:"results"`
+}
+
 
 //The grand elephant for megam cloud platform.
 type Snaps struct {
@@ -149,141 +161,91 @@ func DetachDisk(opts *DiskOpts) error {
 
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
-func GetSnap(id string) (*Snaps, error) {
-	a := &Snaps{}
-	//ops := vdb.ScyllaOptions("snapshot", []string{"Snap_Id"}, []string{"org_id"}, map[string]string{"Id": id, "org_id":"ORG123"})
-	ops := ldb.Options{
-		TableName:   SNAPSHOTBUCKET,
-		Pks:         []string{"snap_id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:   meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"snap_id": id},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.Fetchdb(ops, a); err != nil {
+func GetSnap(id , email string) (*Snaps, error) {
+	args := newArgs(email, "")
+	args.Path = "/snapshots/" + id
+	cl := api.NewClient(args)
+	response, err := cl.Get()
+	if err != nil {
 		return nil, err
 	}
+	htmlData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &ApiSnaps{}
+	err = json.Unmarshal(htmlData, res)
+	if err != nil {
+		return nil, err
+	}
+	a := &res.Results[0]
 	log.Debugf("Snaps %v", a)
 	return a, nil
 }
 
-func (a *Snaps) UpdateSnap(update_fields map[string]interface{}) error {
-	ops := ldb.Options{
-		TableName:   SNAPSHOTBUCKET,
-		Pks:         []string{"snap_id"},
-		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"snap_id": a.Id},
-		CcmsClauses: map[string]interface{}{ACCOUNTID: a.AccountId,ASSEMBLYID:a.AssemblyId},
-	}
-	if err := ldb.Updatedb(ops, update_fields); err != nil {
+func (s *Snaps) UpdateSnap() error {
+	args := newArgs(s.AccountId, s.OrgId)
+	args.Path = "/snapshots/update"
+	cl := api.NewClient(args)
+	if _, err := cl.Post(s); err != nil {
 		return err
 	}
-
 	return nil
 
 }
-
 /** A public function which pulls the disks that attached to vm.
 and any others we do. **/
-func GetDisks(id string) (*Disks, error) {
-	d := &Disks{}
-	ops := ldb.Options{
-		TableName:   DISKSBUCKET,
-		Pks:         []string{"id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"id": id},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.Fetchdb(ops, d); err != nil {
+func GetDisks(id, email string) (*Disks, error) {
+	args := newArgs(email,"")
+	args.Path = "/disks" + id
+	cl := api.NewClient(args)
+	response, err := cl.Get()
+	if err != nil {
 		return nil, err
 	}
+	htmlData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &ApiDisks{}
+	err = json.Unmarshal(htmlData, res)
+	if err != nil {
+		return nil, err
+	}
+	d := &res.Results[0]
+	log.Debugf("Disks %v", d)
 	return d, nil
 }
 
-func (a *Disks) GetDisks() (*[]Disks, error) {
-	ds := &[]Disks{}
-	d := &Disks{}
-	ops := ldb.Options{
-		TableName:   DISKSBUCKET,
-		Pks:         []string{},
-		Ccms:        []string{ACCOUNTID, ASSEMBLYID},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{ACCOUNTID: a.AccountId, ASSEMBLYID: a.AssemblyId},
-		CcmsClauses: make(map[string]interface{}),
-	}
-	if err := ldb.FetchListdb(ops, 10, d, ds); err != nil {
-		return nil, err
-	}
-
-	return ds, nil
-}
-
 func (a *Disks) RemoveDisk() error {
-	ops := ldb.Options{
-		TableName:   DISKSBUCKET,
-		Pks:         []string{"id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"id": a.Id},
-		CcmsClauses: map[string]interface{}{},
-	}
-	if err := ldb.Deletedb(ops, Disks{}); err != nil {
+	args := newArgs(a.AccountId, a.OrgId)
+	args.Path = "/disks/" + a.Id
+	cl := api.NewClient(args)
+	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (a *Snaps) RemoveSnap() error {
-	ops := ldb.Options{
-		TableName:   SNAPSHOTBUCKET,
-		Pks:         []string{"snap_id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"snap_id": a.Id},
-		CcmsClauses: map[string]interface{}{},
-	}
-	if err := ldb.Deletedb(ops, Snaps{}); err != nil {
+	args := newArgs(a.AccountId, a.OrgId)
+	args.Path = "/snapshots/" + a.Id
+	cl := api.NewClient(args)
+	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *Disks) UpdateDisk(update_fields map[string]interface{}) error {
-	ops := ldb.Options{
-		TableName:   DISKSBUCKET,
-		Pks:         []string{"id"},
-		Ccms:        []string{ACCOUNTID,ASSEMBLYID},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"id": a.Id},
-		CcmsClauses: map[string]interface{}{ACCOUNTID:a.AccountId, ASSEMBLYID:a.AssemblyId},
-	}
-	if err := ldb.Updatedb(ops, update_fields); err != nil {
+func (d *Disks) UpdateDisk() error {
+	args := newArgs(d.AccountId, d.OrgId)
+	args.Path = "/disks/update"
+	cl := api.NewClient(args)
+	if _, err := cl.Post(d); err != nil {
 		return err
 	}
-
 	return nil
 
 }

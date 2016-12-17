@@ -34,7 +34,7 @@ type DockerProvisioner interface {
 type Container struct {
 	Id                      string //container id.
 	BoxId                   string
-	AccountsId              string
+	AccountId              string
 	CartonId                string
 	Name                    string
 	BoxName                 string
@@ -92,7 +92,7 @@ func (c *Container) Create(args *CreateArgs) error {
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
 		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId, utils.ASSEMBLY_NAME: c.BoxName,
-			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountsId},
+			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountId},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
@@ -159,7 +159,7 @@ func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string,
 
 func (c *Container) SetMileStone(state utils.State) error {
 	log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountsId, ""); err != nil {
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.SetState(state); err != nil {
 		return err
@@ -168,9 +168,9 @@ func (c *Container) SetMileStone(state utils.State) error {
 	if c.Level == provision.BoxSome {
 		log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
 
-		if comp, err := carton.NewComponent(c.BoxId, c.AccountsId, ""); err != nil {
+		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetState(state, c.AccountsId, ""); err != nil {
+		} else if err = comp.SetState(state, c.AccountId, ""); err != nil {
 			return err
 		}
 	}
@@ -183,7 +183,7 @@ func (c *Container) UpdateContId() error {
 	var ids = make(map[string][]string)
 	cid := []string{c.Id}
 	ids["containerId"] = cid
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountsId, ""); err != nil {
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
 		return err
@@ -307,7 +307,7 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 
 func (c *Container) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountsId, ""); err != nil {
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.SetStatus(status); err != nil {
 		return err
@@ -315,9 +315,9 @@ func (c *Container) SetStatus(status utils.Status) error {
 
 	if c.Level == provision.BoxSome {
 		log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-		if comp, err := carton.NewComponent(c.BoxId, c.AccountsId, ""); err != nil {
+		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetStatus(status, c.AccountsId, ""); err != nil {
+		} else if err = comp.SetStatus(status, c.AccountId, ""); err != nil {
 			return err
 		}
 	}
@@ -327,7 +327,7 @@ func (c *Container) SetStatus(status utils.Status) error {
 //trigger multi event in the order
 func (c *Container) Deduct() error {
 	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = c.AccountsId
+	mi[constants.ACCOUNTID] = c.AccountId
 	mi[constants.ASSEMBLYID] = c.CartonId
 	mi[constants.ASSEMBLYNAME] = c.Name
 	mi[constants.CONSUMED] = "0.1"
@@ -337,14 +337,14 @@ func (c *Container) Deduct() error {
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
-				AccountsId:  c.AccountsId,
+				AccountsId:  c.AccountId,
 				EventAction: alerts.DEDUCT,
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
 			},
 			&events.Event{
-				AccountsId:  c.AccountsId,
+				AccountsId:  c.AccountId,
 				EventAction: alerts.TRANSACTION, //Change type to transaction
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
@@ -369,7 +369,7 @@ var err error
 		return netInfo, err
 	}
 	//netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountsId)
+	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
 	return netInfo, err
 }
 

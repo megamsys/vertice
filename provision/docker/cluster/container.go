@@ -313,7 +313,7 @@ func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	if err != nil {
 		return err
 	}
-	client := DockerClient{ContainerId: containerId, CartonId: cartonId, AccountsId: email}
+	client := DockerClient{ContainerId: containerId, CartonId: cartonId, AccountId: email}
 	err = client.NetworkRequest(container.Node.IP, port)
 
 	if err != nil {

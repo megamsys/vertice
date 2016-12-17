@@ -2,6 +2,7 @@ package carton
 
 import (
 	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
@@ -13,7 +14,8 @@ type Carton struct {
 	Id           string //assemblyid
 	Name         string
 	CartonsId    string
-	AccountsId   string
+	AccountId   string
+	ApiArgs      api.ApiArgs
 	OrgId        string
 	Tosca        string
 	ImageVersion string
@@ -60,10 +62,11 @@ func (c *Carton) toBox() error { //assemblies id.
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
 			Id:           c.Id, //should be the component id, but in case of BoxNone there is no component id.
-			AccountsId:   c.AccountsId,
+			AccountId:   c.AccountId,
 			CartonId:     c.Id,        //We stick the assemlyid here.
 			CartonsId:    c.CartonsId, //assembliesId,
 			OrgId:        c.OrgId,
+			ApiArgs:      c.ApiArgs,
 			CartonName:   c.Name,
 			Name:         c.Name,
 			DomainName:   c.DomainName,

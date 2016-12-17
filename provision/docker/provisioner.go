@@ -419,7 +419,7 @@ func (p *dockerProvisioner) TriggerBills(account_id, cat_id, name string) error 
 	cont := &container.Container{
 		Name:       name,
 		CartonId:   cat_id,
-		AccountsId: account_id,
+		AccountId: account_id,
 	}
 	err := cont.Deduct()
 	if err != nil {
