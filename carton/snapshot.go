@@ -50,6 +50,7 @@ type Snaps struct {
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
 	CreatedAt  string `json:"created_at" cql:"created_at"`
 	Status     string `json:"status" cql:"status"`
+	Tosca      string `json:"tosca_type" cql:"tosca_type"`
 	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
 	Outputs    pairs.JsonPairs `json:"inputs" cql:"inputs"`
 }
