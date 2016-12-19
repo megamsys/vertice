@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/vertice/provision"
 	"github.com/pivotal-golang/bytefmt"
 	"gopkg.in/yaml.v2"
@@ -40,15 +41,17 @@ type ApiDisks struct {
 
 //The grand elephant for megam cloud platform.
 type Snaps struct {
-	Id         string `json:"snap_id" cql:"snap_id"`
+	Id         string `json:"id" cql:"id"`
 	ImageId    string `json:"image_id" cql:"image_id"`
 	OrgId      string `json:"org_id" cql:"org_id"`
 	AccountId  string `json:"account_id" cql:"account_id"`
 	Name       string `json:"name" cql:"name"`
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	CreatedAt  time.Time `json:"created_at" cql:"created_at"`
+	CreatedAt  string `json:"created_at" cql:"created_at"`
 	Status     string `json:"status" cql:"status"`
+	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
+	Outputs    pairs.JsonPairs `json:"inputs" cql:"inputs"`
 }
 
 type Disks struct {
@@ -58,7 +61,7 @@ type Disks struct {
 	AccountId  string `json:"account_id" cql:"account_id"`
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	CreatedAt  time.Time `json:"created_at" cql:"created_at"`
+	CreatedAt  string `json:"created_at" cql:"created_at"`
 	Size       string `json:"size" cql:"size"`
 	Status     string `json:"status" cql:"status"`
 }
