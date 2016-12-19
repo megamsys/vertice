@@ -207,7 +207,7 @@ func (e *ParseError) Error() string {
 type Requests struct {
 	Id        string `json:"id" cql:"id"`
 	Name      string `json:"name" cql:"name"`
-	AccountId string `json:"email"`
+	AccountId string `json:"account_id" cql:"account_id"`
 	CatId     string `json:"cat_id" cql:"cat_id"`
 	Action    string `json:"action" cql:"action"`
 	Category  string `json:"category" cql:"category"`

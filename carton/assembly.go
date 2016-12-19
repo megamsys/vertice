@@ -65,7 +65,7 @@ type Assembly struct {
 	Tosca        string                `json:"tosca_type" cql:"tosca_type"`
 	Status       string                `json:"status" cql:"status"`
 	State        string                `json:"state" cql:"state"`
-	CreatedAt    time.Time             `json:"created_at" cql:"created_at"`
+	CreatedAt    string                `json:"created_at" cql:"created_at"`
 	Inputs       pairs.JsonPairs       `json:"inputs" cql:"inputs"`
 	Outputs      pairs.JsonPairs       `json:"outputs" cql:"outputs"`
 	Policies     []*Policy             `json:"policies" cql:"policies"`
@@ -97,11 +97,9 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	ac := &ApiAssembly{}
 	err = json.Unmarshal(htmlData, ac)
 	if err != nil {
-		fmt.Println("Error while json parsing  :", err)
 		return nil, err
 	}
 	a := ac.Results[0]
@@ -125,7 +123,7 @@ func (a *Assembly) dig() (*Assembly, error) {
 
 func (a *Assembly) updateAsm() error {
 	args := newArgs(a.AccountId, a.OrgId)
-	args.Path = "/assembly/update/"
+	args.Path = "/assembly/update"
 	args.Org_Id = a.OrgId
 	cl := api.NewClient(args)
 	_, err := cl.Post(a)
@@ -153,6 +151,7 @@ func newArgs(email, org string) api.ApiArgs {
 func mkCarton(aies, ay, email string) (*Carton, error) {
 	args := newArgs(email, "")
 	act := new(Account)
+	args.Path = "/accounts/" + email
 	act, err := act.get(args)
 	if err != nil {
 		return nil, err

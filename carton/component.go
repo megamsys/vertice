@@ -17,7 +17,6 @@ package carton
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
@@ -76,7 +75,7 @@ type Component struct {
 	Operations        []*Operations   `json:"operations"`
 	Status            string          `json:"status"`
 	State             string          `json:"state"`
-	CreatedAt         time.Time       `json:"created_at"`
+	CreatedAt         string	        `json:"created_at"`
 }
 
 func (a *Component) String() string {
@@ -107,7 +106,6 @@ func NewComponent(id, email, org string) (*Component, error) {
 	ac := &ApiComponent{}
 	err = json.Unmarshal(htmlData, ac)
 	if err != nil {
-		fmt.Println("Error while json parsing  :", err)
 		return nil, err
 	}
 	return &ac.Results[0], nil

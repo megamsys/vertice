@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/megamsys/libgo/api"
 	"io/ioutil"
-	"time"
 )
 
 const (
@@ -49,21 +48,21 @@ type Phone struct {
 type Approval struct {
 	Approved     string    `json:"approved" cql:"approved"`
 	ApprovedById string    `json:"approved_by_id" cql:"approved_by_id"`
-	ApprovedAt   time.Time `json:"approved_at" cql:"approved_at"`
+	ApprovedAt   string `json:"approved_at" cql:"approved_at"`
 }
 
 type Suspend struct {
 	Suspended     string    `json:"suspended" cql:"suspended"`
-	SuspendedAt   time.Time `json:"suspended_at" cql:"suspended_at"`
-	SuspendedTill time.Time `json:"suspended_till" cql:"suspended_till"`
+	SuspendedAt   string `json:"suspended_at" cql:"suspended_at"`
+	SuspendedTill string `json:"suspended_till" cql:"suspended_till"`
 }
 
 type Dates struct {
-	CreatedAt       time.Time `json:"created_at" cql:"created_at"`
-	LastPostedAt    time.Time `json:"last_posted_at" cql:"last_posted_at"`
-	LastEmailedAt   time.Time `json:"last_emailed_at" cql:"last_emailed_at"`
-	PreviousVisitAt time.Time `json:"previous_visit_at" cql:"previous_visit_at"`
-	FirstSeenAt     time.Time `json:"first_seen_at" cql:"first_seen_at"`
+	CreatedAt       string `json:"created_at" cql:"created_at"`
+	LastPostedAt    string `json:"last_posted_at" cql:"last_posted_at"`
+	LastEmailedAt   string `json:"last_emailed_at" cql:"last_emailed_at"`
+	PreviousVisitAt string `json:"previous_visit_at" cql:"previous_visit_at"`
+	FirstSeenAt     string `json:"first_seen_at" cql:"first_seen_at"`
 }
 
 type States struct {

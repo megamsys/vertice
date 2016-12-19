@@ -132,8 +132,8 @@ func (l BillMgr) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[constants.ENABLED] = strconv.FormatBool(l.Enabled)
 	mp[constants.USERNAME] = l.WHMCSUserName
-	mp[constants.PASSWORD] = l.WHMCSPassword
-	mp[constants.API_KEY] = l.WHMCSAccessKey
+	mp[constants.WHMCS_PASSWORD] = l.WHMCSPassword
+	mp[constants.WHMCS_APIKEY] = l.WHMCSAccessKey
 	mp[constants.DOMAIN] = l.WHMCSDomain
 	mp[constants.PIGGYBANKS] = strings.Join(l.PiggyBanks, ",")
 	return mp
