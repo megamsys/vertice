@@ -60,7 +60,7 @@ func saveStateData(opts *StateChangeOpts, slog string, duration time.Duration, c
 			return nil
 		}
 
-		comp, err := NewComponent(opts.B.Id)
+		comp, err := NewComponent(opts.B.Id, opts.B.AccountId, "")
 		if err != nil {
 			return err
 		}

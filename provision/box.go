@@ -24,7 +24,7 @@ import (
 	"runtime"
 	"strings"
 	"time"
-
+  "github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton/bind"
@@ -113,10 +113,11 @@ type BoxDeploy struct {
 // IP-addressable.
 type Box struct {
 	Id           string
-	AccountsId   string
+	AccountId   string
 	CartonsId    string
 	CartonId     string
 	OrgId        string
+	ApiArgs      api.ApiArgs
 	CartonName   string
 	Name         string
 	Level        BoxLevel

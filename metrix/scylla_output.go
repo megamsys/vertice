@@ -2,12 +2,11 @@ package metrix
 
 import (
 	log "github.com/Sirupsen/logrus"
-	ldb "github.com/megamsys/libgo/db"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
-	"github.com/megamsys/vertice/meta"
+	 "github.com/megamsys/libgo/api"
 	"time"
 )
 
@@ -23,19 +22,11 @@ const (
 func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
-		ops := ldb.Options{
-			TableName:   SENSORSBUCKET,
-			Pks:         []string{"sensor_type"},
-			Ccms:        []string{"account_id", "assembly_id"},
-			Hosts:       meta.MC.Scylla,
-			Keyspace:    meta.MC.ScyllaKeyspace,
-			Username:    meta.MC.ScyllaUsername,
-			Password:    meta.MC.ScyllaPassword,
-			PksClauses:  map[string]interface{}{"sensor_type": m.SensorType},
-			CcmsClauses: map[string]interface{}{"account_id": m.AccountId, "assembly_id": m.AssemblyId},
-		}
+		args := carton.NewArgs(m.AccountId, "")
 		s := m.ParseScyllaformat()
-		if err = ldb.Storedb(ops, s); err != nil {
+		args.Path = "/sensors/content"
+		cl := api.NewClient(args)
+		if _, err := cl.Post(s); err != nil {
 			log.Debugf(err.Error())
 			continue
 		}
@@ -46,8 +37,8 @@ func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (er
 	return nil
 }
 
-func quotaChecker(id string) (bool, error) {
-	asm, err := carton.NewAssembly(id)
+func quotaChecker(id, email string) (bool, error) {
+	asm, err := carton.NewAssembly(id,email,"")
 	if err != nil {
 		return false, err
 	}
@@ -63,7 +54,7 @@ func quotaChecker(id string) (bool, error) {
 
 func mkBalance(s *Sensor, du map[string]string) error {
 
-	if flag, err := quotaChecker(s.AssemblyId); !flag {
+	if flag, err := quotaChecker(s.AssemblyId,s.AccountId); !flag {
 		return err
 	}
 

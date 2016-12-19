@@ -306,14 +306,14 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 	})
 }
 
-func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
+func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	port := c.GulpPort()
 	container := c.getContainerObject(containerId)
-	err := c.Ips(container.NetworkSettings.IPAddress, cartonId)
+	err := c.Ips(container.NetworkSettings.IPAddress, cartonId,email)
 	if err != nil {
 		return err
 	}
-	client := DockerClient{ContainerId: containerId, CartonId: cartonId}
+	client := DockerClient{ContainerId: containerId, CartonId: cartonId, AccountId: email}
 	err = client.NetworkRequest(container.Node.IP, port)
 
 	if err != nil {
@@ -322,11 +322,11 @@ func (c *Cluster) SetNetworkinNode(containerId string, cartonId string) error {
 	return nil
 }
 
-func (c *Cluster) Ips(ip string, CartonId string) error {
+func (c *Cluster) Ips(ip, CartonId,email string) error {
 	var ips = make(map[string][]string)
 	pubipv4s := []string{ip}
 	ips[c.getIps()] = pubipv4s
-	if asm, err := carton.NewAmbly(CartonId); err != nil {
+	if asm, err := carton.NewAssembly(CartonId,email, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err

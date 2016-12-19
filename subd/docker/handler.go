@@ -15,12 +15,12 @@ func NewHandler(c *Config) *Handler {
 }
 
 func (h *Handler) serveNSQ(r *carton.Requests) error {
-	p, err := carton.ParseRequest(r.CatId, r.Category, r.Action)
+	p, err := carton.ParseRequest(r)
 	if err != nil {
 		return err
 	}
 
-	if rp := carton.NewReqOperator(r.CatId,r.Category,r.Action); rp != nil {
+	if rp := carton.NewReqOperator(r); rp != nil {
 		return rp.Accept(&p) //error is swalled here.
 	}
 	return nil

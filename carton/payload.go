@@ -18,18 +18,20 @@ package carton
 import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-	ldb "github.com/megamsys/libgo/db"
-	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/libgo/api"
+	"io/ioutil"
 	"strings"
+	"time"
 )
 
 type Payload struct {
 	Id        string `json:"id" cql:"id"`
 	Action    string `json:"action" cql:"action"`
 	CatId     string `json:"cat_id" cql:"cat_id"`
+	AccountId string `json:"email" cql:"-"`
 	CatType   string `json:"cattype" cql:"cattype"`
 	Category  string `json:"category" cql:"category"`
-	CreatedAt string `json:"created_at" cql:"created_at"`
+	CreatedAt time.Time `json:"created_at" cql:"created_at"`
 }
 
 type PayloadConvertor interface {
@@ -50,11 +52,12 @@ func NewPayload(b []byte) (*Payload, error) {
 **/
 func (p *Payload) Convert() (*Requests, error) {
 	if len(strings.TrimSpace(p.Id)) > 1 {
-		return listReqsById(p.Id)
+		return listReqsById(p.Id, p.AccountId)
 	} else {
 		return &Requests{
 			Action:    p.Action,
 			Category:  p.Category,
+			AccountId: p.AccountId,
 			CatId:     p.CatId,
 			CreatedAt: p.CreatedAt,
 		}, nil
@@ -65,25 +68,26 @@ func (p *Payload) Convert() (*Requests, error) {
 //The payload in the queue can be just a pointer or a value.
 //pointer means just the id will be available and rest is blank.
 //value means the id is blank and others are available.
-func listReqsById(id string) (*Requests, error) {
+func listReqsById(id, email string) (*Requests, error) {
 	log.Debugf("list requests %s", id)
-	r := &Requests{}
-
-	ops := ldb.Options{
-		TableName:   "requests",
-		Pks:         []string{"Id"},
-		Ccms:        []string{},
-		Hosts:       meta.MC.Scylla,
-		Keyspace:    meta.MC.ScyllaKeyspace,
-		Username:    meta.MC.ScyllaUsername,
-		Password:    meta.MC.ScyllaPassword,
-		PksClauses:  map[string]interface{}{"Id": id},
-		CcmsClauses: make(map[string]interface{}),
+	args := newArgs(email,"")
+	args.Path = "/requests/" + id
+	cl := api.NewClient(args)
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
 	}
-	if err := ldb.Fetchdb(ops, r); err != nil {
+	htmlData, err := ioutil.ReadAll(response.Body)
+	if err != nil {
 		return nil, err
 	}
 
+	res := &ApiRequests{}
+	err = json.Unmarshal(htmlData, res)
+	if err != nil {
+		return nil, err
+	}
+	r := &res.Results[0]
 	log.Debugf("Requests %v", r)
 	return r, nil
 }

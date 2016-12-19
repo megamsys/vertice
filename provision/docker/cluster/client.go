@@ -26,6 +26,7 @@ type DockerClient struct {
 	IpAddr        string
 	Gateway       string
 	CartonId      string
+	AccountId    string
 	//HostAddr       string
 }
 
@@ -38,12 +39,12 @@ func (d *DockerClient) LogsRequest(url string, port string) error {
 	return nil
 }
 
-func (d *DockerClient) NetworkRequest(url string, port string) error {
+func (d *DockerClient) NetworkRequest(url, port string) error {
 	var ips = make(map[string][]string)
 	hostip := []string{}
 	hostip = []string{url}
 	ips[carton.HOSTIP] = hostip
-	if asm, err := carton.NewAmbly(d.CartonId); err != nil {
+	if asm, err := carton.NewAssembly(d.CartonId,d.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err

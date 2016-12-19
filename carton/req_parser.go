@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"strings"
+	"time"
 )
 
 var (
@@ -51,7 +52,6 @@ var (
 	SNAPDELETE = "snapremove"
 	ATTACHDISK = "attachdisk"
 	DETACHDISK = "detachdisk"
-
 )
 
 type ReqParser struct {
@@ -66,8 +66,8 @@ func NewReqParser(n string) *ReqParser {
 // ParseRequest parses a request string and returns its MegdProcess representation.
 // eg: (state, create) => CreateProcess{}
 // After figuring out the process, we operate on it.
-func ParseRequest(n, s, a string) (MegdProcessor, error) {
-	return NewReqParser(n).ParseRequest(s, a)
+func ParseRequest(r *Requests) (MegdProcessor, error) {
+	return NewReqParser(r.CatId).ParseRequest(r.Category, r.Action)
 }
 
 func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor, error) {
@@ -81,7 +81,7 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 	case SNAPSHOT:
 		return p.parseSnapshot(action)
 	case DISKS:
-	  return p.parseDisks(action)
+		return p.parseDisks(action)
 	case DONE:
 		return p.parseDone(action)
 	default:
@@ -169,7 +169,7 @@ func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 			Name: p.name,
 		}, nil
 	default:
-		return nil, newParseError([]string{SNAPSHOT, action}, []string{SNAPCREATE,SNAPDELETE})
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{SNAPCREATE, SNAPDELETE})
 	}
 }
 
@@ -184,10 +184,9 @@ func (p *ReqParser) parseDisks(action string) (MegdProcessor, error) {
 			Name: p.name,
 		}, nil
 	default:
-		return nil, newParseError([]string{SNAPSHOT, action}, []string{ATTACHDISK,DETACHDISK})
+		return nil, newParseError([]string{SNAPSHOT, action}, []string{ATTACHDISK, DETACHDISK})
 	}
 }
-
 
 // ParseError represents an error that occurred during parsing.
 type ParseError struct {
@@ -208,10 +207,16 @@ func (e *ParseError) Error() string {
 type Requests struct {
 	Id        string `json:"id" cql:"id"`
 	Name      string `json:"name" cql:"name"`
+	AccountId string `json:"email" cql:"-"`
 	CatId     string `json:"cat_id" cql:"cat_id"`
 	Action    string `json:"action" cql:"action"`
 	Category  string `json:"category" cql:"category"`
-	CreatedAt string `json:"created_at" cql:"created_at"`
+	CreatedAt time.Time `json:"created_at" cql:"created_at"`
+}
+
+type ApiRequests struct {
+	JsonClaz string `json:"json_claz" cql:"json_claz"`
+	Results  []Requests `json:"results" cql:"results"`
 }
 
 func (r *Requests) String() string {

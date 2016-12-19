@@ -242,7 +242,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		&updateStatusInScylla,
 		&updateVnchostPostInScylla,
 		&updateStatusInScylla,
-		&deductCons,
+		&setFinalStatus,
 		&updateStatusInScylla,
 		&followLogs,
 	}
@@ -587,7 +587,7 @@ func (p *oneProvisioner) TriggerBills(account_id, cat_id, name string) error {
 	mach := &machine.Machine{
 		Name:       name,
 		CartonId:   cat_id,
-		AccountsId: account_id,
+		AccountId: account_id,
 	}
 	err := mach.Deduct()
 	if err != nil {

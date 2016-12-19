@@ -23,10 +23,14 @@ func Destroy(opts *DestroyOpts) error {
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	err := ProvisionerMap[opts.B.Provider].Destroy(opts.B, writer)
 	elapsed := time.Since(start)
-	saveErr := saveDestroyedData(opts, outBuffer.String(), elapsed, err)
-	if saveErr != nil {
-		log.Errorf("WARNING: couldn't save destroyed data, destroy opts: %#v", opts)
-	}
+	log.Debugf("%s in (%s)\n%s",
+		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
+	// saveErr := saveDestroyedData(opts, outBuffer.String(), elapsed, err)
+	// if saveErr != nil {
+	// 	log.Errorf("WARNING: couldn't save destroyed data, destroy opts: %#v", opts)
+	// }
 	if err != nil {
 		return err
 	}
@@ -47,20 +51,18 @@ func saveDestroyedData(opts *DestroyOpts, slog string, duration time.Duration, d
 func markDeploysAsRemoved(opts *DestroyOpts) {
 	removedAssemblys := make([]string, 1)
 
-	if _, err := NewAssembly(opts.B.CartonId); err == nil {
-		//if asm, err := NewAssembly(opts.B.CartonId); err == nil {
+	if _, err := NewAssembly(opts.B.CartonId,opts.B.AccountId,opts.B.OrgId); err == nil {
 		removedAssemblys[0] = opts.B.CartonId
-		//asm.Delete(opts.B.CartonId)
 	}
 
 	if opts.B.Level == provision.BoxSome {
-		if comp, err := NewComponent(opts.B.Id); err == nil {
-			comp.Delete(opts.B.Id)
+		if comp, err := NewComponent(opts.B.Id,opts.B.AccountId,opts.B.OrgId); err == nil {
+			comp.Delete(opts.B.AccountId,opts.B.OrgId)
 		}
 	}
 
-	if asms, err := Get(opts.B.CartonsId); err == nil {
-		asms.Delete(opts.B.CartonsId, removedAssemblys)
+	if asms, err := Get(opts.B.CartonsId, opts.B.AccountId); err == nil {
+		asms.Delete(opts.B.CartonsId, opts.B.AccountId, removedAssemblys)
 	}
 
 }
