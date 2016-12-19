@@ -25,13 +25,13 @@ import (
 )
 
 type Payload struct {
-	Id        string `json:"id" cql:"id"`
-	Action    string `json:"action" cql:"action"`
-	CatId     string `json:"cat_id" cql:"cat_id"`
-	AccountId string `json:"email" cql:"-"`
-	CatType   string `json:"cattype" cql:"cattype"`
-	Category  string `json:"category" cql:"category"`
-	CreatedAt time.Time `json:"created_at" cql:"created_at"`
+	Id        string `json:"id"`
+	Action    string `json:"action"`
+	CatId     string `json:"cat_id"`
+	AccountId string `json:"email"`
+	CatType   string `json:"cattype"`
+	Category  string `json:"category"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type PayloadConvertor interface {
@@ -51,7 +51,7 @@ func NewPayload(b []byte) (*Payload, error) {
 **fetch the request json from riak and parse the json to struct
 **/
 func (p *Payload) Convert() (*Requests, error) {
-	if len(strings.TrimSpace(p.Id)) > 1 {
+	if len(strings.TrimSpace(p.CatId)) < 1 {
 		return listReqsById(p.Id, p.AccountId)
 	} else {
 		return &Requests{

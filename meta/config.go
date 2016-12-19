@@ -111,7 +111,7 @@ func (c *Config) ToMap() map[string]string {
 	mp["scylla_username"] = c.ScyllaUsername
 	mp["scylla_password"] = c.ScyllaPassword
 	mp["scylla_keyspace"] = c.ScyllaKeyspace
-	mp["host"] = c.Api
+	mp["url"] = c.Api
 	mp["master_key"] = c.MasterKey
 	return mp
 }

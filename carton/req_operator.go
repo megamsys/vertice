@@ -31,7 +31,7 @@ type ReqOperator struct {
 // NewReqOperator returns a new instance of ReqOperator
 // for the operatable id (Assemblies)
 func NewReqOperator(r *Requests) *ReqOperator {
-	return &ReqOperator{Id: r.Id, Category: r.Category, Action: r.Action, AccountId: r.AccountId}
+	return &ReqOperator{CartonsId: r.CatId, Category: r.Category, Action: r.Action, AccountId: r.AccountId}
 }
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
@@ -46,7 +46,7 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 
 func (p *ReqOperator) Get() (Cartons, error) {
   if p.Category == SNAPSHOT {
-		s, err := GetSnap(p.Id,p.AccountId)
+		s, err := GetSnap(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		}
 		return c, nil
 	} else if p.Category == DISKS {
-		d, err := GetDisks(p.Id,p.AccountId)
+		d, err := GetDisks(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +66,7 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		}
 		return c, nil
 	} else {
-		a, err := Get(p.Id,p.AccountId)
+		a, err := Get(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err
 		}
