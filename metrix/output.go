@@ -6,7 +6,7 @@ import (
 )
 
 type OutputHandler struct {
-	ScyllaAddress []string
+	ScyllaAddress string
 	Hostname      string
 }
 
@@ -20,7 +20,7 @@ func (o *OutputHandler) WriteMetrics(all Sensors) (e error) {
 	}
 	sent := false
 	if len(o.ScyllaAddress) > 0 {
-		e = SendMetricsToScylla(o.ScyllaAddress, all, o.Hostname)
+		e = SendMetricsToScylla(all, o.Hostname)
 		sent = true
 	}
 

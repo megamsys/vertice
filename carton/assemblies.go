@@ -18,12 +18,12 @@ package carton
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/pairs"
 	"gopkg.in/yaml.v2"
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
 	"strings"
-	"time"
 )
 
 const (
@@ -44,8 +44,8 @@ type Assemblies struct {
 	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
 	Name        string   `json:"name" cql:"name"`
 	AssemblysId []string `json:"assemblies" cql:"assemblies"`
-	Inputs      []string `json:"inputs" cql:"inputs"`
-	CreatedAt   time.Time   `json:"created_at" cql:"created_at"`
+	Inputs      pairs.JsonPairs `json:"inputs" cql:"inputs"`
+	CreatedAt   string   `json:"created_at" cql:"created_at"`
 }
 
 func (a *Assemblies) String() string {
@@ -117,30 +117,4 @@ func (a *Assemblies) Delete(asmid, email string, removedAssemblys []string) {
 		cl := api.NewClient(args)
 		_, _ = cl.Delete()
 	}
-}
-
-//a hash in json representing {name: "", value: ""}
-type JsonPairs []JsonPair
-
-type JsonPair struct {
-	K string `json:"key" cql:"key"`
-	V string `json:"value" cql:"value"`
-}
-
-//create a new hash pair in json  by providing a key, value
-func NewJsonPair(k string, v string) JsonPair {
-	return JsonPair{
-		K: k,
-		V: v,
-	}
-}
-
-//match for a value in the JSONPair arrays and send the value
-func (p *JsonPairs) match(k string) string {
-	for _, j := range *p {
-		if j.K == k {
-			return j.V
-		}
-	}
-	return ""
 }

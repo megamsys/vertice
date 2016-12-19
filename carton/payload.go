@@ -28,7 +28,7 @@ type Payload struct {
 	Id        string `json:"id"`
 	Action    string `json:"action"`
 	CatId     string `json:"cat_id"`
-	AccountId string `json:"email"`
+	AccountId string `json:"account_id"`
 	CatType   string `json:"cattype"`
 	Category  string `json:"category"`
 	CreatedAt time.Time `json:"created_at"`
@@ -51,7 +51,7 @@ func NewPayload(b []byte) (*Payload, error) {
 **fetch the request json from riak and parse the json to struct
 **/
 func (p *Payload) Convert() (*Requests, error) {
-	if len(strings.TrimSpace(p.CatId)) < 1 {
+	if len(strings.TrimSpace(p.CatId)) < 10 {
 		return listReqsById(p.Id, p.AccountId)
 	} else {
 		return &Requests{

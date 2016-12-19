@@ -19,7 +19,7 @@ const (
 	ENDTIME      = "EndTime"
 )
 
-func SendMetricsToScylla(address []string, metrics Sensors, hostname string) (err error) {
+func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
 		args := carton.NewArgs(m.AccountId, "")

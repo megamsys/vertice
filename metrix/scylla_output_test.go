@@ -13,7 +13,7 @@ func (s *S) TestStoreCollectedr(c *check.C) {
 	c.Assert(all, check.NotNil)
 
 	o := OutputHandler{
-		ScyllaAddress: s.cm.Scylla,
+		ScyllaAddress: s.cm.Api,
 	}
 	c.Assert(o, check.NotNil)
 	err := o.WriteMetrics(all)

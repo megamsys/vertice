@@ -60,7 +60,7 @@ func (s *Service) backgroundLoop() {
 
 func (s *Service) runMetricsCollectors() error {
 	output := &metrix.OutputHandler{
-		ScyllaAddress: s.Meta.Scylla,
+		ScyllaAddress: s.Meta.Api,
 	}
 
 	for _, region := range s.Deployd.One.Regions {
