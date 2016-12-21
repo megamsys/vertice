@@ -47,9 +47,12 @@ type Region struct {
 	DockerZone     string        `json:"docker_zone" toml:"docker_zone"`
 	SwarmEndPoint  string        `json:"swarm" toml:"swarm"`
 	DockerGulpPort string        `json:"gulp_port" toml:"gulp_port"`
-	Registry       string        `toml:"registry"`
-	CPUPeriod      toml.Duration `toml:"cpu_period"`
-	CPUQuota       toml.Duration `toml:"cpu_quota"`
+	Registry       string        `json:"registry" toml:"registry"`
+	CPUPeriod      toml.Duration `json:"cpu_period" toml:"cpu_period"`
+	CPUQuota       toml.Duration `json:"cpu_quota" toml:"cpu_quota"`
+	CpuUnit        string        `json:"cpu_unit" toml:"cpu_unit"`
+	MemoryUnit     string        `json:"memory_unit" toml:"memory_unit"`
+	DiskUnit       string        `json:"disk_unit" toml:"disk_unit"`
 }
 
 func (p *dockerProvisioner) Cluster() *cluster.Cluster {
@@ -417,8 +420,8 @@ func (p *dockerProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 
 func (p *dockerProvisioner) TriggerBills(account_id, cat_id, name string) error {
 	cont := &container.Container{
-		Name:       name,
-		CartonId:   cat_id,
+		Name:      name,
+		CartonId:  cat_id,
 		AccountId: account_id,
 	}
 	err := cont.Deduct()

@@ -385,39 +385,39 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/disk",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/images",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/metrics",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/users",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "8a806737033a86cef1e79f32b40a5e9dc6f44aef"
+			"Rev": "525d0750c2b0104c474ac27d4a4a0fc3cd95d8f6"
 		},
 		{
 			"ImportPath": "github.com/megamsys/whmcs_go/whmcs",

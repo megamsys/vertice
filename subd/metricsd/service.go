@@ -77,7 +77,7 @@ func (s *Service) runMetricsCollectors() error {
 
 	// for _, region := range s.Dockerd.Docker.Regions {
 	// 	collectors := map[string]metrix.MetricCollector{
-	// 		metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint},
+	// 		metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint, , DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit}},
 	// 	}
 	//
 	// 	mh := &metrix.MetricHandler{}
