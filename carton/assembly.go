@@ -18,6 +18,7 @@ package carton
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
@@ -32,7 +33,6 @@ import (
 	"io/ioutil"
 	"strings"
 	"time"
-	// log "github.com/Sirupsen/logrus"
 	// "github.com/megamsys/libgo/cmd"
 )
 
