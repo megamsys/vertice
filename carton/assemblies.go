@@ -67,8 +67,7 @@ func Get(id, email string) (*Assemblies, error) {
 }
 
 func (a *Assemblies) get(args api.ApiArgs) (*Assemblies, error) {
-	args.Path = "/assemblies/" + a.Id
-	cl := api.NewClient(args)
+	cl := api.NewClient(args, "/assemblies/" + a.Id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -113,8 +112,7 @@ func (a *Assemblies) Delete(asmid, email string, removedAssemblys []string) {
 	}
 	args := newArgs(email, a.OrgId)
 	if reflect.DeepEqual(existingAssemblys, removedAssemblys) {
-		args.Path = "/assemblies/" + asmid
-		cl := api.NewClient(args)
+		cl := api.NewClient(args, "/assemblies/" + asmid)
 		_, _ = cl.Delete()
 	}
 }

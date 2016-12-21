@@ -70,9 +70,7 @@ func (p *Payload) Convert() (*Requests, error) {
 //value means the id is blank and others are available.
 func listReqsById(id, email string) (*Requests, error) {
 	log.Debugf("list requests %s", id)
-	args := newArgs(email,"")
-	args.Path = "/requests/" + id
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(email,""), "/requests/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
