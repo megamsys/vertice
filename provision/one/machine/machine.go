@@ -60,6 +60,7 @@ type CreateArgs struct {
 }
 
 func (m *Machine) Create(args *CreateArgs) error {
+	fmt.Println("***********************Api_Key***************",compute.API_KEY,":   ",args.Box.ApiArgs.Api_Key)
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
 		Image:  m.Image,

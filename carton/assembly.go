@@ -18,7 +18,6 @@ package carton
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
@@ -33,7 +32,8 @@ import (
 	"io/ioutil"
 	"strings"
 	"time"
-	//"reflect"
+	// log "github.com/Sirupsen/logrus"
+	// "github.com/megamsys/libgo/cmd"
 )
 
 const (
@@ -87,8 +87,7 @@ func (a *Assembly) String() string {
 }
 
 func get(args api.ApiArgs, ay string) (*Assembly, error) {
-	args.Path = "/assembly/" + ay
-	cl := api.NewClient(args)
+	cl := api.NewClient(args, "/assembly/"+ay)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -98,6 +97,8 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 		return nil, err
 	}
 	ac := &ApiAssembly{}
+
+	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
 	err = json.Unmarshal(htmlData, ac)
 	if err != nil {
 		return nil, err
@@ -123,9 +124,8 @@ func (a *Assembly) dig() (*Assembly, error) {
 
 func (a *Assembly) updateAsm() error {
 	args := newArgs(a.AccountId, a.OrgId)
-	args.Path = "/assembly/update"
 	args.Org_Id = a.OrgId
-	cl := api.NewClient(args)
+	cl := api.NewClient(args, "/assembly/update")
 	_, err := cl.Post(a)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func (a *Assembly) updateAsm() error {
 }
 
 func NewArgs(email, org string) api.ApiArgs {
-  return newArgs(email, org)
+	return newArgs(email, org)
 }
 
 func newArgs(email, org string) api.ApiArgs {
@@ -150,21 +150,19 @@ func newArgs(email, org string) api.ApiArgs {
 //a carton comprises of self contained boxes
 func mkCarton(aies, ay, email string) (*Carton, error) {
 	args := newArgs(email, "")
-	act := new(Account)
-	args.Path = "/accounts/" + email
-	act, err := act.get(args)
+	act, err := new(Account).get(args)
 	if err != nil {
 		return nil, err
 	}
 
-	a, err := get(args,ay)
+	a, err := get(args, ay)
 	if err != nil {
 		return nil, err
 	}
 
 	args.Api_Key = act.ApiKey
 	args.Org_Id = a.OrgId
-	b, err := a.mkBoxes(aies,args)
+	b, err := a.mkBoxes(aies, args)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +173,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		OrgId:        a.OrgId,
 		Name:         a.Name,
 		Tosca:        a.Tosca,
-		AccountId:   a.AccountId,
+		AccountId:    a.AccountId,
 		ApiArgs:      args,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
@@ -199,7 +197,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 //lets make boxes with components to be mutated later or, and the required
 //information for a launch.
 //A "colored component" externalized with what we need.
-func (a *Assembly) mkBoxes(aies string,args api.ApiArgs) ([]provision.Box, error) {
+func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, error) {
 	vnet := a.vnets()
 	vmid := a.vmId()
 	newBoxs := make([]provision.Box, 0, len(a.Components))
@@ -333,8 +331,7 @@ func (a *Assembly) NukeAndSetOutputs(m map[string][]string) error {
 
 func (a *Assembly) Delete(asmid string) error {
 	args := newArgs(a.AccountId, a.OrgId)
-	args.Path = "/assembly/" + asmid
-	cl := api.NewClient(args)
+	cl := api.NewClient(args, "/assembly/"+asmid)
 	_, err := cl.Delete()
 	if err != nil {
 		return err
@@ -404,9 +401,8 @@ func (a *Assembly) imageName() string {
 }
 
 func (a *Assembly) QuotaID() string {
-		return a.Inputs.Match(QUOTAID)
+	return a.Inputs.Match(QUOTAID)
 }
-
 
 func (a *Assembly) storageType() string {
 	return strings.ToLower(a.Inputs.Match(utils.STORAGE_TYPE))

@@ -166,9 +166,7 @@ func DetachDisk(opts *DiskOpts) error {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func GetSnap(id , email string) (*Snaps, error) {
-	args := newArgs(email, "")
-	args.Path = "/snapshots/" + id
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(email, ""), "/snapshots/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -189,9 +187,7 @@ func GetSnap(id , email string) (*Snaps, error) {
 }
 
 func (s *Snaps) UpdateSnap() error {
-	args := newArgs(s.AccountId, s.OrgId)
-	args.Path = "/snapshots/update"
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),"/snapshots/update" )
 	if _, err := cl.Post(s); err != nil {
 		return err
 	}
@@ -201,9 +197,7 @@ func (s *Snaps) UpdateSnap() error {
 /** A public function which pulls the disks that attached to vm.
 and any others we do. **/
 func GetDisks(id, email string) (*Disks, error) {
-	args := newArgs(email,"")
-	args.Path = "/disks" + id
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(email,""), "/disks/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -224,9 +218,7 @@ func GetDisks(id, email string) (*Disks, error) {
 }
 
 func (a *Disks) RemoveDisk() error {
-	args := newArgs(a.AccountId, a.OrgId)
-	args.Path = "/disks/" + a.Id
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/disks/" + a.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
@@ -234,9 +226,7 @@ func (a *Disks) RemoveDisk() error {
 }
 
 func (a *Snaps) RemoveSnap() error {
-	args := newArgs(a.AccountId, a.OrgId)
-	args.Path = "/snapshots/" + a.Id
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/snapshots/" + a.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
@@ -244,9 +234,7 @@ func (a *Snaps) RemoveSnap() error {
 }
 
 func (d *Disks) UpdateDisk() error {
-	args := newArgs(d.AccountId, d.OrgId)
-	args.Path = "/disks/update"
-	cl := api.NewClient(args)
+	cl := api.NewClient(newArgs(d.AccountId, d.OrgId), "/disks/update")
 	if _, err := cl.Post(d); err != nil {
 		return err
 	}

@@ -22,10 +22,8 @@ const (
 func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
-		args := carton.NewArgs(m.AccountId, "")
 		s := m.ParseScyllaformat()
-		args.Path = "/sensors/content"
-		cl := api.NewClient(args)
+		cl := api.NewClient(carton.NewArgs(m.AccountId, ""), "/sensors/content")
 		if _, err := cl.Post(s); err != nil {
 			log.Debugf(err.Error())
 			continue

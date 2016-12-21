@@ -73,14 +73,11 @@ type States struct {
 }
 
 func NewAccounts(email string) (*Account, error) {
-	a := new(Account)
-	args := newArgs(email, "")
-	args.Path = "/accounts/" + email
-	return a.get(args)
+	return new(Account).get(newArgs(email, ""))
 }
 
 func (a *Account) get(args api.ApiArgs) (*Account, error) {
-	cl := api.NewClient(args)
+	cl := api.NewClient(args, "/accounts/" + args.Email)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
