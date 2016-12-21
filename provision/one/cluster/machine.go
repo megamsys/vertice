@@ -50,7 +50,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle,storage string)
 				}
 			}
 		}
-		
+
 		if addr == "" || opts.ClusterId == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 		}
@@ -118,12 +118,13 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, str
 	opts.T = node.Client
   res := &virtualmachine.VM{}
 
-   	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() (bool,error) {
+   	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool,error) {
 			res, err = opts.GetVm()
 			if err != nil {
 				return false, err
 			}
-			return res.HistoryRecords.History != nil, nil
+			
+			return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
 		})
 
 		if err != nil {

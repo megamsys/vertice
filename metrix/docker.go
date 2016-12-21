@@ -11,6 +11,7 @@ const DOCKER = "docker"
 
 type Swarm struct {
 	Url       string
+	DefaultUnits map[string]string
 	RawStatus []interface{}
 }
 
@@ -61,9 +62,8 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-		e = carton.ProvisionerMap[s.Prefix()].TriggerBills(mc.AccountId, mc.AssemblyId, mc.AssemblyName)
-		if e != nil {
-			return
+		if mc.AccountId != "" && mc.AssemblyName != "" {
+			mkBalance(mc, s.DefaultUnits)
 		}
 	}
 	return
@@ -106,8 +106,8 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.AuditPeriodEnding = time.Now().String()
 		sc.AuditPeriodDelta = time.Now().String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
-		sc.addMetric("cpu_cost", "2", "0.021", "delta")
-		sc.addMetric("memory_cost", "2", "450", "delta")
+		sc.addMetric(CPU_COST, "2", "0.021", "delta")
+		sc.addMetric(MEMORY_COST, "2", "450", "delta")
 		mc.Add(sc)
 	}
 	return
