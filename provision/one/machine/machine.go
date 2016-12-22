@@ -91,11 +91,6 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
-		asm, err := carton.NewAssembly(m.CartonId,m.AccountId,b.OrgId)
-		if err != nil {
-			return err
-		}
-	if events.IsEnabled(constants.BILLMGR) && !(len(asm.QuotaID()) > 0) {
 		bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())
 		if err != nil || bal == nil {
 			return nil
@@ -112,7 +107,7 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 			log.Debugf(" credit balance insufficient for the user (%s)", b.AccountId)
 			return fmt.Errorf("credit balance insufficient")
 		}
-	}
+
 	return nil
 }
 
@@ -461,5 +456,22 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 		return err
 	}
 
+	return nil
+}
+
+
+func (m *Machine) UpdateQuotas() error {
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId,"")
+	if  err != nil {
+		return err
+	}
+	quota, err := carton.NewQuota(m.AccountId, asm.QuotaID())
+	if err != nil {
+		return  err
+	}
+  quota.AllocatedTo = m.CartonId
+	if err = quota.Update(); err != nil {
+		return  err
+	}
 	return nil
 }

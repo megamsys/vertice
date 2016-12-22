@@ -124,7 +124,6 @@ func (a *Assembly) dig() (*Assembly, error) {
 
 func (a *Assembly) updateAsm() error {
 	args := newArgs(a.AccountId, a.OrgId)
-	args.Org_Id = a.OrgId
 	cl := api.NewClient(args, "/assembly/update")
 	_, err := cl.Post(a)
 	if err != nil {
@@ -133,7 +132,7 @@ func (a *Assembly) updateAsm() error {
 	return nil
 }
 
-func NewArgs(email, org string) api.ApiArgs {
+func NewArgs(email, org string) api.ApiArgs {	
 	return newArgs(email, org)
 }
 

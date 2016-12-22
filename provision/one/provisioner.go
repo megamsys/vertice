@@ -27,6 +27,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
@@ -230,22 +231,22 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
-
-	actions := []*action.Action{
-		&machCreating,
-		&checkBalances,
-		&updateStatusInScylla,
-		&mileStoneUpdate,
-		&createMachine,
-		&mileStoneUpdate,
-		&getVmHostIpPort,
-		&updateStatusInScylla,
-		&updateVnchostPostInScylla,
-		&updateStatusInScylla,
-		&setFinalStatus,
-		&updateStatusInScylla,
-		&followLogs,
+  asm, err := carton.NewAssembly(box.CartonId, box.AccountId,box.OrgId)
+	if err != nil {
+		return "", err
 	}
+
+	actions := []*action.Action{&machCreating}
+	if events.IsEnabled(constants.BILLMGR) && !(len(asm.QuotaID()) > 0) {
+  	actions = append(actions, &checkBalances,	&updateStatusInScylla)
+	}
+		actions = append(actions, &machCreating,	&mileStoneUpdate,	&createMachine,	&mileStoneUpdate,	&getVmHostIpPort, &updateStatusInScylla)
+		if  (len(asm.QuotaID()) > 0) {
+			actions = append(actions, &quotaUpdate, &updateStatusInScylla)
+		}
+
+		actions = append(actions,	&updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
+
 	pipeline := action.NewPipeline(actions...)
 
 	args := runMachineActionsArgs{
@@ -260,7 +261,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	lastStatus = constants.StatusLaunching
 	lastState = constants.StateInitializing
 
-	err := pipeline.Execute(args)
+	err = pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)))
 		return "", err
