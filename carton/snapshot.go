@@ -166,7 +166,7 @@ func DetachDisk(opts *DiskOpts) error {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func GetSnap(id , email string) (*Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), "/snapshots/" + id)
+	cl := api.NewClient(newArgs(email, ""), "/snapshots/show/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (s *Snaps) UpdateSnap() error {
 /** A public function which pulls the disks that attached to vm.
 and any others we do. **/
 func GetDisks(id, email string) (*Disks, error) {
-	cl := api.NewClient(newArgs(email,""), "/disks/" + id)
+	cl := api.NewClient(newArgs(email,""), "/disks/show/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
