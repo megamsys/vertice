@@ -91,6 +91,7 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
 		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
 		sc.addMetric(DISK_COST, h.DiskCost(), h.DiskSize(), "delta")
+		sc.CreatedAt = time.Now()
 		mc.Add(sc)
 	}
 	return

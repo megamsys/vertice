@@ -17,9 +17,8 @@ package metrix
 
 import (
 	"encoding/json"
-	"time"
-
 	"github.com/megamsys/vertice/api"
+	"time"
 )
 
 const SENSORSBUCKET = "sensors"
@@ -43,24 +42,6 @@ type Sensor struct {
 	CreatedAt            time.Time  `json:"created_at" cql:"created_at"`
 }
 
-type SensorScylla struct {
-	Id                   string   `json:"id" cql:"id"`
-	AccountId            string   `json:"account_id" cql:"account_id"`
-	SensorType           string   `json:"sensor_type" cql:"sensor_type"`
-	AssemblyId           string   `json:"assembly_id" cql:"assembly_id"`
-	AssemblyName         string   `json:"assembly_name" cql:"assembly_name"`
-	AssembliesId         string   `json:"assemblies_id" cql:"assemblies_id"`
-	Node                 string   `json:"node" cql:"node"`
-	System               string   `json:"system" cql:"system"`
-	Status               string   `json:"status" cql:"status"`
-	Source               string   `json:"source" cql:"source"`
-	Message              string   `json:"message" cql:"message"`
-	AuditPeriodBeginning string   `json:"audit_period_beginning" cql:"audit_period_beginning"`
-	AuditPeriodEnding    string   `json:"audit_period_ending" cql:"audit_period_ending"`
-	AuditPeriodDelta     string   `json:"audit_period_delta" cql:"audit_period_delta"`
-	Metrics              []string `json:"metrics" cql:"metrics"`
-	CreatedAt            time.Time   `json:"created_at" cql:"created_at"`
-}
 
 func (s *Sensor) String() string {
 	insp, _ := json.Marshal(s)
@@ -72,7 +53,6 @@ func NewSensor(senstype string) *Sensor {
 	s := &Sensor{
 		Id:         api.Uid(""),
 		SensorType: senstype,
-		CreatedAt:  time.Now(),
 	}
 	return s
 }
@@ -85,27 +65,6 @@ func (s *Sensor) addMetric(key string, value string, unit string, mtype string) 
 			MetricUnits: unit,
 			MetricType:  mtype,
 		})
-}
-
-func (s *Sensor) ParseScyllaformat() SensorScylla {
-	return SensorScylla{
-		Id:                   s.Id,
-		AccountId:            s.AccountId,
-		SensorType:           s.SensorType,
-		AssemblyId:           s.AssemblyId,
-		AssemblyName:         s.AssemblyName,
-		AssembliesId:         s.AssembliesId,
-		Node:                 s.Node,
-		System:               s.System,
-		Status:               s.Status,
-		Source:               s.Source,
-		Message:              s.Message,
-		AuditPeriodBeginning: s.AuditPeriodBeginning,
-		AuditPeriodEnding:    s.AuditPeriodEnding,
-		AuditPeriodDelta:     s.AuditPeriodDelta,
-		Metrics:              s.Metrics.ToString(),
-		CreatedAt:            s.CreatedAt,
-	}
 }
 
 func (s *Sensor) newMetric(me *Metric) {

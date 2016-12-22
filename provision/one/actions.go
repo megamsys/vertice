@@ -65,7 +65,7 @@ var machCreating = action.Action{
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 			mach := machine.Machine{
 				Id:           args.box.Id,
-				AccountId:   args.box.AccountId,
+				AccountId:   	args.box.AccountId,
 				CartonId:     args.box.CartonId,
 				CartonsId:    args.box.CartonsId,
 				Level:        args.box.Level,
@@ -729,6 +729,28 @@ var removeDiskStorage = action.Action{
 		}
 		mach.Status = constants.StatusDiskDetached
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove disk from machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var quotaUpdate = action.Action{
+	Name: "update-quota",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateQuotas(); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusQuotaUpdated
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
 	},
