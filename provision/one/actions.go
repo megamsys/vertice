@@ -159,6 +159,7 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
+			mach.SetStatus(constants.StatusPreError)
 			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
