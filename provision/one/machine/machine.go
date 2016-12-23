@@ -11,6 +11,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/events/bills"
 	"github.com/megamsys/libgo/utils"
@@ -112,17 +113,34 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 }
 
 func (m *Machine) VmHostIpPort(args *CreateArgs) error {
-
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId,"")
+	if err != nil {
+		return err
+	}
 	opts := virtualmachine.Vnc{
 		VmId: m.VMId,
 	}
 
-	vnchost, vncport, err := args.Provisioner.Cluster().GetIpPort(opts, m.Region)
-	if err != nil {
-		return err
-	}
-	m.VNCHost = vnchost
-	m.VNCPort = vncport
+  res := &virtualmachine.VM{}
+	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
+
+   	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool,error) {
+			_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
+			res, err = args.Provisioner.Cluster().GetIpPort(opts, m.Region)
+			if err != nil {
+				return false, err
+			}
+
+      _ = asm.Trigger_event(utils.Status(res.StateString() + "." + res.LcmStateString()))
+			return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+	m.VNCHost = res.GetHostIp()
+	m.VNCPort = res.GetPort()
 	return nil
 }
 
@@ -177,7 +195,7 @@ func (m *Machine) Deduct() error {
 			},
 			&events.Event{
 				AccountsId:  m.AccountId,
-				EventAction: alerts.TRANSACTION, //Change type to transaction
+				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),

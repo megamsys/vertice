@@ -103,42 +103,24 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	return opts.Name, vmid, nil
 }
 
-func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (string, string, error) {
+func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (*virtualmachine.VM, error) {
 
 	addr, err := c.getRegion(region)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	node, err := c.getNodeByAddr(addr)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
-	//opts.TemplateName = node.template
 	opts.T = node.Client
-  res := &virtualmachine.VM{}
-
-   	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool,error) {
-			res, err = opts.GetVm()
-			if err != nil {
-				return false, err
-			}
-			
-			return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
-		})
-
-		if err != nil {
-			return "", "", err
-		}
-		vnchost := res.GetHostIp()
-		vncport := res.GetPort()
-
-
+	res, err := opts.GetVm()
 	if err != nil {
-		return "", "", wrapErrorWithCmd(node, err, "createVM")
+		return nil, wrapErrorWithCmd(node, err, "createVM")
 	}
 
-	return vnchost, vncport, nil
+	return res, err
 }
 
 

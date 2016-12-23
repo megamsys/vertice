@@ -8,18 +8,18 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"time"
+	"fmt"
 )
 
 func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
-		cl := api.NewClient(carton.NewArgs(m.AccountId, ""), "/sensors/content")
-		if _, err := cl.Post(m); err != nil {
-			log.Debugf(err.Error())
-			continue
-		}
-		//make it posted in a background lowpriority channel
-		//mkBalance(m)
+			cl := api.NewClient(carton.NewArgs(m.AccountId, ""), "/sensors/content")
+			fmt.Println(cl)
+			if _, err := cl.Post(m); err != nil {
+				log.Debugf(err.Error())
+				continue
+			}
 	}
 	log.Debugf("sent %d metrics in %.06f\n", len(metrics), time.Since(started).Seconds())
 	return nil
@@ -66,7 +66,7 @@ func mkBalance(s *Sensor, du map[string]string) error {
 			},
 			&events.Event{
 				AccountsId:  s.AccountId,
-				EventAction: alerts.TRANSACTION, //Change type to transaction
+				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),

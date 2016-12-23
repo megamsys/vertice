@@ -140,7 +140,6 @@ var checkBalances = action.Action{
 
 var createMachine = action.Action{
 	Name: "create-machine",
-
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -148,9 +147,12 @@ var createMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-
+    err := mach.SetStatus(mach.Status)
+		if err != nil {
+			return nil, err
+		}
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
-		err := mach.Create(&machine.CreateArgs{
+		err = mach.Create(&machine.CreateArgs{
 			Box:         args.box,
 			Compute:     args.box.Compute,
 			Deploy:      true,
