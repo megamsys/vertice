@@ -132,7 +132,7 @@ func (a *Assembly) updateAsm() error {
 	return nil
 }
 
-func NewArgs(email, org string) api.ApiArgs {	
+func NewArgs(email, org string) api.ApiArgs {
 	return newArgs(email, org)
 }
 
@@ -265,6 +265,10 @@ func (a *Assembly) SetStatus(status utils.Status) error {
 func (a *Assembly) SetState(state utils.State) error {
 	a.State = state.String()
 	return a.updateAsm()
+}
+
+func (a *Assembly) Trigger_event(status utils.Status) error {
+ return a.trigger_event(status)
 }
 
 func (a *Assembly) trigger_event(status utils.Status) error {

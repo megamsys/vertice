@@ -27,9 +27,7 @@ func (on *OpenNebula) Prefix() string {
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-		if mc.AccountId != "" && mc.AssemblyName != "" {
 			mkBalance(mc, on.DefaultUnits)
-		}
 	}
 	return
 }
@@ -85,14 +83,17 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.Source = on.Prefix()
 		sc.Message = "vm billing"
 		sc.Status = h.State()
-		sc.AuditPeriodBeginning = time.Unix(metrics.TimeAsInt64(h.VM.Stime), 0).String()
-		sc.AuditPeriodEnding = time.Unix(metrics.TimeAsInt64(h.VM.Etime), 0).String()
+		sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
+		sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
 		sc.AuditPeriodDelta = h.Elapsed()
 		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
 		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
 		sc.addMetric(DISK_COST, h.DiskCost(), h.DiskSize(), "delta")
 		sc.CreatedAt = time.Now()
-		mc.Add(sc)
+		if sc.isBillable() {
+			mc.Add(sc)
+		}
+
 	}
 	return
 }

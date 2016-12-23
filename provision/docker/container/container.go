@@ -345,7 +345,7 @@ func (c *Container) Deduct() error {
 			},
 			&events.Event{
 				AccountsId:  c.AccountId,
-				EventAction: alerts.TRANSACTION, //Change type to transaction
+				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),
