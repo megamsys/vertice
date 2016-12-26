@@ -149,6 +149,28 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	return nil
 }
 
+// DestroyVM kills a vm, returning an error in case of failure.
+func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
+
+	addr, err := c.getRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	node, err := c.getNodeByAddr(addr)
+	if err != nil {
+		return err
+	}
+	opts.T = node.Client
+
+	_, err = opts.RecoverDelete()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "DestroyVM")
+	}
+
+	return nil
+}
+
 func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 	switch action {
 	case START:

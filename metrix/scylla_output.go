@@ -8,14 +8,12 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"time"
-	"fmt"
 )
 
 func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 	started := time.Now()
 	for _, m := range metrics {
 			cl := api.NewClient(carton.NewArgs(m.AccountId, ""), "/sensors/content")
-			fmt.Println(cl)
 			if _, err := cl.Post(m); err != nil {
 				log.Debugf(err.Error())
 				continue
@@ -45,7 +43,6 @@ func mkBalance(s *Sensor, du map[string]string) error {
 	if flag, err := quotaChecker(s.AssemblyId, s.AccountId); !flag {
 		return err
 	}
-
 	mi := make(map[string]string)
 	m := s.Metrics.Totalcost(du)
 	mi[constants.ACCOUNTID] = s.AccountId

@@ -11,9 +11,9 @@ import (
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
 	"github.com/megamsys/libgo/events"
-	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/events/bills"
+	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
@@ -37,7 +37,7 @@ type Machine struct {
 	Id           string
 	CartonId     string
 	CartonsId    string
-	AccountId   string
+	AccountId    string
 	Level        provision.BoxLevel
 	SSH          provision.BoxSSH
 	Image        string
@@ -73,7 +73,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		Vnets: args.Box.Vnets,
 	}
 
-	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle,m.StorageType)
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	vm := []string{}
 	vm = []string{m.VMId}
 	id[carton.VMID] = vm
-	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId,""); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
@@ -92,28 +92,28 @@ func (m *Machine) Create(args *CreateArgs) error {
 }
 
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
-		bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())
-		if err != nil || bal == nil {
-			return nil
-		}
+	bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())
+	if err != nil || bal == nil {
+		return nil
+	}
 
-		//have to decide what to do whether balance record is empty
-		i, err := strconv.ParseFloat(bal.Credit, 64)
-		if err != nil {
-			return err
-		}
+	//have to decide what to do whether balance record is empty
+	i, err := strconv.ParseFloat(bal.Credit, 64)
+	if err != nil {
+		return err
+	}
 
-		if i <= 0 {
-			carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
-			log.Debugf(" credit balance insufficient for the user (%s)", b.AccountId)
-			return fmt.Errorf("credit balance insufficient")
-		}
+	if i <= 0 {
+		carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
+		log.Debugf(" credit balance insufficient for the user (%s)", b.AccountId)
+		return fmt.Errorf("credit balance insufficient")
+	}
 
 	return nil
 }
 
 func (m *Machine) VmHostIpPort(args *CreateArgs) error {
-	asm, err := carton.NewAssembly(m.CartonId, m.AccountId,"")
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
 	if err != nil {
 		return err
 	}
@@ -121,23 +121,23 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 		VmId: m.VMId,
 	}
 
-  res := &virtualmachine.VM{}
+	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-   	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool,error) {
-			_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
-			res, err = args.Provisioner.Cluster().GetIpPort(opts, m.Region)
-			if err != nil {
-				return false, err
-			}
-
-      _ = asm.Trigger_event(utils.Status(res.StateString() + "." + res.LcmStateString()))
-			return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
-		})
-
+	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
+		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
+		res, err = args.Provisioner.Cluster().GetIpPort(opts, m.Region)
 		if err != nil {
-			return err
+			return false, err
 		}
+
+		_ = asm.Trigger_event(utils.Status(res.StateString() + "." + res.LcmStateString()))
+		return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
+	})
+
+	if err != nil {
+		return err
+	}
 
 	m.VNCHost = res.GetHostIp()
 	m.VNCPort = res.GetPort()
@@ -151,7 +151,7 @@ func (m *Machine) UpdateVncHostPost() error {
 	port = []string{m.VNCPort}
 	vnc[carton.VNCHOST] = host
 	vnc[carton.VNCPORT] = port
-	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId,""); err != nil {
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(vnc); err != nil {
 		return err
@@ -159,7 +159,7 @@ func (m *Machine) UpdateVncHostPost() error {
 	return nil
 }
 
-func (m *Machine) Remove(p OneProvisioner) error {
+func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
@@ -168,11 +168,23 @@ func (m *Machine) Remove(p OneProvisioner) error {
 		VMId:   id,
 	}
 
+	if !isDeleteOk(state) {
+		err := p.Cluster().ForceDestoryVM(opts)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
 	err := p.Cluster().DestroyVM(opts)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+func isDeleteOk(state constants.State) bool {
+	return state != constants.StateInitialized && state != constants.StateInitializing && state != constants.StatePreError
 }
 
 //trigger multi event in the order
@@ -234,7 +246,7 @@ func (m *Machine) SetStatus(status utils.Status) error {
 
 		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetStatus(status,m.AccountId, ""); err != nil {
+		} else if err = comp.SetStatus(status, m.AccountId, ""); err != nil {
 			return err
 		}
 	}
@@ -255,7 +267,7 @@ func (m *Machine) SetMileStone(state utils.State) error {
 
 		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetState(state,m.AccountId, ""); err != nil {
+		} else if err = comp.SetState(state, m.AccountId, ""); err != nil {
 			return err
 		}
 	}
@@ -370,7 +382,7 @@ func (m *Machine) IsSnapReady(p OneProvisioner) error {
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
 func (m *Machine) AttachNewDisk(p OneProvisioner) error {
- log.Debugf("  attachng new disk for the machine (%s)", m.Name)
+	log.Debugf("  attachng new disk for the machine (%s)", m.Name)
 	dsk, err := carton.GetDisks(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
@@ -395,7 +407,7 @@ func (m *Machine) UpdateSnap() error {
 		return err
 	}
 	sns.ImageId = m.ImageId
-	sns.Status =  "ready"
+	sns.Status = "ready"
 	err = sns.UpdateSnap()
 	if err != nil {
 		return err
@@ -477,19 +489,18 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	return nil
 }
 
-
 func (m *Machine) UpdateQuotas() error {
-	asm, err := carton.NewAssembly(m.CartonId, m.AccountId,"")
-	if  err != nil {
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if err != nil {
 		return err
 	}
 	quota, err := carton.NewQuota(m.AccountId, asm.QuotaID())
 	if err != nil {
-		return  err
+		return err
 	}
-  quota.AllocatedTo = m.CartonId
+	quota.AllocatedTo = m.CartonId
 	if err = quota.Update(); err != nil {
-		return  err
+		return err
 	}
 	return nil
 }
