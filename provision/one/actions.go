@@ -170,7 +170,7 @@ var createMachine = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		err := c.Remove(args.provisioner)
+		err := c.Remove(args.provisioner, args.box.State)
 		if err != nil {
 			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 		}
@@ -267,10 +267,10 @@ var destroyOldMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
-		err := mach.Remove(args.provisioner)
-		if err != nil {
-			return nil, err
-		}
+			err := mach.Remove(args.provisioner,args.box.State)
+			if err != nil {
+				return nil, err
+			}
 
 		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroyed old machine (%s, %s) OK", mach.Id, mach.Name)))
 		return ctx.Previous, nil

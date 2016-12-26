@@ -5,14 +5,12 @@ import (
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
+	"strconv"
 	"time"
 )
 
 const (
 	OPENNEBULA  = "one"
-	CPU_COST    = "cpu_cost"
-	MEMORY_COST = "memory_cost"
-	DISK_COST   = "disk_cost"
 )
 
 type OpenNebula struct {
@@ -88,7 +86,7 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.AuditPeriodDelta = h.Elapsed()
 		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
 		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
-		sc.addMetric(DISK_COST, h.DiskCost(), h.DiskSize(), "delta")
+		sc.addMetric(DISK_COST, h.DiskCost(),strconv.FormatInt(h.DiskSize(),10), "delta")
 		sc.CreatedAt = time.Now()
 		if sc.isBillable() {
 			mc.Add(sc)

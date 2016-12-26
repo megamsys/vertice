@@ -12,6 +12,10 @@ const (
 	CPU_UNIT    = "cpu_unit"
 	MEMORY_UNIT = "memory_unit"
 	DISK_UNIT   = "disk_unit"
+	CPU_COST    = "cpu_cost"
+	MEMORY_COST = "memory_cost"
+	DISK_COST   = "disk_cost"
+
 )
 
 type MetricsMap map[string]int64
@@ -54,22 +58,22 @@ func parseStringToStruct(str string, data interface{}) error {
 func (m *Metrics) Totalcost(units map[string]string) string {
 
 	//have to calculate metrics based on discount when flavour increases
+	var cost float64
+	defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
+	defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
+	defaultDiskUnit, _ := strconv.ParseFloat(units[DISK_UNIT], 64)
 
-	cost := 0.0
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
 		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
 		switch in.MetricName {
 		case CPU_COST:
-			defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
 			cost = cost + (unit/defaultCpuUnit)*consume
 		case MEMORY_COST:
-			defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
 			cost = cost + (unit/defaultRamUnit)*consume
 		case DISK_COST:
-			defaultDiskUnit, _ := strconv.ParseFloat(units[DISK_UNIT], 64)
 			cost = cost + (unit/defaultDiskUnit)*consume
 		}
 	}
-	return strconv.FormatFloat(cost, 'f', 3, 64)
+	return strconv.FormatFloat(cost/6, 'f', 6, 64)   //for 1 hr to 10min It should be customized
 }
