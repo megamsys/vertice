@@ -58,7 +58,6 @@ func parseStringToStruct(str string, data interface{}) error {
 func (m *Metrics) Totalcost(units map[string]string) string {
 
 	//have to calculate metrics based on discount when flavour increases
- fmt.Println("calculations : ")
 	var cost float64
 	defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
 	defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
