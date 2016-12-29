@@ -14,6 +14,8 @@ const (
 	DISK_UNIT   = "disk_unit"
 	CPU_COST    = "cpu_cost"
 	MEMORY_COST = "memory_cost"
+	CPU_COST_PER_HOUR = "cpu_cost_per_hour"
+	RAM_COST_PER_HOUR = "ram_cost_per_hour"
 	DISK_COST   = "disk_cost"
 
 )

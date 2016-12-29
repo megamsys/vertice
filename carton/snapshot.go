@@ -75,6 +75,15 @@ func (a *Snaps) String() string {
 	}
 }
 
+func NewDisk(email, org, assembly, id string) *Disks {
+  return &Disks{
+		Id: id,
+		OrgId: org,
+		AccountId: email,
+		AssemblyId: assembly,
+	}
+}
+
 // ChangeState runs a state increment of a machine or a container.
 func SaveImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
@@ -151,7 +160,10 @@ func DetachDisk(opts *DiskOpts) error {
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	err := ProvisionerMap[opts.B.Provider].DetachDisk(opts.B, writer)
 	elapsed := time.Since(start)
-
+	if err != nil {
+		return err
+	}
+  err = destroyDiskData(opts)
 	if err != nil {
 		return err
 	}
@@ -160,6 +172,15 @@ func DetachDisk(opts *DiskOpts) error {
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
 		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
 		cmd.Colorfy(slog, "yellow", "", ""))
+	return nil
+}
+
+func destroyDiskData(opts *DiskOpts) error {
+	dsk := NewDisk(opts.B.AccountId, opts.B.OrgId, opts.B.CartonId, opts.B.CartonsId)
+	err := dsk.RemoveDisk()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -194,10 +215,11 @@ func (s *Snaps) UpdateSnap() error {
 	return nil
 
 }
+
 /** A public function which pulls the disks that attached to vm.
 and any others we do. **/
 func GetDisks(id, email string) (*Disks, error) {
-	cl := api.NewClient(newArgs(email,""), "/disks/" + id)
+	cl := api.NewClient(newArgs(email,""), "/disks/show/" + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -218,7 +240,7 @@ func GetDisks(id, email string) (*Disks, error) {
 }
 
 func (a *Disks) RemoveDisk() error {
-	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/disks/" + a.Id)
+	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/disks/"+a.AssemblyId +"/" +  a.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
