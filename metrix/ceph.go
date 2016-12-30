@@ -1,5 +1,5 @@
 package metrix
-/*
+
 import (
 	// "encoding/xml"
 	// "github.com/megamsys/vertice/carton"
@@ -28,7 +28,7 @@ type CephRGWStats struct {
 }
 
 func (rgw *CephStorage) Prefix() string {
-	return "ceph_rgw"
+	return CEPHRGW
 }
 
 func (rgw *CephStorage) DeductBill(c *MetricsCollection) (e error) {
@@ -92,4 +92,3 @@ func (rgw *CephStorage) CollectMetricsFromStats(mc *MetricsCollection, s *CephRG
 		}
 	return
 }
-*/

@@ -26,6 +26,7 @@ import (
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	vm "github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
@@ -186,9 +187,7 @@ var getVmHostIpPort = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		err := mach.VmHostIpPort(&machine.CreateArgs{
-			Provisioner: args.provisioner,
-		})
+		err := mach.VmHostIpPort(&machine.CreateArgs{Provisioner: args.provisioner})
 		if err != nil {
 			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
@@ -298,6 +297,12 @@ var startMachine = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
+		err = mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.ACTIVE, vm.RUNNING)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+
 		mach.Status = constants.StatusStarted
 
 		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine (%s, %s) OK", mach.Id, mach.Name)))
@@ -327,6 +332,12 @@ var stopMachine = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
+		err = mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+
 		mach.Status = constants.StatusStopped
 
 		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine (%s, %s)OK", mach.Id, mach.Name)))

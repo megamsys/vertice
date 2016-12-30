@@ -30,24 +30,29 @@ import (
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"io"
-	"io/ioutil"
 	"strings"
 	"time"
 	// "github.com/megamsys/libgo/cmd"
 )
 
 const (
-	ASSEMBLYBUCKET = "assembly"
-	ASM_UPDATE     = "/assembly/update"
-	SSHKEY         = "sshkey"
-	VNCPORT        = "vncport"
-	VNCHOST        = "vnchost"
-	VMID           = "vmid"
-	YES            = "yes"
-	REGION         = "region"
-	PUBLICIPV6     = "publicipv6"
-	PRIVATEIPV6    = "privateipv6"
-	QUOTAID        = "quota_id"
+	ASSEMBLYBUCKET        = "assembly"
+	ASM_UPDATE            = "/assembly/update"
+	SSHKEY                = "sshkey"
+	VNCPORT               = "vncport"
+	VNCHOST               = "vnchost"
+	VMID                  = "vmid"
+	YES                   = "yes"
+	REGION                = "region"
+	PUBLICIPV6            = "publicipv6"
+	PRIVATEIPV6           = "privateipv6"
+	QUOTAID               = "quota_id"
+	VM_CPU_COST           = "vm_cpu_cost_per_hour"
+	VM_MEMORY_COST        = "vm_memory_cost_per_hour"
+	VM_DISK_COST          = "vm_disk_cost_per_hour"
+	CONTAINER_CPU_COST    = "container_cpu_cost_per_hour"
+	CONTAINER_MEMORY_COST = "container_memory_cost_per_hour"
+	CONTAINER_DISK_COST   = "container_disk_cost_per_hour"
 )
 
 type Policy struct {
@@ -92,14 +97,11 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
+
 	ac := &ApiAssembly{}
 
 	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
-	err = json.Unmarshal(htmlData, ac)
+	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +270,7 @@ func (a *Assembly) SetState(state utils.State) error {
 }
 
 func (a *Assembly) Trigger_event(status utils.Status) error {
- return a.trigger_event(status)
+	return a.trigger_event(status)
 }
 
 func (a *Assembly) trigger_event(status utils.Status) error {
@@ -450,6 +452,27 @@ func (a *Assembly) getHDD() string {
 	}
 	return a.Inputs.Match(provision.HDD)
 }
+
+func (a *Assembly) GetVMCpuCost() string {
+	return a.Inputs.Match(VM_CPU_COST)
+}
+
+func (a *Assembly) GetVMMemoryCost() string {
+	return a.Inputs.Match(VM_MEMORY_COST)
+}
+
+func (a *Assembly) GetVMHDDCost() string {
+	return a.Inputs.Match(VM_DISK_COST)
+}
+
+func (a *Assembly) GetContainerCpuCost() string {
+	return a.Inputs.Match(CONTAINER_CPU_COST)
+}
+
+func (a *Assembly) GetContainerMemoryCost() string {
+	return a.Inputs.Match(CONTAINER_MEMORY_COST)
+}
+
 
 func parseStringToStruct(str string, data interface{}) error {
 	if err := json.Unmarshal([]byte(str), data); err != nil {

@@ -21,7 +21,6 @@ import (
 	"github.com/megamsys/libgo/pairs"
 	"gopkg.in/yaml.v2"
 	"encoding/json"
-	"io/ioutil"
 	"reflect"
 	"strings"
 )
@@ -72,13 +71,9 @@ func (a *Assemblies) get(args api.ApiArgs) (*Assemblies, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	ac := &ApiAssemblies{}
-	err = json.Unmarshal(htmlData, ac)
+	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
 	}

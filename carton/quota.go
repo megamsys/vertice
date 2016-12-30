@@ -4,7 +4,6 @@ import (
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
 	"encoding/json"
-	"io/ioutil"
 )
 
 type Quota struct {
@@ -49,14 +48,10 @@ func (q *Quota) get(args api.ApiArgs, id string) (*Quota, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 	ac := &ApiQuota{}
 
 	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
-	err = json.Unmarshal(htmlData, ac)
+	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
 	}

@@ -107,7 +107,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	return opts.Name, vmid, nil
 }
 
-func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (*virtualmachine.VM, error) {
+func (c *Cluster) GetVM(opts virtualmachine.Vnc, region string) (*virtualmachine.VM, error) {
 
 	addr, err := c.getRegion(region)
 	if err != nil {
@@ -121,7 +121,7 @@ func (c *Cluster) GetIpPort(opts virtualmachine.Vnc, region string) (*virtualmac
 	opts.T = node.Client
 	res, err := opts.GetVm()
 	if err != nil {
-		return nil, wrapErrorWithCmd(node, err, "createVM")
+		return nil, wrapErrorWithCmd(node, err, "GetVM")
 	}
 
 	return res, err

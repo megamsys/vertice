@@ -11,7 +11,6 @@ import (
 	"github.com/pivotal-golang/bytefmt"
 	"gopkg.in/yaml.v2"
 	"io"
-	"io/ioutil"
 	"encoding/json"
 	"strings"
 	"time"
@@ -192,13 +191,9 @@ func GetSnap(id , email string) (*Snaps, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	res := &ApiSnaps{}
-	err = json.Unmarshal(htmlData, res)
+	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
@@ -224,13 +219,9 @@ func GetDisks(id, email string) (*Disks, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	res := &ApiDisks{}
-	err = json.Unmarshal(htmlData, res)
+	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
