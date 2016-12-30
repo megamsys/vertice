@@ -3,7 +3,6 @@ package carton
 import (
 	"encoding/json"
 	"github.com/megamsys/libgo/api"
-	"io/ioutil"
 )
 
 const (
@@ -82,12 +81,9 @@ func (a *Account) get(args api.ApiArgs) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
+
 	ac := &AccountApi{}
-	err = json.Unmarshal(htmlData, ac)
+	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
 	}

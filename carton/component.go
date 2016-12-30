@@ -24,7 +24,6 @@ import (
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"strings"
 	"time"
 )
@@ -96,13 +95,9 @@ func NewComponent(id, email, org string) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	ac := &ApiComponent{}
-	err = json.Unmarshal(htmlData, ac)
+	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
 	}

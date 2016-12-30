@@ -4,33 +4,35 @@ import (
 	"fmt"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
-	"time"
 	"strconv"
+	"time"
 )
 
 const DOCKER = "docker"
 
 type Swarm struct {
-	Url       string
-	DefaultMetrics map[string]string
-	RawStatus []interface{}
+	Url            string
+	DefaultUnits map[string]string
+	RawStatus      []interface{}
 }
 
 type Stats struct {
-	ContainerId  string
-	Image        string
-	MemoryUsage  uint64 //in bytes
-	SystemMemory uint64
-	CPUStats     CPUStats //in percentage of total cpu used
-	PreCPUStats  CPUStats
-	NetworkIn    uint64
-	NetworkOut   uint64
-	AccountId    string
-	AssemblyId   string
-	AssemblyName string
-	AssembliesId string
-	Status       string
-	AuditPeriod  time.Time
+	ContainerId    string
+	Image          string
+	MemoryUsage    uint64 //in bytes
+	CPUUnitCost    string
+	MemoryUnitCost string
+	SystemMemory   uint64
+	CPUStats       CPUStats //in percentage of total cpu used
+	PreCPUStats    CPUStats
+	NetworkIn      uint64
+	NetworkOut     uint64
+	AccountId      string
+	AssemblyId     string
+	AssemblyName   string
+	AssembliesId   string
+	Status         string
+	AuditPeriod    time.Time
 }
 
 type CPUStats struct {
@@ -64,7 +66,7 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyId != "" {
-			mkBalance(mc, s.DefaultMetrics)
+			mkBalance(mc, s.DefaultUnits)
 		}
 	}
 	return
@@ -94,8 +96,8 @@ func (s *Swarm) ReadStatus() (e error) {
 func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 
 	for _, h := range stats {
-		cpuDelta := float64((float64(h.CPUStats.TotalUsage) -  float64(h.PreCPUStats.TotalUsage)))
-    systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
+		cpuDelta := float64((float64(h.CPUStats.TotalUsage) - float64(h.PreCPUStats.TotalUsage)))
+		systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
 		cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0
 		sc := NewSensor("compute.container.exists")
 		sc.AccountId = h.AccountId
@@ -111,8 +113,8 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.AuditPeriodEnding = time.Now().String()
 		sc.AuditPeriodDelta = time.Now().String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
-		sc.addMetric(CPU_COST, s.DefaultMetrics[CPU_COST_PER_HOUR] , strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
-		sc.addMetric(MEMORY_COST, s.DefaultMetrics[RAM_COST_PER_HOUR], strconv.FormatFloat(float64(h.MemoryUsage/1024/1024), 'f', 6, 64), "delta")
+		sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
+		sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.MemoryUsage/1024/1024), 'f', 6, 64), "delta")
 		mc.Add(sc)
 		sc.CreatedAt = time.Now()
 		if sc.isBillable() {

@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
-	"io/ioutil"
 	"strings"
 	"time"
 )
@@ -75,13 +74,9 @@ func listReqsById(id, email string) (*Requests, error) {
 	if err != nil {
 		return nil, err
 	}
-	htmlData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
 
 	res := &ApiRequests{}
-	err = json.Unmarshal(htmlData, res)
+	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
