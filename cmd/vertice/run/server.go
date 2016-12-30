@@ -43,7 +43,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendDeploydService(c.Meta, c.Deployd)
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker)
-	s.appendMetricsdService(c.Meta, c.Deployd,c.Docker, c.Metrics)
+	s.appendMetricsdService(c)
 	s.appendEventsdService(c.Meta, c.Events,c.Deployd)
 	s.selfieDNS(c.DNS)
 	return s, nil
@@ -79,12 +79,12 @@ func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
 	s.Services = append(s.Services, srv)
 }
 
-func (s *Server) appendMetricsdService(c *meta.Config, o *deployd.Config,  d *docker.Config, f *metricsd.Config) {
-	if !f.Enabled {
+func (s *Server) appendMetricsdService(c *Config) {
+	if !c.Metrics.Enabled {
 		log.Warn("skip metricsd service.")
 		return
 	}
-	srv := metricsd.NewService(c, o,d, f)
+	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage)
 	s.Services = append(s.Services, srv)
 }
 

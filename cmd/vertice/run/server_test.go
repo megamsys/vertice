@@ -44,6 +44,7 @@ var _ = check.Suite(&S{})
 // NewTestConfig returns the default config with temporary paths.
 func NewTestConfig() *Config {
 	cm := NewConfig()
+	fmt.Println("***************")
 	path := cm.Meta.Dir + "/vertice.conf"
 	if _, err := toml.DecodeFile(path, cm); err != nil {
 		fmt.Println(err.Error())
@@ -54,7 +55,7 @@ func NewTestConfig() *Config {
 
 // OpenServer opens a test server.
 func OpenServer(c *Config) *Server {
-	s, _ := NewServer(c, "0.9.1")
+	s, _ := NewServer(c, "1.5-7")
 	_ = s.Open()
 	return s
 }

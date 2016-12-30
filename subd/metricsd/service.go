@@ -3,6 +3,7 @@ package metricsd
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/storage"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
@@ -18,16 +19,18 @@ type Service struct {
 	Deployd *deployd.Config
 	Dockerd *docker.Config
 	Config  *Config
+	Storage *storage.Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Deployd: one,
 		Dockerd: doc,
 		Config:  f,
+    Storage: strg,
 	}
 	s.Handler = NewHandler()
 	return s

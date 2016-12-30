@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/storage"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/dns"
 	"github.com/megamsys/vertice/subd/docker"
@@ -20,6 +21,7 @@ type Config struct {
 	Metrics *metricsd.Config `toml:"metrics"`
 	DNS     *dns.Config      `toml:"dns"`
 	Events  *eventsd.Config  `toml:"events"`
+	Storage *storage.Config  `toml:"storage"`
 }
 
 func (c Config) String() string {
@@ -30,7 +32,8 @@ func (c Config) String() string {
 		c.Docker.String() + "\n" +
 		c.Metrics.String() + "\n" +
 		c.DNS.String() + "\n" +
-		c.Events.String())
+		c.Events.String() + "\n" +
+	  c.Storage.String())
 
 }
 
@@ -44,6 +47,7 @@ func NewConfig() *Config {
 	c.Metrics = metricsd.NewConfig()
 	c.Events = eventsd.NewConfig()
 	c.DNS = dns.NewConfig()
+	c.Storage = storage.NewConfig()
 	return c
 }
 
