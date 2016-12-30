@@ -66,11 +66,11 @@ func (s *Service) Open() error {
 func (s *Service) processNSQ(msg *nsq.Message) {
 	p, err := carton.NewPayload(msg.Body)
 	if err != nil {
-		fmt.Println(err)
 		return
 	}
 	re, err := p.Convert()
 	if err != nil {
+		log.Errorf("%s",err)
 		return
 	}
 	go s.Handler.serveNSQ(re)

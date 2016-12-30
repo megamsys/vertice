@@ -289,7 +289,6 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		&mileStoneUpdate,
 		&destroyOldMachine,
 		&destroyOldRoute,
-		&mileStoneUpdate,
 		&updateStatusInScylla,
 	}
 

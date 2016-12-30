@@ -3,6 +3,7 @@ package metricsd
 import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/storage"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
@@ -18,16 +19,18 @@ type Service struct {
 	Deployd *deployd.Config
 	Dockerd *docker.Config
 	Config  *Config
+	Storage *storage.Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Deployd: one,
 		Dockerd: doc,
 		Config:  f,
+    Storage: strg,
 	}
 	s.Handler = NewHandler()
 	return s
@@ -63,21 +66,10 @@ func (s *Service) runMetricsCollectors() error {
 		ScyllaAddress: s.Meta.Api,
 	}
 
-	for _, region := range s.Deployd.One.Regions {
-		collectors := map[string]metrix.MetricCollector{
-			metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint, DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit}},
-		}
 
-		mh := &metrix.MetricHandler{}
-
-		for _, collector := range collectors {
-			go s.Handler.processCollector(mh, output, collector)
-		}
-	}
-
-	// for _, region := range s.Dockerd.Docker.Regions {
+	// for _, region := range s.Deployd.One.Regions {
 	// 	collectors := map[string]metrix.MetricCollector{
-	// 		metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint, , DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit}},
+	// 		metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint, DefaultUnits: map[string]string{"memory_unit": region.MemoryUnit, "cpu_unit": region.CpuUnit, "disk_unit": region.DiskUnit}},
 	// 	}
 	//
 	// 	mh := &metrix.MetricHandler{}
@@ -86,6 +78,20 @@ func (s *Service) runMetricsCollectors() error {
 	// 		go s.Handler.processCollector(mh, output, collector)
 	// 	}
 	// }
+
+	for _, region := range s.Dockerd.Docker.Regions {
+	collectors := map[string]metrix.MetricCollector{
+		metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint, DefaultMetrics: map[string]string{metrix.CPU_COST_PER_HOUR: region.CpuCostPerHour,metrix.RAM_COST_PER_HOUR: region.RamCostPerHour,metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit}},
+	}
+
+	mh := &metrix.MetricHandler{}
+
+	for _, collector := range collectors {
+		go s.Handler.processCollector(mh, output, collector)
+	}
+}
+
+
 
 	return nil
 }

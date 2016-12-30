@@ -430,7 +430,7 @@ func (m *Machine) UpdateDisk(p OneProvisioner) error {
 	}
 
 	d.DiskId = strconv.Itoa(l[len(l)-1])
-	d.Status = "Success"
+	d.Status = "success"
 	err = d.UpdateDisk()
 	if err != nil {
 		return err
@@ -452,11 +452,6 @@ func (m *Machine) RemoveDisk(p OneProvisioner) error {
 	}
 
 	err = p.Cluster().DetachDisk(opts, m.Region)
-	if err != nil {
-		return err
-	}
-
-	err = dsk.RemoveDisk()
 	if err != nil {
 		return err
 	}

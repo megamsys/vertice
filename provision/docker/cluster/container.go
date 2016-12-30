@@ -468,6 +468,7 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 func parseContainerStats(d docker.APIContainers, stats *docker.Stats) *metrix.Stats {
 	return &metrix.Stats{
 		ContainerId:  d.ID,
+		Image: d.Image,
 		MemoryUsage:  stats.MemoryStats.Usage,
 		SystemMemory: stats.MemoryStats.Limit,
 		CPUStats: metrix.CPUStats{

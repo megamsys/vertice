@@ -5,18 +5,20 @@ import (
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"time"
+	"strconv"
 )
 
 const DOCKER = "docker"
 
 type Swarm struct {
 	Url       string
-	DefaultUnits map[string]string
+	DefaultMetrics map[string]string
 	RawStatus []interface{}
 }
 
 type Stats struct {
 	ContainerId  string
+	Image        string
 	MemoryUsage  uint64 //in bytes
 	SystemMemory uint64
 	CPUStats     CPUStats //in percentage of total cpu used
@@ -44,7 +46,6 @@ func (s *Swarm) Prefix() string {
 }
 
 func (s *Swarm) Collect(c *MetricsCollection) (e error) {
-	fmt.Println(s)
 	e = s.ReadStatus()
 	if e != nil {
 		return
@@ -62,8 +63,8 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-		if mc.AccountId != "" && mc.AssemblyName != "" {
-			mkBalance(mc, s.DefaultUnits)
+		if mc.AccountId != "" && mc.AssemblyId != "" {
+			mkBalance(mc, s.DefaultMetrics)
 		}
 	}
 	return
@@ -89,9 +90,13 @@ func (s *Swarm) ReadStatus() (e error) {
 	return
 }
 
-//actually the NewSensor can create trypes based on the event type.
+//actually the NewSensor can create types based on the event type.
 func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
+
 	for _, h := range stats {
+		cpuDelta := float64((float64(h.CPUStats.TotalUsage) -  float64(h.PreCPUStats.TotalUsage)))
+    systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
+		cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0
 		sc := NewSensor("compute.container.exists")
 		sc.AccountId = h.AccountId
 		sc.System = s.Prefix()
@@ -106,9 +111,13 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.AuditPeriodEnding = time.Now().String()
 		sc.AuditPeriodDelta = time.Now().String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
-		sc.addMetric(CPU_COST, "2", "0.021", "delta")
-		sc.addMetric(MEMORY_COST, "2", "450", "delta")
+		sc.addMetric(CPU_COST, s.DefaultMetrics[CPU_COST_PER_HOUR] , strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
+		sc.addMetric(MEMORY_COST, s.DefaultMetrics[RAM_COST_PER_HOUR], strconv.FormatFloat(float64(h.MemoryUsage/1024/1024), 'f', 6, 64), "delta")
 		mc.Add(sc)
+		sc.CreatedAt = time.Now()
+		if sc.isBillable() {
+			mc.Add(sc)
+		}
 	}
 	return
 }

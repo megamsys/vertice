@@ -8,6 +8,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"time"
+
 )
 
 func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
