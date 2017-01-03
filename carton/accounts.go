@@ -3,6 +3,7 @@ package carton
 import (
 	"encoding/json"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/vertice/meta"
 )
 
 const (
@@ -12,6 +13,11 @@ const (
 type AccountApi struct {
 	JsonClaz string  `json:"json_claz"`
 	Results  Account `json:"results"`
+}
+
+type AccountsApi struct {
+	JsonClaz string  `json:"json_claz"`
+	Results  []Account `json:"results"`
 }
 
 type Account struct {
@@ -88,4 +94,20 @@ func (a *Account) get(args api.ApiArgs) (*Account, error) {
 		return nil, err
 	}
 	return &ac.Results, nil
+}
+
+func (a *Account) GetUsers() ([]Account,  error) {
+	args := newArgs(meta.MC.MasterUser, "")
+	cl := api.NewClient(args, "/admin/accounts")
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+		ac := &AccountsApi{}
+		err = json.Unmarshal(response, ac)
+		if err != nil {
+			return nil, err
+		}
+		return ac.Results, nil
 }

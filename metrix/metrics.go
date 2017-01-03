@@ -18,6 +18,10 @@ const (
 	RAM_COST_PER_HOUR = "ram_cost_per_hour"
 	DISK_COST   = "disk_cost"
 
+	STORAGE_COST_PER_HOUR = "storage_cost_per_hour"
+	STORAGE_COST = "storage_cost"
+	STORAGE_UNIT = "storage_unit"
+
 )
 
 type MetricsMap map[string]int64
@@ -64,17 +68,20 @@ func (m *Metrics) Totalcost(units map[string]string) string {
 	defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
 	defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
 	defaultDiskUnit, _ := strconv.ParseFloat(units[DISK_UNIT], 64)
+	defaultStorageUnit, _ := strconv.ParseFloat(units[STORAGE_UNIT], 64)
 
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
 		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
 		switch in.MetricName {
 		case CPU_COST:
-			cost = cost + (unit/defaultCpuUnit)*consume
+			cost = cost + (unit/defaultCpuUnit) * consume
 		case MEMORY_COST:
-			cost = cost + (unit/defaultRamUnit)*consume
+			cost = cost + (unit/defaultRamUnit) * consume
 		case DISK_COST:
-			cost = cost + (unit/defaultDiskUnit)*consume
+			cost = cost + (unit/defaultDiskUnit) * consume
+		case STORAGE_COST:
+		  cost = cost + (unit/defaultStorageUnit) * consume
 		}
 	}
 	return strconv.FormatFloat(cost/6, 'f', 6, 64)   //for 1 hr to 10min It should be customized

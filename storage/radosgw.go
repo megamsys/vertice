@@ -2,34 +2,19 @@ package storage
 
 import (
   "github.com/megamsys/go-radosgw/api"
-  //"strconv"
 )
 
 type RadosGW struct {
   UserId string `json:"uid"`
   Api *radosAPI.API
   TotalSizeMB float64 `json:"total_size"`
+  Bucket string `json:"bucket_name"`
 }
-
-
 
 
 func NewRgW(host,access, secret string) *RadosGW {
   return &RadosGW{Api: radosAPI.New(host, access, secret)}
 }
-
-// func (r *RadosGW) getUsers(user string) (*User, error) {
-// 	user, err := r.Api.GetUser(u)
-// 	if err != nil {
-//     return nil, err
-// 	}
-//   return r.userParse(user)
-// }
-
-// func (r *RadosGW) userParse(*radosAPI.User) (*User, error) {
-//   // have to parse rados user to User
-//   return new(User), nil
-// }
 
 // returns user's storage size of all buckets
 func (r *RadosGW) getUserBuckets(name, user string) (radosAPI.Buckets, error) {
@@ -43,6 +28,7 @@ func (r *RadosGW) getUserBuckets(name, user string) (radosAPI.Buckets, error) {
 
 func (r *RadosGW) totalSize(buckets radosAPI.Buckets) error {
    var size float64 = 0.0
+
     for _, b := range buckets {
       size = size + float64(float64(b.Stats.Usage.RgwMain.SizeKbActual)/1024.0)
     }
@@ -50,8 +36,8 @@ func (r *RadosGW) totalSize(buckets radosAPI.Buckets) error {
   return nil
 }
 
-func (r *RadosGW) GetUserStorageSize(user string) error {
-  buckets, err  := r.getUserBuckets("",user)
+func (r *RadosGW) GetUserStorageSize() error {
+  buckets, err  := r.getUserBuckets("",r.UserId)
   if err != nil {
     return  err
   }

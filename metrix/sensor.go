@@ -21,7 +21,12 @@ import (
 	"time"
 )
 
-const SENSORSBUCKET = "sensors"
+const (
+	SENSORSBUCKET = "sensors"
+	CEPH_STORAGE_SENSOR = "storage.ceph.buckets"
+	ONE_VM_SENSOR = "compute.instance.exists"
+	DOCKER_CONTAINER_SENSOR = "compute.container.exists"
+	)
 
 type Sensor struct {
 	Id                   string  `json:"id" cql:"id"`
@@ -72,7 +77,7 @@ func (s *Sensor) newMetric(me *Metric) {
 }
 
 func (s *Sensor) isBillable() bool {
-	return s.AccountId != "" && s.AssemblyName != ""
+	return s.AccountId != "" && s.AssemblyName != "" 
 }
 
 func (s *Sensor) WriteIt() {

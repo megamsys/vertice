@@ -71,7 +71,7 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *metrics.OpenNebulaStatus, e er
 //actually the NewSensor can create trypes based on the event type.
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.OpenNebulaStatus) {
 	for _, h := range s.History_Records {
-		sc := NewSensor("compute.instance.exists")
+		sc := NewSensor(ONE_VM_SENSOR)
 		sc.AccountId = h.AccountsId()
 		sc.System = on.Prefix()
 		sc.Node = h.HostName

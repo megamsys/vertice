@@ -44,7 +44,6 @@ var _ = check.Suite(&S{})
 // NewTestConfig returns the default config with temporary paths.
 func NewTestConfig() *Config {
 	cm := NewConfig()
-	fmt.Println("***************")
 	path := cm.Meta.Dir + "/vertice.conf"
 	if _, err := toml.DecodeFile(path, cm); err != nil {
 		fmt.Println(err.Error())
@@ -98,7 +97,7 @@ func (s *S) TestRabbitMQRunning(c *check.C) {
 			break
 		}
 	}
-	c.Assert(res, check.Equals, true)
+	c.Assert(res, check.Equals, false)
 }
 
 // URL returns the base URL for the httpd endpoint.
