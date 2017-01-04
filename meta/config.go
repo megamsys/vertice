@@ -46,6 +46,7 @@ type Config struct {
 	NSQd           []string `toml:"nsqd"`
 	Api            string   `toml:"api"`
 	MasterKey      string   `toml:"master_key"`
+	MasterUser     string   `toml:"master_user"`
 	User           string   `toml:"user"`
 }
 
@@ -60,6 +61,8 @@ func (c Config) String() string {
 	b.Write([]byte("Home      " + "\t" + c.Home + "\n"))
 	b.Write([]byte("Dir       " + "\t" + c.Dir + "\n"))
 	b.Write([]byte("Api       " + "\t" + c.Api + "\n"))
+	b.Write([]byte("Master User        " + "\t" + c.MasterUser + "\n"))
+	b.Write([]byte("Master Key       " + "\t" + c.MasterUser + "\n"))
 	b.Write([]byte("NSQd      " + "\t" + strings.Join(c.NSQd, ",") + "\n"))
 	b.Write([]byte("---\n"))
 	fmt.Fprintln(w)

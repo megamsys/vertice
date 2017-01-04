@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -17,6 +18,10 @@ const (
 	CPU_COST_PER_HOUR = "cpu_cost_per_hour"
 	RAM_COST_PER_HOUR = "ram_cost_per_hour"
 	DISK_COST   = "disk_cost"
+
+	STORAGE_COST_PER_HOUR = "storage_cost_per_hour"
+	STORAGE_COST = "storage_cost"
+	STORAGE_UNIT = "storage_unit"
 
 )
 
@@ -57,25 +62,32 @@ func parseStringToStruct(str string, data interface{}) error {
 	return nil
 }
 
-func (m *Metrics) Totalcost(units map[string]string) string {
+func (m *Metrics) Totalcost(units map[string]string,ival time.Duration) string {
 
 	//have to calculate metrics based on discount when flavour increases
-	var cost float64
+	var cost, diff_ival float64
 	defaultCpuUnit, _ := strconv.ParseFloat(units[CPU_UNIT], 64)
 	defaultRamUnit, _ := strconv.ParseFloat(units[MEMORY_UNIT], 64)
 	defaultDiskUnit, _ := strconv.ParseFloat(units[DISK_UNIT], 64)
+	defaultStorageUnit, _ := strconv.ParseFloat(units[STORAGE_UNIT], 64)
 
+	//Only For Hourly Billing
+
+  diff_ival = (1*time.Hour).Minutes()/ival.Minutes()
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
 		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
 		switch in.MetricName {
 		case CPU_COST:
-			cost = cost + (unit/defaultCpuUnit)*consume
+			cost = cost + (unit/defaultCpuUnit) * consume
 		case MEMORY_COST:
-			cost = cost + (unit/defaultRamUnit)*consume
+			cost = cost + (unit/defaultRamUnit) * consume
 		case DISK_COST:
-			cost = cost + (unit/defaultDiskUnit)*consume
+			cost = cost + (unit/defaultDiskUnit) * consume
+		case STORAGE_COST:
+		  cost = cost + (unit/defaultStorageUnit) * consume
 		}
 	}
-	return strconv.FormatFloat(cost/6, 'f', 6, 64)   //for 1 hr to 10min It should be customized
+	res := strconv.FormatFloat(cost/float64(diff_ival), 'f', 6, 64)
+	return res   //for 1 hr to 10min It should be customized
 }

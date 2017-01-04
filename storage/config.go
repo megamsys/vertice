@@ -37,8 +37,10 @@ type Region struct {
 	Enabled     bool   `json:"enabled" toml:"enabled"`
 	Zone        string `json:"radosgw_region" toml:"radosgw_region"`
 	EndPoint    string `json:"radosgw_host" toml:"radosgw_host"`
+	AdminUser   string `json:"admin_user" toml:"admin_user"`
 	AdminAccess string `json:"admin_access_key" toml:"admin_access_key"`
 	AdminSecret string `json:"admin_secret_key" toml:"admin_secret_key"`
+	StorageUnit string `json:"storage_unit" toml:"storage_unit"`
 	CostPerHour string `json:"cost_per_hour" toml:"cost_per_hour"`
 }
 
@@ -48,6 +50,7 @@ func NewConfig() *Config {
 		Enabled:     false,
 		Zone:        DefaultZone,
 		EndPoint:    DefaultEndpoint,
+		AdminUser:   "info@megam.io",
 		AdminAccess: DefaultAccessKey,
 		AdminSecret: DefaultSecretKey,
 		CostPerHour: DefaultCost,
@@ -72,6 +75,7 @@ func (c Config) String() string {
 	for _, v := range c.RgwStorage.Regions {
 		b.Write([]byte("Region" + "\t" + v.Zone + "\n"))
 		b.Write([]byte("Endpoint" + "\t" + v.EndPoint + "\n"))
+		b.Write([]byte("Admin User" + "    \t" + v.AdminUser + "\n"))
 		b.Write([]byte("AdminAccess" + "    \t" + v.AdminAccess + "\n"))
 		b.Write([]byte("AdminSecret"  + "\t" + v.AdminSecret + "\n"))
 		b.Write([]byte("Cost per hour" + "\t" + v.CostPerHour + "\n"))

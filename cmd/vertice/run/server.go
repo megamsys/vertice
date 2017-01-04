@@ -46,6 +46,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendMetricsdService(c)
 	s.appendEventsdService(c.Meta, c.Events,c.Deployd)
 	s.selfieDNS(c.DNS)
+	c.Meta.MkGlobal() //a setter for global meta config
 	return s, nil
 }
 

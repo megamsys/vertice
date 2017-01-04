@@ -34,7 +34,6 @@ func (c Config) String() string {
 		c.DNS.String() + "\n" +
 		c.Events.String() + "\n" +
 	  c.Storage.String())
-
 }
 
 // NewConfig returns an instance of Config with reasonable defaults.

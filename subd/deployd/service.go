@@ -37,7 +37,7 @@ func NewService(c *meta.Config, d *Config) *Service {
 		Deployd: d,
 	}
 	s.Handler = NewHandler(s.Deployd)
-	c.MkGlobal() //a setter for global meta config
+	//c.MkGlobal() //a setter for global meta config
 	return s
 }
 

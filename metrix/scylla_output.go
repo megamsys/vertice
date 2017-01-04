@@ -39,13 +39,13 @@ func quotaChecker(id, email string) (bool, error) {
 
 }
 
-func mkBalance(s *Sensor, du map[string]string) error {
+func mkBalance(s *Sensor, du map[string]string,ival time.Duration) error {
 
 	if flag, err := quotaChecker(s.AssemblyId, s.AccountId); !flag {
 		return err
 	}
 	mi := make(map[string]string)
-	m := s.Metrics.Totalcost(du)
+	m := s.Metrics.Totalcost(du, ival)
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
 	mi[constants.ASSEMBLYNAME] = s.AssemblyName
