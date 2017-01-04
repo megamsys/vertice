@@ -13,6 +13,7 @@ const DOCKER = "docker"
 type Swarm struct {
 	Url            string
 	DefaultUnits map[string]string
+	BillInterval time.Duration
 	RawStatus      []interface{}
 }
 
@@ -66,7 +67,7 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyId != "" {
-			mkBalance(mc, s.DefaultUnits)
+			mkBalance(mc, s.DefaultUnits, s.BillInterval)
 		}
 	}
 	return
@@ -85,7 +86,7 @@ func (s *Swarm) ParseStatus(a []interface{}) ([]*Stats, error) {
 }
 
 func (s *Swarm) ReadStatus() (e error) {
-	s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(), time.Now().Unix(), s.Url, ioutil.Discard)
+	s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-s.BillInterval).Unix(), time.Now().Unix(), s.Url, ioutil.Discard)
 	if e != nil {
 		return
 	}

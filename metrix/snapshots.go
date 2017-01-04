@@ -1,8 +1,8 @@
 package metrix
 
+/*
 import (
   "time"
-	"github.com/megamsys/vertice/snapshots"
 	"github.com/megamsys/vertice/carton"
 )
 
@@ -49,7 +49,7 @@ func (r *CephRbd) Collect(c *MetricsCollection) (e error) {
 		PrivateKey: r.Server.PrivateKey,
 	}
 
-	snps := rbd.GetUserSnaps(acc)
+	snps := rbd.GetUserSnaps(acc,r.PoolName)
 	if len(snps) < 1 {
 		return
 	}
@@ -69,14 +69,14 @@ func (c *CephRbd) ReadUsers() ([]carton.Account, error) {
 }
 
 //actually the NewSensor can create trypes based on the event type.
-func (c *CephRbd) CollectMetricsFromStats(mc *MetricsCollection, snps []snapshots.AsmSnaps) {
-	for _, a := range snp {
+func (c *CephRbd) CollectMetricsFromStats(mc *MetricsCollection, snps []snapshots.UserSnaps) {
+	for _, a := range snps {
 			sc := NewSensor(CEPH_SNAPSHOT_SENSOR)
 			sc.AccountId = a.AccountId
-			sc.AssemblyId = a.AssemblyId
+			//sc.AssemblyId = a.AssemblyId
 			sc.System = c.Prefix()
 			sc.Node = c.Host
-			sc.AssemblyName = a.AssemblyName
+			//sc.AssemblyName = a.AssemblyName
 			sc.Source = c.Prefix()
 			sc.Message = "snapshot billing"
 			sc.Status = "health-ok"
@@ -90,3 +90,4 @@ func (c *CephRbd) CollectMetricsFromStats(mc *MetricsCollection, snps []snapshot
 
 	return
 }
+*/

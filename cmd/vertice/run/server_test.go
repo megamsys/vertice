@@ -97,7 +97,7 @@ func (s *S) TestRabbitMQRunning(c *check.C) {
 			break
 		}
 	}
-	c.Assert(res, check.Equals, false)
+	c.Assert(res, check.Equals, true)
 }
 
 // URL returns the base URL for the httpd endpoint.

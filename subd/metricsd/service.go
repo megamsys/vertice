@@ -5,12 +5,10 @@ import (
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/storage"
-	"github.com/megamsys/vertice/snapshots"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
 	"time"
 
-	"fmt"
 )
 
 // Service manages the listener and handler for an HTTP endpoint.
@@ -26,7 +24,7 @@ type Service struct {
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config, snp *snapshots.Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
@@ -34,7 +32,6 @@ func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Conf
 		Dockerd: doc,
 		Config:  f,
 		Storage: strg,
-		Snapshots: snp,
 	}
 	s.Handler = NewHandler()
 	return s
@@ -71,21 +68,16 @@ func (s *Service) runMetricsCollectors() error {
 	}
 
   if s.Deployd.One.Enabled {
-		onedCollectors()
+		s.onedCollectors(output)
 	}
 
 	if s.Dockerd.Docker.Enabled {
-		dockerCollectors()
+		s.dockerCollectors(output)
 	}
 
 	if s.Storage.Enabled {
-		storageCollectors()
+		s.storageCollectors(output)
 	}
-
-	if s.Snapshots.Enabled {
-		snapshotsCollectors()
-	}
-
 	return nil
 }
 
@@ -102,12 +94,16 @@ func (s *Service) Close() error {
 func (s *Service) Err() <-chan error { return s.err }
 
 
-func (s *Service) onedCollectors() {
+func (s *Service) onedCollectors(output *metrix.OutputHandler) {
 	// One VirtualMachine Metrics collectors
 	 if s.Deployd.One.Enabled {
 		 for _, region := range s.Deployd.One.Regions {
 			 collectors := map[string]metrix.MetricCollector{
-				 metrix.OPENNEBULA: &metrix.OpenNebula{Url: region.OneEndPoint, DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit}},
+				 metrix.OPENNEBULA: &metrix.OpenNebula{
+					 Url: region.OneEndPoint,
+					 BillInterval: time.Duration(s.Config.CollectInterval),
+					 DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit},
+				 },
 			 }
 
 			 mh := &metrix.MetricHandler{}
@@ -121,12 +117,12 @@ func (s *Service) onedCollectors() {
 }
 
 
-func (s *Service) dockerCollectors() {
+func (s *Service) dockerCollectors(output *metrix.OutputHandler) {
 	// Docker container Metrics collectors
   if s.Dockerd.Docker.Enabled {
  	 for _, region := range s.Dockerd.Docker.Regions {
  		 collectors := map[string]metrix.MetricCollector{
- 			 metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint, DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit}},
+ 			 metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint,BillInterval: time.Duration(s.Config.CollectInterval), DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit}},
  		 }
 
  		 mh := &metrix.MetricHandler{}
@@ -139,17 +135,18 @@ func (s *Service) dockerCollectors() {
   }
 }
 
-func (s *Service) storageCollectors() {
+func (s *Service) storageCollectors(output *metrix.OutputHandler) {
 	if s.Storage.RgwStorage.Enabled {
  	// Ceph RadosGW (storage buckets) Metrics collectors
  	for _, region := range s.Storage.RgwStorage.Regions {
  		collectors := map[string]metrix.MetricCollector{
  			metrix.CEPHRGW: &metrix.CephRGWStats{Url: region.EndPoint,
- 				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: region.StorageUnit, metrix.STORAGE_COST_PER_HOUR: region.CostPerHour},
+ 				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: region.StorageUnit,  metrix.STORAGE_COST_PER_HOUR: region.CostPerHour},
  				AdminUser: region.AdminUser,
  				MasterKey: s.Meta.MasterKey,
  				AccessKey: region.AdminAccess,
  				SecretKey: region.AdminSecret,
+				BillInterval: time.Duration(s.Config.CollectInterval),
  			},
  		}
 
@@ -163,28 +160,28 @@ func (s *Service) storageCollectors() {
   }
 }
 
-func (s *Service) snapshotsCollectors() {
-	if s.Snapshots.RbdSnap.Enabled {
- 	// Ceph RadosGW (storage buckets) Metrics collectors
- 	for _, region := range s.Snapshots.RbdSnap.Regions {
- 		collectors := map[string]metrix.MetricCollector{
- 			metrix.CEPHRBD: &metrix.Snapshots.CephRbd{
-				Server: metrix.Server{
-					Host: region.Host,
-					Username: region.Username,
-					Password: region.Password,
-				},
-				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: region.StorageUnit, metrix.STORAGE_COST_PER_HOUR: region.CostPerHour},
-				Poolname: region.PoolName,
- 			},
- 		}
-
- 		mh := &metrix.MetricHandler{}
-
- 		for _, collector := range collectors {
- 			go s.Handler.processCollector(mh, output, collector)
- 		}
-
- 	}
-  }
-}
+// func (s *Service) snapshotsCollectors() {
+// 	if s.Snapshots.RbdSnap.Enabled {
+//  	// Ceph RadosGW (storage buckets) Metrics collectors
+//  	for _, region := range s.Snapshots.RbdSnap.Regions {
+//  		collectors := map[string]metrix.MetricCollector{
+//  			metrix.CEPHRBD: &metrix.Snapshots.CephRbd{
+// 				Server: metrix.Server{
+// 					Host: region.Host,
+// 					Username: region.Username,
+// 					Password: region.Password,
+// 				},
+// 				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: region.StorageUnit, metrix.STORAGE_COST_PER_HOUR: region.CostPerHour},
+// 				Poolname: region.PoolName,
+//  			},
+//  		}
+//
+//  		mh := &metrix.MetricHandler{}
+//
+//  		for _, collector := range collectors {
+//  			go s.Handler.processCollector(mh, output, collector)
+//  		}
+//
+//  	}
+//   }
+// }

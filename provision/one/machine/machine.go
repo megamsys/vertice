@@ -80,7 +80,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key},
 		Vnets: args.Box.Vnets,
 	}
-
+  opts.VCpu = opts.Cpu
 	if strings.Contains(args.Box.Tosca, "freebsd") {
 		opts.Files = "/detio/freebsd/init.sh"
 	}

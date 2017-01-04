@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"time"
+	"fmt"
 )
 
 const (
@@ -16,6 +17,7 @@ const (
 type OpenNebula struct {
 	Url          string
 	DefaultUnits map[string]string
+	BillInterval     time.Duration
 	RawStatus    []byte
 }
 
@@ -25,7 +27,7 @@ func (on *OpenNebula) Prefix() string {
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-			mkBalance(mc, on.DefaultUnits)
+			mkBalance(mc, on.DefaultUnits, on.BillInterval)
 	}
 	return
 }
@@ -33,6 +35,7 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 	b, e := on.ReadStatus()
 	if e != nil {
+		fmt.Println(e)
 		return
 	}
 
@@ -48,7 +51,7 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
-		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-10*time.Minute).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-on.BillInterval).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
 		if e != nil {
 			return
 		}
@@ -84,7 +87,7 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
 		sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
 		sc.AuditPeriodDelta = h.Elapsed()
-		sc.addMetric(CPU_COST, h.CpuCost(), h.Cpu(), "delta")
+		sc.addMetric(CPU_COST, h.CpuCost(), h.VCpu(), "delta")
 		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
 		sc.addMetric(DISK_COST, h.DiskCost(),strconv.FormatInt(h.DiskSize(),10), "delta")
 		sc.CreatedAt = time.Now()
