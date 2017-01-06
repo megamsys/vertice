@@ -17,7 +17,6 @@ const (
 type OpenNebula struct {
 	Url          string
 	DefaultUnits map[string]string
-	BillInterval     time.Duration
 	RawStatus    []byte
 }
 
@@ -27,7 +26,7 @@ func (on *OpenNebula) Prefix() string {
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-			mkBalance(mc, on.DefaultUnits, on.BillInterval)
+			mkBalance(mc, on.DefaultUnits)
 	}
 	return
 }
@@ -51,7 +50,7 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
-		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-on.BillInterval).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-MetricsInterval).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
 		if e != nil {
 			return
 		}
@@ -74,24 +73,26 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *metrics.OpenNebulaStatus, e er
 //actually the NewSensor can create trypes based on the event type.
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.OpenNebulaStatus) {
 	for _, h := range s.History_Records {
-		sc := NewSensor(ONE_VM_SENSOR)
-		sc.AccountId = h.AccountsId()
-		sc.System = on.Prefix()
-		sc.Node = h.HostName
-		sc.AssemblyId = h.AssemblyId()
-		sc.AssemblyName = h.AssemblyName()
-		sc.AssembliesId = h.AssembliesId()
-		sc.Source = on.Prefix()
-		sc.Message = "vm billing"
-		sc.Status = h.State()
-		sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
-		sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
-		sc.AuditPeriodDelta = h.Elapsed()
-		sc.addMetric(CPU_COST, h.CpuCost(), h.VCpu(), "delta")
-		sc.addMetric(MEMORY_COST, h.MemoryCost(), h.Memory(), "delta")
-		sc.addMetric(DISK_COST, h.DiskCost(),strconv.FormatInt(h.DiskSize(),10), "delta")
-		sc.CreatedAt = time.Now()
-		if sc.isBillable() {
+		q := &carton.Quota{AccountId: h.AccountsId(), AllocatedTo: h.AssemblyId()}
+	  usage, billable, _ := q.VmQuota(h.VCpu(),h.Memory(), h.Disks())
+		if billable {
+			sc := NewSensor(ONE_VM_SENSOR)
+			sc.AccountId = h.AccountsId()
+			sc.System = on.Prefix()
+			sc.Node = h.HostName
+			sc.AssemblyId = h.AssemblyId()
+			sc.AssemblyName = h.AssemblyName()
+			sc.AssembliesId = h.AssembliesId()
+			sc.Source = on.Prefix()
+			sc.Message = "vm billing"
+			sc.Status = h.State()
+			sc.AuditPeriodBeginning = strconv.FormatInt(time.Now().Add(-MetricsInterval).Unix() ,10)
+			sc.AuditPeriodEnding = strconv.FormatInt(time.Now().Unix() ,10)
+			sc.AuditPeriodDelta = h.Elapsed()
+			sc.addMetric(CPU_COST, h.CpuCost(), usage[metrics.CPU], "delta")
+			sc.addMetric(MEMORY_COST, h.MemoryCost(), usage[metrics.MEMORY], "delta")
+			sc.addMetric(DISK_COST, h.DiskCost(),usage[metrics.DISKS] , "delta")
+			sc.CreatedAt = time.Now()
 			mc.Add(sc)
 		}
 

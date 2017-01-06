@@ -3,7 +3,9 @@ package carton
 import (
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/opennebula-go/metrics"
 	"encoding/json"
+	"strconv"
 )
 
 type Quota struct {
@@ -57,4 +59,40 @@ func (q *Quota) get(args api.ApiArgs, id string) (*Quota, error) {
 	}
 
 	return &ac.Results[0], nil
+}
+
+
+func (q *Quota) ContainerQuota() (bool, error) {
+	asm, err := NewAssembly(q.AllocatedTo, q.AccountId, "")
+	if err != nil {
+		return true, err
+	}
+  return !(len(asm.QuotaID()) > 0), nil
+}
+
+func (q *Quota) VmQuota(cpu, ram string, disks []metrics.Disk) (map[string]string, bool, error) {
+  usage := make(map[string]string)
+	var totalsize int64
+	for _,v := range disks {
+		totalsize = totalsize + v.Size
+	}
+	usage[metrics.CPU] = cpu
+	usage[metrics.MEMORY] = ram
+	usage[metrics.DISKS] = strconv.FormatInt(totalsize,10)
+	asm, err := NewAssembly(q.AllocatedTo, q.AccountId, "")
+	if err != nil {
+		return usage, true, err
+	}
+
+	if len(asm.QuotaID()) > 0 {
+		if len(disks) != 1 {
+			usage[metrics.CPU] = "0"
+			usage[metrics.MEMORY] = "0"
+			usage[metrics.DISKS] = strconv.FormatInt(totalsize - disks[0].Size, 10)
+			return usage, true, nil
+		}
+		return usage, false, nil
+	}
+
+  return usage, true, nil
 }

@@ -13,7 +13,6 @@ const DOCKER = "docker"
 type Swarm struct {
 	Url            string
 	DefaultUnits map[string]string
-	BillInterval time.Duration
 	RawStatus      []interface{}
 }
 
@@ -67,7 +66,7 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyId != "" {
-			mkBalance(mc, s.DefaultUnits, s.BillInterval)
+			mkBalance(mc, s.DefaultUnits)
 		}
 	}
 	return
@@ -86,7 +85,7 @@ func (s *Swarm) ParseStatus(a []interface{}) ([]*Stats, error) {
 }
 
 func (s *Swarm) ReadStatus() (e error) {
-	s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-s.BillInterval).Unix(), time.Now().Unix(), s.Url, ioutil.Discard)
+	s.RawStatus, e = carton.ProvisionerMap[s.Prefix()].MetricEnvs(time.Now().Add(-MetricsInterval).Unix(), time.Now().Unix(), s.Url, ioutil.Discard)
 	if e != nil {
 		return
 	}
@@ -110,9 +109,9 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.Source = s.Prefix()
 		sc.Message = "container billing"
 		sc.Status = h.Status
-		sc.AuditPeriodBeginning = time.Now().Add(-10 * time.Minute).String()
-		sc.AuditPeriodEnding = time.Now().String()
-		sc.AuditPeriodDelta = time.Now().String()
+		sc.AuditPeriodBeginning = strconv.FormatInt(time.Now().Add(-MetricsInterval).Unix(), 10)
+		sc.AuditPeriodEnding = strconv.FormatInt(time.Now().Unix(), 10)
+		sc.AuditPeriodDelta = MetricsInterval.String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
 		sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
 		sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.MemoryUsage/1024.0/1024.0), 'f', 6, 64), "delta")

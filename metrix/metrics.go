@@ -62,7 +62,7 @@ func parseStringToStruct(str string, data interface{}) error {
 	return nil
 }
 
-func (m *Metrics) Totalcost(units map[string]string,ival time.Duration) string {
+func (m *Metrics) Totalcost(units map[string]string) string {
 
 	//have to calculate metrics based on discount when flavour increases
 	var cost, diff_ival float64
@@ -73,7 +73,8 @@ func (m *Metrics) Totalcost(units map[string]string,ival time.Duration) string {
 
 	//Only For Hourly Billing
 
-  diff_ival = (1*time.Hour).Minutes()/ival.Minutes()
+  diff_ival = (1*time.Hour).Minutes()/MetricsInterval.Minutes()
+
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
 		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
