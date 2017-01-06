@@ -24,28 +24,10 @@ func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 	return nil
 }
 
-func quotaChecker(id, email string) (bool, error) {
-	asm, err := carton.NewAssembly(id, email, "")
-	if err != nil {
-		return false, err
-	}
 
-	qid := asm.QuotaID()
-	if len(qid) > 0 {
-		return false, nil
-	}
-
-	return true, nil
-
-}
-
-func mkBalance(s *Sensor, du map[string]string,ival time.Duration) error {
-
-	if flag, err := quotaChecker(s.AssemblyId, s.AccountId); !flag {
-		return err
-	}
+func mkBalance(s *Sensor, du map[string]string) error {
 	mi := make(map[string]string)
-	m := s.Metrics.Totalcost(du, ival)
+	m := s.Metrics.Totalcost(du)
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
 	mi[constants.ASSEMBLYNAME] = s.AssemblyName

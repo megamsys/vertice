@@ -6,6 +6,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"io"
 	"encoding/json"
@@ -14,8 +15,9 @@ import (
 )
 
 const (
-	SNAPSHOTBUCKET = "snapshots"
-	DISKSBUCKET    = "disks"
+	SNAPSHOTS = "/snapshots/"
+	UPDATE = "update/"
+	DELETE = "delete/"
 	ACCOUNTID      = "account_id"
 	ASSEMBLYID     = "asm_id"
 )
@@ -40,11 +42,11 @@ type Snaps struct {
 	Status     string `json:"status" cql:"status"`
 	Tosca      string `json:"tosca_type" cql:"tosca_type"`
 	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
-	Outputs    pairs.JsonPairs `json:"inputs" cql:"inputs"`
+	Outputs    pairs.JsonPairs `json:"outputs" cql:"outputs"`
 }
 
-func (a *Snaps) String() string {
-	if d, err := yaml.Marshal(a); err != nil {
+func (s *Snaps) String() string {
+	if d, err := yaml.Marshal(s); err != nil {
 		return err.Error()
 	} else {
 		return string(d)
@@ -98,7 +100,7 @@ func DeleteImage(opts *DiskOpts) error {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func GetSnap(id , email string) (*Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), "/snapshots/" + id)
+	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS + id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -114,8 +116,27 @@ func GetSnap(id , email string) (*Snaps, error) {
 	return a, nil
 }
 
+
+/** A public function which pulls the snapshot for disk save as image.
+and any others we do. **/
+func (s *Snaps) GetBox() ([]Snaps, error) {
+	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""),SNAPSHOTS + "box")
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &ApiSnaps{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Results, nil
+}
+
 func (s *Snaps) UpdateSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),"/snapshots/update" )
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),SNAPSHOTS + UPDATE )
 	if _, err := cl.Post(s); err != nil {
 		return err
 	}
@@ -124,8 +145,8 @@ func (s *Snaps) UpdateSnap() error {
 }
 
 
-func (a *Snaps) RemoveSnap() error {
-	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/snapshots/" + a.Id)
+func (s *Snaps) RemoveSnap() error {
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS + DELETE + s.AssemblyId + "/" + s.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
@@ -145,4 +166,8 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 	}
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
+}
+
+func (s *Snaps) Sizeof() string {
+	return s.Outputs.Match("image_size")
 }

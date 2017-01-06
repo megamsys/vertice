@@ -11,6 +11,7 @@ import (
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
 	"github.com/megamsys/vertice/subd/metricsd"
+	"github.com/megamsys/vertice/snapshots"
 )
 
 type Config struct {
@@ -22,6 +23,7 @@ type Config struct {
 	DNS     *dns.Config      `toml:"dns"`
 	Events  *eventsd.Config  `toml:"events"`
 	Storage *storage.Config  `toml:"storage"`
+	Snapshots *snapshots.Config `toml:"snapshots"`
 }
 
 func (c Config) String() string {
@@ -33,7 +35,8 @@ func (c Config) String() string {
 		c.Metrics.String() + "\n" +
 		c.DNS.String() + "\n" +
 		c.Events.String() + "\n" +
-	  c.Storage.String())
+	  c.Storage.String()+ "\n" +
+	  c.Snapshots.String())
 }
 
 // NewConfig returns an instance of Config with reasonable defaults.
@@ -47,6 +50,7 @@ func NewConfig() *Config {
 	c.Events = eventsd.NewConfig()
 	c.DNS = dns.NewConfig()
 	c.Storage = storage.NewConfig()
+	c.Snapshots = snapshots.NewConfig()
 	return c
 }
 
