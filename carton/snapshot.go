@@ -16,6 +16,7 @@ import (
 
 const (
 	SNAPSHOTS = "/snapshots/"
+	SNAPSHOTS_SHOW =  "/snapshots/show/"
 	UPDATE = "update/"
 	DELETE = "delete/"
 	ACCOUNTID      = "account_id"
@@ -100,7 +101,8 @@ func DeleteImage(opts *DiskOpts) error {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func GetSnap(id , email string) (*Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS + id)
+	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS_SHOW + id)
+
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
