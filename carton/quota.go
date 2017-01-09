@@ -2,13 +2,10 @@ package carton
 
 import (
 	"github.com/megamsys/libgo/api"
-		log "github.com/Sirupsen/logrus"
-		"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/opennebula-go/metrics"
 	"encoding/json"
 	"strconv"
-	"fmt"
 )
 
 type Quota struct {
@@ -50,12 +47,10 @@ func (q *Quota) get(args api.ApiArgs) (*Quota, error) {
 	cl := api.NewClient(args, "/quotas/"+ q.Id)
 	response, err := cl.Get()
 	if err != nil {
-		fmt.Println("Error ,", err)
 		return nil, err
 	}
 	ac := &ApiQuota{}
-  fmt.Println(string(response))
-	log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(response))
+	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(response))
 	err = json.Unmarshal(response, ac)
 	if err != nil {
 		return nil, err
