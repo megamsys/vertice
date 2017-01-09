@@ -23,7 +23,7 @@ type Quota struct {
 
 type ApiQuota struct {
 	JsonClaz string  `json:"json_claz"`
-	Results  Quota `json:"results"`
+	Results  []Quota `json:"results"`
 }
 
 func (q *Quota) Update() error {
@@ -61,7 +61,7 @@ func (q *Quota) get(args api.ApiArgs) (*Quota, error) {
 		return nil, err
 	}
 
-	return &ac.Results, nil
+	return &ac.Results[0], nil
 }
 
 
