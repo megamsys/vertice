@@ -2,7 +2,6 @@ package metrix
 
 import (
 	"github.com/megamsys/vertice/carton"
-  "strconv"
 	"time"
 )
 
@@ -69,8 +68,8 @@ func (c *Snapshots) CollectMetricsFromStats(mc *MetricsCollection, snps []carton
 		sc.Source = c.Prefix()
 		sc.Message = "snapshot billing"
 		sc.Status = "health-ok"
-		sc.AuditPeriodBeginning = strconv.FormatInt(time.Now().Add(-MetricsInterval).Unix(), 10)
-		sc.AuditPeriodEnding = strconv.FormatInt(time.Now().Unix(), 10)
+		sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).String()
+		sc.AuditPeriodEnding = time.Now().String()
 		sc.AuditPeriodDelta = ""
 		sc.addMetric(STORAGE_COST, c.DefaultUnits[STORAGE_COST_PER_HOUR], a.Sizeof(), "delta")
 		sc.CreatedAt = time.Now()

@@ -77,7 +77,7 @@ func (s *Sensor) newMetric(me *Metric) {
 }
 
 func (s *Sensor) isBillable() bool {
-	return s.AccountId != "" && s.AssemblyName != "" 
+	return s.AccountId != "" && s.AssemblyId != "" 
 }
 
 func (s *Sensor) WriteIt() {

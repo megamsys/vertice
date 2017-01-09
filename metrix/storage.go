@@ -3,8 +3,8 @@ package metrix
 import (
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/storage"
-  "strconv"
 	"time"
+	"strconv"
 )
 
 const (
@@ -74,8 +74,8 @@ func (c *CephRGWStats) CollectMetricsFromStats(mc *MetricsCollection, acts []car
 			sc.Source = c.Prefix()
 			sc.Message = "storage billing"
 			sc.Status = "health-ok"
-			sc.AuditPeriodBeginning = strconv.FormatInt(time.Now().Add(-MetricsInterval).Unix(), 10)
-			sc.AuditPeriodEnding = strconv.FormatInt(time.Now().Unix(), 10)
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).String()
+			sc.AuditPeriodEnding = time.Now().String()
 			sc.AuditPeriodDelta = ""
 			sc.addMetric(STORAGE_COST, c.DefaultUnits[STORAGE_COST_PER_HOUR], strconv.FormatFloat(r.TotalSizeMB, 'f', 4, 64), "delta")
 			sc.CreatedAt = time.Now()
