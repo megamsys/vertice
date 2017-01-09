@@ -5,7 +5,6 @@ import (
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
-	"strconv"
 	"time"
 	"fmt"
 )
@@ -86,14 +85,17 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 			sc.Source = on.Prefix()
 			sc.Message = "vm billing"
 			sc.Status = h.State()
-			sc.AuditPeriodBeginning = strconv.FormatInt(time.Now().Add(-MetricsInterval).Unix() ,10)
-			sc.AuditPeriodEnding = strconv.FormatInt(time.Now().Unix() ,10)
+			sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
+			sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
 			sc.AuditPeriodDelta = h.Elapsed()
 			sc.addMetric(CPU_COST, h.CpuCost(), usage[metrics.CPU], "delta")
 			sc.addMetric(MEMORY_COST, h.MemoryCost(), usage[metrics.MEMORY], "delta")
 			sc.addMetric(DISK_COST, h.DiskCost(),usage[metrics.DISKS] , "delta")
 			sc.CreatedAt = time.Now()
-			mc.Add(sc)
+			if sc.isBillable() {
+					mc.Add(sc)
+			}
+
 		}
 
 	}
