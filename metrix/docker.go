@@ -109,8 +109,8 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 		sc.Source = s.Prefix()
 		sc.Message = "container billing"
 		sc.Status = h.Status
-		sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).String()
-		sc.AuditPeriodEnding = time.Now().String()
+		sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339)
+		sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)
 		sc.AuditPeriodDelta = MetricsInterval.String()
 		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
 		sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")

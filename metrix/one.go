@@ -85,8 +85,8 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 			sc.Source = on.Prefix()
 			sc.Message = "vm billing"
 			sc.Status = h.State()
-			sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
-			sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339) //time.Unix(h.PStime, 0).String()
+			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339) // time.Unix(h.PEtime, 0).String()
 			sc.AuditPeriodDelta = h.Elapsed()
 			sc.addMetric(CPU_COST, h.CpuCost(), usage[metrics.CPU], "delta")
 			sc.addMetric(MEMORY_COST, h.MemoryCost(), usage[metrics.MEMORY], "delta")
