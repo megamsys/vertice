@@ -12,7 +12,6 @@ const (
 )
 
 type CephStorage struct {
-
 }
 
 type CephRGWStats struct {

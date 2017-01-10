@@ -27,10 +27,6 @@ func Destroy(opts *DestroyOpts) error {
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
 		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
 		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
-	// saveErr := saveDestroyedData(opts, outBuffer.String(), elapsed, err)
-	// if saveErr != nil {
-	// 	log.Errorf("WARNING: couldn't save destroyed data, destroy opts: %#v", opts)
-	// }
 	if err != nil {
 		return err
 	}

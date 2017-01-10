@@ -218,34 +218,6 @@ var updateVnchostPostInScylla = action.Action{
 	},
 }
 
-var deductCons = action.Action{
-	Name: "deduct-cons-machine",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		mach := ctx.Previous.(machine.Machine)
-		args := ctx.Params[0].(runMachineActionsArgs)
-		writer := args.writer
-		if writer == nil {
-			writer = ioutil.Discard
-		}
-
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
-		err := mach.Deduct()
-		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error trigger billing events for machine ( %s)", args.box.GetFullName())))
-			return nil, err
-		}
-
-		mach.Status = constants.StatusVMBooting
-
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("deduct cons of machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
-		return mach, nil
-	},
-	Backward: func(ctx action.BWContext) {
-		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusPreError)
-	},
-}
-
 var setFinalStatus = action.Action{
 	Name: "set-final-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -760,7 +732,7 @@ var quotaUpdate = action.Action{
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
-		if err := mach.UpdateQuotas(); err != nil {
+		if err := mach.UpdateQuotas(args.box.QuotaId); err != nil {
 			return nil, err
 		}
 		mach.Status = constants.StatusQuotaUpdated
