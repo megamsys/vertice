@@ -12,7 +12,6 @@ const (
 )
 
 type CephStorage struct {
-
 }
 
 type CephRGWStats struct {
@@ -74,8 +73,8 @@ func (c *CephRGWStats) CollectMetricsFromStats(mc *MetricsCollection, acts []car
 			sc.Source = c.Prefix()
 			sc.Message = "storage billing"
 			sc.Status = "health-ok"
-			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).String()
-			sc.AuditPeriodEnding = time.Now().String()
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339)
+			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)
 			sc.AuditPeriodDelta = ""
 			sc.addMetric(STORAGE_COST, c.DefaultUnits[STORAGE_COST_PER_HOUR], strconv.FormatFloat(r.TotalSizeMB, 'f', 4, 64), "delta")
 			sc.CreatedAt = time.Now()

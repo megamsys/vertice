@@ -231,20 +231,12 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
-  asm, err := carton.NewAssembly(box.CartonId, box.AccountId,box.OrgId)
-	if err != nil {
-		return "", err
-	}
 
 	actions := []*action.Action{&machCreating}
-	if events.IsEnabled(constants.BILLMGR) && !(len(asm.QuotaID()) > 0) {
-  	actions = append(actions, &checkBalances,	&updateStatusInScylla)
-	}
+	  if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
+  	  actions = append(actions, &checkBalances,	&updateStatusInScylla)
+	  }
 		actions = append(actions, &machCreating,	&mileStoneUpdate,	&createMachine,	&mileStoneUpdate,	&getVmHostIpPort, &updateStatusInScylla)
-		if  (len(asm.QuotaID()) > 0) {
-			actions = append(actions, &quotaUpdate, &updateStatusInScylla)
-		}
-
 		actions = append(actions,	&updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)
@@ -261,7 +253,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	lastStatus = constants.StatusLaunching
 	lastState = constants.StateInitializing
 
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)))
 		return "", err
@@ -289,6 +281,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		&mileStoneUpdate,
 		&destroyOldMachine,
 		&destroyOldRoute,
+		&mileStoneUpdate,
 		&updateStatusInScylla,
 	}
 

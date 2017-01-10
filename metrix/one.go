@@ -5,6 +5,7 @@ import (
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
+	"strconv"
 	"time"
 	"fmt"
 )
@@ -72,8 +73,7 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *metrics.OpenNebulaStatus, e er
 //actually the NewSensor can create trypes based on the event type.
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.OpenNebulaStatus) {
 	for _, h := range s.History_Records {
-		q := &carton.Quota{AccountId: h.AccountsId(), AllocatedTo: h.AssemblyId()}
-	  usage, billable, _ := q.VmQuota(h.VCpu(),h.Memory(), h.Disks())
+	  usage, billable := on.vmQuota(h.QuotaId(),h.VCpu(),h.Memory(), h.Disks())
 		if billable {
 			sc := NewSensor(ONE_VM_SENSOR)
 			sc.AccountId = h.AccountsId()
@@ -85,8 +85,8 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 			sc.Source = on.Prefix()
 			sc.Message = "vm billing"
 			sc.Status = h.State()
-			sc.AuditPeriodBeginning = time.Unix(h.PStime, 0).String()
-			sc.AuditPeriodEnding = time.Unix(h.PEtime, 0).String()
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339) //time.Unix(h.PStime, 0).String()
+			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339) // time.Unix(h.PEtime, 0).String()
 			sc.AuditPeriodDelta = h.Elapsed()
 			sc.addMetric(CPU_COST, h.CpuCost(), usage[metrics.CPU], "delta")
 			sc.addMetric(MEMORY_COST, h.MemoryCost(), usage[metrics.MEMORY], "delta")
@@ -95,9 +95,31 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 			if sc.isBillable() {
 					mc.Add(sc)
 			}
-
 		}
 
 	}
 	return
+}
+
+func (on *OpenNebula) vmQuota(id, cpu, ram string, disks []metrics.Disk) (map[string]string, bool) {
+  usage := make(map[string]string)
+	var totalsize int64
+	for _,v := range disks {
+		totalsize = totalsize + v.Size
+	}
+	usage[metrics.CPU] = cpu
+	usage[metrics.MEMORY] = ram
+	usage[metrics.DISKS] = strconv.FormatInt(totalsize,10)
+
+	if len(id) > 0 {
+		if len(disks) > 1 {
+			usage[metrics.CPU] = "0"
+			usage[metrics.MEMORY] = "0"
+			usage[metrics.DISKS] = strconv.FormatInt(totalsize - disks[0].Size, 10)
+			return usage, true
+		}
+		return usage, false
+	}
+
+  return usage, true
 }

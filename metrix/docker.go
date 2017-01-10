@@ -29,6 +29,7 @@ type Stats struct {
 	NetworkOut     uint64
 	AccountId      string
 	AssemblyId     string
+	QuotaId        string
 	AssemblyName   string
 	AssembliesId   string
 	Status         string
@@ -96,30 +97,33 @@ func (s *Swarm) ReadStatus() (e error) {
 func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 
 	for _, h := range stats {
-		cpuDelta := float64((float64(h.CPUStats.TotalUsage) - float64(h.PreCPUStats.TotalUsage)))
-		systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
-		cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0
-		sc := NewSensor(DOCKER_CONTAINER_SENSOR)
-		sc.AccountId = h.AccountId
-		sc.System = s.Prefix()
-		sc.Node = ""
-		sc.AssemblyId = h.AssemblyId
-		sc.AssemblyName = h.AssemblyName
-		sc.AssembliesId = h.AssembliesId
-		sc.Source = s.Prefix()
-		sc.Message = "container billing"
-		sc.Status = h.Status
-		sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).String()
-		sc.AuditPeriodEnding = time.Now().String()
-		sc.AuditPeriodDelta = MetricsInterval.String()
-		//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
-		sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
-		sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.MemoryUsage/1024.0/1024.0), 'f', 6, 64), "delta")
-		mc.Add(sc)
-		sc.CreatedAt = time.Now()
-		if sc.isBillable() {
+		if len(h.QuotaId) > 0 {
+			cpuDelta := float64((float64(h.CPUStats.TotalUsage) - float64(h.PreCPUStats.TotalUsage)))
+			systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
+			cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0
+			sc := NewSensor(DOCKER_CONTAINER_SENSOR)
+			sc.AccountId = h.AccountId
+			sc.System = s.Prefix()
+			sc.Node = ""
+			sc.AssemblyId = h.AssemblyId
+			sc.AssemblyName = h.AssemblyName
+			sc.AssembliesId = h.AssembliesId
+			sc.Source = s.Prefix()
+			sc.Message = "container billing"
+			sc.Status = h.Status
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339)
+			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)
+			sc.AuditPeriodDelta = MetricsInterval.String()
+			//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
+			sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
+			sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.MemoryUsage/1024.0/1024.0), 'f', 6, 64), "delta")
 			mc.Add(sc)
+			sc.CreatedAt = time.Now()
+			if sc.isBillable() {
+				mc.Add(sc)
+			}
 		}
+
 	}
 	return
 }

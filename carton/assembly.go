@@ -188,6 +188,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		Snapshot:     a.isSnap(),
 		ImageName:    a.imageName(),
 		StorageType:  a.storageType(),
+		QuotaId:      a.quotaID(),
 		Boxes:        &b,
 		Status:       utils.Status(a.Status),
 		State:        utils.State(a.State),
@@ -231,6 +232,7 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 				b.State = utils.State(a.State)
 				b.Vnets = vnet
 				b.VMId = vmid
+				b.QuotaId  =  a.quotaID()
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -405,7 +407,7 @@ func (a *Assembly) imageName() string {
 	return a.Inputs.Match(SNAPSHOTNAME)
 }
 
-func (a *Assembly) QuotaID() string {
+func (a *Assembly) quotaID() string {
 	return a.Inputs.Match(QUOTAID)
 }
 
