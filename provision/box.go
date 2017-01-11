@@ -118,6 +118,7 @@ type Box struct {
 	CartonId     string
 	OrgId        string
 	ApiArgs      api.ApiArgs
+	QuotaId      string 
 	CartonName   string
 	Name         string
 	Level        BoxLevel

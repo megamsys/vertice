@@ -14,7 +14,8 @@ type Carton struct {
 	Id           string //assemblyid
 	Name         string
 	CartonsId    string
-	AccountId   string
+	AccountId    string
+	QuotaId      string
 	ApiArgs      api.ApiArgs
 	OrgId        string
 	Tosca        string
@@ -62,7 +63,7 @@ func (c *Carton) toBox() error { //assemblies id.
 	case provision.BoxNone:
 		c.Boxes = &[]provision.Box{provision.Box{
 			Id:           c.Id, //should be the component id, but in case of BoxNone there is no component id.
-			AccountId:   c.AccountId,
+			AccountId:    c.AccountId,
 			CartonId:     c.Id,        //We stick the assemlyid here.
 			CartonsId:    c.CartonsId, //assembliesId,
 			OrgId:        c.OrgId,
@@ -79,6 +80,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
 			VMId:         c.VMId,
+			QuotaId:      c.QuotaId,
 			Region:       c.Region,
 			Vnets:        c.Vnets,
 			Tosca:        c.Tosca,

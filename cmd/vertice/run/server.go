@@ -87,7 +87,7 @@ func (s *Server) appendMetricsdService(c *Config) {
 		log.Warn("skip metricsd service.")
 		return
 	}
-	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage)
+	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage, c.Snapshots)
 	s.Services = append(s.Services, srv)
 }
 

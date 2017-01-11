@@ -77,7 +77,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 		MemoryCost: asm.GetVMMemoryCost(),
 		HDDCost:   asm.GetVMHDDCost(),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
-			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key},
+			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key, constants.QUOTA_ID: args.Box.QuotaId},
 		Vnets: args.Box.Vnets,
 	}
   opts.VCpu = opts.Cpu
@@ -196,15 +196,15 @@ func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 		VMId:   id,
 	}
 
-	if !isDeleteOk(state) {
-		err := p.Cluster().ForceDestoryVM(opts)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
+	// if !isDeleteOk(state) {
+	// 	err := p.Cluster().ForceDestoryVM(opts)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	return nil
+	// }
 
-	err := p.Cluster().DestroyVM(opts)
+	err := p.Cluster().ForceDestoryVM(opts)
 	if err != nil {
 		return err
 	}
@@ -512,12 +512,8 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	return nil
 }
 
-func (m *Machine) UpdateQuotas() error {
-	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
-	if err != nil {
-		return err
-	}
-	quota, err := carton.NewQuota(m.AccountId, asm.QuotaID())
+func (m *Machine) UpdateQuotas(id string) error {
+	quota, err := carton.NewQuota(m.AccountId, id)
 	if err != nil {
 		return err
 	}

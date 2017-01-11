@@ -3,8 +3,8 @@ package metrix
 import (
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/storage"
-  "strconv"
 	"time"
+	"strconv"
 )
 
 const (
@@ -12,7 +12,6 @@ const (
 )
 
 type CephStorage struct {
-
 }
 
 type CephRGWStats struct {
@@ -25,7 +24,6 @@ type CephRGWStats struct {
   UserPrefix   string
 	DefaultUnits map[string]string
 	RawStatus    []byte
-	BillInterval time.Duration
 }
 
 func (rgw *CephRGWStats) Prefix() string {
@@ -34,7 +32,7 @@ func (rgw *CephRGWStats) Prefix() string {
 
 func (rgw *CephRGWStats) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-			mkBalance(mc, rgw.DefaultUnits, rgw.BillInterval)
+			mkBalance(mc, rgw.DefaultUnits)
 	}
 	return
 }
@@ -75,8 +73,8 @@ func (c *CephRGWStats) CollectMetricsFromStats(mc *MetricsCollection, acts []car
 			sc.Source = c.Prefix()
 			sc.Message = "storage billing"
 			sc.Status = "health-ok"
-			sc.AuditPeriodBeginning = time.Now().Add(-c.BillInterval).String()
-			sc.AuditPeriodEnding = time.Now().String()
+			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339)
+			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)
 			sc.AuditPeriodDelta = ""
 			sc.addMetric(STORAGE_COST, c.DefaultUnits[STORAGE_COST_PER_HOUR], strconv.FormatFloat(r.TotalSizeMB, 'f', 4, 64), "delta")
 			sc.CreatedAt = time.Now()

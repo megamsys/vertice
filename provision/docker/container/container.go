@@ -97,7 +97,7 @@ func (c *Container) Create(args *CreateArgs) error {
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:    int64(args.Box.GetCpushare()),
 		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId, utils.ASSEMBLY_NAME: c.BoxName,
-			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountId,
+			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountId, utils.QUOTA_ID: args.Box.QuotaId,
 		  carton.CONTAINER_CPU_COST: asm.GetContainerCpuCost(), carton.CONTAINER_MEMORY_COST: asm.GetContainerCpuCost()},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}

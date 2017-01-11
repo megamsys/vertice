@@ -491,6 +491,7 @@ func parseContainerStats(d docker.APIContainers, stats *docker.Stats) *metrix.St
 		AssemblyName: d.Labels[constants.ASSEMBLY_NAME],
 		CPUUnitCost: d.Labels[carton.CONTAINER_CPU_COST],
 		MemoryUnitCost: d.Labels[carton.CONTAINER_MEMORY_COST],
+		QuotaId: d.Labels[constants.QUOTA_ID],
 		AuditPeriod:  stats.Read,
 		Status:       d.State,
 	}
