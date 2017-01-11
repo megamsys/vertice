@@ -140,8 +140,11 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 		if err != nil {
 			return false, err
 		}
-
-		_ = asm.Trigger_event(utils.Status(res.StateString() + "." + res.LcmStateString()))
+    status := utils.Status(res.StateString())
+		if res.LcmStateString() != "" {
+			status = status + "." + res.LcmStateString()
+		}
+		_ = asm.Trigger_event(status)
 		return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
 	})
 
