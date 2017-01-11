@@ -135,11 +135,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
 
-//*********************************************
-
-// dont forget to change
-
-	err = safe.WaitCondition(10*time.Second, 2*time.Second, func() (bool, error) {
+    err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
