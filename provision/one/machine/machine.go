@@ -134,17 +134,22 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
+
+//*********************************************
+
+// dont forget to change
+
+	err = safe.WaitCondition(10*time.Second, 2*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
 		}
-    status := utils.Status(res.StateString())
+    status := res.StateString()
 		if res.LcmStateString() != "" {
-			status = status + "." + res.LcmStateString()
+			status = status + "_" + res.LcmStateString()
 		}
-		_ = asm.Trigger_event(status)
+		_ = asm.Trigger_event(utils.Status(status))
 		return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
 	})
 
@@ -160,12 +165,11 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 func (m *Machine) WaitUntillVMState(args *CreateArgs ,vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{	VmId: m.VMId}
 
-	err := safe.WaitCondition(5*time.Minute, 10*time.Second, func() (bool, error) {
+	err := safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
 		}
-		fmt.Println("VM : ",res.StateString(),"LCM  :",res.LcmStateString(),"    ",(res.State == int(vm) && res.LcmState == int(lcm)))
 		return (res.State == int(vm) && res.LcmState == int(lcm)), nil
 	})
 

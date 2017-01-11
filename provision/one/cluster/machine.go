@@ -306,7 +306,7 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 		return err
 	}
 	v.T = node.Client
-	err = safe.WaitCondition(3*time.Minute, 10*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := v.ImageShow()
 		if err != nil {
 			return false, err
