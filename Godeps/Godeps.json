@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/megamsys/vertice",
-	"GoVersion": "go1.7",
+	"GoVersion": "go1.8",
 	"GodepVersion": "v76",
 	"Packages": [
 		"./..."
@@ -295,8 +295,8 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/go-rancher/v2",
-			"Comment": "v0.1.0-243-g3e31478",
-			"Rev": "3e3147815c113b5a6d319145d49a2135475ff122"
+			"Comment": "v0.1.0-245-g8d488f5",
+			"Rev": "8d488f56a7535b37fe6e3594bf2f9661784fe4fc"
 		},
 		{
 			"ImportPath": "github.com/megamsys/gocassa",
