@@ -24,11 +24,8 @@ type Config struct {
 	DNS     *dns.Config      `toml:"dns"`
 	Events  *eventsd.Config  `toml:"events"`
 	Storage *storage.Config  `toml:"storage"`
-
-        Rancher *rancher.Config  `toml:"rancher"`
-
-	Snapshots *snapshots.Config `toml:"snapshots"`
-
+  Rancher *rancher.Config  `toml:"rancher"`
+  Snapshots *snapshots.Config `toml:"snapshots"`
 }
 
 func (c Config) String() string {
@@ -40,10 +37,9 @@ func (c Config) String() string {
 		c.Metrics.String() + "\n" +
 		c.DNS.String() + "\n" +
 		c.Events.String() + "\n" +
-
-	        c.Storage.String() + "\n" +
-                c.Rancher.String() )                   
-            c.Snapshots.String())
+    c.Storage.String() + "\n" +
+    c.Rancher.String() + "\n" +
+    c.Snapshots.String())
 
 }
 

@@ -21,6 +21,7 @@ const (
 
 	DefaultProvider = "rancher"
 
+  DefaultRancherZone = "India"
 	// DefaultNamespace is the default highlevel namespace(userid) under the registry eg: https://hub.docker.com/megam
 	DefaultNamespace = "megam"
 
@@ -37,14 +38,9 @@ const (
 	DefaultCPUQuota = 25000 * time.Millisecond
 
 	// DefaultOneZone is the default zone for the IaaS service.
-	DefaultRancherZone = "africa"
-	//DefaultOneZone is the default bridge for the docker.
-	DefaultBridgeName = "eth0"
-
-	DefaultName = "eth0"
-
-	DefaultGulpPort = ":6666"
-	DefaultNetType  = "cluster-a"
+	// Access credentials for radosgw
+	DefaultAccessKey = "vertadmin"
+	DefaultSecretKey = "vertadmin"
 
 	// DefaultSwarmEndpoint is the default address that the service binds to an IaaS (Swarm).
 	DefaultRancherEndpoint = "http://localhost:8080"
@@ -62,6 +58,9 @@ func NewConfig() *Config {
 		RancherZone:     DefaultRancherZone,
 		RancherEndPoint:  DefaultRancherEndpoint,
 		Registry:       DefaultRegistry,
+		AdminId:        "info@megam.io",
+		AdminAccess: 		DefaultAccessKey,
+		AdminSecret:    DefaultSecretKey,
 		CPUPeriod:      toml.Duration(DefaultCPUPeriod),
 		CPUQuota:       toml.Duration(DefaultCPUQuota),
 	}
@@ -90,10 +89,9 @@ func (c Config) String() string {
 	for  _, v := range c.Rancher.Regions {
 		b.Write([]byte(cluster.RANCHER_ZONE + "\t" + v.RancherZone + "\n"))
 		b.Write([]byte(cluster.RANCHER_SERVER + "\t" + v.RancherEndPoint + "\n"))
-	//	b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
-		//b.Write([]byte(cluster.DOCKER_REGISTRY + "\t" + c.Docker.Regions[i].Registry + "\n"))
-		//	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.Docker.Regions[i].MemSize) + "\n"))
-		//	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.Docker.Regions[i].SwapSize) + "\n"))
+		b.Write([]byte("Admin Id    \t" + v.AdminId + "\n"))
+		b.Write([]byte("AdminAccess" + "    \t" + v.AdminAccess + "\n"))
+		b.Write([]byte("AdminSecret"  + "\t" + v.AdminSecret + "\n"))
 		b.Write([]byte(cluster.RANCHER_CPUPERIOD + "    \t" + v.CPUPeriod.String() + "\n"))
 		b.Write([]byte(cluster.RANCHER_CPUQUOTA + "    \t" + v.CPUQuota.String() + "\n"))
 		b.Write([]byte("---\n"))
