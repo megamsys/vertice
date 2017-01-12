@@ -11,7 +11,7 @@ import (
 	"text/tabwriter"
 
 	log "github.com/Sirupsen/logrus"
-	//"github.com/rancher/go-rancher/client"
+	//"github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/utils"
@@ -49,7 +49,7 @@ type Region struct {
 	Registry        string        `json:"registry" toml:"registry"`
 	CPUPeriod       toml.Duration `json:"cpu_period" toml:"cpu_period"`
 	CPUQuota        toml.Duration `json:"cpu_quota" toml:"cpu_quota"`
-	AdminId       string          `json:"admin_id" toml:"admin_id"`
+	AdminId         string        `json:"admin_id" toml:"admin_id"`
 	AdminAccess     string        `json:"access_key" toml:"access_key"`
 	AdminSecret     string        `json:"secret_key" toml:"secret_key"`
 	CpuUnit         string        `json:"cpu_unit" toml:"cpu_unit"`
@@ -76,30 +76,30 @@ func (p *rancherProvisioner) Initialize(m interface{}) error {
 }
 
 func (p *rancherProvisioner) initRancherCluster(i interface{}) error {
-	// var err error
-	// if p.storage == nil {
-	// 	p.storage, err = buildClusterStorage()
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if w, ok := i.(Rancher); ok {
-	// 	var nodes []cluster.Node
-	// 	for i := 0; i < len(w.Regions); i++ {
-	// 		m := w.Regions[i].toMap()
-	// 		n := cluster.Node{
-	// 			Address:  m[cluster.RANCHER_SERVER], //rancher endpoint
-	// 			Metadata: m,
-	// 		}
-	// 		nodes = append(nodes, n)
-	// 	}
-	//
-	// 	//register nodes using the map.
-	// 	p.cluster, err = cluster.New(p.storage, nodes...)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	var err error
+	if p.storage == nil {
+		p.storage, err = buildClusterStorage()
+		if err != nil {
+			return err
+		}
+	}
+	if w, ok := i.(Rancher); ok {
+		var nodes []cluster.Node
+		for i := 0; i < len(w.Regions); i++ {
+			m := w.Regions[i].toMap()
+			n := cluster.Node{
+				Address:  m[cluster.RANCHER_SERVER], //rancher endpoint
+				Metadata: m,
+			}
+			nodes = append(nodes, n)
+		}
+
+		//register nodes using the map.
+		p.cluster, err = cluster.New(p.storage, nodes...)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

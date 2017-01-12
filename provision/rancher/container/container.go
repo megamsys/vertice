@@ -10,7 +10,7 @@ import (
 //	"os"
 	//	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-  "github.com/rancher/go-rancher/client"
+  "github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/libgo/events"
 //	"github.com/megamsys/libgo/events/alerts"
@@ -83,21 +83,12 @@ type CreateArgs struct {
 }
 
 func (c *Container) Create(args *CreateArgs) error {
-	fmt.Println("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-	//asm, err := carton.NewAssembly(c.CartonId, c.AccountId, "")
-	//if err != nil {
-	//	return err
-	//}
-
 	config := client.Container{
-
-		Name: "test",
-   ImageUuid: "ubuntu:14.04.3",
-
+		Name: c.BoxName,
+    ImageUuid: args.ImageId,
 		Memory:       int64(args.Box.ConGetMemory()),
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CpuShares:    int64(args.Box.GetCpushare()),
-
 	}
 
 	cl := args.Provisioner.Cluster()

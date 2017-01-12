@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-	"github.com/rancher/go-rancher/client"
+	"github.com/megamsys/go-rancher/v2"
 //	"github.com/megamsys/libgo/cmd"
 //	constants "github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/vertice/carton"
@@ -34,7 +34,7 @@ type Container struct {
 func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *client.Container, error) {
 
 	var (
-		addr      string
+		addr   string                      // ,aid,access,secret
 		container *client.Container
 		err       error
 	)
@@ -45,13 +45,16 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *
 		for _, v := range nodes {
 			if v.Metadata[RANCHER_ZONE] == c.Region {
 				addr = v.Address
+				// aid = v.AdminId
+				// access = v.AdminAccess
+				// secret = v.AdminSecret
 			}
 		}
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
 
-     cliaddr := client.ClientOpts{ Url: addr ,}
+    cliaddr := client.ClientOpts{Url: addr,} //AccountId: aid, AccessKey: access, SecretKey: secret
 		node, err := c.getNodeByAddr(cliaddr)
 		if err != nil {
 			return addr,nil, err
@@ -84,6 +87,6 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
 	//err = c.storage().StoreContainer(container.ID, addr)
-//	err = c.storage().StoreContainerByName(container.ID, container.Name)
+  //err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }

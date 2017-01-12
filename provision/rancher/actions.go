@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-//	"github.com/rancher/go-rancher/client"
+//	"github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
