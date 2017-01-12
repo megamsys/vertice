@@ -34,7 +34,7 @@ type Container struct {
 func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *client.Container, error) {
 
 	var (
-		addr   string                      // ,aid,access,secret
+		addr,aid,access,secret   string
 		container *client.Container
 		err       error
 	)
@@ -45,16 +45,16 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *
 		for _, v := range nodes {
 			if v.Metadata[RANCHER_ZONE] == c.Region {
 				addr = v.Address
-				// aid = v.AdminId
-				// access = v.AdminAccess
-				// secret = v.AdminSecret
+				aid = v.Metadata[ADMIN_ID]
+				access =  v.Metadata[ACCESSKEY]
+				secret =  v.Metadata[SECRETKEY]
 			}
 		}
 		if addr == "" {
 			return addr, nil, errors.New("CreateContainer needs a non empty node addr")
 		}
 
-    cliaddr := client.ClientOpts{Url: addr,} //AccountId: aid, AccessKey: access, SecretKey: secret
+    cliaddr := client.ClientOpts{Url: addr,AccountId: aid, AccessKey: access, SecretKey: secret}
 		node, err := c.getNodeByAddr(cliaddr)
 		if err != nil {
 			return addr,nil, err

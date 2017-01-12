@@ -10,6 +10,7 @@ func (p *rancherProvisioner) GetContainerByBox(box *provision.Box) (*container.C
 	return &container.Container{
 		BoxId:    box.Id,
 		CartonId: box.CartonId,
+		AccountId: box.AccountId,
 		Name:     box.Name,
 		BoxName:  box.GetFullName(),
 		Level:    box.Level,

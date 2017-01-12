@@ -22,6 +22,10 @@ const (
 	RANCHER_CPUPERIOD = "cpuperiod"
 	RANCHER_CPUQUOTA  = "cpuquota"
 
+	ADMIN_ID = "admin_id"
+	ACCESSKEY = "access_key"
+	SECRETKEY = "secret_key"
+	
 	BRIDGE_NAME    = "name"
 	BRIDGE_NETWORK = "network"
 	BRIDGE_GATEWAY = "gateway"
