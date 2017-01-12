@@ -17,7 +17,7 @@ import (
 const (
 	SNAPSHOTS = "/snapshots/"
 	SNAPSHOTS_SHOW =  "/snapshots/show/"
-	UPDATE = "update/"
+	UPDATE = "update"
 	DELETE = "delete/"
 	ACCOUNTID      = "account_id"
 	ASSEMBLYID     = "asm_id"
@@ -148,7 +148,7 @@ func (s *Snaps) UpdateSnap() error {
 
 
 func (s *Snaps) RemoveSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS + DELETE + s.AssemblyId + "/" + s.Id)
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS + s.AssemblyId + "/" + s.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
