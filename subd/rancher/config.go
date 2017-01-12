@@ -48,12 +48,12 @@ const (
 
 type Config struct {
 	Provider string        `json:"provider" toml:"provider"`
-	Rancher   rancher.Rancher `json:"rancher" toml:"rancher"`
+	Rancher   rancher.Rancher `json:"container" toml:"container"`
 }
 
 func NewConfig() *Config {
-	fmt.Println("***********************************************")
-	rg := make([]rancher.Region, 2)
+
+	rg := make([]rancher.Region, 0)
 	r := rancher.Region{
 		RancherZone:     DefaultRancherZone,
 		RancherEndPoint:  DefaultRancherEndpoint,
@@ -68,10 +68,8 @@ func NewConfig() *Config {
 	o := rancher.Rancher{
 		Enabled: true,
 		Regions: append(rg, r),
-		//	Namespace: DefaultNamespace,
-		//MemSize:   DefaultMemSize,
-		//SwapSize:  DefaultSwapSize,
 	}
+
 	return &Config{
 		Provider: DefaultProvider,
 		Rancher:   o,
