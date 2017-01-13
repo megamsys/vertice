@@ -2,7 +2,7 @@ package rancher
 
 import (
 	//"errors"
-	"fmt"
+	// "fmt"
 	"io"
 	//"io/ioutil"
 	"sync"
@@ -105,7 +105,7 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 	return nil
 }
 
-/*var updateStatusInScylla = action.Action{
+var updateStatusInScylla = action.Action{
 	Name: "update-status-scylla",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runContainerActionsArgs)
@@ -128,7 +128,7 @@ func runInContainers(containers []container.Container, callback callbackFunc, ro
 		c := ctx.FWResult.(container.Container)
 		c.SetStatus(constants.StatusContainerError)
 	},
-}*/
+}
 
 var createContainer = action.Action{
 	Name: "create-container",
@@ -136,7 +136,6 @@ var createContainer = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		log.Debugf(" create container for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)
-		fmt.Println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
 		err := cont.Create(&container.CreateArgs{
 			ImageId:     args.imageId,
 			Box:         args.box,

@@ -75,6 +75,7 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	  }
 	}
 	if ( opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick) {
+
 			if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}

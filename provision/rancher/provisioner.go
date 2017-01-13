@@ -109,6 +109,9 @@ func (c Region) toMap() map[string]string {
 	m := make(map[string]string)
 	m[cluster.RANCHER_ZONE] = c.RancherZone
 	m[cluster.RANCHER_SERVER] = c.RancherEndPoint
+	m[cluster.ADMIN_ID] = c.AdminId
+	m[cluster.ACCESSKEY] = c.AdminAccess
+	m[cluster.SECRETKEY] = c.AdminSecret
 	m[cluster.RANCHER_REGISTRY] = c.Registry
 	m[cluster.RANCHER_CPUPERIOD] = c.CPUPeriod.String()
 	m[cluster.RANCHER_CPUQUOTA] = c.CPUQuota.String()
@@ -167,7 +170,7 @@ func (p *rancherProvisioner) ImageDeploy(box *provision.Box, imageId string, w i
 func (p *rancherProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 	actions := []*action.Action{
-		//&updateStatusInScylla,
+		&updateStatusInScylla,
 		&createContainer,
 	}
 

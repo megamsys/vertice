@@ -15,7 +15,7 @@ import (
 	//"github.com/megamsys/libgo/events"
 //	"github.com/megamsys/libgo/events/alerts"
  //constants "github.com/megamsys/libgo/utils"
-	//"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/rancher/cluster"
 )
@@ -85,7 +85,7 @@ type CreateArgs struct {
 func (c *Container) Create(args *CreateArgs) error {
 	config := client.Container{
 		Name: c.BoxName,
-    ImageUuid: args.ImageId,
+    ImageUuid:    "docker:" +args.ImageId,
 		Memory:       int64(args.Box.ConGetMemory()),
 		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CpuShares:    int64(args.Box.GetCpushare()),
@@ -302,7 +302,7 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 		}
 	}
 }
-
+*/
 func (c *Container) SetStatus(status utils.Status) error {
 	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
 	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
@@ -321,7 +321,7 @@ func (c *Container) SetStatus(status utils.Status) error {
 	}
 	return nil
 }
-
+/*
 //trigger multi event in the order
 func (c *Container) Deduct() error {
 	mi := make(map[string]string)
