@@ -172,6 +172,17 @@ func (p *rancherProvisioner) deployPipeline(box *provision.Box, imageId string, 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createContainer,
+		&updateContainerIdInScylla,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
+		&waitToContainerUp,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
+		&setNetworkInfo,
+		&updateStatusInScylla,
+	//	&followLogsAndCommit,
+	//	&MileStoneUpdate,
+	//	&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)

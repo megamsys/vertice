@@ -1,20 +1,20 @@
 package container
 
 import (
-	"fmt"
+	//"fmt"
 	//"io"
-	//"net"
-	//"net/url"
+	"net"
+	"net/url"
 	"time"
 	//"bytes"
-//	"os"
+	//	"os"
 	//	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-  "github.com/megamsys/go-rancher/v2"
+	"github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/libgo/events"
-//	"github.com/megamsys/libgo/events/alerts"
- //constants "github.com/megamsys/libgo/utils"
+	//	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/rancher/cluster"
@@ -28,25 +28,27 @@ const (
 
 type RancherProvisioner interface {
 	Cluster() *cluster.Cluster
-//	PushImage(name, tag string) error
+	//	PushImage(name, tag string) error
 }
 
 type Container struct {
 	Id                      string //container id.
 	BoxId                   string
-	AccountId              string
+	AccountId               string
 	CartonId                string
 	Name                    string
 	BoxName                 string
 	Level                   provision.BoxLevel
 	PublicIp                string
+	HostId                  string
 	HostAddr                string
 	HostPort                string
 	PrivateKey              string
+	Client                  *client.RancherClient
 	Version                 string
 	Image                   string
 	Status                  utils.Status
-	State										utils.State
+	State                   utils.State
 	BuildingImage           string
 	LastStatusUpdate        time.Time
 	LastSuccessStatusUpdate time.Time
@@ -55,6 +57,7 @@ type Container struct {
 	Region                  string
 	closechan               chan bool
 }
+
 /*
 func (c *Container) ShortId() string {
 	if len(c.Id) > 10 {
@@ -84,11 +87,12 @@ type CreateArgs struct {
 
 func (c *Container) Create(args *CreateArgs) error {
 	config := client.Container{
-		Name: c.BoxName,
-    ImageUuid:    "docker:" +args.ImageId,
-		Memory:       int64(args.Box.ConGetMemory()),
-		MemorySwap:   int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
-		CpuShares:    int64(args.Box.GetCpushare()),
+		Name:          c.BoxName,
+		ImageUuid:     args.Box.Repo.Source + ":" + args.ImageId,
+		Memory:        int64(args.Box.ConGetMemory()),
+		MemorySwap:    int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
+		CpuShares:     int64(args.Box.GetCpushare()),
+		StartOnCreate: true,
 	}
 
 	cl := args.Provisioner.Cluster()
@@ -99,12 +103,106 @@ func (c *Container) Create(args *CreateArgs) error {
 		log.Errorf("Error on creating container in docker %s - %s", c.BoxName, err)
 		return err
 	}
-	fmt.Println(addr)
-	fmt.Println(cont)
-	//c.Id = cont.ID
-	//c.HostAddr = urlToHost(addr)
+	c.Id = cont.Id
+	c.HostAddr = urlToHost(addr)
 	return nil
 }
+func (c *Container) SetStatus(status utils.Status) error {
+	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
+		return err
+	} else if err = asm.SetStatus(status); err != nil {
+		return err
+	}
+
+	if c.Level == provision.BoxSome {
+		log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
+		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
+			return err
+		} else if err = comp.SetStatus(status, c.AccountId, ""); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Container) SetMileStone(state utils.State) error {
+	log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
+		return err
+	} else if err = asm.SetState(state); err != nil {
+		return err
+	}
+
+	if c.Level == provision.BoxSome {
+		log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
+
+		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
+			return err
+		} else if err = comp.SetState(state, c.AccountId, ""); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Container) UpdateContId() error {
+	log.Debugf("  update Id[%s] of container (%s) in cassandra", c.Id, c.Name)
+
+	var ids = make(map[string][]string)
+	cid := []string{c.Id}
+	ids["containerId"] = cid
+	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
+		return err
+	}
+	return nil
+}
+
+func urlToHost(urlStr string) string {
+	url, _ := url.Parse(urlStr)
+	if url == nil || url.Host == "" {
+		return urlStr
+	}
+	host, _, _ := net.SplitHostPort(url.Host)
+	if host == "" {
+		return url.Host
+	}
+	return host
+}
+
+func (c *Container) StateCheck(args RancherProvisioner) (err error) {
+	var res *client.Container
+	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+		res, err = args.Cluster().GetContainerById(c.Id)
+		if err != nil {
+			return false, err
+		}
+		return (res.State == "running"), nil
+	})
+
+	if err != nil {
+		return err
+	}
+	c.HostId = res.HostId
+	c.PublicIp = res.PrimaryIpAddress
+	return nil
+}
+
+type NetworkInfo struct {
+	HTTPHostPort string
+	IP           string
+}
+
+func (c *Container) NetworkInfo(r RancherProvisioner) error {
+	err := r.Cluster().SetNetworkinNode(c.HostId, c.PublicIp, c.CartonId, c.AccountId)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
 /*
 func (c *Container) Logs(p DockerProvisioner)   error {
 	var outBuffer bytes.Buffer
@@ -155,61 +253,20 @@ func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string,
 	return "", fmt.Errorf("Host `%s` not found", host)
 }
 
-func (c *Container) SetMileStone(state utils.State) error {
-	log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
-		return err
-	} else if err = asm.SetState(state); err != nil {
-		return err
-	}
 
-	if c.Level == provision.BoxSome {
-		log.Debugf("  set state[%s] of container (%s, %s)", c.BoxId, c.Name, state.String())
 
-		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
-			return err
-		} else if err = comp.SetState(state, c.AccountId, ""); err != nil {
-			return err
-		}
-	}
-	return nil
-}
+*/
 
-func (c *Container) UpdateContId() error {
-	log.Debugf("  update Id[%s] of container (%s) in cassandra", c.Id, c.Name)
-
-	var ids = make(map[string][]string)
-	cid := []string{c.Id}
-	ids["containerId"] = cid
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
-		return err
-	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
-		return err
-	}
-	return nil
-}
-
-func urlToHost(urlStr string) string {
-	url, _ := url.Parse(urlStr)
-	if url == nil || url.Host == "" {
-		return urlStr
-	}
-	host, _, _ := net.SplitHostPort(url.Host)
-	if host == "" {
-		return url.Host
-	}
-	return host
-}
-
+/*
 func (c *Container) addEnvsToConfig(args *CreateArgs, cfg *docker.Config) {
-	/*if !args.Deploy {
+if !args.Deploy {
 		for _, envData := range args.Box.Envs() {
 			cfg.Env = append(cfg.Env, fmt.Sprintf("%s=%s", envData.Name, envData.Value))
 		}
-	}*/
-/*
-}
+	}
 
+} */
+/*
 func (c *Container) Remove(p DockerProvisioner) error {
 	log.Debugf("Removing container %s from docker", c.BoxName)
 
@@ -303,73 +360,10 @@ func SafeAttachWaitContainer(p DockerProvisioner, opts docker.AttachToContainerO
 	}
 }
 */
-func (c *Container) SetStatus(status utils.Status) error {
-	log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
-		return err
-	} else if err = asm.SetStatus(status); err != nil {
-		return err
-	}
 
-	if c.Level == provision.BoxSome {
-		log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
-		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
-			return err
-		} else if err = comp.SetStatus(status, c.AccountId, ""); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 /*
-//trigger multi event in the order
-func (c *Container) Deduct() error {
-	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = c.AccountId
-	mi[constants.ASSEMBLYID] = c.CartonId
-	mi[constants.ASSEMBLYNAME] = c.Name
-	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().String()
-	mi[constants.END_TIME] = time.Now().String()
 
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.DEDUCT,
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	return newEvent.Write()
-}
 
-type NetworkInfo struct {
-	HTTPHostPort string
-	IP           string
-}
-
-func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
-	var netInfo NetworkInfo
-	cl := p.Cluster()
-	cl.Region = c.Region
-//	ip, gateway, bridge, err := cl.GetIP() //gets the IP
-var err error
-	if err != nil {
-		return netInfo, err
-	}
-	//netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
-	return netInfo, err
-}
 
 
 
@@ -512,6 +506,6 @@ func getPort() (string, error) {
 			return "", err
 		}
 		return fmt.Sprint(port), nil
-	*/
+*/
 //	return "", nil
 //}

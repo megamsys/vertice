@@ -446,6 +446,19 @@ func (m *Machine) UpdateSnap() error {
 	return nil
 }
 
+func (m *Machine) UpdateSnapStatus(status utils.Status) error {
+	sns, err := carton.GetSnap(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	sns.Status = status.String()
+	err = sns.UpdateSnap()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *Machine) UpdateDisk(p OneProvisioner) error {
 	id, _ := strconv.Atoi(m.VMId)
 	vd := &disk.VmDisk{VmId: id}

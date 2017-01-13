@@ -665,6 +665,29 @@ var updateIdInSnapTable = action.Action{
 	MinParams: 1,
 }
 
+var updateSnapStatus = action.Action{
+	Name: "update-snap-status",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateSnapStatus(mach.Status); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+
+
 var waitUntillImageReady = action.Action{
 	Name: "wait-for-image-ready",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

@@ -44,7 +44,7 @@ func (d *DockerClient) NetworkRequest(url, port string) error {
 	hostip := []string{}
 	hostip = []string{url}
 	ips[carton.HOSTIP] = hostip
-	if asm, err := carton.NewAssembly(d.CartonId,d.AccountId, ""); err != nil {
+	if asm, err := carton.NewAssembly(d.CartonId,d.AccountId,""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err

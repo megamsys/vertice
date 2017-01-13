@@ -341,6 +341,7 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&machCreating,
+		&updateSnapStatus,
 		&updateStatusInScylla,
 		&removeSnapShot,
 		&updateStatusInScylla,
