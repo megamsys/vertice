@@ -114,7 +114,7 @@ func (c *Component) updateComponent(email, org string) error {
 }
 
 //make a box with the details for a provisioner.
-func (c *Component) mkBox(vnet map[string]string, vmid string, args api.ApiArgs) (provision.Box, error) {
+func (c *Component) mkBox(vnet map[string]string, instanceId string, args api.ApiArgs) (provision.Box, error) {
 	bt := provision.Box{
 		Id:          c.Id,
 		Level:       provision.BoxSome,
@@ -127,7 +127,7 @@ func (c *Component) mkBox(vnet map[string]string, vmid string, args api.ApiArgs)
 		PublicIp:    c.publicIp(),
 		StorageType: c.storageType(),
 		Vnets:       vnet,
-		VMId:        vmid,
+		InstanceId:  instanceId,
 		OrgId:       args.Org_Id,
 		ApiArgs:     args,
 	}

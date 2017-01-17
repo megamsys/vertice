@@ -25,7 +25,7 @@ const (
 	ADMIN_ID = "admin_id"
 	ACCESSKEY = "access_key"
 	SECRETKEY = "secret_key"
-	
+
 	BRIDGE_NAME    = "name"
 	BRIDGE_NETWORK = "network"
 	BRIDGE_GATEWAY = "gateway"
@@ -362,7 +362,7 @@ func (c *Cluster) getNode(retrieveFn func(Storage) (string, error)) (node, error
 	var n node
 	storage := c.storage()
 	address, err := retrieveFn(storage)
-	opts := client.ClientOpts{ Url: address ,}
+	opts := client.ClientOpts{Url: address,}
 	if err != nil {
 		return n, err
 	}

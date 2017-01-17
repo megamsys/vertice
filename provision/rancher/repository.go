@@ -16,6 +16,7 @@ func (p *rancherProvisioner) GetContainerByBox(box *provision.Box) (*container.C
 		Level:    box.Level,
 		Region:   box.Region,
 		Status:   box.Status,
+		Id:       box.InstanceId,
 	}, nil
 
 }
