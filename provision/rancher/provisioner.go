@@ -172,6 +172,17 @@ func (p *rancherProvisioner) deployPipeline(box *provision.Box, imageId string, 
 	actions := []*action.Action{
 		&updateStatusInScylla,
 		&createContainer,
+		&updateContainerIdInScylla,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
+		&waitToContainerUp,
+		&MileStoneUpdate,
+		&updateStatusInScylla,
+		&setNetworkInfo,
+		&updateStatusInScylla,
+	//	&followLogsAndCommit,
+	//	&MileStoneUpdate,
+	//	&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -212,7 +223,7 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		boxDestroy:  true,
 	}
 	pipeline := action.NewPipeline(
-	//&destroyOldContainers,
+	&destroyOldContainers,
 	//&removeOldRoutes,
 	)
 	err = pipeline.Execute(args)

@@ -55,8 +55,6 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 		switch "" {
 		case addr:
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ("+opts.Region+") nodes (hint: start or beat it).\n", "red", "", ""))
-		case opts.ClusterId:
-			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable storage type or network for nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {
 			machine, vmid, err = c.createVMInNode(opts, addr)
@@ -96,7 +94,12 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	if err != nil {
 		return "", "", err
 	}
-	opts.TemplateName = node.template
+	if opts.ClusterId != "" {
+		opts.TemplateName = node.template
+	} else {
+		opts.TemplateName = opts.Image
+	}
+
 	opts.T = node.Client
 
 	res, err := opts.Create()

@@ -76,7 +76,7 @@ var machCreating = action.Action{
 				Image:        args.imageId,
 				StorageType:  args.box.StorageType,
 				Region:       args.box.Region,
-				VMId:         args.box.VMId,
+				VMId:         args.box.InstanceId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
 	    }
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
@@ -664,6 +664,29 @@ var updateIdInSnapTable = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
+
+var updateSnapStatus = action.Action{
+	Name: "update-snap-status",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateSnapStatus(mach.Status); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update snapshot status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+
 
 var waitUntillImageReady = action.Action{
 	Name: "wait-for-image-ready",

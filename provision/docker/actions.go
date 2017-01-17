@@ -314,19 +314,6 @@ var followLogsAndCommit = action.Action{
 		c.State  = constants.StateRunning
 		c.Status = constants.StatusContainerRunning
 
-		//	if status != 0 {
-		//	return nil, fmt.Errorf("Exit status %d", status)
-		//	}
-		/*fmt.Fprintf(args.writer, "\n---- Building application image ----\n")
-		imageId, err := c.Commit(args.provisioner, args.writer)
-		if err != nil {
-			log.Errorf("error on commit container %s - %s", c.Id, err)
-			return nil, err
-		}
-		fmt.Fprintf(args.writer, " ---> Cleaning up\n")
-		c.Remove(args.provisioner)
-		return imageId, nil
-		*/
 		return c, nil
 	},
 	Backward: func(ctx action.BWContext) {

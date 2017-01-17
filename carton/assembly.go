@@ -41,7 +41,7 @@ const (
 	SSHKEY                = "sshkey"
 	VNCPORT               = "vncport"
 	VNCHOST               = "vnchost"
-	VMID                  = "vmid"
+	INSTANCE_ID           = "instance_id"
 	YES                   = "yes"
 	REGION                = "region"
 	PUBLICIPV6            = "publicipv6"
@@ -184,7 +184,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		PublicIp:     a.publicIp(),
 		Region:       a.region(),
 		Vnets:        a.vnets(),
-		VMId:         a.vmId(),
+		InstanceId:   a.instanceId(),
 		Snapshot:     a.isSnap(),
 		ImageName:    a.imageName(),
 		StorageType:  a.storageType(),
@@ -201,11 +201,11 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 //A "colored component" externalized with what we need.
 func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, error) {
 	vnet := a.vnets()
-	vmid := a.vmId()
+	instanceId := a.instanceId()
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
-			if b, err := comp.mkBox(vnet, vmid, args); err != nil {
+			if b, err := comp.mkBox(vnet, instanceId, args); err != nil {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
@@ -231,7 +231,7 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 				b.Status = utils.Status(a.Status)
 				b.State = utils.State(a.State)
 				b.Vnets = vnet
-				b.VMId = vmid
+				b.InstanceId = instanceId
 				b.QuotaId  =  a.quotaID()
 				newBoxs = append(newBoxs, b)
 			}
@@ -396,8 +396,8 @@ func (a *Assembly) vncHost() string {
 func (a *Assembly) vncPort() string {
 	return a.Outputs.Match(VNCPORT)
 }
-func (a *Assembly) vmId() string {
-	return a.Outputs.Match(VMID)
+func (a *Assembly) instanceId() string {
+	return a.Outputs.Match(INSTANCE_ID)
 }
 func (a *Assembly) imageVersion() string {
 	return a.Inputs.Match(IMAGE_VERSION)

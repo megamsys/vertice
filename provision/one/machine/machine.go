@@ -93,7 +93,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	var id = make(map[string][]string)
 	vm := []string{}
 	vm = []string{m.VMId}
-	id[carton.VMID] = vm
+	id[carton.INSTANCE_ID] = vm
 
 	if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
@@ -439,6 +439,19 @@ func (m *Machine) UpdateSnap() error {
 	}
 	sns.ImageId = m.ImageId
 	sns.Status = "ready"
+	err = sns.UpdateSnap()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) UpdateSnapStatus(status utils.Status) error {
+	sns, err := carton.GetSnap(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	sns.Status = status.String()
 	err = sns.UpdateSnap()
 	if err != nil {
 		return err

@@ -82,6 +82,7 @@ type Region struct {
 type Cluster struct {
 	Enabled       bool   `json:"enabled" toml:"enabled"`
 	StorageType   string `json:"storage_hddtype" toml:"storage_hddtype"`
+	RegularHyper  string `json:"regular_hypervisor" toml:"regular_hypervisor"`
 	ClusterId     string `json:"cluster_id" toml:"cluster_id"`
 	Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
 	Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
@@ -165,6 +166,12 @@ func (c Region) toClusterMap() map[string]map[string]string {
 				mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
 				mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
 				mm[utils.STORAGE_TYPE] = c.Clusters[i].StorageType
+				if c.Clusters[i].RegularHyper != "" {
+					mm[utils.REGULAR_HYPER] = c.Clusters[i].RegularHyper
+				} else {
+					mm[utils.REGULAR_HYPER] = "true"
+				}
+
 				clData[c.Clusters[i].ClusterId] = mm
 			}
 		}
@@ -341,6 +348,7 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&machCreating,
+		&updateSnapStatus,
 		&updateStatusInScylla,
 		&removeSnapShot,
 		&updateStatusInScylla,

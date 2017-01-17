@@ -118,7 +118,7 @@ type Box struct {
 	CartonId     string
 	OrgId        string
 	ApiArgs      api.ApiArgs
-	QuotaId      string 
+	QuotaId      string
 	CartonName   string
 	Name         string
 	Level        BoxLevel
@@ -134,7 +134,7 @@ type Box struct {
 	State        utils.State
 	Provider     string
 	PublicIp     string
-	VMId         string
+	InstanceId   string
 	Region       string
 	Vnets        map[string]string
 	SSH          BoxSSH

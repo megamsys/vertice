@@ -268,7 +268,7 @@ func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 func (c *Cluster) getVnets(nodeo Node, m map[string]string, st string) (map[string]string,string) {
 	res := make(map[string]string)
 	for k,v := range nodeo.Clusters {
-		if v[utils.STORAGE_TYPE] == st {
+		if v[utils.STORAGE_TYPE] == st && v[utils.REGULAR_HYPER] == "true" {
 			for i,j := range nodeo.Clusters[k] {
 					if m[i] == "true" {
 					res[i] = j

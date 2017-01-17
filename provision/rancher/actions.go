@@ -2,9 +2,9 @@ package rancher
 
 import (
 	//"errors"
-	// "fmt"
+	"fmt"
 	"io"
-	//"io/ioutil"
+	"io/ioutil"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -12,7 +12,7 @@ import (
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
-	//lb "github.com/megamsys/vertice/logbox"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/rancher/container"
 	//"github.com/megamsys/vertice/router"
@@ -127,6 +127,7 @@ var updateStatusInScylla = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(container.Container)
 		c.SetStatus(constants.StatusContainerError)
+		c.SetMileStone(constants.State("error"))
 	},
 }
 
@@ -161,7 +162,7 @@ var createContainer = action.Action{
 		//}
 	},
 }
-/*
+
 var updateContainerIdInScylla = action.Action{
 	Name: "update-container-id",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -194,6 +195,102 @@ var MileStoneUpdate = action.Action{
 	},
 }
 
+var waitToContainerUp = action.Action{
+	Name: "state-container-up",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		c := ctx.Previous.(container.Container)
+		log.Debugf("  state checking container (%s)", c.Id)
+		args := ctx.Params[0].(runContainerActionsArgs)
+		err := c.StateCheck(args.provisioner)
+		if err != nil {
+			return c, err
+		}
+		c.State  = constants.StateRunning
+		c.Status = constants.StatusContainerRunning
+		return c, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var setNetworkInfo = action.Action{
+	Name: "set-network-info",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		c := ctx.Previous.(container.Container)
+		args := ctx.Params[0].(runContainerActionsArgs)
+	  err := c.NetworkInfo(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+
+		c.Status = constants.StatusContainerNetworkSuccess
+		return c, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		args := ctx.Params[0].(runContainerActionsArgs)
+		c := ctx.FWResult.(container.Container)
+		c.Status = constants.StatusContainerNetworkFailure
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
+	},
+}
+
+var destroyOldContainers = action.Action{
+	Name: "destroy-old-containers",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(changeUnitsPipelineArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		total := len(args.toRemove)
+		var plural string
+		if total > 1 {
+			plural = "s"
+		}
+
+		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
+		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
+			err := c.Remove(args.provisioner)
+			if err != nil {
+				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
+			}
+
+			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
+			return nil
+		}, nil, true)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+	MinParams: 1,
+}
+
+/*
+
+var followLogsAndCommit = action.Action{
+	Name: "follow-logs-and-commit",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		c, ok := ctx.Previous.(container.Container)
+		if !ok {
+			return nil, errors.New("Previous result must be a container.")
+		}
+		args := ctx.Params[0].(runContainerActionsArgs)
+		err := c.Logs(args.provisioner)
+		if err != nil {
+			log.Errorf("---- follow logs for container\n     %s", err.Error())
+			return nil, err
+		}
+		c.State  = constants.StateRunning
+		c.Status = constants.StatusContainerRunning
+
+		return c, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+	MinParams: 1,
+}
+
+
 var startContainer = action.Action{
 	Name: "start-container",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -222,7 +319,7 @@ var startContainer = action.Action{
 		}
 	},
 }
-
+/*
 var stopContainer = action.Action{
 	Name: "stop-container",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -244,95 +341,8 @@ var stopContainer = action.Action{
 	},
 }
 
-var destroyOldContainers = action.Action{
-	Name: "destroy-old-containers",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		args := ctx.Params[0].(changeUnitsPipelineArgs)
-		writer := args.writer
-		if writer == nil {
-			writer = ioutil.Discard
-		}
-		total := len(args.toRemove)
-		var plural string
-		if total > 1 {
-			plural = "s"
-		}
 
-		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
-		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
 
-			err := c.Remove(args.provisioner)
-			if err != nil {
-				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
-			}
-
-			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
-			return nil
-		}, nil, true)
-		return ctx.Previous, nil
-	},
-	Backward: func(ctx action.BWContext) {
-	},
-	MinParams: 1,
-}
-
-var setNetworkInfo = action.Action{
-	Name: "set-network-info",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		c := ctx.Previous.(container.Container)
-		args := ctx.Params[0].(runContainerActionsArgs)
-		info, err := c.NetworkInfo(args.provisioner)
-		if err != nil {
-			return nil, err
-		}
-		c.PublicIp = info.IP
-		c.HostPort = info.HTTPHostPort
-		c.Status = constants.StatusContainerNetworkSuccess
-		return c, nil
-	},
-	Backward: func(ctx action.BWContext) {
-		args := ctx.Params[0].(runContainerActionsArgs)
-		c := ctx.FWResult.(container.Container)
-		c.Status = constants.StatusContainerNetworkFailure
-		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- Skip Stopping old container %s ----", c.Id)))
-	},
-}
-
-var followLogsAndCommit = action.Action{
-	Name: "follow-logs-and-commit",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		c, ok := ctx.Previous.(container.Container)
-		if !ok {
-			return nil, errors.New("Previous result must be a container.")
-		}
-		args := ctx.Params[0].(runContainerActionsArgs)
-		err := c.Logs(args.provisioner)
-		if err != nil {
-			log.Errorf("---- follow logs for container\n     %s", err.Error())
-			return nil, err
-		}
-		c.State  = constants.StateRunning
-		c.Status = constants.StatusContainerRunning
-
-		//	if status != 0 {
-		//	return nil, fmt.Errorf("Exit status %d", status)
-		//	}
-		/*fmt.Fprintf(args.writer, "\n---- Building application image ----\n")
-		imageId, err := c.Commit(args.provisioner, args.writer)
-		if err != nil {
-			log.Errorf("error on commit container %s - %s", c.Id, err)
-			return nil, err
-		}
-		fmt.Fprintf(args.writer, " ---> Cleaning up\n")
-		c.Remove(args.provisioner)
-		return imageId, nil
-		*/
-/*		return c, nil
-	},
-	Backward: func(ctx action.BWContext) {
-	},
-	MinParams: 1,
-}
 
 var addNewRoute = action.Action{
 	Name: "add-new-route",
