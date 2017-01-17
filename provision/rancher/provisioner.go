@@ -223,7 +223,7 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		boxDestroy:  true,
 	}
 	pipeline := action.NewPipeline(
-	//&destroyOldContainers,
+	&destroyOldContainers,
 	//&removeOldRoutes,
 	)
 	err = pipeline.Execute(args)

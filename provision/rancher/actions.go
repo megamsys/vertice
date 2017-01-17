@@ -4,7 +4,7 @@ import (
 	//"errors"
 	"fmt"
 	"io"
-	//"io/ioutil"
+	"io/ioutil"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -234,6 +234,36 @@ var setNetworkInfo = action.Action{
 	},
 }
 
+var destroyOldContainers = action.Action{
+	Name: "destroy-old-containers",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(changeUnitsPipelineArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		total := len(args.toRemove)
+		var plural string
+		if total > 1 {
+			plural = "s"
+		}
+
+		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
+		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
+			err := c.Remove(args.provisioner)
+			if err != nil {
+				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
+			}
+
+			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
+			return nil
+		}, nil, true)
+		return ctx.Previous, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+	MinParams: 1,
+}
 
 /*
 
@@ -311,37 +341,6 @@ var stopContainer = action.Action{
 	},
 }
 
-var destroyOldContainers = action.Action{
-	Name: "destroy-old-containers",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		args := ctx.Params[0].(changeUnitsPipelineArgs)
-		writer := args.writer
-		if writer == nil {
-			writer = ioutil.Discard
-		}
-		total := len(args.toRemove)
-		var plural string
-		if total > 1 {
-			plural = "s"
-		}
-
-		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Destroying %d old containers%s ----", total, plural)))
-		runInContainers(args.toRemove, func(c *container.Container, toRollback chan *container.Container) error {
-
-			err := c.Remove(args.provisioner)
-			if err != nil {
-				log.Errorf("Ignored error trying to remove old container %q: %s", c.Id, err)
-			}
-
-			fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf(" ---> Destroyed old container (%s, %s)", c.BoxName, c.ShortId())))
-			return nil
-		}, nil, true)
-		return ctx.Previous, nil
-	},
-	Backward: func(ctx action.BWContext) {
-	},
-	MinParams: 1,
-}
 
 
 

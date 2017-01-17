@@ -88,7 +88,7 @@ type CreateArgs struct {
 func (c *Container) Create(args *CreateArgs) error {
 	config := client.Container{
 		Name:          c.BoxName,
-		ImageUuid:     args.Box.Repo.Source + ":" + args.ImageId,
+		ImageUuid:     "docker" + ":" + args.ImageId,
 		Memory:        int64(args.Box.ConGetMemory()),
 		MemorySwap:    int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CpuShares:     int64(args.Box.GetCpushare()),
@@ -151,7 +151,7 @@ func (c *Container) UpdateContId() error {
 
 	var ids = make(map[string][]string)
 	cid := []string{c.Id}
-	ids["containerId"] = cid
+	ids[carton.INSTANCE_ID] = cid
 	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
@@ -202,6 +202,26 @@ func (c *Container) NetworkInfo(r RancherProvisioner) error {
 	}
 	return err
 }
+
+func (c *Container) Remove(r RancherProvisioner) error {
+	log.Debugf("Removing container %s from docker", c.BoxName)
+
+	//this will be removed. containerID will be stored upon create in riak
+	p := r.Cluster()
+	p.Region = c.Region
+	cont, err := p.GetContainerById(c.Id)
+	if err != nil {
+		log.Errorf("error on get container unit %s - %s", c.Id, err)
+		return err
+	}
+	err = p.RemoveContainer(cont)
+	if err != nil {
+		log.Errorf("Failed to remove container from docker: %s", err)
+		return err
+	}
+	return nil
+}
+
 
 /*
 func (c *Container) Logs(p DockerProvisioner)   error {
@@ -267,22 +287,7 @@ if !args.Deploy {
 
 } */
 /*
-func (c *Container) Remove(p DockerProvisioner) error {
-	log.Debugf("Removing container %s from docker", c.BoxName)
 
-	//this will be removed. containerID will be stored upon create in riak
-	id, _ := p.Cluster().PreStopAction(c.BoxName)
-	c.Id = id
-	err := c.Stop(p)
-	if err != nil {
-		log.Errorf("error on stop unit %s - %s", c.Id, err)
-	}
-	err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
-	if err != nil {
-		log.Errorf("Failed to remove container from docker: %s", err)
-	}
-	return nil
-}
 
 type StartArgs struct {
 	Provisioner DockerProvisioner
@@ -509,3 +514,10 @@ func getPort() (string, error) {
 */
 //	return "", nil
 //}
+
+func (c *Container) ShortId() string {
+	if len(c.Id) > 10 {
+		return c.Id[:10]
+	}
+	return c.Id
+}

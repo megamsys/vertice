@@ -76,7 +76,7 @@ var machCreating = action.Action{
 				Image:        args.imageId,
 				StorageType:  args.box.StorageType,
 				Region:       args.box.Region,
-				VMId:         args.box.VMId,
+				VMId:         args.box.InstanceId,
 				VCPUThrottle: args.provisioner.vcpuThrottle,
 	    }
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))

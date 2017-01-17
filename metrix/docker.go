@@ -97,7 +97,7 @@ func (s *Swarm) ReadStatus() (e error) {
 func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 
 	for _, h := range stats {
-		if len(h.QuotaId) > 0 {
+		if !(len(h.QuotaId) > 0) {
 			cpuDelta := float64((float64(h.CPUStats.TotalUsage) - float64(h.PreCPUStats.TotalUsage)))
 			systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
 			cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0

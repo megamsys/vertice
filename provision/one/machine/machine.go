@@ -93,7 +93,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	var id = make(map[string][]string)
 	vm := []string{}
 	vm = []string{m.VMId}
-	id[carton.VMID] = vm
+	id[carton.INSTANCE_ID] = vm
 
 	if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err

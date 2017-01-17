@@ -159,3 +159,20 @@ func (c *Cluster) getIps() string {
 	}
 	return carton.PRIVATEIPV4
 }
+
+// RemoveContainer removes a container from the cluster.
+func (c *Cluster) RemoveContainer(opts *client.Container) error {
+	return c.removeFromStorage(opts)
+}
+
+func (c *Cluster) removeFromStorage(opts *client.Container) error {
+	node, err := c.getNodeClient(c.Region)
+	if err != nil {
+		return err
+	}
+	err = node.RancherClient.Container.Delete(opts)
+	if err != nil {
+			return wrapError(node, err)
+	}
+	return nil
+}

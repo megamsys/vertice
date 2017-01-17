@@ -56,13 +56,18 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	rg := make([]docker.Region, 2)
+	rg := make([]docker.Region, 0)
 	r := docker.Region{
 		DockerZone:     DefaultDockerZone,
 		SwarmEndPoint:  DefaultSwarmEndpoint,
 		Registry:       DefaultRegistry,
 		CPUPeriod:      toml.Duration(DefaultCPUPeriod),
 		CPUQuota:       toml.Duration(DefaultCPUQuota),
+		CpuCostPerHour: "0.1",
+		RamCostPerHour: "0.1",
+		CpuUnit:        "0.5",
+		MemoryUnit:     "1024",
+		DiskUnit:       "1024",
 	}
 
 	o := docker.Docker{
