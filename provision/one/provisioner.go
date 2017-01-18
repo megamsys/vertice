@@ -82,7 +82,7 @@ type Region struct {
 type Cluster struct {
 	Enabled       bool   `json:"enabled" toml:"enabled"`
 	StorageType   string `json:"storage_hddtype" toml:"storage_hddtype"`
-	RegularHyper  string `json:"regular_hypervisor" toml:"regular_hypervisor"`
+	VOneCloud     bool `json:"vonecloud" toml:"vonecloud"`
 	ClusterId     string `json:"cluster_id" toml:"cluster_id"`
 	Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
 	Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
@@ -126,6 +126,7 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 			c := w.Regions[i].toClusterMap()
 			n := cluster.Node{
 				Address:  m[api.ENDPOINT],
+				Region:   m[api.ONEZONE],
 				Metadata: m,
 				Clusters: c,
 			}
@@ -166,12 +167,9 @@ func (c Region) toClusterMap() map[string]map[string]string {
 				mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
 				mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
 				mm[utils.STORAGE_TYPE] = c.Clusters[i].StorageType
-				if c.Clusters[i].RegularHyper != "" {
-					mm[utils.REGULAR_HYPER] = c.Clusters[i].RegularHyper
-				} else {
-					mm[utils.REGULAR_HYPER] = "true"
+				if c.Clusters[i].VOneCloud {
+					mm[utils.VONE_CLOUD] = utils.TRUE
 				}
-
 				clData[c.Clusters[i].ClusterId] = mm
 			}
 		}
@@ -257,8 +255,6 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		machineState:  constants.StateInitializing,
 		provisioner:   p,
 	}
-	lastStatus = constants.StatusLaunching
-	lastState = constants.StateInitializing
 
 	err := pipeline.Execute(args)
 	if err != nil {
@@ -570,10 +566,10 @@ func (*oneProvisioner) Addr(box *provision.Box) (string, error) {
 	return addr, nil
 }
 
-func (p *oneProvisioner) MetricEnvs(start int64, end int64, point string, w io.Writer) ([]interface{}, error) {
+func (p *oneProvisioner) MetricEnvs(start int64, end int64, region string, w io.Writer) ([]interface{}, error) {
 
 	fmt.Fprintf(w, lb.W(lb.BILLING, lb.INFO, fmt.Sprintf("--- pull metrics for the duration (%d, %d)", start, end)))
-	res, err := p.Cluster().Showback(start, end, point)
+	res, err := p.Cluster().Showback(start, end, region)
 	if err != nil {
 
 		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))

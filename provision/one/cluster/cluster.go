@@ -106,23 +106,23 @@ func New(storage Storage, nodes ...Node) (*Cluster, error) {
 
 // Register adds new nodes to the cluster.
 func (c *Cluster) Register(node Node) error {
-	if node.Address == "" {
-		return errors.New("Invalid address")
+	if node.Region == "" {
+		return errors.New("Invalid region")
 	}
 	return c.storage().StoreNode(node)
 }
 
 func (c *Cluster) UpdateNode(node Node) (Node, error) {
-	_, err := c.storage().RetrieveNode(node.Address)
+	_, err := c.storage().RetrieveNode(node.Region)
 	if err != nil {
 		return Node{}, err
 	}
-	unlock, err := c.lockWithTimeout(node.Address, false)
+	unlock, err := c.lockWithTimeout(node.Region, false)
 	if err != nil {
 		return Node{}, err
 	}
 	defer unlock()
-	dbNode, err := c.storage().RetrieveNode(node.Address)
+	dbNode, err := c.storage().RetrieveNode(node.Region)
 	if err != nil {
 		return Node{}, err
 	}
@@ -140,12 +140,12 @@ func (c *Cluster) UpdateNode(node Node) (Node, error) {
 }
 
 // Unregister removes nodes from the cluster.
-func (c *Cluster) Unregister(address string) error {
-	return c.storage().RemoveNode(address)
+func (c *Cluster) Unregister(region string) error {
+	return c.storage().RemoveNode(region)
 }
 
-func (c *Cluster) UnregisterNodes(addresses ...string) error {
-	return c.storage().RemoveNodes(addresses)
+func (c *Cluster) UnregisterNodes(regions ...string) error {
+	return c.storage().RemoveNodes(regions)
 }
 
 func (c *Cluster) UnfilteredNodes() ([]Node, error) {
@@ -160,14 +160,14 @@ func (c *Cluster) Nodes() ([]Node, error) {
 	return NodeList(nodes).filterDisabled(), nil
 }
 
-func (c *Cluster) handleNodeError(addr string, lastErr error, incrementFailures bool) error {
-	unlock, err := c.lockWithTimeout(addr, true)
+func (c *Cluster) handleNodeError(region string, lastErr error, incrementFailures bool) error {
+	unlock, err := c.lockWithTimeout(region, true)
 	if err != nil {
 		return err
 	}
 	go func() {
 		defer unlock()
-		node, err := c.storage().RetrieveNode(addr)
+		node, err := c.storage().RetrieveNode(region)
 		if err != nil {
 			return
 		}
@@ -198,13 +198,13 @@ func (v *nodeUpdatedHook) Val() func() {
 	return nil
 }
 
-func (c *Cluster) handleNodeSuccess(addr string) error {
-	unlock, err := c.lockWithTimeout(addr, false)
+func (c *Cluster) handleNodeSuccess(region string) error {
+	unlock, err := c.lockWithTimeout(region, false)
 	if err != nil {
 		return err
 	}
 	defer unlock()
-	node, err := c.storage().RetrieveNode(addr)
+	node, err := c.storage().RetrieveNode(region)
 	if err != nil {
 		return err
 	}
@@ -212,9 +212,9 @@ func (c *Cluster) handleNodeSuccess(addr string) error {
 	return c.storage().UpdateNode(node)
 }
 
-func (c *Cluster) lockWithTimeout(addr string, isFailure bool) (func(), error) {
+func (c *Cluster) lockWithTimeout(region string, isFailure bool) (func(), error) {
 	lockTimeout := 3 * time.Minute
-	locked, err := c.storage().LockNodeForHealing(addr, isFailure, lockTimeout)
+	locked, err := c.storage().LockNodeForHealing(region, isFailure, lockTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -229,12 +229,12 @@ func (c *Cluster) lockWithTimeout(addr string, isFailure bool) (func(), error) {
 				return
 			case <-time.After(30 * time.Second):
 			}
-			c.storage().ExtendNodeLock(addr, lockTimeout)
+			c.storage().ExtendNodeLock(region, lockTimeout)
 		}
 	}()
 	return func() {
 		doneKeepAlive <- true
-		c.storage().UnlockNode(addr)
+		c.storage().UnlockNode(region)
 	}, nil
 }
 
@@ -268,9 +268,9 @@ func (c *Cluster) getNodeByObject(nodeo Node) (node, error) {
 func (c *Cluster) getVnets(nodeo Node, m map[string]string, st string) (map[string]string,string) {
 	res := make(map[string]string)
 	for k,v := range nodeo.Clusters {
-		if v[utils.STORAGE_TYPE] == st && v[utils.REGULAR_HYPER] == "true" {
+		if v[utils.STORAGE_TYPE] == st && v[utils.VONE_CLOUD] != utils.TRUE {
 			for i,j := range nodeo.Clusters[k] {
-					if m[i] == "true" {
+					if m[i] == utils.TRUE {
 					res[i] = j
 				}
 			}

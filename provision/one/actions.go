@@ -39,9 +39,6 @@ const (
 	RESTART = "restart"
 )
 
-var lastState utils.State
-var lastStatus utils.Status
-
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer

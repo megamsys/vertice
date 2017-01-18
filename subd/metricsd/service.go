@@ -110,6 +110,7 @@ func (s *Service) onedCollectors(output *metrix.OutputHandler) {
 			 collectors := map[string]metrix.MetricCollector{
 				 metrix.OPENNEBULA: &metrix.OpenNebula{
 					 Url: region.OneEndPoint,
+					 Region: region.OneZone,
 					 DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit},
 				 },
 			 }

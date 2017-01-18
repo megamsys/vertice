@@ -9,10 +9,10 @@ import (
 )
 
 // Showback returns the metrics of the one cluster
-func (c *Cluster) Showback(start int64, end int64,point string) ([]interface{}, error) {
+func (c *Cluster) Showback(start int64, end int64,region string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
 
-	node, err := c.getNodeByAddr(point)
+	node, err := c.getNodeRegion(region)
 	if err != nil {
 		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
 	}

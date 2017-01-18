@@ -18,7 +18,7 @@ type FakeOneProvisioner struct {
 	preparedErrors  chan error
 }
 
-func NewFakeOneProvisioner(servers ...string) (*FakeOneProvisioner, error) {
+func NewFakeOneProvisioner(regions ...string) (*FakeOneProvisioner, error) {
 	var err error
 	p := FakeOneProvisioner{
 		storage:         &cluster.MapStorage{},
@@ -26,9 +26,9 @@ func NewFakeOneProvisioner(servers ...string) (*FakeOneProvisioner, error) {
 		preparedResults: make(chan []machine.Machine, 10),
 		machines:        make(map[string][]machine.Machine),
 	}
-	nodes := make([]cluster.Node, len(servers))
-	for i, server := range servers {
-		nodes[i] = cluster.Node{Address: server}
+	nodes := make([]cluster.Node, len(regions))
+	for i, server := range regions {
+		nodes[i] = cluster.Node{Region: server, }
 	}
 	p.cluster, err = cluster.New(p.storage, nodes...)
 	if err != nil {
