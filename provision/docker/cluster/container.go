@@ -421,9 +421,14 @@ func (c *Cluster) GulpPort() string {
 }
 
 // Showback returns the metrics of the swarm containers stats
+
 func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
-	var resultStats []interface{}
+	var (
+		result *docker.Container
+		v  docker.APIContainers
+		resultStats []interface{}
+	)
 	node, err := c.getNodeByAddr(point)
 	if err != nil {
 		return nil, fmt.Errorf("%s", cmd.Colorfy("Unavailable nodes (hint: start or beat it).\n", "red", "", ""))
@@ -433,66 +438,28 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 		//	Filters: map[string][]string{"status": {"running","paused","stopped"}},
 	}
 	ps, err := node.ListContainers(opts)
-	for _, v := range ps {
-		id := v.ID
-		errC := make(chan error, 1)
-		statsC := make(chan *docker.Stats)
-		done := make(chan bool)
-		defer close(done)
-		go func() {
-			errC <- node.Stats(docker.StatsOptions{ID: id, Stats: statsC, Stream: false, Done: done})
-			close(errC)
-		}()
-
-		for {
-			stats, ok := <-statsC
-			if !ok {
-				break
-			}
-			resultStats = append(resultStats, parseContainerStats(v, stats))
-		}
-		err := <-errC
-		if err != nil {
-			return nil, wrapError(node, err)
-		}
-
-	}
 	if err != nil {
-		return nil, wrapError(node, err)
+		return nil, err
 	}
-
-	log.Debugf("showback (%d, %d) OK", start, end)
-	return resultStats, nil
-}
-
-func parseContainerStats(d docker.APIContainers, stats *docker.Stats) *metrix.Stats {
-	return &metrix.Stats{
-		ContainerId:  d.ID,
-		Image: d.Image,
-		MemoryUsage:  stats.MemoryStats.Usage,
-		SystemMemory: stats.MemoryStats.Limit,
-		CPUStats: metrix.CPUStats{
-			PercpuUsage:       stats.CPUStats.CPUUsage.PercpuUsage,
-			UsageInUsermode:   stats.CPUStats.CPUUsage.UsageInUsermode,
-			TotalUsage:        stats.CPUStats.CPUUsage.TotalUsage,
-			UsageInKernelmode: stats.CPUStats.CPUUsage.UsageInKernelmode,
-			SystemCPUUsage:    stats.CPUStats.SystemCPUUsage,
-		},
-		PreCPUStats: metrix.CPUStats{
-			PercpuUsage:       stats.PreCPUStats.CPUUsage.PercpuUsage,
-			UsageInUsermode:   stats.PreCPUStats.CPUUsage.UsageInUsermode,
-			TotalUsage:        stats.PreCPUStats.CPUUsage.TotalUsage,
-			UsageInKernelmode: stats.PreCPUStats.CPUUsage.UsageInKernelmode,
-			SystemCPUUsage:    stats.PreCPUStats.SystemCPUUsage,
-		},
-		AccountId:    d.Labels[constants.ACCOUNT_ID],
-		AssemblyId:   d.Labels[constants.ASSEMBLY_ID],
-		AssembliesId: d.Labels[constants.ASSEMBLIES_ID],
-		AssemblyName: d.Labels[constants.ASSEMBLY_NAME],
-		CPUUnitCost: d.Labels[carton.CONTAINER_CPU_COST],
-		MemoryUnitCost: d.Labels[carton.CONTAINER_MEMORY_COST],
-		QuotaId: d.Labels[constants.QUOTA_ID],
-		AuditPeriod:  stats.Read,
-		Status:       d.State,
+	for _, v = range ps {
+		id := v.ID
+		result, _ = node.InspectContainer(id)
+		res := &metrix.Stats{
+			ContainerId:  result.ID,
+			Image: result.Image,
+			AllocatedMemory: result.HostConfig.Memory,
+			AllocatedCpu: result.HostConfig.CPUShares,
+			AccountId:    v.Labels[constants.ACCOUNT_ID],
+			AssemblyId:   v.Labels[constants.ASSEMBLY_ID],
+			AssembliesId: v.Labels[constants.ASSEMBLIES_ID],
+			AssemblyName: v.Labels[constants.ASSEMBLY_NAME],
+			CPUUnitCost: v.Labels[carton.CONTAINER_CPU_COST],
+			MemoryUnitCost: v.Labels[carton.CONTAINER_MEMORY_COST],
+			QuotaId: v.Labels[constants.QUOTA_ID],
+			//AuditPeriod:  stats.Read,
+			Status:       v.State,
+		}
+		resultStats = append(resultStats,res)
 	}
-}
+		return resultStats, nil
+		}
