@@ -20,7 +20,7 @@ type MapStorage struct {
 func (s *MapStorage) updateNodeMap() {
 	s.nodeMap = make(map[string]*Node)
 	for i := range s.nodes {
-		s.nodeMap[s.nodes[i].Address] = &s.nodes[i]
+		s.nodeMap[s.nodes[i].Region] = &s.nodes[i]
 	}
 }
 
@@ -28,7 +28,7 @@ func (s *MapStorage) StoreNode(node Node) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
 	for _, n := range s.nodes {
-		if n.Address == node.Address {
+		if n.Region == node.Region {
 			return ErrDuplicatedNodeAddress
 		}
 	}
@@ -59,13 +59,13 @@ func (s *MapStorage) RetrieveNodes() ([]Node, error) {
 	return dst, nil
 }
 
-func (s *MapStorage) RetrieveNode(address string) (Node, error) {
+func (s *MapStorage) RetrieveNode(region string) (Node, error) {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
 	if s.nodeMap == nil {
 		s.nodeMap = make(map[string]*Node)
 	}
-	node, ok := s.nodeMap[address]
+	node, ok := s.nodeMap[region]
 	if !ok {
 		return Node{}, ErrNoSuchNode
 	}
@@ -78,20 +78,20 @@ func (s *MapStorage) UpdateNode(node Node) error {
 	if s.nodeMap == nil {
 		s.nodeMap = make(map[string]*Node)
 	}
-	_, ok := s.nodeMap[node.Address]
+	_, ok := s.nodeMap[node.Region]
 	if !ok {
 		return ErrNoSuchNode
 	}
-	*s.nodeMap[node.Address] = node
+	*s.nodeMap[node.Region] = node
 	return nil
 }
 
-func (s *MapStorage) RemoveNode(addr string) error {
+func (s *MapStorage) RemoveNode(region string) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
 	index := -1
 	for i, node := range s.nodes {
-		if node.Address == addr {
+		if node.Region == region {
 			index = i
 		}
 	}
@@ -104,16 +104,16 @@ func (s *MapStorage) RemoveNode(addr string) error {
 	return nil
 }
 
-func (s *MapStorage) RemoveNodes(addresses []string) error {
+func (s *MapStorage) RemoveNodes(regions []string) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
 	addrMap := map[string]struct{}{}
-	for _, addr := range addresses {
-		addrMap[addr] = struct{}{}
+	for _, region := range regions {
+		addrMap[region] = struct{}{}
 	}
 	dup := make([]Node, 0, len(s.nodes))
 	for _, node := range s.nodes {
-		if _, ok := addrMap[node.Address]; !ok {
+		if _, ok := addrMap[node.Region]; !ok {
 			dup = append(dup, node)
 		}
 	}
@@ -125,10 +125,10 @@ func (s *MapStorage) RemoveNodes(addresses []string) error {
 	return nil
 }
 
-func (s *MapStorage) LockNodeForHealing(address string, isFailure bool, timeout time.Duration) (bool, error) {
+func (s *MapStorage) LockNodeForHealing(region string, isFailure bool, timeout time.Duration) (bool, error) {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
-	n, present := s.nodeMap[address]
+	n, present := s.nodeMap[region]
 	if !present {
 		return false, ErrNoSuchNode
 	}
@@ -141,10 +141,10 @@ func (s *MapStorage) LockNodeForHealing(address string, isFailure bool, timeout 
 	return true, nil
 }
 
-func (s *MapStorage) ExtendNodeLock(address string, timeout time.Duration) error {
+func (s *MapStorage) ExtendNodeLock(region string, timeout time.Duration) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
-	n, present := s.nodeMap[address]
+	n, present := s.nodeMap[region]
 	if !present {
 		return ErrNoSuchNode
 	}
@@ -153,10 +153,10 @@ func (s *MapStorage) ExtendNodeLock(address string, timeout time.Duration) error
 	return nil
 }
 
-func (s *MapStorage) UnlockNode(address string) error {
+func (s *MapStorage) UnlockNode(region string) error {
 	s.nMut.Lock()
 	defer s.nMut.Unlock()
-	n, present := s.nodeMap[address]
+	n, present := s.nodeMap[region]
 	if !present {
 		return ErrNoSuchNode
 	}

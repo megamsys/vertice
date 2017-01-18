@@ -10,7 +10,8 @@ import (
 // (in the form <scheme>://<host>:<port>/RPC2) and map with arbritary
 // metadata.
 type Node struct {
-	Address        string `json:"_id"`
+	Address        string
+	Region         string `json:"_id"`
 	Healing        HealingData
 	Metadata       map[string]string
 	Clusters       map[string]map[string]string
@@ -43,6 +44,7 @@ func (a NodeList) Less(i, j int) bool { return a[i].Address < a[j].Address }
 
 func (n Node) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
+		"Region": n.Region,
 		"Address":  n.Address,
 		"Metadata": n.Metadata,
 		"Status":   n.Status(),

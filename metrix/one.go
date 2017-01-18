@@ -16,6 +16,7 @@ const (
 
 type OpenNebula struct {
 	Url          string
+	Region       string
 	DefaultUnits map[string]string
 	RawStatus    []byte
 }
@@ -50,7 +51,7 @@ func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 func (on *OpenNebula) ReadStatus() (b []byte, e error) {
 	if len(on.RawStatus) == 0 {
 		var res []interface{}
-		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-MetricsInterval).Unix(), time.Now().Unix(), on.Url, ioutil.Discard)
+		res, e = carton.ProvisionerMap[on.Prefix()].MetricEnvs(time.Now().Add(-MetricsInterval).Unix(), time.Now().Unix(), on.Region, ioutil.Discard)
 		if e != nil {
 			return
 		}

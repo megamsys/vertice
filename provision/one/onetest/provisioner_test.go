@@ -57,7 +57,7 @@ func (s *S) TestCluster(c *check.C) {
 	var p FakeOneProvisioner
 	cs, err := buildClusterStorage()
 	c.Assert(err, check.IsNil)
-	cluster, err := cluster.New(cs, cluster.Node{Address: "127.0.0.1:6767"})
+	cluster, err := cluster.New(cs, cluster.Node{Address: "127.0.0.1:6767", Region: "chennai"})
 	c.Assert(err, check.IsNil)
 	p.cluster = cluster
 	c.Assert(p.Cluster(), check.Equals, cluster)
