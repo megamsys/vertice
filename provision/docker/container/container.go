@@ -87,7 +87,6 @@ func (c *Container) Create(args *CreateArgs) error {
 	if err != nil {
 		return err
 	}
-
 	config := docker.Config{
 		Image:        args.ImageId,
 		AttachStdin:  false,
