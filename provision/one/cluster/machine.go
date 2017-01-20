@@ -53,7 +53,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 		}
 
 		if addr == "" {
-			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+ opts.Region +" ) nodes (hint: start or beat it).\n", "red", "", ""))
+			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+opts.Region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {
 			machine, vmid, err = c.createVMInNode(opts, addr)
@@ -90,7 +90,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
-			return "", "", err
+		return "", "", err
 	}
 
 	if opts.ClusterId != "" {
@@ -268,12 +268,14 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := v.ImageShow()
-		if err != nil {
-			return false, err
+		if err != nil || res.State_string() == "failure" {
+			return false, fmt.Errorf("fails to create snapshot")
 		}
-		return res.State_string() == "ready", nil
+		return (res.State_string() == "ready"), nil
 	})
-
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

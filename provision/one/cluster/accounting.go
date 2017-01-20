@@ -9,7 +9,7 @@ import (
 )
 
 // Showback returns the metrics of the one cluster
-func (c *Cluster) Showback(start int64, end int64,region string) ([]interface{}, error) {
+func (c *Cluster) Showback(start int64, end int64, region string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
 
 	node, err := c.getNodeRegion(region)
@@ -24,7 +24,7 @@ func (c *Cluster) Showback(start int64, end int64,region string) ([]interface{},
 		return nil, wrapError(node, err)
 	}
 	var a []interface{}
-	a = append(a,sb)
+	a = append(a, sb)
 	log.Debugf("showback (%d, %d) OK", start, end)
 	return a, nil
 }

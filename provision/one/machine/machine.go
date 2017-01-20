@@ -67,20 +67,20 @@ func (m *Machine) Create(args *CreateArgs) error {
 	}
 
 	opts := compute.VirtualMachine{
-		Name:   m.Name,
-		Image:  m.Image,
-		Region: args.Box.Region,
-		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
-		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
-		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
-		CpuCost: asm.GetVMCpuCost(),
+		Name:       m.Name,
+		Image:      m.Image,
+		Region:     args.Box.Region,
+		Cpu:        strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		Memory:     strconv.FormatInt(int64(args.Box.GetMemory()), 10),
+		HDD:        strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		CpuCost:    asm.GetVMCpuCost(),
 		MemoryCost: asm.GetVMMemoryCost(),
-		HDDCost:   asm.GetVMHDDCost(),
+		HDDCost:    asm.GetVMHDDCost(),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key, constants.QUOTA_ID: args.Box.QuotaId},
 		Vnets: args.Box.Vnets,
 	}
-  opts.VCpu = opts.Cpu
+	opts.VCpu = opts.Cpu
 	if strings.Contains(args.Box.Tosca, "freebsd") {
 		opts.Files = "/detio/freebsd/init.sh"
 	}
@@ -104,7 +104,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 	bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())
 	if err != nil || bal == nil {
-		return nil
+		return err
 	}
 
 	//have to decide what to do whether balance record is empty
@@ -134,14 +134,13 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-
-    err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
 		}
-    status := res.StateString()
+		status := res.StateString()
 		if res.LcmStateString() != "" {
 			status = status + "_" + res.LcmStateString()
 		}
@@ -158,13 +157,16 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	return nil
 }
 
-func (m *Machine) WaitUntillVMState(args *CreateArgs ,vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
-	opts := virtualmachine.Vnc{	VmId: m.VMId}
+func (m *Machine) WaitUntillVMState(args *CreateArgs, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
+	opts := virtualmachine.Vnc{VmId: m.VMId}
 
 	err := safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
+		}
+		if res.IsFailure() {
+			return false, fmt.Errorf(res.UserTemplate.Error)
 		}
 		return (res.State == int(vm) && res.LcmState == int(lcm)), nil
 	})
