@@ -53,7 +53,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 		}
 
 		if addr == "" {
-			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+ opts.Region +" ) nodes (hint: start or beat it).\n", "red", "", ""))
+			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+opts.Region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {
 			machine, vmid, err = c.createVMInNode(opts, addr)
@@ -90,7 +90,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
-			return "", "", err
+		return "", "", err
 	}
 
 	if opts.ClusterId != "" {

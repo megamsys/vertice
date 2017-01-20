@@ -61,28 +61,27 @@ var machCreating = action.Action{
 			writer = ioutil.Discard
 		}
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
-			mach := machine.Machine{
-				Id:           args.box.Id,
-				AccountId:   	args.box.AccountId,
-				CartonId:     args.box.CartonId,
-				CartonsId:    args.box.CartonsId,
-				Level:        args.box.Level,
-				Name:         args.box.GetFullName(),
-				Status:       args.machineStatus,
-				State:        args.machineState,
-				Image:        args.imageId,
-				StorageType:  args.box.StorageType,
-				Region:       args.box.Region,
-				VMId:         args.box.InstanceId,
-				VCPUThrottle: args.provisioner.vcpuThrottle,
-	    }
+		mach := machine.Machine{
+			Id:           args.box.Id,
+			AccountId:    args.box.AccountId,
+			CartonId:     args.box.CartonId,
+			CartonsId:    args.box.CartonsId,
+			Level:        args.box.Level,
+			Name:         args.box.GetFullName(),
+			Status:       args.machineStatus,
+			State:        args.machineState,
+			Image:        args.imageId,
+			StorageType:  args.box.StorageType,
+			Region:       args.box.Region,
+			VMId:         args.box.InstanceId,
+			VCPUThrottle: args.provisioner.vcpuThrottle,
+		}
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" creating struct machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
 }
-
 
 var updateStatusInScylla = action.Action{
 	Name: "update-status-scylla",
@@ -145,7 +144,7 @@ var createMachine = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-    err := mach.SetStatus(mach.Status)
+		err := mach.SetStatus(mach.Status)
 		if err != nil {
 			return nil, err
 		}
@@ -168,7 +167,7 @@ var createMachine = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		fmt.Println("create machine backward state : ",c.State)
+		fmt.Println("create machine backward state : ", c.State)
 		if c.State != constants.StateInitialized {
 			fmt.Println(" backward removing machine")
 			err := c.Remove(args.provisioner, args.box.State)
@@ -239,10 +238,10 @@ var destroyOldMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
-			err := mach.Remove(args.provisioner,args.box.State)
-			if err != nil {
-				return nil, err
-			}
+		err := mach.Remove(args.provisioner, args.box.State)
+		if err != nil {
+			return nil, err
+		}
 
 		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroyed old machine (%s, %s) OK", mach.Id, mach.Name)))
 		return ctx.Previous, nil
@@ -470,7 +469,7 @@ var destroyOldRoute = action.Action{
 
 			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("  skip destroy routes from created machine (%s, %s) OK", mach.Name, args.box.PublicIp)))
 		}
-    mach.Status = constants.StatusDestroyed
+		mach.Status = constants.StatusDestroyed
 		mach.State = constants.StateDestroyed
 		return mach, nil
 	},
@@ -614,7 +613,7 @@ var mileStoneUpdate = action.Action{
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
-			err = c.SetMileStone(constants.StatePreError)
+		err = c.SetMileStone(constants.StatePreError)
 		if err != nil {
 			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 		}
@@ -695,8 +694,6 @@ var updateSnapStatus = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
-
-
 
 var waitUntillImageReady = action.Action{
 	Name: "wait-for-image-ready",

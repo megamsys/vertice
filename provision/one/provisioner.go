@@ -26,8 +26,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
@@ -82,7 +82,7 @@ type Region struct {
 type Cluster struct {
 	Enabled       bool   `json:"enabled" toml:"enabled"`
 	StorageType   string `json:"storage_hddtype" toml:"storage_hddtype"`
-	VOneCloud     bool `json:"vonecloud" toml:"vonecloud"`
+	VOneCloud     bool   `json:"vonecloud" toml:"vonecloud"`
 	ClusterId     string `json:"cluster_id" toml:"cluster_id"`
 	Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
 	Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
@@ -238,11 +238,11 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 
 	actions := []*action.Action{&machCreating}
-	  if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
-  	  actions = append(actions, &checkBalances,	&updateStatusInScylla)
-	  }
-		actions = append(actions, &mileStoneUpdate,	&createMachine,	&getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla)
-		actions = append(actions,	&updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
+	if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
+		actions = append(actions, &checkBalances, &updateStatusInScylla)
+	}
+	actions = append(actions, &mileStoneUpdate, &createMachine, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla)
+	actions = append(actions, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)
 
@@ -274,7 +274,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		writer:        w,
 		isDeploy:      false,
 		machineStatus: constants.StatusDestroying,
-		machineState: constants.StateDestroying,
+		machineState:  constants.StateDestroying,
 		provisioner:   p,
 	}
 
@@ -582,8 +582,8 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, region string, w io.
 
 func (p *oneProvisioner) TriggerBills(account_id, cat_id, name string) error {
 	mach := &machine.Machine{
-		Name:       name,
-		CartonId:   cat_id,
+		Name:      name,
+		CartonId:  cat_id,
 		AccountId: account_id,
 	}
 	err := mach.Deduct()
