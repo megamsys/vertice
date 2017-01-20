@@ -268,12 +268,14 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := v.ImageShow()
-		if err != nil {
-			return false, err
+		if err != nil || res.State_string() == "failure" {
+			return false, fmt.Errorf("fails to create snapshot")
 		}
-		return res.State_string() == "ready", nil
+		return (res.State_string() == "ready"), nil
 	})
-
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

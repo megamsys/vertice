@@ -104,7 +104,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 	bal, err := bills.NewBalances(b.AccountId, meta.MC.ToMap())
 	if err != nil || bal == nil {
-		return nil
+		return err
 	}
 
 	//have to decide what to do whether balance record is empty
@@ -165,6 +165,9 @@ func (m *Machine) WaitUntillVMState(args *CreateArgs ,vm virtualmachine.VmState,
 		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
+		}
+    if res.IsFailure() {
+       return false , fmt.Errorf(res.UserTemplate.Error)
 		}
 		return (res.State == int(vm) && res.LcmState == int(lcm)), nil
 	})

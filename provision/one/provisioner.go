@@ -241,7 +241,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	  if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
   	  actions = append(actions, &checkBalances,	&updateStatusInScylla)
 	  }
-		actions = append(actions, &machCreating,	&mileStoneUpdate,	&createMachine,	&mileStoneUpdate,	&getVmHostIpPort, &updateStatusInScylla)
+		actions = append(actions, &mileStoneUpdate,	&createMachine,	&getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla)
 		actions = append(actions,	&updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)

@@ -554,7 +554,20 @@ var createSnapImage = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.FWResult.(machine.Machine)
+		mach.Status = constants.Status("error")
+		w := args.writer
+		if w == nil {
+			w = ioutil.Discard
+		}
+		if err := mach.RemoveSnapshot(args.provisioner); err != nil {
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot remove failure error (%s)   %s", mach.Name, err.Error())))
+		}
+		err := mach.UpdateSnapStatus(mach.Status)
+		if err != nil {
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot create failure update error (%s)   %s", mach.Name, err.Error())))
+		}
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
@@ -695,6 +708,7 @@ var waitUntillImageReady = action.Action{
 		if err := mach.IsSnapReady(args.provisioner); err != nil {
 			return nil, err
 		}
+		mach.Status = constants.StatusRunning
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to snapshot creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
 
 		return mach, nil
