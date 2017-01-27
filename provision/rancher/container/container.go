@@ -12,6 +12,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/libgo/events"
 	//	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/safe"
@@ -223,6 +224,37 @@ func (c *Container) Remove(r RancherProvisioner) error {
 }
 
 
+type StartArgs struct {
+	Provisioner RancherProvisioner
+	Box         *provision.Box
+	Deploy      bool
+}
+
+func (c *Container) Start(args *StartArgs) error {
+	err := args.Provisioner.Cluster().StartContainer(c.Id)
+	if err != nil {
+		return err
+	}
+	initialStatus := constants.StatusContainerStarted
+	if args.Deploy {
+		initialStatus = constants.StatusContainerBootstrapping
+	}
+	return c.SetStatus(initialStatus)
+}
+
+func (c *Container) Stop(p RancherProvisioner) error {
+	if c.Status.String() == constants.StatusContainerStopped.String() {
+		return nil
+	}
+	err := p.Cluster().StopContainer(c.Id)
+	if err != nil {
+		log.Errorf("error on stop container %s: %s", c.Id, err)
+	}
+	c.SetStatus(constants.StatusContainerStopped)
+	return nil
+}
+
+
 /*
 func (c *Container) Logs(p DockerProvisioner)   error {
 	var outBuffer bytes.Buffer
@@ -288,47 +320,6 @@ if !args.Deploy {
 } */
 /*
 
-
-type StartArgs struct {
-	Provisioner DockerProvisioner
-	Box         *provision.Box
-	Deploy      bool
-}
-
-func (c *Container) Start(args *StartArgs) error {
-	_, err := getPort()
-	if err != nil {
-		return err
-	}
-
-	hostConfig := docker.HostConfig{
-		Memory:     int64(args.Box.ConGetMemory()),
-		MemorySwap: int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
-		CPUShares:  int64(args.Box.GetCpushare()),
-	}
-
-	err = args.Provisioner.Cluster().StartContainer(c.Id, &hostConfig)
-	if err != nil {
-		return err
-	}
-	initialStatus := constants.StatusContainerStarted
-	if args.Deploy {
-		initialStatus = constants.StatusContainerBootstrapping
-	}
-	return c.SetStatus(initialStatus)
-}
-
-func (c *Container) Stop(p DockerProvisioner) error {
-	if c.Status.String() == constants.StatusContainerStopped.String() {
-		return nil
-	}
-	err := p.Cluster().StopContainer(c.Id, 10)
-	if err != nil {
-		log.Errorf("error on stop container %s: %s", c.Id, err)
-	}
-	c.SetStatus(constants.StatusContainerStopped)
-	return nil
-}
 
 type waitResult struct {
 	status int

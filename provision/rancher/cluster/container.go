@@ -176,3 +176,34 @@ func (c *Cluster) removeFromStorage(opts *client.Container) error {
 	}
 	return nil
 }
+
+func (c *Cluster) StartContainer(id string) error {
+	node, err := c.getNodeClient(c.Region)
+	if err != nil {
+		return err
+	}
+	cont, err := node.RancherClient.Container.ById(id)
+	if err != nil {
+		return err
+	}
+	_, err = node.RancherClient.Container.ActionStart(cont)
+	return wrapError(node, err)
+}
+
+func (c *Cluster) StopContainer(id string) error {
+	node, err := c.getNodeClient(c.Region)
+	if err != nil {
+		return err
+	}
+	cont, err := node.RancherClient.Container.ById(id)
+	if err != nil {
+		return err
+	}
+	insStop, err := node.RancherClient.InstanceStop.ById(id)
+    if err != nil {
+      return err
+    }
+
+    _, err = node.RancherClient.Container.ActionStop(cont, insStop)
+	return wrapError(node, err)
+}

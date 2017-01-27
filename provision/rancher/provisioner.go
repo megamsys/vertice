@@ -234,10 +234,9 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 }
 
 func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-	/*
+
 		containers, err := p.listContainersByBox(box)
 		if err != nil {
-
 			fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 		}
 		return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
@@ -249,17 +248,14 @@ func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writ
 				return err
 			}
 			c.SetStatus(constants.StatusContainerStarting)
-			if info, err := c.NetworkInfo(p); err == nil {
-				p.fixContainer(c, info)
-			}
 			return nil
 		}, nil, true)
-	*/
+
 	return nil
 }
 
 func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-	/*
+
 		containers, err := p.listContainersByBox(box)
 		if err != nil {
 			fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
@@ -271,13 +267,12 @@ func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Write
 			}
 			return err
 		}, nil, true)
-	*/
+
 	return nil
 }
 
 func (p *rancherProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
 	return nil
-
 }
 
 func (*rancherProvisioner) Addr(box *provision.Box) (string, error) {
