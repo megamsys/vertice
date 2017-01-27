@@ -47,7 +47,7 @@ func (cy *LifecycleOpts) canCycleStart() bool {
 
 func (cy *LifecycleOpts) canCycleStop() bool {
 	return cy.B.State == constants.StateRunning ||
-		cy.B.State == constants.StatePostError 
+		cy.B.State == constants.StatePostError
 }
 
 // Starts  the box.

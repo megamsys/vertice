@@ -188,7 +188,7 @@ func (c *Container) UpdateContId() error {
 
 	var ids = make(map[string][]string)
 	cid := []string{c.Id}
-	ids["containerId"] = cid
+	ids[carton.INSTANCE_ID] = cid
 	if asm, err := carton.NewAssembly(c.CartonId, c.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ids); err != nil {
@@ -252,8 +252,9 @@ func (c *Container) Start(args *StartArgs) error {
 		MemorySwap: int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:  int64(args.Box.GetCpushare()),
 	}
-
-	err = args.Provisioner.Cluster().StartContainer(c.Id, &hostConfig)
+  st := args.Provisioner.Cluster()
+	st.Region = c.Region
+	err = st.StartContainer(c.Id, &hostConfig)
 	if err != nil {
 		return err
 	}
@@ -261,6 +262,7 @@ func (c *Container) Start(args *StartArgs) error {
 	if args.Deploy {
 		initialStatus = constants.StatusContainerBootstrapping
 	}
+	c.SetMileStone(constants.StateRunning)
 	return c.SetStatus(initialStatus)
 }
 
@@ -268,11 +270,14 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	if c.Status.String() == constants.StatusContainerStopped.String() {
 		return nil
 	}
-	err := p.Cluster().StopContainer(c.Id, 10)
+	st := p.Cluster()
+	st.Region = c.Region
+	err := st.StopContainer(c.Id, 10)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
 	}
 	c.SetStatus(constants.StatusContainerStopped)
+	c.SetMileStone(constants.StateStopped)
 	return nil
 }
 
