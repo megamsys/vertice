@@ -176,7 +176,7 @@ func (c *Container) SetMileStone(state utils.State) error {
 
 		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetState(state, c.AccountId, ""); err != nil {
+		} else if err = comp.SetState(state, c.AccountId); err != nil {
 			return err
 		}
 	}
@@ -328,7 +328,7 @@ func (c *Container) SetStatus(status utils.Status) error {
 		log.Debugf("  set status[%s] of container (%s, %s)", c.BoxId, c.Name, status.String())
 		if comp, err := carton.NewComponent(c.BoxId, c.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetStatus(status, c.AccountId, ""); err != nil {
+		} else if err = comp.SetStatus(status, c.AccountId); err != nil {
 			return err
 		}
 	}

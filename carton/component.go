@@ -64,6 +64,7 @@ type ApiComponent struct {
 type Component struct {
 	Id                string          `json:"id"`
 	Name              string          `json:"name"`
+	OrgId             string          `json:"org_id"`
 	Tosca             string          `json:"tosca_type"`
 	Inputs            pairs.JsonPairs `json:"inputs"`
 	Outputs           pairs.JsonPairs `json:"outputs"`
@@ -128,7 +129,7 @@ func (c *Component) mkBox(vnet map[string]string, instanceId string, args api.Ap
 		StorageType: c.storageType(),
 		Vnets:       vnet,
 		InstanceId:  instanceId,
-		OrgId:       args.Org_Id,
+		OrgId:       c.OrgId,
 		ApiArgs:     args,
 	}
 	if &c.Repo != nil {
@@ -143,19 +144,19 @@ func (c *Component) mkBox(vnet map[string]string, instanceId string, args api.Ap
 	return bt, nil
 }
 
-func (c *Component) SetStatus(status utils.Status, email, org string) error {
+func (c *Component) SetStatus(status utils.Status, email string) error {
 	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
 	m := make(map[string][]string, 2)
 	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
 	m["status"] = []string{status.String()}
 	c.Inputs.NukeAndSet(m) //just nuke the matching output key:
 	c.Status = status.String()
-	return c.updateComponent(email, org)
+	return c.updateComponent(email, c.OrgId)
 }
 
-func (c *Component) SetState(state utils.State, email, org string) error {
+func (c *Component) SetState(state utils.State, email string) error {
 	c.State = state.String()
-	return c.updateComponent(email, org)
+	return c.updateComponent(email, c.OrgId)
 }
 
 /*func (c *Component) UpdateOpsRun(opsRan upgrade.OperationsRan) error {
