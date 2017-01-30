@@ -279,7 +279,7 @@ func (m *Machine) SetStatus(status utils.Status) error {
 
 		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetStatus(status, m.AccountId, ""); err != nil {
+		} else if err = comp.SetStatus(status, m.AccountId); err != nil {
 			return err
 		}
 	}
@@ -300,7 +300,7 @@ func (m *Machine) SetMileStone(state utils.State) error {
 
 		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
 			return err
-		} else if err = comp.SetState(state, m.AccountId, ""); err != nil {
+		} else if err = comp.SetState(state, m.AccountId); err != nil {
 			return err
 		}
 	}

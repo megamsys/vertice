@@ -234,7 +234,6 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 }
 
 func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-
 		containers, err := p.listContainersByBox(box)
 		if err != nil {
 			fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
@@ -255,7 +254,6 @@ func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writ
 }
 
 func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-
 		containers, err := p.listContainersByBox(box)
 		if err != nil {
 			fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))

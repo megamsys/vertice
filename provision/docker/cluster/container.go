@@ -177,11 +177,15 @@ func (c *Cluster) removeFromStorage(opts docker.RemoveContainerOptions) error {
 
 func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error {
 
-	node, err := c.getNodeForContainer(id)
+	var n node
+	n, err := c.getNodeForContainer(id)
 	if err != nil {
-		return err
+		n, err = c.getNodeByRegion(c.Region)
+		if err != nil {
+		  return err
+	  }
 	}
-	return wrapError(node, node.StartContainer(id, hostConfig))
+	return wrapError(n, n.StartContainer(id, hostConfig))
 }
 
 func (c *Cluster) PreStopAction(name string) (string, error) {
@@ -195,11 +199,15 @@ func (c *Cluster) PreStopAction(name string) (string, error) {
 // StopContainer stops a container, killing it after the given timeout, if it
 // fails to stop nicely.
 func (c *Cluster) StopContainer(id string, timeout uint) error {
-	node, err := c.getNodeForContainer(id)
+	var n node
+	n, err := c.getNodeForContainer(id)
 	if err != nil {
-		return err
+		n, err = c.getNodeByRegion(c.Region)
+		if err != nil {
+		  return err
+	  }
 	}
-	return wrapError(node, node.StopContainer(id, timeout))
+	return wrapError(n, n.StopContainer(id, timeout))
 }
 
 // RestartContainer restarts a container, killing it after the given timeout,
@@ -380,6 +388,24 @@ func (c *Cluster) CreateExec(opts docker.CreateExecOptions) (*docker.Exec, error
 	}
 	exec, err := node.CreateExec(opts)
 	return exec, wrapError(node, err)
+}
+
+func (c *Cluster) getNodeByRegion(region string) (node, error) {
+ var addr	string
+ var n node
+	nodes, err := c.Nodes()
+	if err != nil {
+		return n, err
+	}
+	for _, v := range nodes {
+		if v.Metadata[DOCKER_ZONE] == region {
+			addr = v.Address
+		}
+	}
+	if addr == "" {
+		 return n, errors.New("CreateContainer needs a non empty node addr")
+	}
+ return c.getNodeByAddr(addr)
 }
 
 func (c *Cluster) StartExec(execId, containerId string, opts docker.StartExecOptions) error {

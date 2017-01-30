@@ -1,6 +1,7 @@
 package docker
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/carton"
 )
 
@@ -21,7 +22,12 @@ func (h *Handler) serveNSQ(r *carton.Requests) error {
 	}
 
 	if rp := carton.NewReqOperator(r); rp != nil {
-		return rp.Accept(&p) //error is swalled here.
+		err = rp.Accept(&p)
+		if err != nil {
+			log.Errorf("Error Request : %s  -  %s  : %s", r.Category, r.Action, err)
+		}
+		return err // error swalled here
 	}
+
 	return nil
 }

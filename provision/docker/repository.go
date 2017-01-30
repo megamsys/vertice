@@ -16,6 +16,7 @@ func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Co
 		Level:    box.Level,
 		Region:   box.Region,
 		Status:   box.Status,
+		Id: box.InstanceId[:10],
 	}, nil
 
 }
