@@ -7,6 +7,10 @@ import (
 
 //this is essentially converting box to a container.
 func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Container, error) {
+	var id string
+	if len(box.InstanceId) > 10 {
+		id = box.InstanceId[:10]
+	}
 	return &container.Container{
 		BoxId:    box.Id,
 		CartonId: box.CartonId,
@@ -16,7 +20,7 @@ func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Co
 		Level:    box.Level,
 		Region:   box.Region,
 		Status:   box.Status,
-		Id: box.InstanceId[:10],
+		Id: id,
 	}, nil
 
 }
