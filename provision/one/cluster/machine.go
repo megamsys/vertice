@@ -8,6 +8,7 @@ import (
 	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/virtualmachine"
@@ -230,7 +231,7 @@ func (c *Cluster) getNodeRegion(region string) (node, error) {
 	})
 }
 
-func (c *Cluster) SnapVMDisk(opts compute.Image) (string, error) {
+func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return "", err
@@ -239,13 +240,13 @@ func (c *Cluster) SnapVMDisk(opts compute.Image) (string, error) {
 
 	res, err := opts.DiskSnap()
 	if err != nil {
-		return "", wrapErrorWithCmd(node, err, "CreateSnap")
+		return "", wrapErrorWithCmd(node, err, "CreateImage")
 	}
 	imageId := res.(string)
 	return imageId, nil
 }
 
-func (c *Cluster) RemoveSnap(opts compute.Image) error {
+func (c *Cluster) RemoveBackup(opts compute.Image) error {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return err
@@ -259,6 +260,71 @@ func (c *Cluster) RemoveSnap(opts compute.Image) error {
 
 	return nil
 }
+
+func (c *Cluster) IsImageReady(v *images.Image, region string) error {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+	v.T = node.Client
+	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+		res, err := v.ImageShow()
+		if err != nil || res.State_string() == "failure" {
+			return false, fmt.Errorf("fails to create snapshot")
+		}
+		return (res.State_string() == "ready"), nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, error) {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return "", err
+	}
+	opts.T = node.Client
+
+	res, err := opts.CreateSnapshot()
+	if err != nil {
+		return "", wrapErrorWithCmd(node, err, "CreateSnap")
+	}
+	imageId := res.(string)
+	return imageId, nil
+}
+
+func (c *Cluster) RemoveSnap(opts snapshot.Snapshot, region string) error {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+	opts.T = node.Client
+
+	_, err = opts.DeleteSnapshot()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "DeleteSnap")
+	}
+
+	return nil
+}
+
+func (c *Cluster) RestoreSnap(opts snapshot.Snapshot, region string) error {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+	opts.T = node.Client
+
+	_, err = opts.RevertSnapshot()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "RestoreSnap")
+	}
+
+	return nil
+}
+
 
 func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	node, err := c.getNodeRegion(region)
@@ -278,6 +344,9 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	}
 	return nil
 }
+
+//*********************************
+
 
 func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
 	var a []int

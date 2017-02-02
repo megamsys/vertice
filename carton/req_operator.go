@@ -16,6 +16,7 @@
 package carton
 
 import (
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 )
@@ -35,6 +36,7 @@ func NewReqOperator(r *Requests) *ReqOperator {
 }
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
+	fmt.Println("********************Accept**************")
 	c, err := p.Get()
 	if err != nil {
 		return err
@@ -45,17 +47,20 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 }
 
 func (p *ReqOperator) Get() (Cartons, error) {
-  if p.Category == SNAPSHOT {
-		s, err := GetSnap(p.CartonsId,p.AccountId)
+	fmt.Println("********************OpReq**Get*************",p.Category)
+	switch p.Category {
+	case BACKUPS:
+		b, err := GetBackup(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err
 		}
-		c, err := s.MkCartons()
+		c, err := b.MkCartons()
 		if err != nil {
 			return nil, err
 		}
 		return c, nil
-	} else if p.Category == DISKS {
+
+	case DISKS:
 		d, err := GetDisks(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err
@@ -65,7 +70,18 @@ func (p *ReqOperator) Get() (Cartons, error) {
 			return nil, err
 		}
 		return c, nil
-	} else {
+
+	case SNAPSHOT:
+		s, err := GetSnap(p.CartonsId,p.AccountId)
+		if err != nil {
+			return nil, err
+		}
+		c, err := s.MkCartons()
+		if err != nil {
+			return nil, err
+		}
+		return c, nil
+	default:
 		a, err := Get(p.CartonsId,p.AccountId)
 		if err != nil {
 			return nil, err

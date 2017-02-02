@@ -124,12 +124,21 @@ type Provisioner interface {
 	// parameter represeting the name of the process to stop.
 	Stop(*Box, string, io.Writer) error
 
-	// DiskSave(SnapShot) creates the image for current state of the running VM
+	// DiskSave creates the image for current state of the running VM
   SaveImage(*Box, io.Writer) error
 
 	// DeleteImage removes the image from storage created from running VM
 	DeleteImage(*Box, io.Writer) error
 
+	// DiskSnapCreate(SnapShot) saves current state of the running VM
+  CreateSnapshot(*Box, io.Writer) error
+
+	// DeleteImage removes the image from storage created from running VM
+	DeleteSnapshot(*Box, io.Writer) error
+
+	// Restore current VM state to Saved Snapshot state
+  RestoreSnapshot(*Box, io.Writer) error
+	
   // AttachDisk add additional disk to current state of the running VM
   AttachDisk(*Box, io.Writer) error
 

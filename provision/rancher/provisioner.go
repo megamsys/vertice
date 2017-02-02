@@ -436,6 +436,18 @@ func (p *rancherProvisioner) DeleteImage(box *provision.Box, w io.Writer) error 
 	return nil
 }
 
+func (p *rancherProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *rancherProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
+func (p *rancherProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error {
+	return nil
+}
+
 func (p *rancherProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	return nil
 }

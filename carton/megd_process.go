@@ -182,6 +182,71 @@ func (s SnapCreateProcess) String() string {
 
 func (s SnapCreateProcess) Process(ca Cartons) error {
 	for _, c := range ca {
+		if err := c.SaveSnapshot(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskSaveProcs represents a command for delete cartons.
+type SnapDestroyProcess struct {
+	Name string
+}
+
+func (s SnapDestroyProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("SNAP DELETE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s SnapDestroyProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.DeleteSnapshot(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DiskSaveProcs represents a command for delete cartons.
+type SnapRestoreProcess struct {
+	Name string
+}
+
+func (s SnapRestoreProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("SNAP RESTORE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s SnapRestoreProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.RestoreSnapshot(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+
+
+// ImageCreateProcess represents a command for create backup box.
+type ImageCreateProcess struct {
+	Name string
+}
+
+func (s ImageCreateProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("BACKUP CREATE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s ImageCreateProcess) Process(ca Cartons) error {
+	for _, c := range ca {
 		if err := c.SaveImage(); err != nil {
 			return err
 		}
@@ -190,18 +255,18 @@ func (s SnapCreateProcess) Process(ca Cartons) error {
 }
 
 // DiskSaveProcs represents a command for delete cartons.
-type SnapDestoryProcess struct {
+type ImageDestroyProcess struct {
 	Name string
 }
 
-func (s SnapDestoryProcess) String() string {
+func (s ImageDestroyProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("SNAP DELETE CARTON ")
+	_, _ = buf.WriteString("BACKUP DELETE CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
 
-func (s SnapDestoryProcess) Process(ca Cartons) error {
+func (s ImageDestroyProcess) Process(ca Cartons) error {
 	for _, c := range ca {
 		if err := c.DeleteImage(); err != nil {
 			return err
@@ -209,6 +274,7 @@ func (s SnapDestoryProcess) Process(ca Cartons) error {
 	}
 	return nil
 }
+
 
 // DiskAttachProcess represents a command for delete cartons.
 type DiskAttachProcess struct {

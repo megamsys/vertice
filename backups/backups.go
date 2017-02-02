@@ -1,4 +1,4 @@
-package snapshots
+package backups
 
 import (
 	"bytes"
@@ -35,7 +35,7 @@ func (c Config) String() string {
 	var b bytes.Buffer
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("\nConfig:", "white", "", "bold") + "\t" +
-		cmd.Colorfy("Snapshot", "cyan", "", "") + "\n"))
+		cmd.Colorfy("Bakups", "cyan", "", "") + "\n"))
   	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Enabled) + "\n"))
 		b.Write([]byte("Cost per hour" + "\t" + c.CostPerHour + "\n"))
     b.Write([]byte("Units" + "\t" + c.StorageUnit + "\n"))

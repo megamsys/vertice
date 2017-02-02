@@ -46,10 +46,18 @@ var (
 	UPGRADE    = "upgrade"
 
 	//snapshot actions
-	SNAPSHOT   = "snapshot"
+	SNAPSHOT    = "snapshot"
+	SNAPCREATE  = "snapcreate"
+	SNAPRESTORE = "snaprestore"
+	SNAPDELETE  = "snapremove"
+
+	//vmbackup actions
+	BACKUPS = "backups"
+	IMAGECREATE = "backupcreate"
+	IMAGEDESTROY = "backupdestroy"
+
+	// disks actions
 	DISKS      = "disks"
-	SNAPCREATE = "snapcreate"
-	SNAPDELETE = "snapremove"
 	ATTACHDISK = "attachdisk"
 	DETACHDISK = "detachdisk"
 )
@@ -78,6 +86,8 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 		return p.parseControl(action)
 	case OPERATIONS:
 		return p.parseOperations(action)
+	case BACKUPS:
+		return p.parseBackups(action)
 	case SNAPSHOT:
 		return p.parseSnapshot(action)
 	case DISKS:
@@ -85,7 +95,7 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 	case DONE:
 		return p.parseDone(action)
 	default:
-		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS})
+		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS, SNAPSHOT, DISKS,BACKUPS })
 	}
 }
 
@@ -158,14 +168,33 @@ func (p *ReqParser) parseDone(action string) (MegdProcessor, error) {
 	}
 }
 
+func (p *ReqParser) parseBackups(action string) (MegdProcessor, error) {
+	switch action {
+	case IMAGECREATE:
+		return ImageCreateProcess{
+			Name: p.name,
+		}, nil
+	case IMAGEDESTROY:
+		return ImageDestroyProcess{
+			Name: p.name,
+		}, nil
+	default:
+		return nil, newParseError([]string{BACKUPS, action}, []string{IMAGECREATE, IMAGEDESTROY})
+	}
+}
+
 func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 	switch action {
 	case SNAPCREATE:
 		return SnapCreateProcess{
 			Name: p.name,
 		}, nil
+	case SNAPRESTORE:
+		return SnapRestoreProcess{
+			Name: p.name,
+		}, nil
 	case SNAPDELETE:
-		return SnapDestoryProcess{
+		return SnapDestroyProcess{
 			Name: p.name,
 		}, nil
 	default:
@@ -205,17 +234,17 @@ func (e *ParseError) Error() string {
 }
 
 type Requests struct {
-	Id        string `json:"id" cql:"id"`
-	Name      string `json:"name" cql:"name"`
-	AccountId string `json:"account_id" cql:"account_id"`
-	CatId     string `json:"cat_id" cql:"cat_id"`
-	Action    string `json:"action" cql:"action"`
-	Category  string `json:"category" cql:"category"`
+	Id        string    `json:"id" cql:"id"`
+	Name      string    `json:"name" cql:"name"`
+	AccountId string    `json:"account_id" cql:"account_id"`
+	CatId     string    `json:"cat_id" cql:"cat_id"`
+	Action    string    `json:"action" cql:"action"`
+	Category  string    `json:"category" cql:"category"`
 	CreatedAt time.Time `json:"created_at" cql:"created_at"`
 }
 
 type ApiRequests struct {
-	JsonClaz string `json:"json_claz" cql:"json_claz"`
+	JsonClaz string     `json:"json_claz" cql:"json_claz"`
 	Results  []Requests `json:"results" cql:"results"`
 }
 

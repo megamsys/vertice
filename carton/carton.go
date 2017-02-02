@@ -216,6 +216,39 @@ func (c *Carton) DeleteImage() error {
 	return nil
 }
 
+// SnapCreate a carton, which creates an image by current state of its box.
+func (c *Carton) SaveSnapshot() error {
+	for _, box := range *c.Boxes {
+		err := SaveSnapshot(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SnapDelete a carton, which removes an existing image created from state of its box.
+func (c *Carton) DeleteSnapshot() error {
+	for _, box := range *c.Boxes {
+		err := DeleteSnapshot(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// SnapDelete a carton, which removes an existing image created from state of its box.
+func (c *Carton) RestoreSnapshot() error {
+	for _, box := range *c.Boxes {
+		err := RestoreSnapshot(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // AttachDisk a carton, which creates a disk storage by current state of its box.
 func (c *Carton) AttachDisk() error {
 	for _, box := range *c.Boxes {

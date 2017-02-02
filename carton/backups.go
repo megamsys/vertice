@@ -15,22 +15,25 @@ import (
 )
 
 const (
-	SNAPSHOTS = "/snapshots/"
-	SNAPSHOTS_SHOW =  "/snapshots/show/"
+	APIBACKUPS = "/backups/"
+	BACKUPS_SHOW =  "/backups/show/"
+	UPDATE = "update"
+	DELETE = "delete/"
+	ACCOUNTID      = "account_id"
+	ASSEMBLYID     = "asm_id"
 )
 
 
-type ApiSnaps struct {
+type ApiBackups struct {
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	Results    []Snaps  `json:"results" cql:"results"`
+	Results    []Backups  `json:"results" cql:"results"`
 }
 
 
 //The grand elephant for megam cloud platform.
-type Snaps struct {
+type Backups struct {
 	Id         string `json:"id" cql:"id"`
-	DiskId    string `json:"image_id" cql:"image_id"`
-	SnapId    string `json:"snap_id" cql:"snap_id"`
+	ImageId    string `json:"image_id" cql:"image_id"`
 	OrgId      string `json:"org_id" cql:"org_id"`
 	AccountId  string `json:"account_id" cql:"account_id"`
 	Name       string `json:"name" cql:"name"`
@@ -43,7 +46,7 @@ type Snaps struct {
 	Outputs    pairs.JsonPairs `json:"outputs" cql:"outputs"`
 }
 
-func (s *Snaps) String() string {
+func (s *Backups) String() string {
 	if d, err := yaml.Marshal(s); err != nil {
 		return err.Error()
 	} else {
@@ -52,14 +55,14 @@ func (s *Snaps) String() string {
 }
 
 // ChangeState runs a state increment of a machine or a container.
-func SaveSnapshot(opts *DiskOpts) error {
+func SaveImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].CreateSnapshot(opts.B, writer)
+	err := ProvisionerMap[opts.B.Provider].SaveImage(opts.B, writer)
 	elapsed := time.Since(start)
 
 	if err != nil {
@@ -74,14 +77,14 @@ func SaveSnapshot(opts *DiskOpts) error {
 }
 
 // ChangeState runs a state increment of a machine or a container.
-func RestoreSnapshot(opts *DiskOpts) error {
+func DeleteImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].RestoreSnapshot(opts.B, writer)
+	err := ProvisionerMap[opts.B.Provider].DeleteImage(opts.B, writer)
 	elapsed := time.Since(start)
 
 	if err != nil {
@@ -95,59 +98,37 @@ func RestoreSnapshot(opts *DiskOpts) error {
 	return nil
 }
 
-// ChangeState runs a state increment of a machine or a container.
-func DeleteSnapshot(opts *DiskOpts) error {
-	var outBuffer bytes.Buffer
-	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
-	logWriter.Async()
-	defer logWriter.Close()
-	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := ProvisionerMap[opts.B.Provider].DeleteSnapshot(opts.B, writer)
-	elapsed := time.Since(start)
-
-	if err != nil {
-		return err
-	}
-	slog := outBuffer.String()
-	log.Debugf("%s in (%s)\n%s",
-		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
-		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
-		cmd.Colorfy(slog, "yellow", "", ""))
-	return nil
-}
-
-/** A public function which pulls the snapshot for disk save as image.
+/** A public function which pulls the backup for disk save as image.
 and any others we do. **/
-func GetSnap(id , email string) (*Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS_SHOW + id)
+func GetBackup(id , email string) (*Backups, error) {
+	cl := api.NewClient(newArgs(email, ""), BACKUPS_SHOW + id)
 
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	res := &ApiSnaps{}
+	res := &ApiBackups{}
 	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
 	a := &res.Results[0]
-	log.Debugf("Snaps %v", a)
+	log.Debugf("Backups %v", a)
 	return a, nil
 }
 
 
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
-func (s *Snaps) GetBox() ([]Snaps, error) {
-	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin" + SNAPSHOTS )
+func (s *Backups) GetBox() ([]Backups, error) {
+	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin" + APIBACKUPS )
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	res := &ApiSnaps{}
+	res := &ApiBackups{}
 	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
@@ -156,8 +137,8 @@ func (s *Snaps) GetBox() ([]Snaps, error) {
 	return res.Results, nil
 }
 
-func (s *Snaps) UpdateSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),SNAPSHOTS + UPDATE )
+func (s *Backups) UpdateBackup() error {
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),APIBACKUPS + UPDATE )
 	if _, err := cl.Post(s); err != nil {
 		return err
 	}
@@ -166,16 +147,16 @@ func (s *Snaps) UpdateSnap() error {
 }
 
 
-func (s *Snaps) RemoveSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS + s.AssemblyId + "/" + s.Id)
+func (s *Backups) RemoveBackup() error {
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), APIBACKUPS + s.AssemblyId + "/" + s.Id)
 	if	_, err := cl.Delete(); err != nil {
 		return err
 	}
 	return nil
 }
 
-//make cartons from snaps.
-func (a *Snaps) MkCartons() (Cartons, error) {
+//make cartons from backups.
+func (a *Backups) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
 	if len(strings.TrimSpace(a.AssemblyId)) > 1 {
 		if ca, err := mkCarton(a.Id, a.AssemblyId, a.AccountId); err != nil {
@@ -189,6 +170,6 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 	return newCs, nil
 }
 
-func (s *Snaps) Sizeof() string {
+func (s *Backups) Sizeof() string {
 	return s.Outputs.Match("image_size")
 }
