@@ -22,7 +22,8 @@ type Stats struct {
 	MemoryUsage    uint64 //in bytes
 	CPUUnitCost    string
 	MemoryUnitCost string
-	SystemMemory   uint64
+	AllocatedMemory   int64
+	AllocatedCpu    int64
 	CPUStats       CPUStats //in percentage of total cpu used
 	PreCPUStats    CPUStats
 	NetworkIn      uint64
@@ -53,7 +54,6 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 	if e != nil {
 		return
 	}
-
 	stats, e := s.ParseStatus(s.RawStatus)
 	if e != nil {
 		return
@@ -95,12 +95,8 @@ func (s *Swarm) ReadStatus() (e error) {
 
 //actually the NewSensor can create types based on the event type.
 func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
-
 	for _, h := range stats {
 		if !(len(h.QuotaId) > 0) {
-			cpuDelta := float64((float64(h.CPUStats.TotalUsage) - float64(h.PreCPUStats.TotalUsage)))
-			systemDelta := float64((float64(h.CPUStats.SystemCPUUsage) - float64(h.PreCPUStats.SystemCPUUsage)))
-			cpu_usage := (cpuDelta / systemDelta) * float64(len(h.CPUStats.PercpuUsage)) * 100.0
 			sc := NewSensor(DOCKER_CONTAINER_SENSOR)
 			sc.AccountId = h.AccountId
 			sc.System = s.Prefix()
@@ -115,8 +111,8 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)
 			sc.AuditPeriodDelta = MetricsInterval.String()
 			//have calculate the cpu used percentage from 	CPUStats  PreCPUStats
-			sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(cpu_usage, 'f', 6, 64), "delta")
-			sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.MemoryUsage/1024.0/1024.0), 'f', 6, 64), "delta")
+			sc.addMetric(CPU_COST, h.CPUUnitCost, strconv.FormatFloat(float64(h.AllocatedCpu), 'f', 6, 64), "delta")
+			sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.AllocatedMemory/1024.0/1024.0), 'f', 6, 64), "delta")
 			mc.Add(sc)
 			sc.CreatedAt = time.Now()
 			if sc.isBillable() {

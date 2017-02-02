@@ -141,7 +141,7 @@ func GetSnap(id , email string) (*Snaps, error) {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func (s *Snaps) GetBox() ([]Snaps, error) {
-	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin" + SNAPSHOTS )
+	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin/snapshots" )
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err

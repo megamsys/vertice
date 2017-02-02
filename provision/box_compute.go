@@ -38,7 +38,8 @@ func (bc *BoxCompute) trimCore() string {
 func (bc *BoxCompute) trimMemory() string {
 	coreRegex := regexp.MustCompile("[Bb].*")
 	s := strings.TrimSpace(coreRegex.ReplaceAllString(bc.Memory, ""))
-	return  strings.Replace(s, " ", "", -1)
+	c := strings.Replace(s, " ", "", -1)
+	return c[:len(c)-1]
 }
 
 
@@ -51,10 +52,10 @@ func (bc *BoxCompute) numCpushare() uint64 {
 }
 
 func (bc *BoxCompute) ConnumMemory() uint64 {
-	if cs, err := strconv.ParseUint(bc.trimMemory(), 10, 64); err != nil {
+	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.Memory, " ", "", -1)); err != nil {
 		return 0
 	} else {
-		return cs
+		return cp*1024*1024
 	}
 }
 
