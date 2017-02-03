@@ -20,6 +20,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+  "github.com/megamsys/libgo/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -145,7 +146,12 @@ func Running(opts *DeployOpts) error {
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.StateChanger); ok {
-		return deployer.SetRunning(opts.B, writer)
+			if strings.Contains(opts.B.Tosca, "windows") {
+		   return deployer.SetRunning(opts.B, writer)
+	    } else {
+				return DoneNotify(opts.B, writer, alerts.RUNNING)
+			}
+	}
 	}
 	return nil
 }

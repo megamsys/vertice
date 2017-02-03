@@ -306,12 +306,11 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)", box.GetFullName())))
 	actions := []*action.Action{
 		&machCreating,
+		&updateVMIps
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 	}
-	if strings.Contains(box.Tosca, "windows") {
-		actions = append(actions, &updateVMIps)
-	}
+
 	pipeline := action.NewPipeline(actions...)
 	args := runMachineActionsArgs{
 		box:           box,
