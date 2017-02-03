@@ -218,6 +218,24 @@ var updateVnchostPostInScylla = action.Action{
 	},
 }
 
+
+var updateVMIps = action.Action{
+	Name: "update-vm-assigned-ips",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		err := mach.UpdateVMIps(args.provisioner)
+		if err != nil {
+			return nil, err
+		}
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+
+	},
+}
+
+
 var setFinalStatus = action.Action{
 	Name: "set-final-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

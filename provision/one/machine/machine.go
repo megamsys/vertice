@@ -136,7 +136,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(10*time.Minute, 30*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
@@ -162,7 +162,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 func (m *Machine) WaitUntillVMState(args *CreateArgs, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{VmId: m.VMId}
 
-	err := safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
 		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
@@ -193,6 +193,59 @@ func (m *Machine) UpdateVncHostPost() error {
 	}
 	return nil
 }
+
+func (m *Machine) UpdateVMIps(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	res, err := p.Cluster().GetVM(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	ips := m.mergeSameIPtype(m.IPs(res.Nics()))
+	log.Debugf("  find and setips of machine (%s, %s)", m.Id, m.Name)
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if  err != nil {
+		return err
+	}
+	return asm.NukeAndSetOutputs(ips)
+}
+
+func (m *Machine) IPs(nics []virtualmachine.Nic) map[string][]string {
+	var ips = make(map[string][]string)
+	pubipv4s := []string{}
+	priipv4s := []string{}
+	for _, nic := range nics {
+			if nic.IPaddress != "" {
+				ip4 := strings.Split(nic.IPaddress, ".")
+				if len(ip4) == 4 {
+					if (ip4[0] == "192" || ip4[0] == "10" || ip4[0] == "172") {
+						priipv4s = append(priipv4s, nic.IPaddress)
+					} else {
+						pubipv4s = append(pubipv4s, nic.IPaddress)
+					}
+				}
+			}
+	}
+
+ips[carton.PUBLICIPV4] = pubipv4s
+ips[carton.PRIVATEIPV4] = priipv4s
+return ips
+}
+
+func (m *Machine) mergeSameIPtype(mm map[string][]string)  map[string][]string {
+  for IPtype, ips := range mm {
+		var sameIp string
+		for _, ip := range ips {
+			sameIp = sameIp +  ip + ", "
+		}
+		if sameIp != "" {
+			mm[IPtype] = []string{strings.TrimRight(sameIp, ", ")}
+		}
+	}
+	return mm
+}
+
 
 func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)

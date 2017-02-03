@@ -95,6 +95,7 @@ type ImageDeployer interface {
 // StateChanger changes the state of a deployed box
 // A deployed box is termed as a machine or a container
 type StateChanger interface {
+  SetRunning(*Box, io.Writer) error
 	SetState(*Box, io.Writer, utils.Status) error
 }
 
@@ -138,7 +139,7 @@ type Provisioner interface {
 
 	// Restore current VM state to Saved Snapshot state
   RestoreSnapshot(*Box, io.Writer) error
-	
+
   // AttachDisk add additional disk to current state of the running VM
   AttachDisk(*Box, io.Writer) error
 
