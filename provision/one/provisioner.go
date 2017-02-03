@@ -308,16 +308,17 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 		box:           box,
 		writer:        w,
 		isDeploy:      false,
-		machineStatus: constants.StatusSnapCreating,
+		machineStatus: constants.StatusBackupCreating,
 		provisioner:   p,
 	}
 
 	actions := []*action.Action{
 		&machCreating,
 		&updateStatusInScylla,
-		&createSnapImage,
+		&createBackupImage,
 		&waitUntillImageReady,
-		&updateIdInSnapTable,
+		&updateIdInBackupTable,
+		&updateBackupStatus,
 		&updateStatusInScylla,
 	}
 
@@ -333,6 +334,95 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusBackupDeleting,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&machCreating,
+		&updateBackupStatus,
+		&updateStatusInScylla,
+		&removeBackup,
+		&updateBackupStatus,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- removing snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)OK", box.GetFullName())))
+	return nil
+}
+
+func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusSnapCreating,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&createSnapImage,
+		&updateIdInSnapTable,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
+	return nil
+}
+
+func (p *oneProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- restore snapshot box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusSnapRestoring,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{&machCreating, &updateStatusInScylla}
+	if box.CanCycleStop() {
+		actions = append(actions, &stopMachine, &mileStoneUpdate, &updateStatusInScylla)
+	}
+	actions = append(actions, &restoreVirtualMachine, &updateSnapStatus, &makeActiveSnap, &updateStatusInScylla)
+	if box.CanCycleStop() {
+		actions = append(actions, &startMachine, &mileStoneUpdate, &updateStatusInScylla)
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- restore snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
+	return nil
+}
+
+func (p *oneProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -539,7 +629,6 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 
 	err := pipeline.Execute(args)
 	if err != nil {
-
 		fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("--- stopping box (%s)-->%s", box.GetFullName(), err)))
 		return err
 	}

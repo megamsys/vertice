@@ -17,6 +17,7 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
+	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/virtualmachine"
@@ -84,6 +85,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	if strings.Contains(args.Box.Tosca, "freebsd") {
 		opts.Files = "/detio/freebsd/init.sh"
 	}
+
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType)
 	if err != nil {
 		return err
@@ -200,14 +202,6 @@ func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 		Region: m.Region,
 		VMId:   id,
 	}
-
-	// if !isDeleteOk(state) {
-	// 	err := p.Cluster().ForceDestoryVM(opts)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	return nil
-	// }
 
 	err := p.Cluster().ForceDestoryVM(opts)
 	if err != nil {
@@ -378,6 +372,31 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 	*/
 }
 
+func (m *Machine) CreateDiskImage(p OneProvisioner) error {
+	log.Debugf("  creating snap machine in one (%s)", m.Name)
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+
+	vmid, _ := strconv.Atoi(m.VMId)
+	opts := compute.Image{
+		Name:   bk.Name,
+		Region: m.Region,
+		VMId:   vmid,
+		DiskId: 0,
+		SnapId: -1,
+	}
+
+	id, err := p.Cluster().SaveDiskImage(opts)
+	if err != nil {
+		return err
+	}
+	m.ImageId = id
+	return nil
+}
+
+
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	log.Debugf("  creating snap machine in one (%s)", m.Name)
 	snp, err := carton.GetSnap(m.CartonsId, m.AccountId)
@@ -386,13 +405,13 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	}
 
 	vmid, _ := strconv.Atoi(m.VMId)
-	opts := compute.Image{
-		Name:   snp.Name,
-		Region: m.Region,
-		VMId:   vmid,
+	opts := snapshot.Snapshot{
+	  VMId: vmid,
+	  DiskId: 0,
+	  DiskDiscription: snp.Name,
 	}
 
-	id, err := p.Cluster().SnapVMDisk(opts)
+	id, err := p.Cluster().SnapVMDisk(opts,m.Region)
 	if err != nil {
 		return err
 	}
@@ -400,17 +419,31 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	return nil
 }
 
-func (m *Machine) IsSnapReady(p OneProvisioner) error {
-	id, _ := strconv.Atoi(m.ImageId)
-	opts := &images.Image{
-		Id: id,
-	}
-	err := p.Cluster().IsSnapReady(opts, m.Region)
+func (m *Machine) RestoreSnapshot(p OneProvisioner) error {
+	log.Debugf("  restoring snap machine in one (%s)", m.Name)
+	snp, err := carton.GetSnap(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	vmid, _ := strconv.Atoi(m.VMId)
+	diskId, _ := strconv.Atoi(snp.DiskId)
+	sid, _ := strconv.Atoi(snp.SnapId)
+	opts := snapshot.Snapshot{
+		VMId: vmid,
+		DiskId: diskId,
+		SnapId: sid,
+	}
+
+	return p.Cluster().RestoreSnap(opts,m.Region)
+}
+
+func (m *Machine) IsImageReady(p OneProvisioner) error {
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := &images.Image{
+		Id: id,
+	}
+	return p.Cluster().IsImageReady(opts, m.Region)
 }
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
@@ -427,11 +460,7 @@ func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 		Vm:   disk.Vm{Disk: disk.Disk{Size: size}},
 	}
 
-	err = p.Cluster().AttachDisk(opts, m.Region)
-	if err != nil {
-		return err
-	}
-	return nil
+	return p.Cluster().AttachDisk(opts, m.Region)
 }
 
 func (m *Machine) UpdateSnap() error {
@@ -439,11 +468,31 @@ func (m *Machine) UpdateSnap() error {
 	if err != nil {
 		return err
 	}
-	sns.ImageId = m.ImageId
-	sns.Status = "ready"
-	err = sns.UpdateSnap()
+	sns.SnapId = m.ImageId
+	sns.DiskId = "0"
+	sns.Status = "created"
+	return sns.UpdateSnap()
+}
+
+func (m *Machine) MakeActiveSnapshot() error {
+	snaps, err := carton.GetAsmSnaps(m.CartonId, m.AccountId)
 	if err != nil {
 		return err
+	}
+	for _, v := range snaps {
+		if v.SnapId != m.ImageId && v.Status == constants.ACTIVESNAP {
+			v.Status = constants.DEACTIVESNAP
+			err = v.UpdateSnap()
+			if err != nil {
+				return err
+			}
+		} else if v.Id == m.CartonsId {
+			v.Status = constants.ACTIVESNAP
+			err = v.UpdateSnap()
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -454,12 +503,29 @@ func (m *Machine) UpdateSnapStatus(status utils.Status) error {
 		return err
 	}
 	sns.Status = status.String()
-	err = sns.UpdateSnap()
+	return sns.UpdateSnap()
+}
+
+func (m *Machine) UpdateBackup() error {
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
 	}
-	return nil
+	bk.ImageId = m.ImageId
+	bk.Status = "ready"
+	return bk.UpdateBackup()
 }
+
+func (m *Machine) UpdateBackupStatus(status utils.Status) error {
+	sns, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	sns.Status = status.String()
+	return sns.UpdateBackup()
+}
+
+
 
 func (m *Machine) UpdateDisk(p OneProvisioner) error {
 	id, _ := strconv.Atoi(m.VMId)
@@ -477,11 +543,7 @@ func (m *Machine) UpdateDisk(p OneProvisioner) error {
 
 	d.DiskId = strconv.Itoa(l[len(l)-1])
 	d.Status = "success"
-	err = d.UpdateDisk()
-	if err != nil {
-		return err
-	}
-	return nil
+	return d.UpdateDisk()
 }
 
 func (m *Machine) RemoveDisk(p OneProvisioner) error {
@@ -497,37 +559,51 @@ func (m *Machine) RemoveDisk(p OneProvisioner) error {
 		Vm:   disk.Vm{Disk: disk.Disk{Disk_Id: did}},
 	}
 
-	err = p.Cluster().DetachDisk(opts, m.Region)
+	return p.Cluster().DetachDisk(opts, m.Region)
+}
+
+func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	id, _ := strconv.Atoi(bk.ImageId)
+	log.Debugf("  remove snap machine in one (%s)", m.Name)
+	opts := compute.Image{
+		Name:    bk.Name,
+		Region:  m.Region,
+		ImageId: id,
+	}
+	err = p.Cluster().RemoveBackup(opts)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return bk.RemoveBackup()
 }
+
 
 func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	snp, err := carton.GetSnap(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
 	}
-	id, _ := strconv.Atoi(snp.ImageId)
-	log.Debugf("  remove snap machine in one (%s)", m.Name)
-	opts := compute.Image{
-		Name:    snp.Name,
-		Region:  m.Region,
-		ImageId: id,
+
+	vmid, _ := strconv.Atoi(m.VMId)
+	diskId, _ := strconv.Atoi(snp.DiskId)
+	sid, _ := strconv.Atoi(snp.SnapId)
+	opts := snapshot.Snapshot{
+		VMId: vmid,
+		DiskId: diskId,
+		SnapId: sid,
 	}
-	err = p.Cluster().RemoveSnap(opts)
+
+	err = p.Cluster().RemoveSnap(opts, m.Region)
 	if err != nil {
 		return err
 	}
 
-	err = snp.RemoveSnap()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return snp.RemoveSnap()
 }
 
 func (m *Machine) UpdateQuotas(id string) error {
@@ -536,8 +612,5 @@ func (m *Machine) UpdateQuotas(id string) error {
 		return err
 	}
 	quota.AllocatedTo = m.CartonId
-	if err = quota.Update(); err != nil {
-		return err
-	}
-	return nil
+	return quota.Update()
 }

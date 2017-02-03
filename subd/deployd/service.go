@@ -64,7 +64,7 @@ func (s *Service) Open() error {
 }
 
 func (s *Service) processNSQ(msg *nsq.Message) {
-	log.Debugf(TOPIC + "queue received message  :" + string(msg.Body))
+	log.Debugf(TOPIC + " queue received message  :" + string(msg.Body))
 	p, err := carton.NewPayload(msg.Body)
 	if err != nil {
 		return

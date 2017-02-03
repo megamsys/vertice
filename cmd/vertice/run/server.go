@@ -46,7 +46,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendDockerService(c.Meta, c.Docker)
 	s.appendMetricsdService(c)
 	s.appendEventsdService(c.Meta, c.Events,c.Deployd)
-        s.appendRancherService(c.Meta, c.Rancher)
+  s.appendRancherService(c.Meta, c.Rancher)
 	s.selfieDNS(c.DNS)
 	c.Meta.MkGlobal() //a setter for global meta config
 	return s, nil
@@ -87,7 +87,7 @@ func (s *Server) appendMetricsdService(c *Config) {
 		log.Warn("skip metricsd service.")
 		return
 	}
-	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage, c.Snapshots)
+	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage, c.Backups)
 	s.Services = append(s.Services, srv)
 }
 

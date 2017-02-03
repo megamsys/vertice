@@ -5,7 +5,7 @@ import (
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/storage"
-	"github.com/megamsys/vertice/snapshots"
+	"github.com/megamsys/vertice/backups"
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/docker"
 	"time"
@@ -22,11 +22,12 @@ type Service struct {
 	Dockerd *docker.Config
 	Config  *Config
 	Storage *storage.Config
-	Snapshots *snapshots.Config
+	Backups *backups.Config
+//	Snapshots *snapshots.Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config, snp *snapshots.Config) *Service {
+func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Config, strg *storage.Config, bkc *backups.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
@@ -34,7 +35,7 @@ func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Conf
 		Dockerd: doc,
 		Config:  f,
 		Storage: strg,
-		Snapshots: snp,
+		Backups: bkc,
 	}
 	s.Handler = NewHandler()
 	return s
@@ -84,8 +85,8 @@ func (s *Service) runMetricsCollectors() error {
 		s.storageCollectors(output)
 	}
 
-	if s.Snapshots.Enabled {
-		s.snapshotsCollectors(output)
+	if s.Backups.Enabled {
+		s.backupsCollectors(output)
 	}
 	return nil
 }
@@ -168,11 +169,25 @@ func (s *Service) storageCollectors(output *metrix.OutputHandler) {
   }
 }
 
-func (s *Service) snapshotsCollectors(output *metrix.OutputHandler) {
+// func (s *Service) snapshotsCollectors(output *metrix.OutputHandler) {
+//  	// snapshots collectors
+//  		collectors := map[string]metrix.MetricCollector{
+//  			metrix.SNAPSHOTS: &metrix.Snapshots{
+// 				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: s.Snapshots.StorageUnit, metrix.STORAGE_COST_PER_HOUR: s.Snapshots.CostPerHour},
+//  		  },
+// 	  }
+//  		mh := &metrix.MetricHandler{}
+//
+//  		for _, collector := range collectors {
+//  			go s.Handler.processCollector(mh, output, collector)
+//  		}
+// }
+
+func (s *Service) backupsCollectors(output *metrix.OutputHandler) {
  	// snapshots collectors
  		collectors := map[string]metrix.MetricCollector{
- 			metrix.SNAPSHOTS: &metrix.Snapshots{
-				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: s.Snapshots.StorageUnit, metrix.STORAGE_COST_PER_HOUR: s.Snapshots.CostPerHour},
+ 			metrix.BACKUPS: &metrix.Backups{
+				DefaultUnits: map[string]string{metrix.STORAGE_UNIT: s.Backups.StorageUnit, metrix.STORAGE_COST_PER_HOUR: s.Backups.CostPerHour},
  		  },
 	  }
  		mh := &metrix.MetricHandler{}

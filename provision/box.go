@@ -189,6 +189,16 @@ func (b *Box) GetPublicIp() string {
 	return b.PublicIp
 }
 
+func (b *Box) CanCycleStop() bool {
+  return b.State == constants.StateRunning ||
+		b.State == constants.StatePostError
+}
+
+func (b *Box) CanCycleStart() bool {
+	return b.State == constants.StateStopped
+}
+
+
 // Available returns true if the unit is available. It will return true
 // whenever the unit itself is available, even when the application process is
 // not.
