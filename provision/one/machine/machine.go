@@ -136,7 +136,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(10*time.Minute, 20*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(10*time.Minute, 30*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
@@ -162,7 +162,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 func (m *Machine) WaitUntillVMState(args *CreateArgs, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{VmId: m.VMId}
 
-	err := safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
 		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
@@ -234,12 +234,14 @@ return ips
 }
 
 func (m *Machine) mergeSameIPtype(mm map[string][]string)  map[string][]string {
-	var sameIp string
   for IPtype, ips := range mm {
+		var sameIp string
 		for _, ip := range ips {
-			sameIp = sameIp + ", " + ip
+			sameIp = sameIp +  ip + ", "
 		}
-		mm[IPtype] = []string{sameIp}
+		if sameIp != "" {
+			mm[IPtype] = []string{strings.TrimRight(sameIp, ", ")}
+		}
 	}
 	return mm
 }

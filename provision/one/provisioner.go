@@ -309,7 +309,7 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 	}
-	if strings.Contains(box.Tosca, "windos") {
+	if strings.Contains(box.Tosca, "windows") {
 		actions = append(actions, &updateVMIps)
 	}
 	pipeline := action.NewPipeline(actions...)
