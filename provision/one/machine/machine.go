@@ -85,9 +85,7 @@ func (m *Machine) Create(args *CreateArgs) error {
 	if strings.Contains(args.Box.Tosca, "freebsd") {
 		opts.Files = "/detio/freebsd/init.sh"
 	}
-	if strings.Contains(args.Box.Tosca, "windows") {
-		opts.Files = "/detio/windows/init.ps1"
-	}
+
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType)
 	if err != nil {
 		return err
