@@ -53,7 +53,7 @@ var (
 	SNAPSAVE    = "snapsave"
 
 	//vmbackup actions
-	BACKUPS = "backups"
+	BACKUPS = "backup"
 	IMAGECREATE = "backupcreate"
 	IMAGEDESTROY = "backupdestroy"
 
