@@ -20,7 +20,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-  "github.com/megamsys/libgo/alerts"
+  "github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -151,7 +151,6 @@ func Running(opts *DeployOpts) error {
 	    } else {
 				return DoneNotify(opts.B, writer, alerts.RUNNING)
 			}
-	}
 	}
 	return nil
 }
