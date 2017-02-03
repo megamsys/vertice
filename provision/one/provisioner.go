@@ -306,7 +306,7 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)", box.GetFullName())))
 	actions := []*action.Action{
 		&machCreating,
-		&updateVMIps
+		&updateVMIps,
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 	}
