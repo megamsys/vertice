@@ -20,7 +20,6 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -145,9 +144,8 @@ func Running(opts *DeployOpts) error {
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := DoneNotify(opts.B,writer, alerts.RUNNING)
-	if err != nil {
-		return err
+	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.StateChanger); ok {
+		return deployer.SetRunning(opts.B, writer)
 	}
 	return nil
 }

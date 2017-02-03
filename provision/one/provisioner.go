@@ -302,6 +302,35 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
+func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)", box.GetFullName())))
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&mileStoneUpdate,
+	}
+	if strings.Contains(box.Tosca, "windos") {
+		actions = append(actions, &updateVMIps)
+	}
+	pipeline := action.NewPipeline(actions...)
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: constants.StatusRunning,
+		machineState:  constants.StateRunning,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- set state running pipeline for box (%s)\n --> %s", box.GetFullName(),  err)))
+		return err
+	}
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s, image:%s)OK", box.GetFullName())))
+	return carton.DoneNotify(box, w, alerts.RUNNING)
+}
+
+
 func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{

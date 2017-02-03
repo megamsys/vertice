@@ -194,6 +194,57 @@ func (m *Machine) UpdateVncHostPost() error {
 	return nil
 }
 
+func (m *Machine) UpdateVMIps(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	res, err := p.Cluster().GetVM(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	ips := m.mergeSameIPtype(m.IPs(res.Nics()))
+	log.Debugf("  find and setips of machine (%s, %s)", m.Id, m.Name)
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if  err != nil {
+		return err
+	}
+	return asm.NukeAndSetOutputs(ips)
+}
+
+func (m *Machine) IPs(nics []virtualmachine.Nic) map[string][]string {
+	var ips = make(map[string][]string)
+	pubipv4s := []string{}
+	priipv4s := []string{}
+	for _, nic := range nics {
+			if nic.IPaddress != "" {
+				ip4 := strings.Split(nic.IPaddress, ".")
+				if len(ip4) == 4 {
+					if (ip4[0] == "192" || ip4[0] == "10" || ip4[0] == "172") {
+						priipv4s = append(priipv4s, nic.IPaddress)
+					} else {
+						pubipv4s = append(pubipv4s, nic.IPaddress)
+					}
+				}
+			}
+	}
+
+ips[carton.PUBLICIPV4] = pubipv4s
+ips[carton.PRIVATEIPV4] = priipv4s
+return ips
+}
+
+func (m *Machine) mergeSameIPtype(mm map[string][]string)  map[string][]string {
+	var sameIp string
+  for IPtype, ips := range mm {
+		for _, ip := range ips {
+			sameIp = sameIp + ", " + ip
+		}
+		mm[IPtype] = []string{sameIp}
+	}
+	return mm
+}
+
+
 func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	id, _ := strconv.Atoi(m.VMId)
