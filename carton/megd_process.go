@@ -182,7 +182,7 @@ func (s SnapCreateProcess) String() string {
 
 func (s SnapCreateProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.SaveSnapshot(); err != nil {
+		if err := c.CreateSnapshot(); err != nil {
 			return err
 		}
 	}
@@ -231,6 +231,26 @@ func (s SnapRestoreProcess) Process(ca Cartons) error {
 	return nil
 }
 
+// SnapCreateProcess represents a command for delete cartons.
+type SnapSaveAsProcess struct {
+	Name string
+}
+
+func (s SnapSaveAsProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("SNAPSHOT SAVE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s SnapSaveAsProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.SnapshotSaveAs(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 
 // ImageCreateProcess represents a command for create backup box.

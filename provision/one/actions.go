@@ -573,18 +573,13 @@ var createSnapImage = action.Action{
 }
 
 var restoreVirtualMachine = action.Action{
-	Name: "remove-restore-snapshot",
+	Name: "restore-restore-snapshot",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
 		if err := mach.RestoreSnapshot(args.provisioner); err != nil {
-			return nil, err
-		}
-		err := mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.ACTIVE, vm.RUNNING)
-		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
 		mach.Status = constants.StatusSnapRestored
@@ -598,6 +593,34 @@ var restoreVirtualMachine = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
+
+var makeActiveSnap = action.Action{
+	Name: "activate-current-snapshot",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		err := mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.MakeActiveSnapshot(); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusSnapRestored
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
 
 var removeSnapShot = action.Action{
 	Name: "remove-snap-shot",

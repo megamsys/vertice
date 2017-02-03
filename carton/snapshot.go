@@ -29,7 +29,7 @@ type ApiSnaps struct {
 //The grand elephant for megam cloud platform.
 type Snaps struct {
 	Id         string `json:"id" cql:"id"`
-	DiskId    string `json:"image_id" cql:"image_id"`
+	DiskId    string `json:"disk_id" cql:"disk_id"`
 	SnapId    string `json:"snap_id" cql:"snap_id"`
 	OrgId      string `json:"org_id" cql:"org_id"`
 	AccountId  string `json:"account_id" cql:"account_id"`
@@ -37,6 +37,7 @@ type Snaps struct {
 	AssemblyId string `json:"asm_id" cql:"asm_id"`
 	JsonClaz   string `json:"json_claz" cql:"json_claz"`
 	CreatedAt  string `json:"created_at" cql:"created_at"`
+	UpdatedAt  string `json:"updated_at" cql:"updated_at"`
 	Status     string `json:"status" cql:"status"`
 	Tosca      string `json:"tosca_type" cql:"tosca_type"`
 	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
@@ -52,7 +53,7 @@ func (s *Snaps) String() string {
 }
 
 // ChangeState runs a state increment of a machine or a container.
-func SaveSnapshot(opts *DiskOpts) error {
+func CreateSnapshot(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := LogWriter{Box: opts.B}
@@ -82,6 +83,28 @@ func RestoreSnapshot(opts *DiskOpts) error {
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	err := ProvisionerMap[opts.B.Provider].RestoreSnapshot(opts.B, writer)
+	elapsed := time.Since(start)
+
+	if err != nil {
+		return err
+	}
+	slog := outBuffer.String()
+	log.Debugf("%s in (%s)\n%s",
+		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(slog, "yellow", "", ""))
+	return nil
+}
+
+// ChangeState runs a state increment of a machine or a container.
+func SnapshotSaveAs(opts *DiskOpts) error {
+	var outBuffer bytes.Buffer
+	start := time.Now()
+	logWriter := LogWriter{Box: opts.B}
+	logWriter.Async()
+	defer logWriter.Close()
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	err := ProvisionerMap[opts.B.Provider].CreateSnapshot(opts.B, writer)
 	elapsed := time.Since(start)
 
 	if err != nil {
@@ -137,6 +160,25 @@ func GetSnap(id , email string) (*Snaps, error) {
 	return a, nil
 }
 
+/** A public function which pulls all snapshots of the VM.
+and any others we do. **/
+func GetAsmSnaps(asm_id , email string) ([]Snaps, error) {
+	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS + asm_id)
+
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &ApiSnaps{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("Snaps of current Assemmbly %v", &res.Results)
+	return res.Results, nil
+}
 
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/

@@ -16,7 +16,6 @@
 package carton
 
 import (
-	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 )
@@ -36,7 +35,6 @@ func NewReqOperator(r *Requests) *ReqOperator {
 }
 
 func (p *ReqOperator) Accept(r *MegdProcessor) error {
-	fmt.Println("********************Accept**************")
 	c, err := p.Get()
 	if err != nil {
 		return err
@@ -47,7 +45,6 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 }
 
 func (p *ReqOperator) Get() (Cartons, error) {
-	fmt.Println("********************OpReq**Get*************",p.Category)
 	switch p.Category {
 	case BACKUPS:
 		b, err := GetBackup(p.CartonsId,p.AccountId)

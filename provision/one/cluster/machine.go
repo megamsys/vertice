@@ -238,7 +238,7 @@ func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	}
 	opts.T = node.Client
 
-	res, err := opts.DiskSnap()
+	res, err := opts.DiskSaveAs()
 	if err != nil {
 		return "", wrapErrorWithCmd(node, err, "CreateImage")
 	}

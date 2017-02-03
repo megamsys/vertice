@@ -386,6 +386,8 @@ func (m *Machine) CreateDiskImage(p OneProvisioner) error {
 		Name:   bk.Name,
 		Region: m.Region,
 		VMId:   vmid,
+		DiskId: 0,
+		SnapId: -1,
 	}
 
 	id, err := p.Cluster().SaveDiskImage(opts)
@@ -472,6 +474,29 @@ func (m *Machine) UpdateSnap() error {
 	sns.DiskId = "0"
 	sns.Status = "created"
 	return sns.UpdateSnap()
+}
+
+func (m *Machine) MakeActiveSnapshot() error {
+	snaps, err := carton.GetAsmSnaps(m.CartonId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	for _, v := range snaps {
+		if v.SnapId != m.ImageId && v.Status == constants.ACTIVESNAP {
+			v.Status = constants.DEACTIVESNAP
+			err = v.UpdateSnap()
+			if err != nil {
+				return err
+			}
+		} else if v.Id == m.CartonsId {
+			v.Status = constants.ACTIVESNAP
+			err = v.UpdateSnap()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (m *Machine) UpdateSnapStatus(status utils.Status) error {

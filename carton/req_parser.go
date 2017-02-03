@@ -50,6 +50,7 @@ var (
 	SNAPCREATE  = "snapcreate"
 	SNAPRESTORE = "snaprestore"
 	SNAPDELETE  = "snapremove"
+	SNAPSAVE    = "snapsave"
 
 	//vmbackup actions
 	BACKUPS = "backups"
@@ -195,6 +196,10 @@ func (p *ReqParser) parseSnapshot(action string) (MegdProcessor, error) {
 		}, nil
 	case SNAPDELETE:
 		return SnapDestroyProcess{
+			Name: p.name,
+		}, nil
+	case SNAPSAVE:
+		return SnapSaveAsProcess{
 			Name: p.name,
 		}, nil
 	default:

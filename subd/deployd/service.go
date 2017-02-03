@@ -74,7 +74,6 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 		log.Errorf("%s",err)
 		return
 	}
-	fmt.Println(re,"**********************start server*************")
 	go s.Handler.serveNSQ(re)
 	return
 }

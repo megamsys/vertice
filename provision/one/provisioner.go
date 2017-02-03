@@ -318,7 +318,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 		&createBackupImage,
 		&waitUntillImageReady,
 		&updateIdInBackupTable,
-    &updateBackupStatus,
+		&updateBackupStatus,
 		&updateStatusInScylla,
 	}
 
@@ -402,16 +402,13 @@ func (p *oneProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error 
 		provisioner:   p,
 	}
 
-	actions := []*action.Action{
-		&machCreating,
-		&updateStatusInScylla,
-		&stopMachine,
-		&mileStoneUpdate,
-		&restoreVirtualMachine,
-		&updateBackupStatus,
-		&startMachine,
-		&mileStoneUpdate,
-		&updateStatusInScylla,
+	actions := []*action.Action{&machCreating, &updateStatusInScylla}
+	if box.CanCycleStop() {
+		actions = append(actions, &stopMachine, &mileStoneUpdate, &updateStatusInScylla)
+	}
+	actions = append(actions, &restoreVirtualMachine, &updateSnapStatus, &makeActiveSnap, &updateStatusInScylla)
+	if box.CanCycleStop() {
+		actions = append(actions, &startMachine, &mileStoneUpdate, &updateStatusInScylla)
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -424,7 +421,6 @@ func (p *oneProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error 
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
 	return nil
 }
-
 
 func (p *oneProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)", box.GetFullName())))
@@ -454,7 +450,6 @@ func (p *oneProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)OK", box.GetFullName())))
 	return nil
 }
-
 
 func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- adding new storage to box (%s)", box.GetFullName())))

@@ -217,15 +217,28 @@ func (c *Carton) DeleteImage() error {
 }
 
 // SnapCreate a carton, which creates an image by current state of its box.
-func (c *Carton) SaveSnapshot() error {
+func (c *Carton) CreateSnapshot() error {
 	for _, box := range *c.Boxes {
-		err := SaveSnapshot(&DiskOpts{B: &box})
+		err := CreateSnapshot(&DiskOpts{B: &box})
 		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
+
+
+// SnapCreate a carton, which creates an image by current state of its box.
+func (c *Carton) SnapshotSaveAs() error {
+	for _, box := range *c.Boxes {
+		err := SnapshotSaveAs(&DiskOpts{B: &box})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 
 // SnapDelete a carton, which removes an existing image created from state of its box.
 func (c *Carton) DeleteSnapshot() error {
