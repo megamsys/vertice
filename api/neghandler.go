@@ -6,6 +6,7 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/googollee/go-socket.io"
 	"github.com/megamsys/libgo/cmd"
+	"golang.org/x/net/websocket"
 	"github.com/rs/cors"
 	"net/http"
 )
@@ -52,6 +53,10 @@ func NewNegHandler() *negroni.Negroni {
 	m.Add("Get", "/vnc/", Handler(vnc))
 
 	socketHandler(socketServer)
+
+	// Shell also doesn't use {app} on purpose. Middlewares don't play well
+	// with websocket.
+	m.Add("Get", "/shell/{asmsid}/{id}", websocket.Handler(remoteShellHandler))
 
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())

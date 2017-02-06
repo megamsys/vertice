@@ -383,8 +383,6 @@ var err error
 	return netInfo, err
 }
 
-
-
 type Pty struct {
 	Width  int
 	Height int
@@ -392,7 +390,7 @@ type Pty struct {
 }
 
 func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr io.Writer, pty Pty) error {
-	cmds := []string{"/usr/bin/env", "TERM=" + pty.Term, "bash", "-l"}
+	cmds := []string{"/usr/bin/env", "/bin/sh", "-c", "TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c '/bin/bash' /dev/null || exec /bin/bash) || exec /bin/sh"}
 	execCreateOpts := docker.CreateExecOptions{
 		AttachStdin:  true,
 		AttachStdout: true,
@@ -405,6 +403,7 @@ func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr i
 	if err != nil {
 		return err
 	}
+
 	startExecOptions := docker.StartExecOptions{
 		InputStream:  stdin,
 		OutputStream: stdout,
@@ -416,7 +415,9 @@ func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr i
 	go func() {
 		errs <- p.Cluster().StartExec(exec.ID, c.Id, startExecOptions)
 	}()
+
 	execInfo, err := p.Cluster().InspectExec(exec.ID, c.Id)
+
 	for !execInfo.Running && err == nil {
 		select {
 		case startErr := <-errs:
@@ -425,6 +426,7 @@ func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr i
 			execInfo, err = p.Cluster().InspectExec(exec.ID, c.Id)
 		}
 	}
+
 	if err != nil {
 		return err
 	}

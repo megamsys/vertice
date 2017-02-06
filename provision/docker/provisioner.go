@@ -371,6 +371,18 @@ func (p *dockerProvisioner) PlatformRemove(name string) error {
 	return err
 }
 
+func (p *dockerProvisioner) CreateSnapshot(b *provision.Box, io io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) DeleteSnapshot(b *provision.Box, io io.Writer) error {
+	return nil
+}
+
+func (p *dockerProvisioner) RestoreSnapshot(b *provision.Box, io io.Writer) error {
+	return nil
+}
+
 func (p *dockerProvisioner) Shell(opts provision.ShellOptions) error {
 	var (
 		c   *container.Container
