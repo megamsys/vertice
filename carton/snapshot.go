@@ -234,3 +234,7 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 func (s *Snaps) Sizeof() string {
 	return s.Outputs.Match("image_size")
 }
+
+func (s *Snaps) IsQuota() bool {
+	return len(s.Inputs.Match("quota_id")) > 0
+}

@@ -13,8 +13,9 @@ type Quota struct {
 	JsonClaz    string          `json:"json_claz" cql:"json_claz"`
 	Allowed     pairs.JsonPairs `json:"allowed" cql:"allowed"`
 	AllocatedTo string          `json:"allocated_to" cql:"allocated_to"`
+	QuotaType   string          `json:"quota_type" cql:"quota_type"`
+	Status      string          `json:"status" cql:"status"`
 	Inputs      pairs.JsonPairs `json:"inputs" cql:"inputs"`
-	
 }
 
 type ApiQuota struct {
@@ -65,4 +66,8 @@ func (q *Quota) ContainerQuota() (bool, error) {
 		return true, err
 	}
   return !(len(asm.quotaID()) > 0), nil
+}
+
+func (q *Quota) AllowedSnaps() string {
+	return q.Allowed.Match("snapshots")
 }

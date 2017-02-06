@@ -10,7 +10,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
-	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/events/bills"
 	"github.com/megamsys/libgo/safe"
@@ -265,35 +264,6 @@ func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 
 func isDeleteOk(state constants.State) bool {
 	return state != constants.StateInitialized && state != constants.StateInitializing && state != constants.StatePreError
-}
-
-//trigger multi event in the order
-func (m *Machine) Deduct() error {
-	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = m.AccountId
-	mi[constants.ASSEMBLYID] = m.CartonId
-	mi[constants.ASSEMBLYNAME] = m.Name
-	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().Add(-10 * time.Minute).String()
-	mi[constants.END_TIME] = time.Now().String()
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  m.AccountId,
-				EventAction: alerts.DEDUCT,
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  m.AccountId,
-				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	return newEvent.Write()
 }
 
 func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
@@ -664,6 +634,10 @@ func (m *Machine) UpdateQuotas(id string) error {
 	if err != nil {
 		return err
 	}
-	quota.AllocatedTo = m.CartonId
+
+	count, _ := strconv.Atoi(quota.AllowedSnaps())
+	mm := make(map[string][]string, 1)
+	mm["snapshots"] = []string{strconv.Itoa(count-1)}
+	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
 	return quota.Update()
 }

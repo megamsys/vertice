@@ -12,7 +12,6 @@ import (
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
 	"github.com/megamsys/vertice/subd/metricsd"
-	"github.com/megamsys/vertice/backups"
 )
 
 type Config struct {
@@ -25,8 +24,6 @@ type Config struct {
 	Events  *eventsd.Config  `toml:"events"`
 	Storage *storage.Config  `toml:"storage"`
   Rancher *rancher.Config  `toml:"rancher"`
-	Backups *backups.Config  `toml:"backups"`
-//  Snapshots *snapshots.Config `toml:"snapshots"`
 }
 
 func (c Config) String() string {
@@ -39,8 +36,7 @@ func (c Config) String() string {
 		c.DNS.String() + "\n" +
 		c.Events.String() + "\n" +
     c.Storage.String() + "\n" +
-    c.Rancher.String() + "\n" +
-    c.Backups.String())
+    c.Rancher.String())
 
 }
 
@@ -56,9 +52,6 @@ func NewConfig() *Config {
 	c.DNS = dns.NewConfig()
 	c.Storage = storage.NewConfig()
   c.Rancher = rancher.NewConfig()
-  c.Backups = backups.NewConfig()
-	//c.Snapshots = snapshots.NewConfig()
-
 	return c
 }
 

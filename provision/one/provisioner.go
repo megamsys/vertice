@@ -35,7 +35,6 @@ import (
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
-	"github.com/megamsys/vertice/provision/one/machine"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
 	_ "github.com/megamsys/vertice/router/route53"
@@ -401,16 +400,21 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 		provisioner:   p,
 	}
 
+	quota, err := carton.NewQuota(box.AccountId, box.CartonsId)
 	actions := []*action.Action{
 		&machCreating,
 		&updateStatusInScylla,
 		&createSnapImage,
-		&updateIdInSnapTable,
-		&updateStatusInScylla,
 	}
 
+  if len(quota.AllowedSnaps()) > 0 {
+		actions = append(actions, &updateSnapQuotaCount)
+	}
+
+	actions = append(actions, &updateIdInSnapTable, &updateStatusInScylla)
+
 	pipeline := action.NewPipeline(actions...)
-	err := pipeline.Execute(args)
+	err = pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err
@@ -698,15 +702,6 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, region string, w io.
 }
 
 func (p *oneProvisioner) TriggerBills(account_id, cat_id, name string) error {
-	mach := &machine.Machine{
-		Name:      name,
-		CartonId:  cat_id,
-		AccountId: account_id,
-	}
-	err := mach.Deduct()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

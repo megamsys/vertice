@@ -937,8 +937,8 @@ var removeDiskStorage = action.Action{
 	MinParams: 1,
 }
 
-var quotaUpdate = action.Action{
-	Name: "update-quota",
+var updateSnapQuotaCount = action.Action{
+	Name: "update-quota-snapshots-count",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
