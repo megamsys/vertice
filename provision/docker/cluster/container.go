@@ -321,6 +321,10 @@ func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	if err != nil {
 		return err
 	}
+	err = c.Ports(container.NetworkSettings.Ports, cartonId, email)
+	if err != nil {
+		return err
+	}
 	client := DockerClient{ContainerId: containerId, CartonId: cartonId, AccountId: email}
 	err = client.NetworkRequest(container.Node.IP, port)
 
@@ -330,7 +334,22 @@ func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	return nil
 }
 
-func (c *Cluster) Ips(ip, CartonId,email string) error {
+func (c *Cluster) Ports(ports map[docker.Port][]docker.PortBinding, CartonId,email string) error {
+	var cports = make(map[string][]string)
+	var str = ""
+	for k, _ := range ports {
+        str = str + string(k) + ","
+    }
+	cports[carton.INSTANCE_PORTS] = []string{str}
+	if asm, err := carton.NewAssembly(CartonId,email, ""); err != nil {
+		return err
+	} else if err = asm.NukeAndSetOutputs(cports); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Cluster) Ips(ip, CartonId, email string) error {
 	var ips = make(map[string][]string)
 	pubipv4s := []string{ip}
 	ips[c.getIps()] = pubipv4s
