@@ -399,7 +399,7 @@ func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr i
 		Container:    c.Id,
 		Tty:          true,
 	}
-	exec, err := p.Cluster().CreateExec(execCreateOpts)
+	exec, err := p.Cluster().CreateExec(execCreateOpts, c.Region)
 	if err != nil {
 		return err
 	}
@@ -413,24 +413,24 @@ func (c *Container) Shell(p DockerProvisioner, stdin io.Reader, stdout, stderr i
 	}
 	errs := make(chan error, 1)
 	go func() {
-		errs <- p.Cluster().StartExec(exec.ID, c.Id, startExecOptions)
+		errs <- p.Cluster().StartExec(exec.ID, c.Id, startExecOptions, c.Region)
 	}()
 
-	execInfo, err := p.Cluster().InspectExec(exec.ID, c.Id)
+	execInfo, err := p.Cluster().InspectExec(exec.ID, c.Id, c.Region)
 
 	for !execInfo.Running && err == nil {
 		select {
 		case startErr := <-errs:
 			return startErr
 		default:
-			execInfo, err = p.Cluster().InspectExec(exec.ID, c.Id)
+			execInfo, err = p.Cluster().InspectExec(exec.ID, c.Id, c.Region)
 		}
 	}
 
 	if err != nil {
 		return err
 	}
-	p.Cluster().ResizeExecTTY(exec.ID, c.Id, pty.Height, pty.Width)
+	p.Cluster().ResizeExecTTY(exec.ID, c.Id, pty.Height, pty.Width, c.Region)
 	return <-errs
 }
 
@@ -453,7 +453,7 @@ func (c *Container) Exec(p DockerProvisioner, stdout, stderr io.Writer, cmd stri
 		Cmd:          cmds,
 		Container:    c.Id,
 	}
-	exec, err := p.Cluster().CreateExec(execCreateOpts)
+	exec, err := p.Cluster().CreateExec(execCreateOpts, c.Region)
 	if err != nil {
 		return err
 	}
@@ -461,11 +461,11 @@ func (c *Container) Exec(p DockerProvisioner, stdout, stderr io.Writer, cmd stri
 		OutputStream: stdout,
 		ErrorStream:  stderr,
 	}
-	err = p.Cluster().StartExec(exec.ID, c.Id, startExecOptions)
+	err = p.Cluster().StartExec(exec.ID, c.Id, startExecOptions, c.Region)
 	if err != nil {
 		return err
 	}
-	execData, err := p.Cluster().InspectExec(exec.ID, c.Id)
+	execData, err := p.Cluster().InspectExec(exec.ID, c.Id, c.Region)
 	if err != nil {
 		return err
 	}

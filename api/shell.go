@@ -47,7 +47,8 @@ func remoteShellHandler(ws *websocket.Conn) {
 	}*/
 	assembly_id := r.URL.Query().Get(":id") //send the assembly_id
 	asmsid := r.URL.Query().Get(":asmsid")
-	car, err := getBox(asmsid, assembly_id)
+	account_id := r.URL.Query().Get(":email")
+	car, err := getBox(asmsid, assembly_id, account_id)
 	if err != nil {
 		if herr, ok := err.(*errors.HTTP); ok {
 			httpErr = herr
@@ -89,7 +90,7 @@ func remoteShellHandler(ws *websocket.Conn) {
 
 
 //Return the Box object ?  Get the carton, and make a Box
-func getBox(asmsid string, id string) (*carton.Carton, error) {
-	c, err := carton.NewCarton(asmsid, id, "rajthilak@megam.io")
+func getBox(asmsid string, id string, account_id string) (*carton.Carton, error) {
+	c, err := carton.NewCarton(asmsid, id, account_id)
 	return c, err
 }

@@ -424,19 +424,6 @@ func (p *dockerProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
-
-func (p *dockerProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
-	return nil
-}
-
-func (p *dockerProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
-	return nil
-}
-
-func (p *dockerProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error {
-	return nil
-}
-
 func (p *dockerProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	return nil
 }

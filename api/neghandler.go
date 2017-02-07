@@ -56,7 +56,7 @@ func NewNegHandler() *negroni.Negroni {
 
 	// Shell also doesn't use {app} on purpose. Middlewares don't play well
 	// with websocket.
-	m.Add("Get", "/shell/{asmsid}/{id}", websocket.Handler(remoteShellHandler))
+	m.Add("Get", "/shell/{email}/{asmsid}/{id}", websocket.Handler(remoteShellHandler))
 
 	n := negroni.New()
 	n.Use(negroni.NewRecovery())
