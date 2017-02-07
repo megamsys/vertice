@@ -42,6 +42,7 @@ const (
 	VNCPORT               = "vncport"
 	VNCHOST               = "vnchost"
 	INSTANCE_ID           = "instance_id"
+	INSTANCE_PORTS        = "instance_ports"
 	YES                   = "yes"
 	REGION                = "region"
 	PUBLICIPV6            = "publicipv6"
