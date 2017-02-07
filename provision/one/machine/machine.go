@@ -469,6 +469,26 @@ func (m *Machine) IsImageReady(p OneProvisioner) error {
 	return p.Cluster().IsImageReady(opts, m.Region)
 }
 
+func (m *Machine) IsSnapReady(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{VmId: m.VMId}
+	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
+		res, err := p.Cluster().GetVM(opts, m.Region)
+		if err != nil {
+			return false, err
+		}
+		if res.IsFailure() {
+			return false, fmt.Errorf(res.UserTemplate.Error)
+		}
+		return res.IsSnapshotReady(), nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+
 //it possible to have a Notifier interface that does this, duck typed by Snap id
 func (m *Machine) AttachNewDisk(p OneProvisioner) error {
 	log.Debugf("  attachng new disk for the machine (%s)", m.Name)
@@ -629,15 +649,34 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	return snp.RemoveSnap()
 }
 
-func (m *Machine) UpdateQuotas(id string) error {
+func (m *Machine) ReduceSnapQuotas(id string) error {
 	quota, err := carton.NewQuota(m.AccountId, id)
 	if err != nil {
 		return err
 	}
-
 	count, _ := strconv.Atoi(quota.AllowedSnaps())
 	mm := make(map[string][]string, 1)
-	mm["snapshots"] = []string{strconv.Itoa(count-1)}
+			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
 	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
 	return quota.Update()
+}
+
+func (m *Machine) AddSnapQuotas(id string) error {
+	quota, err := carton.NewQuota(m.AccountId, id)
+	if err != nil {
+		return err
+	}
+	count, _ := strconv.Atoi(quota.AllowedSnaps())
+	mm := make(map[string][]string, 1)
+			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
+	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
+	return quota.Update()
+}
+
+func (m *Machine) IsSnapCreated() bool {
+	return m.Status == constants.StatusSnapCreated
+}
+
+func (m *Machine) IsSnapDeleted() bool {
+	return m.Status == constants.StatusSnapDeleted
 }

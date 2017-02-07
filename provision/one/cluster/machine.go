@@ -280,6 +280,8 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	return nil
 }
 
+
+
 func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, error) {
 	node, err := c.getNodeRegion(region)
 	if err != nil {

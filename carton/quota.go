@@ -69,5 +69,5 @@ func (q *Quota) ContainerQuota() (bool, error) {
 }
 
 func (q *Quota) AllowedSnaps() string {
-	return q.Allowed.Match("snapshots")
+		return q.Allowed.Match("no_of_units")
 }

@@ -235,6 +235,10 @@ func (s *Snaps) Sizeof() string {
 	return s.Outputs.Match("image_size")
 }
 
+func (s *Snaps) QuotaId() string {
+	return s.Inputs.Match("quota_id")
+}
+
 func (s *Snaps) IsQuota() bool {
 	return len(s.Inputs.Match("quota_id")) > 0
 }
