@@ -392,12 +392,14 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 
 func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
-	args := runMachineActionsArgs{
-		box:           box,
-		writer:        w,
-		isDeploy:      false,
-		machineStatus: constants.StatusSnapCreating,
-		provisioner:   p,
+
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&createSnapshot,
+		&waitUntillSnapReady,
+		&updateIdInSnapTable,
+		&makeActiveSnap,
 	}
 
   snp, err := carton.GetSnap(box.CartonsId, box.AccountId)
@@ -405,20 +407,21 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err
 	}
+  qid := snp.QuotaId()
 
-	actions := []*action.Action{
-		&machCreating,
-		&updateStatusInScylla,
-		&createSnapshot,
-		&waitUntillSnapReady,
-	}
-
-  if snp.IsQuota() {
-		box.QuotaId = snp.QuotaId()
+  if len(qid) > 0 {
+		box.QuotaId = qid
 		actions = append(actions, &updateSnapQuotaCount)
 	}
+  	actions = append(actions, &updateStatusInScylla)
 
-	actions = append(actions, &updateIdInSnapTable, &updateStatusInScylla)
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		isDeploy:      false,
+		machineStatus: constants.StatusSnapCreating,
+		provisioner:   p,
+	}
 
 	pipeline := action.NewPipeline(actions...)
 	err = pipeline.Execute(args)

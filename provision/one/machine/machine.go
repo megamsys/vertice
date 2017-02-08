@@ -457,7 +457,7 @@ func (m *Machine) RestoreSnapshot(p OneProvisioner) error {
 		DiskId: diskId,
 		SnapId: sid,
 	}
-
+  m.ImageId = snp.SnapId
 	return p.Cluster().RestoreSnap(opts,m.Region)
 }
 
@@ -523,7 +523,7 @@ func (m *Machine) MakeActiveSnapshot() error {
 		return err
 	}
 	for _, v := range snaps {
-		if v.SnapId != m.ImageId && v.Status == constants.ACTIVESNAP {
+		if v.SnapId != m.ImageId  {  // && v.Status == constants.ACTIVESNAP
 			v.Status = constants.DEACTIVESNAP
 			err = v.UpdateSnap()
 			if err != nil {
@@ -649,26 +649,18 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	return snp.RemoveSnap()
 }
 
-func (m *Machine) ReduceSnapQuotas(id string) error {
+func (m *Machine) UpdateSnapQuotas(id string) error {
 	quota, err := carton.NewQuota(m.AccountId, id)
 	if err != nil {
 		return err
 	}
 	count, _ := strconv.Atoi(quota.AllowedSnaps())
 	mm := make(map[string][]string, 1)
+	if m.Status == constants.StatusSnapCreated {
+			mm["no_of_units"] = []string{strconv.Itoa(count - 1)}
+	} else if m.Status == constants.StatusSnapDeleted {
 			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
-	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
-	return quota.Update()
-}
-
-func (m *Machine) AddSnapQuotas(id string) error {
-	quota, err := carton.NewQuota(m.AccountId, id)
-	if err != nil {
-		return err
 	}
-	count, _ := strconv.Atoi(quota.AllowedSnaps())
-	mm := make(map[string][]string, 1)
-			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
 	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
 	return quota.Update()
 }

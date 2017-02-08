@@ -600,6 +600,11 @@ var restoreVirtualMachine = action.Action{
 		if err := mach.RestoreSnapshot(args.provisioner); err != nil {
 			return nil, err
 		}
+		err := mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
 		mach.Status = constants.StatusSnapRestored
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
@@ -618,16 +623,10 @@ var makeActiveSnap = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
-		err := mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
-		if err != nil {
-			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
-			return nil, err
-		}
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
 		if err := mach.MakeActiveSnapshot(); err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusSnapRestored
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove snapshot for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
 		return mach, nil
@@ -903,7 +902,6 @@ var waitUntillSnapReady = action.Action{
 		if err := mach.IsSnapReady(args.provisioner); err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusRunning
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to backups creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
 
 		return mach, nil
@@ -965,7 +963,7 @@ var updateSnapQuotaCount = action.Action{
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
-		  if err := mach.UpdateQuotas(args.box.QuotaId); err != nil {
+		  if err := mach.UpdateSnapQuotas(args.box.QuotaId); err != nil {
 			  return nil, err
 		  }
 		mach.Status = constants.StatusQuotaUpdated
