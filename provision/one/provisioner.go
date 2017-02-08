@@ -35,7 +35,6 @@ import (
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
-	"github.com/megamsys/vertice/provision/one/machine"
 	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/vertice/router"
 	_ "github.com/megamsys/vertice/router/route53"
@@ -393,6 +392,29 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 
 func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
+
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&createSnapshot,
+		&waitUntillSnapReady,
+		&updateIdInSnapTable,
+		&makeActiveSnap,
+	}
+
+  snp, err := carton.GetSnap(box.CartonsId, box.AccountId)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+  qid := snp.QuotaId()
+
+  if len(qid) > 0 {
+		box.QuotaId = qid
+		actions = append(actions, &updateSnapQuotaCount)
+	}
+  	actions = append(actions, &updateStatusInScylla)
+
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
@@ -401,16 +423,8 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 		provisioner:   p,
 	}
 
-	actions := []*action.Action{
-		&machCreating,
-		&updateStatusInScylla,
-		&createSnapImage,
-		&updateIdInSnapTable,
-		&updateStatusInScylla,
-	}
-
 	pipeline := action.NewPipeline(actions...)
-	err := pipeline.Execute(args)
+	err = pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err
@@ -459,17 +473,26 @@ func (p *oneProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
 		machineStatus: constants.StatusSnapDeleting,
 		provisioner:   p,
 	}
+	snp, err := carton.GetSnap(box.CartonsId, box.AccountId)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
 
 	actions := []*action.Action{
 		&machCreating,
-		&updateSnapStatus,
 		&updateStatusInScylla,
 		&removeSnapShot,
-		&updateStatusInScylla,
 	}
 
+	if snp.IsQuota() {
+		actions = append(actions, &updateSnapQuotaCount)
+	}
+
+	actions = append(actions, &updateSnapStatus, &updateStatusInScylla)
+
 	pipeline := action.NewPipeline(actions...)
-	err := pipeline.Execute(args)
+	err = pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- removing snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err
@@ -698,15 +721,6 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, region string, w io.
 }
 
 func (p *oneProvisioner) TriggerBills(account_id, cat_id, name string) error {
-	mach := &machine.Machine{
-		Name:      name,
-		CartonId:  cat_id,
-		AccountId: account_id,
-	}
-	err := mach.Deduct()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

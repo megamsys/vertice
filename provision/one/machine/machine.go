@@ -10,7 +10,6 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	nsqp "github.com/crackcomm/nsqueue/producer"
-	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/events/bills"
 	"github.com/megamsys/libgo/safe"
@@ -267,35 +266,6 @@ func isDeleteOk(state constants.State) bool {
 	return state != constants.StateInitialized && state != constants.StateInitializing && state != constants.StatePreError
 }
 
-//trigger multi event in the order
-func (m *Machine) Deduct() error {
-	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = m.AccountId
-	mi[constants.ASSEMBLYID] = m.CartonId
-	mi[constants.ASSEMBLYNAME] = m.Name
-	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().Add(-10 * time.Minute).String()
-	mi[constants.END_TIME] = time.Now().String()
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  m.AccountId,
-				EventAction: alerts.DEDUCT,
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  m.AccountId,
-				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	return newEvent.Write()
-}
-
 func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
 	log.Debugf("  %s machine in one (%s)", action, m.Name)
 	id, _ := strconv.Atoi(m.VMId)
@@ -487,7 +457,7 @@ func (m *Machine) RestoreSnapshot(p OneProvisioner) error {
 		DiskId: diskId,
 		SnapId: sid,
 	}
-
+  m.ImageId = snp.SnapId
 	return p.Cluster().RestoreSnap(opts,m.Region)
 }
 
@@ -498,6 +468,26 @@ func (m *Machine) IsImageReady(p OneProvisioner) error {
 	}
 	return p.Cluster().IsImageReady(opts, m.Region)
 }
+
+func (m *Machine) IsSnapReady(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{VmId: m.VMId}
+	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
+		res, err := p.Cluster().GetVM(opts, m.Region)
+		if err != nil {
+			return false, err
+		}
+		if res.IsFailure() {
+			return false, fmt.Errorf(res.UserTemplate.Error)
+		}
+		return res.IsSnapshotReady(), nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
 func (m *Machine) AttachNewDisk(p OneProvisioner) error {
@@ -533,7 +523,7 @@ func (m *Machine) MakeActiveSnapshot() error {
 		return err
 	}
 	for _, v := range snaps {
-		if v.SnapId != m.ImageId && v.Status == constants.ACTIVESNAP {
+		if v.SnapId != m.ImageId  {  // && v.Status == constants.ACTIVESNAP
 			v.Status = constants.DEACTIVESNAP
 			err = v.UpdateSnap()
 			if err != nil {
@@ -659,11 +649,26 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	return snp.RemoveSnap()
 }
 
-func (m *Machine) UpdateQuotas(id string) error {
+func (m *Machine) UpdateSnapQuotas(id string) error {
 	quota, err := carton.NewQuota(m.AccountId, id)
 	if err != nil {
 		return err
 	}
-	quota.AllocatedTo = m.CartonId
+	count, _ := strconv.Atoi(quota.AllowedSnaps())
+	mm := make(map[string][]string, 1)
+	if m.Status == constants.StatusSnapCreated {
+			mm["no_of_units"] = []string{strconv.Itoa(count - 1)}
+	} else if m.Status == constants.StatusSnapDeleted {
+			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
+	}
+	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
 	return quota.Update()
+}
+
+func (m *Machine) IsSnapCreated() bool {
+	return m.Status == constants.StatusSnapCreated
+}
+
+func (m *Machine) IsSnapDeleted() bool {
+	return m.Status == constants.StatusSnapDeleted
 }

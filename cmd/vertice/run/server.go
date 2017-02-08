@@ -12,10 +12,10 @@ import (
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/dns"
 	"github.com/megamsys/vertice/subd/docker"
-        "github.com/megamsys/vertice/subd/rancher"
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
 	"github.com/megamsys/vertice/subd/metricsd"
+	"github.com/megamsys/vertice/subd/rancher"
 )
 
 // Server represents a container for the metadata and storage data and services.
@@ -45,8 +45,8 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendHTTPDService(c.HTTPD)
 	s.appendDockerService(c.Meta, c.Docker)
 	s.appendMetricsdService(c)
-	s.appendEventsdService(c.Meta, c.Events,c.Deployd)
-  s.appendRancherService(c.Meta, c.Rancher)
+	s.appendEventsdService(c.Meta, c.Events, c.Deployd)
+	s.appendRancherService(c.Meta, c.Rancher)
 	s.selfieDNS(c.DNS)
 	c.Meta.MkGlobal() //a setter for global meta config
 	return s, nil
@@ -73,7 +73,7 @@ func (s *Server) appendHTTPDService(c *httpd.Config) {
 }
 
 func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
-         e := *d
+	e := *d
 	if !e.Docker.Enabled {
 		log.Warn("skip dockerd service.")
 		return
@@ -87,7 +87,7 @@ func (s *Server) appendMetricsdService(c *Config) {
 		log.Warn("skip metricsd service.")
 		return
 	}
-	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage, c.Backups)
+	srv := metricsd.NewService(c.Meta, c.Deployd, c.Docker, c.Metrics, c.Storage)
 	s.Services = append(s.Services, srv)
 }
 
@@ -101,7 +101,7 @@ func (s *Server) appendEventsdService(c *meta.Config, e *eventsd.Config, o *depl
 }
 
 func (s *Server) appendRancherService(c *meta.Config, d *rancher.Config) {
-         e := *d
+	e := *d
 	if !e.Rancher.Enabled {
 		log.Warn("skip Rancher service.")
 		return
