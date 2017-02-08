@@ -31,6 +31,7 @@ func NewService(c *meta.Config, one *deployd.Config, doc *docker.Config, f *Conf
 		Deployd: one,
 		Dockerd: doc,
 		Config:  f,
+		Storage: strg,
 	}
 	s.Handler = NewHandler()
 	return s
