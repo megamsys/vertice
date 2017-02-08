@@ -19,7 +19,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"github.com/pivotal-golang/bytefmt"
+	"code.cloudfoundry.org/bytefmt"
 )
 
 

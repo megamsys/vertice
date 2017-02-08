@@ -7,7 +7,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/vertice/provision"
-	"github.com/pivotal-golang/bytefmt"
+	"code.cloudfoundry.org/bytefmt"
 	"io"
 	"encoding/json"
 	"strings"
