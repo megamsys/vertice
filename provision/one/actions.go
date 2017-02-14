@@ -977,3 +977,61 @@ var updateSnapQuotaCount = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
+
+var updateActivateVMQuota =  action.Action{
+	Name: "activate-quota-for-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		  if err := mach.UpdateVMQuotas(args.box.QuotaId); err != nil {
+			  return nil, err
+		  }
+		mach.Status = constants.StatusQuotaUpdated
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+		c.Status = constants.StatusDestroying
+		err := c.UpdateVMQuotas(args.box.QuotaId)
+		if err != nil {
+			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
+		}
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var updateDeactivateVMQuota =  action.Action{
+	Name: "deactivate-quota-for-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		  if err := mach.UpdateVMQuotas(args.box.QuotaId); err != nil {
+			  return nil, err
+		  }
+		mach.Status = constants.StatusQuotaUpdated
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+		c.Status = constants.StatusRunning
+		err := c.UpdateVMQuotas(args.box.QuotaId)
+		if err != nil {
+			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
+		}
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}

@@ -23,6 +23,10 @@ const (
 	STORAGE_COST = "storage_cost"
 	STORAGE_UNIT = "storage_unit"
 
+  SKEWS_ACTIONS  = "skews_actions"
+	SKEWS_ACTION = "action"
+	GRACEPERIOD = "grace_period"
+	CREDIT_LIMIT = "credit_limit"
 )
 
 type MetricsMap map[string]int64

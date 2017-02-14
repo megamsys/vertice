@@ -6,6 +6,7 @@ import (
 	"github.com/megamsys/vertice/metrix"
 	"github.com/megamsys/vertice/storage"
 	"github.com/megamsys/vertice/subd/deployd"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/subd/docker"
 	"time"
 
@@ -66,27 +67,34 @@ func (s *Service) runMetricsCollectors() error {
 	output := &metrix.OutputHandler{
 		ScyllaAddress: s.Meta.Api,
 	}
+  skews := make(map[string]string, 0)
+//	skews[constants.SOFT_ACTION] = s.Config.Skews.SoftAction
+// skews[constants.HARD_ACTION] = s.Config.Skews.HardAction
+	skews[constants.SOFT_LIMIT] = s.Config.Skews.SoftLimit
+	skews[constants.SOFT_GRACEPERIOD] = s.Config.Skews.SoftGracePeriod.String()
+	skews[constants.HARD_LIMIT] = s.Config.Skews.HardLimit
+	skews[constants.HARD_GRACEPERIOD] = s.Config.Skews.HardGracePeriod.String()
 
 	metrix.MetricsInterval = time.Duration(s.Config.CollectInterval)
 
   if s.Deployd.One.Enabled {
-		s.onedCollectors(output)
+		s.onedCollectors(output,skews)
 	}
 
 	if s.Dockerd.Docker.Enabled {
-		s.dockerCollectors(output)
+		s.dockerCollectors(output,skews)
 	}
 
 	if s.Storage.Enabled {
-		s.storageCollectors(output)
+		s.storageCollectors(output,skews)
 	}
 
 	if s.Config.Backups.Enabled {
-		s.backupsCollectors(output)
+		s.backupsCollectors(output,skews)
 	}
 
 	if s.Config.Snapshots.Enabled {
-		s.snapshotsCollectors(output)
+		s.snapshotsCollectors(output,skews)
 	}
 	return nil
 }
@@ -104,7 +112,7 @@ func (s *Service) Close() error {
 func (s *Service) Err() <-chan error { return s.err }
 
 
-func (s *Service) onedCollectors(output *metrix.OutputHandler) {
+func (s *Service) onedCollectors(output *metrix.OutputHandler, skews map[string]string) {
 	// One VirtualMachine Metrics collectors
 	 if s.Deployd.One.Enabled {
 		 for _, region := range s.Deployd.One.Regions {
@@ -113,6 +121,7 @@ func (s *Service) onedCollectors(output *metrix.OutputHandler) {
 					 Url: region.OneEndPoint,
 					 Region: region.OneZone,
 					 DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit},
+					 SkewsActions: skews,
 				 },
 			 }
 
@@ -127,7 +136,7 @@ func (s *Service) onedCollectors(output *metrix.OutputHandler) {
 }
 
 
-func (s *Service) dockerCollectors(output *metrix.OutputHandler) {
+func (s *Service) dockerCollectors(output *metrix.OutputHandler, skews map[string]string) {
 	// Docker container Metrics collectors
   if s.Dockerd.Docker.Enabled {
  	 for _, region := range s.Dockerd.Docker.Regions {
@@ -145,7 +154,7 @@ func (s *Service) dockerCollectors(output *metrix.OutputHandler) {
   }
 }
 
-func (s *Service) storageCollectors(output *metrix.OutputHandler) {
+func (s *Service) storageCollectors(output *metrix.OutputHandler, skews map[string]string) {
 	if s.Storage.RgwStorage.Enabled {
  	// Ceph RadosGW (storage buckets) Metrics collectors
  	for _, region := range s.Storage.RgwStorage.Regions {
@@ -169,7 +178,7 @@ func (s *Service) storageCollectors(output *metrix.OutputHandler) {
   }
 }
 
-func (s *Service) snapshotsCollectors(output *metrix.OutputHandler) {
+func (s *Service) snapshotsCollectors(output *metrix.OutputHandler, skews map[string]string) {
  	// snapshots collectors
  		collectors := map[string]metrix.MetricCollector{
  			metrix.SNAPSHOTS: &metrix.Snapshots{
@@ -183,7 +192,7 @@ func (s *Service) snapshotsCollectors(output *metrix.OutputHandler) {
  		}
 }
 
-func (s *Service) backupsCollectors(output *metrix.OutputHandler) {
+func (s *Service) backupsCollectors(output *metrix.OutputHandler, skews map[string]string) {
  	// snapshots collectors
  		collectors := map[string]metrix.MetricCollector{
  			metrix.BACKUPS: &metrix.Backups{

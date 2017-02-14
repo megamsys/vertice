@@ -18,6 +18,7 @@ type OpenNebula struct {
 	Url          string
 	Region       string
 	DefaultUnits map[string]string
+	SkewsActions map[string]string
 	RawStatus    []byte
 }
 
@@ -27,7 +28,7 @@ func (on *OpenNebula) Prefix() string {
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-			mkBalance(mc, on.DefaultUnits)
+			mkBalance(mc, on.DefaultUnits, on.SkewsActions)
 	}
 	return
 }

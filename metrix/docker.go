@@ -65,9 +65,10 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 }
 
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
+	mi := make(map[string]string, 0)
 	for _, mc := range c.Sensors {
 		if mc.AccountId != "" && mc.AssemblyId != "" {
-			mkBalance(mc, s.DefaultUnits)
+			mkBalance(mc, s.DefaultUnits, mi)
 		}
 	}
 	return

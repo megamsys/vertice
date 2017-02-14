@@ -31,8 +31,9 @@ func (rgw *CephRGWStats) Prefix() string {
 }
 
 func (rgw *CephRGWStats) DeductBill(c *MetricsCollection) (e error) {
+	mi := make(map[string]string, 0)
 	for _, mc := range c.Sensors {
-			mkBalance(mc, rgw.DefaultUnits)
+			mkBalance(mc, rgw.DefaultUnits,mi)
 	}
 	return
 }

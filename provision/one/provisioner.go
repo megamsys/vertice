@@ -238,10 +238,13 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 
 	actions := []*action.Action{&machCreating}
 	if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
-		actions = append(actions, &checkBalances, &updateStatusInScylla)
+		actions = append(actions, &checkBalances)
 	}
-	actions = append(actions, &mileStoneUpdate, &createMachine, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla)
-	actions = append(actions, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
+	actions = append(actions, &updateStatusInScylla, &mileStoneUpdate, &createMachine)
+	if (len(box.QuotaId) > 0) {
+		actions = append(actions, &updateActivateVMQuota)
+	}
+	actions = append(actions, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)
 
@@ -282,10 +285,13 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 		&destroyOldMachine,
-		&destroyOldRoute,
-		&mileStoneUpdate,
-		&updateStatusInScylla,
 	}
+
+	if (len(box.QuotaId) > 0) {
+		actions = append(actions, &updateDeactivateVMQuota)
+	}
+
+	actions = append(actions, &destroyOldRoute, &mileStoneUpdate, &updateStatusInScylla)
 
 	pipeline := action.NewPipeline(actions...)
 
@@ -402,18 +408,10 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 		&makeActiveSnap,
 	}
 
-  snp, err := carton.GetSnap(box.CartonsId, box.AccountId)
-	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
-		return err
-	}
-  qid := snp.QuotaId()
-
-  if len(qid) > 0 {
-		box.QuotaId = qid
+  if len(box.QuotaId) > 0 {
 		actions = append(actions, &updateSnapQuotaCount)
 	}
-  	actions = append(actions, &updateStatusInScylla)
+  actions = append(actions, &updateStatusInScylla)
 
 	args := runMachineActionsArgs{
 		box:           box,
@@ -424,7 +422,7 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 	}
 
 	pipeline := action.NewPipeline(actions...)
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err

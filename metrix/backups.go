@@ -29,8 +29,9 @@ func (r *Backups) Prefix() string {
 }
 
 func (r *Backups) DeductBill(c *MetricsCollection) (e error) {
+	mi := make(map[string]string, 0)
 	for _, mc := range c.Sensors {
-		mkBalance(mc, r.DefaultUnits)
+		mkBalance(mc, r.DefaultUnits,mi)
 	}
 	return
 }

@@ -8,7 +8,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"time"
-
+	"fmt"
 )
 
 func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
@@ -25,8 +25,8 @@ func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 }
 
 
-func mkBalance(s *Sensor, du map[string]string) error {
-	mi := make(map[string]string)
+func mkBalance(s *Sensor, du, skews map[string]string) error {
+	mi := make(map[string]string, 0)
 	m := s.Metrics.Totalcost(du)
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
@@ -35,11 +35,22 @@ func mkBalance(s *Sensor, du map[string]string) error {
 	mi[constants.START_TIME] = s.AuditPeriodBeginning
 	mi[constants.END_TIME] = s.AuditPeriodEnding
 
+	for k,v := range skews {
+		mi[k] = v
+	}
+
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
 				AccountsId:  s.AccountId,
 				EventAction: alerts.DEDUCT,
+				EventType:   constants.EventBill,
+				EventData:   alerts.EventData{M: mi},
+				Timestamp:   time.Now().Local(),
+			},
+			&events.Event{
+				AccountsId:  s.AccountId,
+				EventAction: alerts.SKEWS_ACTIONS,
 				EventType:   constants.EventBill,
 				EventData:   alerts.EventData{M: mi},
 				Timestamp:   time.Now().Local(),

@@ -135,7 +135,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(10*time.Minute, 30*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(60*time.Minute, 20*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
@@ -671,4 +671,21 @@ func (m *Machine) IsSnapCreated() bool {
 
 func (m *Machine) IsSnapDeleted() bool {
 	return m.Status == constants.StatusSnapDeleted
+}
+
+func (m *Machine) UpdateVMQuotas(id string) error {
+	quota, err := carton.NewQuota(m.AccountId, id)
+	if err != nil {
+		return err
+	}
+
+	if m.Status == constants.StatusLaunching || m.Status == constants.StatusRunning {
+			quota.Status = "activated"
+			quota.AllocatedTo = m.CartonId
+	} else if m.Status == constants.StatusDestroying {
+		  quota.Status = "deactivated"
+			quota.AllocatedTo = ""
+	}
+
+	return quota.Update()
 }

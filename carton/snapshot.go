@@ -223,6 +223,7 @@ func (a *Snaps) MkCartons() (Cartons, error) {
 		if ca, err := mkCarton(a.Id, a.AssemblyId, a.AccountId); err != nil {
 			return nil, err
 		} else {
+			ca.QuotaId = a.QuotaId()
 			ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
 			newCs = append(newCs, ca) //on success append carton
 		}
