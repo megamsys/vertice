@@ -34,9 +34,12 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 		on.SkewsActions[constants.RESOURCES] = mc.Resources
 		if mc.Resources != "" {
 			mkBalance(mc, on.DefaultUnits)
-
 		}
-		e = eventSkews(mc, on.SkewsActions)
+
+		if on.SkewsActions[constants.ENABLED] == constants.TRUE {
+			e = eventSkews(mc, on.SkewsActions)
+		}
+
 	}
 	return
 }
