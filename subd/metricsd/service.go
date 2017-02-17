@@ -68,13 +68,10 @@ func (s *Service) runMetricsCollectors() error {
 		ScyllaAddress: s.Meta.Api,
 	}
   skews := make(map[string]string, 0)
-//	skews[constants.SOFT_ACTION] = s.Config.Skews.SoftAction
-// skews[constants.HARD_ACTION] = s.Config.Skews.HardAction
 	skews[constants.SOFT_LIMIT] = s.Config.Skews.SoftLimit
 	skews[constants.SOFT_GRACEPERIOD] = s.Config.Skews.SoftGracePeriod.String()
 	skews[constants.HARD_LIMIT] = s.Config.Skews.HardLimit
 	skews[constants.HARD_GRACEPERIOD] = s.Config.Skews.HardGracePeriod.String()
-
 	metrix.MetricsInterval = time.Duration(s.Config.CollectInterval)
 
   if s.Deployd.One.Enabled {

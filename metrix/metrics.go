@@ -10,23 +10,23 @@ import (
 )
 
 const (
-	CPU_UNIT    = "cpu_unit"
-	MEMORY_UNIT = "memory_unit"
-	DISK_UNIT   = "disk_unit"
-	CPU_COST    = "cpu_cost"
-	MEMORY_COST = "memory_cost"
+	CPU_UNIT          = "cpu_unit"
+	MEMORY_UNIT       = "memory_unit"
+	DISK_UNIT         = "disk_unit"
+	CPU_COST          = "cpu_cost"
+	MEMORY_COST       = "memory_cost"
 	CPU_COST_PER_HOUR = "cpu_cost_per_hour"
 	RAM_COST_PER_HOUR = "ram_cost_per_hour"
-	DISK_COST   = "disk_cost"
+	DISK_COST         = "disk_cost"
 
 	STORAGE_COST_PER_HOUR = "storage_cost_per_hour"
-	STORAGE_COST = "storage_cost"
-	STORAGE_UNIT = "storage_unit"
+	STORAGE_COST          = "storage_cost"
+	STORAGE_UNIT          = "storage_unit"
 
-  SKEWS_ACTIONS  = "skews_actions"
-	SKEWS_ACTION = "action"
-	GRACEPERIOD = "grace_period"
-	CREDIT_LIMIT = "credit_limit"
+	SKEWS_ACTIONS = "skews_actions"
+	SKEWS_ACTION  = "action"
+	GRACEPERIOD   = "grace_period"
+	CREDIT_LIMIT  = "credit_limit"
 )
 
 type MetricsMap map[string]int64
@@ -77,22 +77,22 @@ func (m *Metrics) Totalcost(units map[string]string) string {
 
 	//Only For Hourly Billing
 
-  diff_ival = (1*time.Hour).Minutes()/MetricsInterval.Minutes()
+	diff_ival = (1 * time.Hour).Minutes() / MetricsInterval.Minutes()
 
 	for _, in := range *m {
 		consume, _ := strconv.ParseFloat(in.MetricValue, 64)
 		unit, _ := strconv.ParseFloat(in.MetricUnits, 64)
 		switch in.MetricName {
 		case CPU_COST:
-			cost = cost + (unit/defaultCpuUnit) * consume
+			cost = cost + (unit/defaultCpuUnit)*consume
 		case MEMORY_COST:
-			cost = cost + (unit/defaultRamUnit) * consume
+			cost = cost + (unit/defaultRamUnit)*consume
 		case DISK_COST:
-			cost = cost + (unit/defaultDiskUnit) * consume
+			cost = cost + (unit/defaultDiskUnit)*consume
 		case STORAGE_COST:
-		  cost = cost + (unit/defaultStorageUnit) * consume
+			cost = cost + (unit/defaultStorageUnit)*consume
 		}
 	}
 	res := strconv.FormatFloat(cost/float64(diff_ival), 'f', 6, 64)
-	return res   //for 1 hr to 10min It should be customized
+	return res //for 1 hr to 10min It should be customized
 }

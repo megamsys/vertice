@@ -15,14 +15,6 @@ type Backups struct {
 	RawStatus    []byte
 }
 
-type UserBackups struct {
-	AssemblyId   string
-	AccountId    string
-	AssemblyName string
-	BackupCosts  map[string]string
-	TotalStorage string
-}
-
 func (r *Backups) Prefix() string {
 	return BACKUPS
 }

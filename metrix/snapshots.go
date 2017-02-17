@@ -15,14 +15,6 @@ type Snapshots struct {
 	RawStatus    []byte
 }
 
-type UserSnaps struct {
-	AssemblyId   string
-	AccountId    string
-	AssemblyName string
-	SnapCosts    map[string]string
-	TotalStorage string
-}
-
 func (r *Snapshots) Prefix() string {
 	return SNAPSHOTS
 }
