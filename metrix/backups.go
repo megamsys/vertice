@@ -6,40 +6,38 @@ import (
 )
 
 const (
-  BACKUPS = "backups"
-  BACKUPS_SENSOR = "instance.backups.exists"
+	BACKUPS        = "backups"
+	BACKUPS_SENSOR = "instance.backups.exists"
 )
 
 type Backups struct {
 	DefaultUnits map[string]string
-  RawStatus    []byte
+	RawStatus    []byte
 }
 
 type UserBackups struct {
-	AssemblyId    string
-	AccountId     string
-	AssemblyName  string
-	BackupCosts   map[string]string
-	TotalStorage  string
+	AssemblyId   string
+	AccountId    string
+	AssemblyName string
+	BackupCosts  map[string]string
+	TotalStorage string
 }
-
 
 func (r *Backups) Prefix() string {
 	return BACKUPS
 }
 
 func (r *Backups) DeductBill(c *MetricsCollection) (e error) {
-	mi := make(map[string]string, 0)
 	for _, mc := range c.Sensors {
-		mkBalance(mc, r.DefaultUnits,mi)
+		mkBalance(mc, r.DefaultUnits)
 	}
 	return
 }
 
 func (s *Backups) Collect(c *MetricsCollection) (e error) {
-  bk := carton.Backups{}
-  bks, e :=  bk.GetBox()
-  if e != nil {
+	bk := carton.Backups{}
+	bks, e := bk.GetBox()
+	if e != nil {
 		return
 	}
 

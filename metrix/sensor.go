@@ -22,31 +22,32 @@ import (
 )
 
 const (
-	SENSORSBUCKET = "sensors"
-	CEPH_STORAGE_SENSOR = "storage.ceph.buckets"
-	ONE_VM_SENSOR = "compute.instance.exists"
+	SENSORSBUCKET           = "sensors"
+	CEPH_STORAGE_SENSOR     = "storage.ceph.buckets"
+	ONE_VM_SENSOR           = "compute.instance.exists"
 	DOCKER_CONTAINER_SENSOR = "compute.container.exists"
-	)
+)
 
 type Sensor struct {
-	Id                   string  `json:"id" cql:"id"`
-	AccountId            string  `json:"account_id" cql:"account_id"`
-	SensorType           string  `json:"sensor_type" cql:"sensor_type"`
-	AssemblyId           string  `json:"assembly_id" cql:"assembly_id"`
-	AssemblyName         string  `json:"assembly_name" cql:"assembly_name"`
-	AssembliesId         string  `json:"assemblies_id" cql:"assemblies_id"`
-	Node                 string  `json:"node" cql:"node"`
-	System               string  `json:"system" cql:"system"`
-	Status               string  `json:"status" cql:"status"`
-	Source               string  `json:"source" cql:"source"`
-	Message              string  `json:"message" cql:"message"`
-	AuditPeriodBeginning string  `json:"audit_period_beginning" cql:"audit_period_beginning"`
-	AuditPeriodEnding    string  `json:"audit_period_ending" cql:"audit_period_ending"`
-	AuditPeriodDelta     string  `json:"audit_period_delta" cql:"audit_period_delta"`
-	Metrics              Metrics `json:"metrics" cql:"metrics"`
-	CreatedAt            time.Time  `json:"created_at" cql:"created_at"`
+	Id                   string    `json:"id" cql:"id"`
+	AccountId            string    `json:"account_id" cql:"account_id"`
+	SensorType           string    `json:"sensor_type" cql:"sensor_type"`
+	AssemblyId           string    `json:"assembly_id" cql:"assembly_id"`
+	AssemblyName         string    `json:"assembly_name" cql:"assembly_name"`
+	AssembliesId         string    `json:"assemblies_id" cql:"assemblies_id"`
+	Node                 string    `json:"node" cql:"node"`
+	System               string    `json:"system" cql:"system"`
+	Status               string    `json:"status" cql:"status"`
+	Source               string    `json:"source" cql:"source"`
+	Message              string    `json:"message" cql:"message"`
+	AuditPeriodBeginning string    `json:"audit_period_beginning" cql:"audit_period_beginning"`
+	AuditPeriodEnding    string    `json:"audit_period_ending" cql:"audit_period_ending"`
+	AuditPeriodDelta     string    `json:"audit_period_delta" cql:"audit_period_delta"`
+	Metrics              Metrics   `json:"metrics" cql:"metrics"`
+	CreatedAt            time.Time `json:"created_at" cql:"created_at"`
+	QuotaId              string    `json:"-"`
+	Resources            string    `json:"-"`
 }
-
 
 func (s *Sensor) String() string {
 	insp, _ := json.Marshal(s)
@@ -76,8 +77,8 @@ func (s *Sensor) newMetric(me *Metric) {
 	s.Metrics = append(s.Metrics, me)
 }
 
-func (s *Sensor) isBillable() bool {
-	return s.AccountId != "" && s.AssemblyId != "" 
+func (s *Sensor) isOk() bool {
+	return s.AccountId != "" && s.AssemblyId != ""
 }
 
 func (s *Sensor) WriteIt() {

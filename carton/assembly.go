@@ -206,7 +206,7 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 	newBoxs := make([]provision.Box, 0, len(a.Components))
 	for _, comp := range a.Components {
 		if len(strings.TrimSpace(comp.Id)) > 1 {
-			if b, err := comp.mkBox(vnet, instanceId, args); err != nil {
+			if b, err := comp.mkBox(); err != nil {
 				return nil, err
 			} else {
 				b.CartonId = a.Id
@@ -233,7 +233,7 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 				b.State = utils.State(a.State)
 				b.Vnets = vnet
 				b.InstanceId = instanceId
-				b.QuotaId  =  a.quotaID()
+				b.QuotaId = a.quotaID()
 				newBoxs = append(newBoxs, b)
 			}
 		}
@@ -475,7 +475,6 @@ func (a *Assembly) GetContainerCpuCost() string {
 func (a *Assembly) GetContainerMemoryCost() string {
 	return a.Inputs.Match(CONTAINER_MEMORY_COST)
 }
-
 
 func parseStringToStruct(str string, data interface{}) error {
 	if err := json.Unmarshal([]byte(str), data); err != nil {

@@ -2,16 +2,19 @@ package metrix
 
 import (
 	"encoding/xml"
+	"fmt"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"strconv"
 	"time"
-	"fmt"
 )
 
 const (
-	OPENNEBULA  = "one"
+	OPENNEBULA = "one"
+	QUOTA      = "quota"
+	ONDEMAND   = "ondemand"
 )
 
 type OpenNebula struct {
@@ -23,12 +26,17 @@ type OpenNebula struct {
 }
 
 func (on *OpenNebula) Prefix() string {
-	return "one"
+	return OPENNEBULA
 }
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-			mkBalance(mc, on.DefaultUnits, on.SkewsActions)
+		on.SkewsActions[constants.RESOURCES] = mc.Resources
+		if mc.Resources != "" {
+			mkBalance(mc, on.DefaultUnits)
+
+		}
+		e = eventSkews(mc, on.SkewsActions)
 	}
 	return
 }
@@ -75,53 +83,55 @@ func (on *OpenNebula) ParseStatus(b []byte) (ons *metrics.OpenNebulaStatus, e er
 //actually the NewSensor can create trypes based on the event type.
 func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.OpenNebulaStatus) {
 	for _, h := range s.History_Records {
-	  usage, billable := on.vmQuota(h.QuotaId(),h.VCpu(),h.Memory(), h.Disks())
-		if billable {
-			sc := NewSensor(ONE_VM_SENSOR)
-			sc.AccountId = h.AccountsId()
-			sc.System = on.Prefix()
-			sc.Node = h.HostName
-			sc.AssemblyId = h.AssemblyId()
-			sc.AssemblyName = h.AssemblyName()
-			sc.AssembliesId = h.AssembliesId()
-			sc.Source = on.Prefix()
-			sc.Message = "vm billing"
-			sc.Status = h.State()
-			sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339) //time.Unix(h.PStime, 0).String()
-			sc.AuditPeriodEnding = time.Now().Format(time.RFC3339) // time.Unix(h.PEtime, 0).String()
-			sc.AuditPeriodDelta = h.Elapsed()
-			sc.addMetric(CPU_COST, h.CpuCost(), usage[metrics.CPU], "delta")
-			sc.addMetric(MEMORY_COST, h.MemoryCost(), usage[metrics.MEMORY], "delta")
-			sc.addMetric(DISK_COST, h.DiskCost(),usage[metrics.DISKS] , "delta")
-			sc.CreatedAt = time.Now()
-			if sc.isBillable() {
-					mc.Add(sc)
+		var cpu, ram, storage string
+		disks := h.Disks()
+		cpu = h.VCpu()
+		ram = h.Memory()
+		sc := NewSensor(ONE_VM_SENSOR)
+		if len(h.QuotaId()) > 0 {
+			cpu = "0"
+			ram = "0"
+			if len(disks) > 0 {
+				sc.Resources = "disks"
+				storage = strconv.FormatInt(on.quotaDisks(disks), 10)
 			}
+			sc.QuotaId = h.QuotaId()
+		} else {
+			sc.Resources = "cpu.ram.disks"
+			storage = strconv.FormatInt(on.vmDiskUsage(disks), 10)
 		}
 
+		sc.AccountId = h.AccountsId()
+		sc.System = on.Prefix()
+		sc.Node = h.HostName
+		sc.AssemblyId = h.AssemblyId()
+		sc.AssemblyName = h.AssemblyName()
+		sc.AssembliesId = h.AssembliesId()
+		sc.Source = on.Prefix()
+		sc.Message = "vm billing for " + sc.Resources
+		sc.Status = h.State()
+		sc.AuditPeriodBeginning = time.Now().Add(-MetricsInterval).Format(time.RFC3339) // time.Unix(h.PStime, 0).String()
+		sc.AuditPeriodEnding = time.Now().Format(time.RFC3339)                          // time.Unix(h.PEtime, 0).String()
+		sc.AuditPeriodDelta = h.Elapsed()
+		sc.addMetric(CPU_COST, h.CpuCost(), cpu, "delta")
+		sc.addMetric(MEMORY_COST, h.MemoryCost(), ram, "delta")
+		sc.addMetric(DISK_COST, h.DiskCost(), storage, "delta")
+		sc.CreatedAt = time.Now()
+		if sc.isOk() {
+			mc.Add(sc)
+		}
 	}
 	return
 }
 
-func (on *OpenNebula) vmQuota(id, cpu, ram string, disks []metrics.Disk) (map[string]string, bool) {
-  usage := make(map[string]string)
+func (on *OpenNebula) vmDiskUsage(disks []metrics.Disk) int64 {
 	var totalsize int64
-	for _,v := range disks {
+	for _, v := range disks {
 		totalsize = totalsize + v.Size
 	}
-	usage[metrics.CPU] = cpu
-	usage[metrics.MEMORY] = ram
-	usage[metrics.DISKS] = strconv.FormatInt(totalsize,10)
+	return totalsize
+}
 
-	if len(id) > 0 {
-		if len(disks) > 1 {
-			usage[metrics.CPU] = "0"
-			usage[metrics.MEMORY] = "0"
-			usage[metrics.DISKS] = strconv.FormatInt(totalsize - disks[0].Size, 10)
-			return usage, true
-		}
-		return usage, false
-	}
-
-  return usage, true
+func (on *OpenNebula) quotaDisks(disks []metrics.Disk) int64 {
+	return on.vmDiskUsage(disks) - disks[0].Size
 }
