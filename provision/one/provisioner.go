@@ -216,6 +216,7 @@ func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Wri
 
 func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
+
 	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
 	if err != nil {
 		return "", err

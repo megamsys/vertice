@@ -9,6 +9,7 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/subd/docker"
 	"time"
+	"strconv"
 
 )
 
@@ -68,6 +69,7 @@ func (s *Service) runMetricsCollectors() error {
 		ScyllaAddress: s.Meta.Api,
 	}
   skews := make(map[string]string, 0)
+	skews[constants.ENABLED] = strconv.FormatBool(s.Config.Skews.Enabled)
 	skews[constants.SOFT_LIMIT] = s.Config.Skews.SoftLimit
 	skews[constants.SOFT_GRACEPERIOD] = s.Config.Skews.SoftGracePeriod.String()
 	skews[constants.HARD_LIMIT] = s.Config.Skews.HardLimit
