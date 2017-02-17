@@ -69,7 +69,7 @@ func Deploy(opts *DeployOpts) error {
 }
 
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
-	if opts.B.Snapshot {
+	if opts.B.Backup {
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 		  return deployer.ImageDeploy(opts.B, opts.B.ImageName, writer)
 	  }

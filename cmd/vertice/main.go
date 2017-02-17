@@ -25,7 +25,7 @@ import (
 
 // These variables are populated via the Go linker.
 var (
-	version string = "1.5"
+	version string = "1.5.1"
 	date    string
 	commit  string
 
