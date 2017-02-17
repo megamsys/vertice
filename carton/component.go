@@ -34,7 +34,7 @@ const (
 	PRIVATEIPV4   = "privateipv4"
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
-	SNAPSHOTNAME  = "snap_name"
+	BACKUPNAME  = "backup_name"
 	ONECLICK      = "oneclick"
 	HOSTIP        = "vnchost"
 	VERTICE       = "vertice"

@@ -406,7 +406,7 @@ func (a *Assembly) imageVersion() string {
 }
 
 func (a *Assembly) imageName() string {
-	return a.Inputs.Match(SNAPSHOTNAME)
+	return a.Inputs.Match(BACKUPNAME)
 }
 
 func (a *Assembly) quotaID() string {
