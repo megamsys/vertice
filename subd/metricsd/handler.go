@@ -13,7 +13,8 @@ func NewHandler() *Handler {
 }
 
 func (h *Handler) processCollector(mh *metrix.MetricHandler, output *metrix.OutputHandler, c metrix.MetricCollector) error {
-	if _, err := mh.Collect(c); err != nil {
+	all, err := mh.Collect(c)
+	if err != nil {
 		return err
 	}
 	return output.WriteMetrics(all)
