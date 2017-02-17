@@ -149,11 +149,14 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(60*time.Minute, 20*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
+		}
+		if res.State == int(virtualmachine.DONE) {
+			return false, fmt.Errorf("VM deleted while machine deploying")
 		}
 		status := res.StateString()
 		if res.LcmStateString() != "" {

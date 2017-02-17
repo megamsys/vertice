@@ -43,6 +43,7 @@ const (
 	VNCHOST               = "vnchost"
 	INSTANCE_ID           = "instance_id"
 	INSTANCE_PORTS        = "instance_ports"
+	BACKUP                = "backup"
 	YES                   = "yes"
 	REGION                = "region"
 	PUBLICIPV6            = "publicipv6"
@@ -186,7 +187,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		Region:       a.region(),
 		Vnets:        a.vnets(),
 		InstanceId:   a.instanceId(),
-		Snapshot:     a.isSnap(),
+		Backup:       a.isBackup(),
 		ImageName:    a.imageName(),
 		StorageType:  a.storageType(),
 		QuotaId:      a.quotaID(),
@@ -416,8 +417,8 @@ func (a *Assembly) storageType() string {
 	return strings.ToLower(a.Inputs.Match(utils.STORAGE_TYPE))
 }
 
-func (a *Assembly) isSnap() bool {
-	return (strings.TrimSpace(a.Inputs.Match(SNAPSHOT)) == YES)
+func (a *Assembly) isBackup() bool {
+	return (strings.TrimSpace(a.Inputs.Match(BACKUP)) == YES)
 }
 
 func (a *Assembly) newCompute() provision.BoxCompute {

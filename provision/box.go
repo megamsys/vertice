@@ -127,7 +127,7 @@ type Box struct {
 	StorageType  string
 	ImageVersion string
 	ImageName    string
-	Snapshot     bool
+	Backup       bool
 	Compute      BoxCompute
 	Repo         *repository.Repo
 	Status       utils.Status

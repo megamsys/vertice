@@ -22,7 +22,7 @@ type Carton struct {
 	ImageVersion string
 	ImageName    string
 	StorageType  string
-	Snapshot     bool
+	Backup       bool
 	Compute      provision.BoxCompute
 	SSH          provision.BoxSSH
 	DomainName   string
@@ -75,7 +75,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Level:        c.lvl(), //based on the level, we decide to use the Box-Id as ComponentId or AssemblyId
 			ImageVersion: c.ImageVersion,
 			ImageName:    c.ImageName,
-			Snapshot:     c.Snapshot,
+			Backup:       c.Backup,
 			Compute:      c.Compute,
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
