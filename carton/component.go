@@ -57,7 +57,7 @@ type Repo struct {
 }
 
 type ApiComponent struct {
-	JsonClaz string    `json:"json_claz"`
+	JsonClaz string      `json:"json_claz"`
 	Results  []Component `json:"results"`
 }
 
@@ -75,7 +75,7 @@ type Component struct {
 	Operations        []*Operations   `json:"operations"`
 	Status            string          `json:"status"`
 	State             string          `json:"state"`
-	CreatedAt         string	        `json:"created_at"`
+	CreatedAt         string          `json:"created_at"`
 }
 
 func (a *Component) String() string {
@@ -91,7 +91,7 @@ func (a *Component) String() string {
 **/
 
 func NewComponent(id, email, org string) (*Component, error) {
-	cl := api.NewClient(newArgs(email, org), "/components/" + id)
+	cl := api.NewClient(newArgs(email, org), "/components/"+id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -115,7 +115,7 @@ func (c *Component) updateComponent(email, org string) error {
 }
 
 //make a box with the details for a provisioner.
-func (c *Component) mkBox(vnet map[string]string, instanceId string, args api.ApiArgs) (provision.Box, error) {
+func (c *Component) mkBox() (provision.Box, error) {
 	bt := provision.Box{
 		Id:          c.Id,
 		Level:       provision.BoxSome,
@@ -127,10 +127,7 @@ func (c *Component) mkBox(vnet map[string]string, instanceId string, args api.Ap
 		Provider:    c.provider(),
 		PublicIp:    c.publicIp(),
 		StorageType: c.storageType(),
-		Vnets:       vnet,
-		InstanceId:  instanceId,
 		OrgId:       c.OrgId,
-		ApiArgs:     args,
 	}
 	if &c.Repo != nil {
 		bt.Repo = &repository.Repo{
@@ -174,7 +171,7 @@ func (c *Component) SetState(state utils.State, email string) error {
 }*/
 
 func (c *Component) Delete(email, orgid string) error {
-	cl := api.NewClient(newArgs(email, orgid), "/components/" + c.Id)
+	cl := api.NewClient(newArgs(email, orgid), "/components/"+c.Id)
 	_, err := cl.Delete()
 	if err != nil {
 		return err

@@ -16,9 +16,9 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/compute"
-	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
+	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
@@ -123,6 +123,20 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 	return nil
 }
 
+func (m *Machine) CheckQuotaState(b *provision.Box, w io.Writer) error {
+	quota, err := carton.NewQuota(m.AccountId, b.QuotaId)
+	if err != nil {
+		return err
+	}
+	if quota.Status != "paid" {
+		carton.DoneNotify(b, w, alerts.QUOTA_UNPAID)
+		log.Debugf(" quota payment overdue for the user (%s)", b.AccountId)
+		return fmt.Errorf("quota state unpaid")
+	}
+
+	return nil
+}
+
 func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
 	if err != nil {
@@ -135,7 +149,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	res := &virtualmachine.VM{}
 	_ = asm.SetStatus(utils.Status(constants.StatusLcmStateChecking))
 
-	err = safe.WaitCondition(10*time.Minute, 30*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(60*time.Minute, 20*time.Second, func() (bool, error) {
 		_ = asm.Trigger_event(utils.Status(constants.StatusWaitUntill))
 		res, err = args.Provisioner.Cluster().GetVM(opts, m.Region)
 		if err != nil {
@@ -204,7 +218,7 @@ func (m *Machine) UpdateVMIps(p OneProvisioner) error {
 	ips := m.mergeSameIPtype(m.IPs(res.Nics()))
 	log.Debugf("  find and setips of machine (%s, %s)", m.Id, m.Name)
 	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
-	if  err != nil {
+	if err != nil {
 		return err
 	}
 	return asm.NukeAndSetOutputs(ips)
@@ -215,28 +229,28 @@ func (m *Machine) IPs(nics []virtualmachine.Nic) map[string][]string {
 	pubipv4s := []string{}
 	priipv4s := []string{}
 	for _, nic := range nics {
-			if nic.IPaddress != "" {
-				ip4 := strings.Split(nic.IPaddress, ".")
-				if len(ip4) == 4 {
-					if (ip4[0] == "192" || ip4[0] == "10" || ip4[0] == "172") {
-						priipv4s = append(priipv4s, nic.IPaddress)
-					} else {
-						pubipv4s = append(pubipv4s, nic.IPaddress)
-					}
+		if nic.IPaddress != "" {
+			ip4 := strings.Split(nic.IPaddress, ".")
+			if len(ip4) == 4 {
+				if ip4[0] == "192" || ip4[0] == "10" || ip4[0] == "172" {
+					priipv4s = append(priipv4s, nic.IPaddress)
+				} else {
+					pubipv4s = append(pubipv4s, nic.IPaddress)
 				}
 			}
+		}
 	}
 
-ips[carton.PUBLICIPV4] = pubipv4s
-ips[carton.PRIVATEIPV4] = priipv4s
-return ips
+	ips[carton.PUBLICIPV4] = pubipv4s
+	ips[carton.PRIVATEIPV4] = priipv4s
+	return ips
 }
 
-func (m *Machine) mergeSameIPtype(mm map[string][]string)  map[string][]string {
-  for IPtype, ips := range mm {
+func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
+	for IPtype, ips := range mm {
 		var sameIp string
 		for _, ip := range ips {
-			sameIp = sameIp +  ip + ", "
+			sameIp = sameIp + ip + ", "
 		}
 		if sameIp != "" {
 			mm[IPtype] = []string{strings.TrimRight(sameIp, ", ")}
@@ -244,7 +258,6 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string)  map[string][]string {
 	}
 	return mm
 }
-
 
 func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
@@ -419,7 +432,6 @@ func (m *Machine) CreateDiskImage(p OneProvisioner) error {
 	return nil
 }
 
-
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	log.Debugf("  creating snap machine in one (%s)", m.Name)
 	snp, err := carton.GetSnap(m.CartonsId, m.AccountId)
@@ -429,12 +441,12 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 
 	vmid, _ := strconv.Atoi(m.VMId)
 	opts := snapshot.Snapshot{
-	  VMId: vmid,
-	  DiskId: 0,
-	  DiskDiscription: snp.Name,
+		VMId:            vmid,
+		DiskId:          0,
+		DiskDiscription: snp.Name,
 	}
 
-	id, err := p.Cluster().SnapVMDisk(opts,m.Region)
+	id, err := p.Cluster().SnapVMDisk(opts, m.Region)
 	if err != nil {
 		return err
 	}
@@ -453,12 +465,12 @@ func (m *Machine) RestoreSnapshot(p OneProvisioner) error {
 	diskId, _ := strconv.Atoi(snp.DiskId)
 	sid, _ := strconv.Atoi(snp.SnapId)
 	opts := snapshot.Snapshot{
-		VMId: vmid,
+		VMId:   vmid,
 		DiskId: diskId,
 		SnapId: sid,
 	}
-  m.ImageId = snp.SnapId
-	return p.Cluster().RestoreSnap(opts,m.Region)
+	m.ImageId = snp.SnapId
+	return p.Cluster().RestoreSnap(opts, m.Region)
 }
 
 func (m *Machine) IsImageReady(p OneProvisioner) error {
@@ -487,7 +499,6 @@ func (m *Machine) IsSnapReady(p OneProvisioner) error {
 	}
 	return nil
 }
-
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id
 func (m *Machine) AttachNewDisk(p OneProvisioner) error {
@@ -523,7 +534,7 @@ func (m *Machine) MakeActiveSnapshot() error {
 		return err
 	}
 	for _, v := range snaps {
-		if v.SnapId != m.ImageId  {  // && v.Status == constants.ACTIVESNAP
+		if v.SnapId != m.ImageId { // && v.Status == constants.ACTIVESNAP
 			v.Status = constants.DEACTIVESNAP
 			err = v.UpdateSnap()
 			if err != nil {
@@ -567,8 +578,6 @@ func (m *Machine) UpdateBackupStatus(status utils.Status) error {
 	sns.Status = status.String()
 	return sns.UpdateBackup()
 }
-
-
 
 func (m *Machine) UpdateDisk(p OneProvisioner) error {
 	id, _ := strconv.Atoi(m.VMId)
@@ -625,7 +634,6 @@ func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
 	return bk.RemoveBackup()
 }
 
-
 func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	snp, err := carton.GetSnap(m.CartonsId, m.AccountId)
 	if err != nil {
@@ -636,7 +644,7 @@ func (m *Machine) RemoveSnapshot(p OneProvisioner) error {
 	diskId, _ := strconv.Atoi(snp.DiskId)
 	sid, _ := strconv.Atoi(snp.SnapId)
 	opts := snapshot.Snapshot{
-		VMId: vmid,
+		VMId:   vmid,
 		DiskId: diskId,
 		SnapId: sid,
 	}
@@ -657,9 +665,9 @@ func (m *Machine) UpdateSnapQuotas(id string) error {
 	count, _ := strconv.Atoi(quota.AllowedSnaps())
 	mm := make(map[string][]string, 1)
 	if m.Status == constants.StatusSnapCreated {
-			mm["no_of_units"] = []string{strconv.Itoa(count - 1)}
+		mm["no_of_units"] = []string{strconv.Itoa(count - 1)}
 	} else if m.Status == constants.StatusSnapDeleted {
-			mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
+		mm["no_of_units"] = []string{strconv.Itoa(count + 1)}
 	}
 	quota.Allowed.NukeAndSet(mm) //just nuke the matching key:
 	return quota.Update()
@@ -671,4 +679,19 @@ func (m *Machine) IsSnapCreated() bool {
 
 func (m *Machine) IsSnapDeleted() bool {
 	return m.Status == constants.StatusSnapDeleted
+}
+
+func (m *Machine) UpdateVMQuotas(id string) error {
+	quota, err := carton.NewQuota(m.AccountId, id)
+	if err != nil {
+		return err
+	}
+	// if m.Status == constants.StatusLaunching || m.Status == constants.StatusRunning {
+	// 		quota.AllocatedTo = m.CartonId
+	// } else
+	if m.Status == constants.StatusDestroying {
+		quota.AllocatedTo = ""
+	}
+
+	return quota.Update()
 }

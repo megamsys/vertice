@@ -237,11 +237,17 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 
 	actions := []*action.Action{&machCreating}
-	if events.IsEnabled(constants.BILLMGR) && !(len(box.QuotaId) > 0) {
-		actions = append(actions, &checkBalances, &updateStatusInScylla)
+	if events.IsEnabled(constants.BILLMGR) {
+		if !(len(box.QuotaId) > 0) {
+			actions = append(actions, &checkBalances)
+		} else {
+			actions = append(actions, &checkQuotaState)
+		}
 	}
-	actions = append(actions, &mileStoneUpdate, &createMachine, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla)
-	actions = append(actions, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
+
+	actions = append(actions, &updateStatusInScylla, &mileStoneUpdate, &createMachine)
+
+	actions = append(actions, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)
 
@@ -282,10 +288,13 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 		&destroyOldMachine,
-		&destroyOldRoute,
-		&mileStoneUpdate,
-		&updateStatusInScylla,
 	}
+
+	if len(box.QuotaId) > 0 {
+		actions = append(actions, &updateVMQuota)
+	}
+
+	actions = append(actions, &destroyOldRoute, &mileStoneUpdate, &updateStatusInScylla)
 
 	pipeline := action.NewPipeline(actions...)
 
@@ -301,7 +310,7 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
+func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)", box.GetFullName())))
 	actions := []*action.Action{
 		&machCreating,
@@ -321,13 +330,12 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer)  error {
 
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- set state running pipeline for box (%s)\n --> %s", box.GetFullName(),  err)))
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- set state running pipeline for box (%s)\n --> %s", box.GetFullName(), err)))
 		return err
 	}
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s, image:%s)OK", box.GetFullName())))
 	return carton.DoneNotify(box, w, alerts.RUNNING)
 }
-
 
 func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
@@ -402,18 +410,10 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 		&makeActiveSnap,
 	}
 
-  snp, err := carton.GetSnap(box.CartonsId, box.AccountId)
-	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
-		return err
-	}
-  qid := snp.QuotaId()
-
-  if len(qid) > 0 {
-		box.QuotaId = qid
+	if len(box.QuotaId) > 0 {
 		actions = append(actions, &updateSnapQuotaCount)
 	}
-  	actions = append(actions, &updateStatusInScylla)
+	actions = append(actions, &updateStatusInScylla)
 
 	args := runMachineActionsArgs{
 		box:           box,
@@ -424,7 +424,7 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 	}
 
 	pipeline := action.NewPipeline(actions...)
-	err = pipeline.Execute(args)
+	err := pipeline.Execute(args)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
 		return err

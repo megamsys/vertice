@@ -11,30 +11,30 @@ import (
 const DOCKER = "docker"
 
 type Swarm struct {
-	Url            string
+	Url          string
 	DefaultUnits map[string]string
-	RawStatus      []interface{}
+	RawStatus    []interface{}
 }
 
 type Stats struct {
-	ContainerId    string
-	Image          string
-	MemoryUsage    uint64 //in bytes
-	CPUUnitCost    string
-	MemoryUnitCost string
-	AllocatedMemory   int64
+	ContainerId     string
+	Image           string
+	MemoryUsage     uint64 //in bytes
+	CPUUnitCost     string
+	MemoryUnitCost  string
+	AllocatedMemory int64
 	AllocatedCpu    int64
-	CPUStats       CPUStats //in percentage of total cpu used
-	PreCPUStats    CPUStats
-	NetworkIn      uint64
-	NetworkOut     uint64
-	AccountId      string
-	AssemblyId     string
-	QuotaId        string
-	AssemblyName   string
-	AssembliesId   string
-	Status         string
-	AuditPeriod    time.Time
+	CPUStats        CPUStats //in percentage of total cpu used
+	PreCPUStats     CPUStats
+	NetworkIn       uint64
+	NetworkOut      uint64
+	AccountId       string
+	AssemblyId      string
+	QuotaId         string
+	AssemblyName    string
+	AssembliesId    string
+	Status          string
+	AuditPeriod     time.Time
 }
 
 type CPUStats struct {
@@ -66,9 +66,7 @@ func (s *Swarm) Collect(c *MetricsCollection) (e error) {
 
 func (s *Swarm) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
-		if mc.AccountId != "" && mc.AssemblyId != "" {
-			mkBalance(mc, s.DefaultUnits)
-		}
+		mkBalance(mc, s.DefaultUnits)
 	}
 	return
 }
@@ -115,7 +113,7 @@ func (s *Swarm) CollectMetricsFromStats(mc *MetricsCollection, stats []*Stats) {
 			sc.addMetric(MEMORY_COST, h.MemoryUnitCost, strconv.FormatFloat(float64(h.AllocatedMemory/1024.0/1024.0), 'f', 6, 64), "delta")
 			mc.Add(sc)
 			sc.CreatedAt = time.Now()
-			if sc.isBillable() {
+			if sc.isOk() {
 				mc.Add(sc)
 			}
 		}

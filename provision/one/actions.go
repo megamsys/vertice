@@ -218,7 +218,6 @@ var updateVnchostPostInScylla = action.Action{
 	},
 }
 
-
 var updateVMIps = action.Action{
 	Name: "update-vm-assigned-ips",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -234,7 +233,6 @@ var updateVMIps = action.Action{
 
 	},
 }
-
 
 var setFinalStatus = action.Action{
 	Name: "set-final-status",
@@ -294,7 +292,7 @@ var startMachine = action.Action{
 		}
 
 		mach.Status = constants.StatusStarted
-    mach.State  = constants.StateRunning
+		mach.State = constants.StateRunning
 		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine (%s, %s) OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
@@ -329,7 +327,7 @@ var stopMachine = action.Action{
 		}
 
 		mach.Status = constants.StatusStopped
-    mach.State  = constants.StateStopped
+		mach.State = constants.StateStopped
 		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine (%s, %s)OK", mach.Id, mach.Name)))
 		return mach, nil
 	},
@@ -638,7 +636,6 @@ var makeActiveSnap = action.Action{
 	MinParams: 1,
 }
 
-
 var removeSnapShot = action.Action{
 	Name: "remove-snap-shot",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -660,7 +657,6 @@ var removeSnapShot = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
-
 
 var createBackupImage = action.Action{
 	Name: "create-backup-image",
@@ -724,8 +720,6 @@ var removeBackup = action.Action{
 	OnError:   rollbackNotice,
 	MinParams: 1,
 }
-
-
 
 var mileStoneUpdate = action.Action{
 	Name: "change-milestone-state",
@@ -870,7 +864,6 @@ var updateBackupStatus = action.Action{
 	MinParams: 1,
 }
 
-
 var waitUntillImageReady = action.Action{
 	Name: "wait-for-image-ready",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -963,9 +956,9 @@ var updateSnapQuotaCount = action.Action{
 		args := ctx.Params[0].(runMachineActionsArgs)
 		writer := args.writer
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
-		  if err := mach.UpdateSnapQuotas(args.box.QuotaId); err != nil {
-			  return nil, err
-		  }
+		if err := mach.UpdateSnapQuotas(args.box.QuotaId); err != nil {
+			return nil, err
+		}
 		mach.Status = constants.StatusQuotaUpdated
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
 
@@ -976,4 +969,65 @@ var updateSnapQuotaCount = action.Action{
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
+}
+
+var updateVMQuota = action.Action{
+	Name: "update-quota-for-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateVMQuotas(args.box.QuotaId); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusQuotaUpdated
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update quota for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+		c.Status = constants.StatusRunning
+		err := c.UpdateVMQuotas(args.box.QuotaId)
+		if err != nil {
+			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
+		}
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var checkQuotaState = action.Action{
+	Name: "check-quota-state",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s)", args.box.AccountId, args.box.GetFullName())))
+		err := mach.CheckQuotaState(args.box, writer)
+		if err != nil {
+			_ = mach.SetMileStone(constants.StateMachineParked)
+			_ = mach.SetStatus(constants.StatusInsufficientFund)
+			return nil, err
+		}
+		mach.SetStatus(constants.StatusBalanceVerified)
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" check balance for user (%s) machine (%s) OK", args.box.AccountId, args.box.GetFullName())))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
+		c.Status = constants.StatusDestroying
+		err := c.UpdateVMQuotas(args.box.QuotaId)
+		if err != nil {
+			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
+		}
+	},
 }
