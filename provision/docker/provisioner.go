@@ -179,7 +179,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		&MileStoneUpdate,
 		&updateStatusInScylla,
 	}
-
+  p.Cluster().Region = box.Region
 	pipeline := action.NewPipeline(actions...)
 
 	args := runContainerActionsArgs{
@@ -206,10 +206,10 @@ func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n--- destroying box (%s) ----", box.GetFullName())))
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-
 		fmt.Fprintf(w, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
 		return err
 	}
+	p.Cluster().Region = box.Region
 	args := changeUnitsPipelineArgs{
 		box:         box,
 		toRemove:    containers,
@@ -231,9 +231,10 @@ func (p *dockerProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 func (p *dockerProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
-
 		fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+		return err
 	}
+	p.Cluster().Region = box.Region
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Start(&container.StartArgs{
 			Provisioner: p,
@@ -254,7 +255,9 @@ func (p *dockerProvisioner) Stop(box *provision.Box, process string, w io.Writer
 	containers, err := p.listContainersByBox(box)
 	if err != nil {
 		fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+		return err
 	}
+	p.Cluster().Region = box.Region
 	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
 		err := c.Stop(p)
 		if err != nil {
@@ -288,6 +291,7 @@ func (p *dockerProvisioner) SetBoxStatus(box *provision.Box, w io.Writer, status
 	actions := []*action.Action{
 		&updateStatusInScylla,
 	}
+	p.Cluster().Region = box.Region
 	pipeline := action.NewPipeline(actions...)
 
 	args := runContainerActionsArgs{
@@ -397,6 +401,7 @@ func (p *dockerProvisioner) Shell(opts provision.ShellOptions) error {
 }
 
 func (p *dockerProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
+	p.Cluster().Region = box.Region
 	container, err := p.GetContainerByBox(box)
 	if err != nil {
 		return err
@@ -433,14 +438,5 @@ func (p *dockerProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 }
 
 func (p *dockerProvisioner) TriggerBills(account_id, cat_id, name string) error {
-	cont := &container.Container{
-		Name:      name,
-		CartonId:  cat_id,
-		AccountId: account_id,
-	}
-	err := cont.Deduct()
-	if err != nil {
-		return err
-	}
 	return nil
 }

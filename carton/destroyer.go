@@ -22,14 +22,15 @@ func Destroy(opts *DestroyOpts) error {
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	err := ProvisionerMap[opts.B.Provider].Destroy(opts.B, writer)
+	if err != nil {
+		return err
+	}
 	elapsed := time.Since(start)
 	log.Debugf("%s in (%s)\n%s",
 		cmd.Colorfy(opts.B.GetFullName(), "cyan", "", "bold"),
 		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
 		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
 

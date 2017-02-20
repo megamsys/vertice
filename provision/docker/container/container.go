@@ -12,8 +12,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/utils"
-	"github.com/megamsys/libgo/events"
-	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
@@ -101,7 +99,6 @@ func (c *Container) Create(args *CreateArgs) error {
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
-	cl.Region = args.Box.Region
 	cl.VNets = args.Box.Vnets
 	addr, cont, err := cl.CreateContainerSchedulerOpts(opts)
 	if err != nil {
@@ -251,9 +248,8 @@ func (c *Container) Start(args *StartArgs) error {
 		MemorySwap: int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:  int64(args.Box.GetCpushare()),
 	}
-  st := args.Provisioner.Cluster()
-	st.Region = c.Region
-	err = st.StartContainer(c.Id, &hostConfig)
+
+	err = args.Provisioner.Cluster().StartContainer(c.Id, &hostConfig)
 	if err != nil {
 		return err
 	}
@@ -269,11 +265,11 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	if c.Status.String() == constants.StatusContainerStopped.String() {
 		return nil
 	}
-	st := p.Cluster()
-	st.Region = c.Region
-	err := st.StopContainer(c.Id, 10)
+
+	err := p.Cluster().StopContainer(c.Id, 10)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
+		return err
 	}
 	c.SetStatus(constants.StatusContainerStopped)
 	c.SetMileStone(constants.StateStopped)
@@ -334,36 +330,6 @@ func (c *Container) SetStatus(status utils.Status) error {
 	return nil
 }
 
-//trigger multi event in the order
-func (c *Container) Deduct() error {
-	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = c.AccountId
-	mi[constants.ASSEMBLYID] = c.CartonId
-	mi[constants.ASSEMBLYNAME] = c.Name
-	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().String()
-	mi[constants.END_TIME] = time.Now().String()
-
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.DEDUCT,
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	return newEvent.Write()
-}
-
 type NetworkInfo struct {
 	HTTPHostPort string
 	IP           string
@@ -371,15 +337,7 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-	cl := p.Cluster()
-	cl.Region = c.Region
-//	ip, gateway, bridge, err := cl.GetIP() //gets the IP
-var err error
-	if err != nil {
-		return netInfo, err
-	}
-	//netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
+  err := p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
 	return netInfo, err
 }
 

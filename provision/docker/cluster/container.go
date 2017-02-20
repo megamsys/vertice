@@ -99,12 +99,13 @@ func (c *Cluster) createContainerInNode(opts docker.CreateContainerOptions, node
 // InspectContainer returns information about a container by its ID, getting
 // the information from the right node.
 func (c *Cluster) InspectContainer(id string) (*docker.Container, error) {
-	node, err := c.getNodeForContainer(id)
+	var n node
+	n, err := c.getNodeForContainer(id)
 	if err != nil {
 		return nil, err
 	}
-	cont, err := node.InspectContainer(id)
-	return cont, wrapError(node, err)
+	cont, err := n.InspectContainer(id)
+	return cont, wrapError(n, err)
 }
 
 // KillContainer kills a container, returning an error in case of failure.
@@ -180,10 +181,7 @@ func (c *Cluster) StartContainer(id string, hostConfig *docker.HostConfig) error
 	var n node
 	n, err := c.getNodeForContainer(id)
 	if err != nil {
-		n, err = c.getNodeByRegion(c.Region)
-		if err != nil {
-		  return err
-	  }
+		return err
 	}
 	return wrapError(n, n.StartContainer(id, hostConfig))
 }
@@ -202,10 +200,7 @@ func (c *Cluster) StopContainer(id string, timeout uint) error {
 	var n node
 	n, err := c.getNodeForContainer(id)
 	if err != nil {
-		n, err = c.getNodeByRegion(c.Region)
-		if err != nil {
-		  return err
-	  }
+		return err
 	}
 	return wrapError(n, n.StopContainer(id, timeout))
 }
@@ -309,15 +304,28 @@ func (c *Cluster) TopContainer(id string, psArgs string) (docker.TopResult, erro
 }
 
 func (c *Cluster) getNodeForContainer(container string) (node, error) {
-	return c.getNode(func(s Storage) (string, error) {
+	var n node
+	n, err := c.getNode(func(s Storage) (string, error) {
 		return s.RetrieveContainer(container)
 	})
+	if err != nil {
+		log.Debugf("No such container (%s) in storage", container)
+		n, err = c.getNodeByRegion(c.Region)
+		if err != nil {
+			return n, fmt.Errorf("Can not reach region because of %s",err.Error())
+		}
+	}
+	return n, err
 }
 
 func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	port := c.GulpPort()
-	container := c.getContainerObject(containerId)
-	err := c.Ips(container.NetworkSettings.IPAddress, cartonId,email)
+	container, err := c.getContainerObject(containerId)
+	if err != nil {
+		return err
+	}
+
+	err = c.Ips(container.NetworkSettings.IPAddress, cartonId,email)
 	if err != nil {
 		return err
 	}
@@ -389,24 +397,24 @@ func (c *Cluster) SetLogs(cs chan []byte, opts docker.LogsOptions, closechan cha
 	return nil
 }
 
-func (c *Cluster) getContainerObject(containerId string) *docker.Container {
-	inspect, _ := c.InspectContainer(containerId) //gets the swarmNode
+func (c *Cluster) getContainerObject(containerId string) (*docker.Container, error) {
+	inspect, err := c.InspectContainer(containerId) //gets the swarmNode
+	if err != nil {
+		return nil, err
+	}
 
 	container := &docker.Container{}
 	insp, _ := json.Marshal(inspect)
 	json.Unmarshal([]byte(string(insp)), container)
 
-	return container
+	return container, nil
 
 }
 
 func (c *Cluster) CreateExec(opts docker.CreateExecOptions, region string) (*docker.Exec, error) {
 	node, err := c.getNodeForContainer(opts.Container)
 	if err != nil {
-		node, err = c.getNodeByRegion(region)
-		if err != nil {
-		  return nil, err
-	  }
+		return nil, err
 	}
 	exec, err := node.CreateExec(opts)
 	return exec, wrapError(node, err)
@@ -433,10 +441,7 @@ func (c *Cluster) getNodeByRegion(region string) (node, error) {
 func (c *Cluster) StartExec(execId, containerId string, opts docker.StartExecOptions, region string) error {
 	node, err := c.getNodeForContainer(containerId)
 	if err != nil {
-		node, err = c.getNodeByRegion(region)
-		if err != nil {
-		  return err
-	  }
+		return err
 	}
 	return wrapError(node, node.StartExec(execId, opts))
 }
@@ -444,10 +449,7 @@ func (c *Cluster) StartExec(execId, containerId string, opts docker.StartExecOpt
 func (c *Cluster) ResizeExecTTY(execId, containerId string, height, width int, region string) error {
 	node, err := c.getNodeForContainer(containerId)
 	if err != nil {
-		node, err = c.getNodeByRegion(region)
-		if err != nil {
-		  return err
-	  }
+		return err
 	}
 	return wrapError(node, node.ResizeExecTTY(execId, height, width))
 }
@@ -455,10 +457,7 @@ func (c *Cluster) ResizeExecTTY(execId, containerId string, height, width int, r
 func (c *Cluster) InspectExec(execId, containerId string, region string) (*docker.ExecInspect, error) {
 	node, err := c.getNodeForContainer(containerId)
 	if err != nil {
-		node, err = c.getNodeByRegion(region)
-		if err != nil {
-		  return nil, err
-	  }
+		return nil, err
 	}
 	execInspect, err := node.InspectExec(execId)
 	if err != nil {
