@@ -1,13 +1,13 @@
 package container
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net"
 	"net/url"
 	"time"
-	"bytes"
-//	"os"
+	//	"os"
 	//	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
@@ -32,7 +32,7 @@ type DockerProvisioner interface {
 type Container struct {
 	Id                      string //container id.
 	BoxId                   string
-	AccountId              string
+	AccountId               string
 	CartonId                string
 	Name                    string
 	BoxName                 string
@@ -44,7 +44,7 @@ type Container struct {
 	Version                 string
 	Image                   string
 	Status                  utils.Status
-	State										utils.State
+	State                   utils.State
 	BuildingImage           string
 	LastStatusUpdate        time.Time
 	LastSuccessStatusUpdate time.Time
@@ -95,7 +95,7 @@ func (c *Container) Create(args *CreateArgs) error {
 		CPUShares:    int64(args.Box.GetCpushare()),
 		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId, utils.ASSEMBLY_NAME: c.BoxName,
 			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountId, utils.QUOTA_ID: args.Box.QuotaId,
-		  carton.CONTAINER_CPU_COST: asm.GetContainerCpuCost(), carton.CONTAINER_MEMORY_COST: asm.GetContainerCpuCost()},
+			carton.CONTAINER_CPU_COST: asm.GetContainerCpuCost(), carton.CONTAINER_MEMORY_COST: asm.GetContainerCpuCost()},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
@@ -110,26 +110,26 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner)   error {
+func (c *Container) Logs(p DockerProvisioner) error {
 	var outBuffer bytes.Buffer
-		var closeChan chan bool
-		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
-		logWriter := carton.NewLogWriter(b)
-		writer := io.MultiWriter(&outBuffer, &logWriter)
-	  logopt := docker.LogsOptions{
-    Container:  c.Id,
+	var closeChan chan bool
+	b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
+	logWriter := carton.NewLogWriter(b)
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	logopt := docker.LogsOptions{
+		Container:    c.Id,
 		OutputStream: writer,
-		ErrorStream: writer,
-			Follow:    true,
-			//	RawTerminal:  true,
-				Stdout:       true,
-				Stderr:       true,
-				Timestamps:   false,
-			//	Tail:         "100",
-		}
+		ErrorStream:  writer,
+		Follow:       true,
+		//	RawTerminal:  true,
+		Stdout:     true,
+		Stderr:     true,
+		Timestamps: false,
+		//	Tail:         "100",
+	}
 
 	cs := make(chan []byte)
-  go p.Cluster().SetLogs(cs,logopt, closeChan)
+	go p.Cluster().SetLogs(cs, logopt, closeChan)
 
 	go func(closeChan chan bool, logWriter carton.LogWriter) {
 		select {
@@ -139,11 +139,11 @@ func (c *Container) Logs(p DockerProvisioner)   error {
 		}
 	}(closeChan, logWriter)
 
-var err error
+	var err error
 	if err != nil {
-		return  err
+		return err
 	}
-return  nil
+	return nil
 
 }
 func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string, error) {
@@ -337,7 +337,7 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-  err := p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
+	err := p.Cluster().SetNetworkinNode(c.Id, c.CartonId, c.AccountId)
 	return netInfo, err
 }
 

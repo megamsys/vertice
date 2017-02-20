@@ -25,7 +25,7 @@ const (
 	BRIDGE_NAME    = "name"
 	BRIDGE_NETWORK = "network"
 	BRIDGE_GATEWAY = "gateway"
-	BRIDGE_CLUSTER    = "cluster_id"
+	BRIDGE_CLUSTER = "cluster_id"
 )
 
 var (

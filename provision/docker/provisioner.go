@@ -50,8 +50,8 @@ type Region struct {
 	Registry       string        `json:"registry" toml:"registry"`
 	CPUPeriod      toml.Duration `json:"cpu_period" toml:"cpu_period"`
 	CPUQuota       toml.Duration `json:"cpu_quota" toml:"cpu_quota"`
-	CpuCostPerHour string 			 `json:"cpu_cost_per_hour" toml:"cpu_cost_per_hour"`
-	RamCostPerHour string 			 `json:"ram_cost_per_hour" toml:"ram_cost_per_hour"`
+	CpuCostPerHour string        `json:"cpu_cost_per_hour" toml:"cpu_cost_per_hour"`
+	RamCostPerHour string        `json:"ram_cost_per_hour" toml:"ram_cost_per_hour"`
 	CpuUnit        string        `json:"cpu_unit" toml:"cpu_unit"`
 	MemoryUnit     string        `json:"memory_unit" toml:"memory_unit"`
 	DiskUnit       string        `json:"disk_unit" toml:"disk_unit"`
@@ -179,7 +179,7 @@ func (p *dockerProvisioner) deployPipeline(box *provision.Box, imageId string, w
 		&MileStoneUpdate,
 		&updateStatusInScylla,
 	}
-  p.Cluster().Region = box.Region
+	p.Cluster().Region = box.Region
 	pipeline := action.NewPipeline(actions...)
 
 	args := runContainerActionsArgs{

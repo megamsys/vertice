@@ -1,3 +1,5 @@
+package carton
+
 /*
 ** copyright [2013-2016] [Megam Systems]
 **
@@ -14,13 +16,11 @@
 ** limitations under the License.
  */
 
-package carton
-
 import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
-  "github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -71,12 +71,12 @@ func Deploy(opts *DeployOpts) error {
 func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	if opts.B.Backup {
 		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
-		  return deployer.ImageDeploy(opts.B, opts.B.ImageName, writer)
-	  }
+			return deployer.ImageDeploy(opts.B, opts.B.ImageName, writer)
+		}
 	}
 
-	if ( opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick) {
-			if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
+	if opts.B.Repo == nil || opts.B.Repo.Type == repository.IMAGE || opts.B.Repo.OneClick {
+		if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.ImageDeployer); ok {
 			return deployer.ImageDeploy(opts.B, image(opts.B), writer)
 		}
 	}
@@ -84,7 +84,6 @@ func deployToProvisioner(opts *DeployOpts, writer io.Writer) (string, error) {
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.GitDeployer); ok {
 		return deployer.GitDeploy(opts.B, writer)
 	}
-
 
 	return "Deployed in zzz!", nil
 }
@@ -136,7 +135,6 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 	return nil
 }
 
-
 // Deploy runs a deployment of an application. It will first try to run an
 // image based deploy, and then fallback to the Git based deployment.
 func Running(opts *DeployOpts) error {
@@ -146,11 +144,11 @@ func Running(opts *DeployOpts) error {
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.StateChanger); ok {
-			if strings.Contains(opts.B.Tosca, "windows") {
-		   return deployer.SetRunning(opts.B, writer)
-	    } else {
-				return DoneNotify(opts.B, writer, alerts.RUNNING)
-			}
+		if strings.Contains(opts.B.Tosca, "windows") {
+			return deployer.SetRunning(opts.B, writer)
+		} else {
+			return DoneNotify(opts.B, writer, alerts.RUNNING)
+		}
 	}
 	return nil
 }

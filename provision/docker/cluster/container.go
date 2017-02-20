@@ -312,7 +312,7 @@ func (c *Cluster) getNodeForContainer(container string) (node, error) {
 		log.Debugf("No such container (%s) in storage", container)
 		n, err = c.getNodeByRegion(c.Region)
 		if err != nil {
-			return n, fmt.Errorf("Can not reach region because of %s",err.Error())
+			return n, fmt.Errorf("Can not reach region because of %s", err.Error())
 		}
 	}
 	return n, err
@@ -325,7 +325,7 @@ func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 		return err
 	}
 
-	err = c.Ips(container.NetworkSettings.IPAddress, cartonId,email)
+	err = c.Ips(container.NetworkSettings.IPAddress, cartonId, email)
 	if err != nil {
 		return err
 	}
@@ -342,14 +342,14 @@ func (c *Cluster) SetNetworkinNode(containerId, cartonId, email string) error {
 	return nil
 }
 
-func (c *Cluster) Ports(ports map[docker.Port][]docker.PortBinding, CartonId,email string) error {
+func (c *Cluster) Ports(ports map[docker.Port][]docker.PortBinding, CartonId, email string) error {
 	var cports = make(map[string][]string)
 	var str = ""
 	for k, _ := range ports {
-        str = str + string(k) + ","
-    }
+		str = str + string(k) + ","
+	}
 	cports[carton.INSTANCE_PORTS] = []string{str}
-	if asm, err := carton.NewAssembly(CartonId,email, ""); err != nil {
+	if asm, err := carton.NewAssembly(CartonId, email, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(cports); err != nil {
 		return err
@@ -361,7 +361,7 @@ func (c *Cluster) Ips(ip, CartonId, email string) error {
 	var ips = make(map[string][]string)
 	pubipv4s := []string{ip}
 	ips[c.getIps()] = pubipv4s
-	if asm, err := carton.NewAssembly(CartonId,email, ""); err != nil {
+	if asm, err := carton.NewAssembly(CartonId, email, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err
@@ -380,7 +380,7 @@ func (c *Cluster) getIps() string {
 			case constants.IPV4PRI:
 				return carton.PRIVATEIPV4
 			case constants.IPV6PRI:
-        return carton.PRIVATEIPV6
+				return carton.PRIVATEIPV6
 			}
 		}
 	}
@@ -421,8 +421,8 @@ func (c *Cluster) CreateExec(opts docker.CreateExecOptions, region string) (*doc
 }
 
 func (c *Cluster) getNodeByRegion(region string) (node, error) {
- var addr	string
- var n node
+	var addr string
+	var n node
 	nodes, err := c.Nodes()
 	if err != nil {
 		return n, err
@@ -433,9 +433,9 @@ func (c *Cluster) getNodeByRegion(region string) (node, error) {
 		}
 	}
 	if addr == "" {
-		 return n, errors.New("CreateContainer needs a non empty node addr")
+		return n, errors.New("CreateContainer needs a non empty node addr")
 	}
- return c.getNodeByAddr(addr)
+	return c.getNodeByAddr(addr)
 }
 
 func (c *Cluster) StartExec(execId, containerId string, opts docker.StartExecOptions, region string) error {
@@ -481,8 +481,8 @@ func (c *Cluster) GulpPort() string {
 func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{}, error) {
 	log.Debugf("showback (%d, %d)", start, end)
 	var (
-		result *docker.Container
-		v  docker.APIContainers
+		result      *docker.Container
+		v           docker.APIContainers
 		resultStats []interface{}
 	)
 	node, err := c.getNodeByAddr(point)
@@ -501,21 +501,21 @@ func (c *Cluster) Showback(start int64, end int64, point string) ([]interface{},
 		id := v.ID
 		result, _ = node.InspectContainer(id)
 		res := &metrix.Stats{
-			ContainerId:  result.ID,
-			Image: result.Image,
+			ContainerId:     result.ID,
+			Image:           result.Image,
 			AllocatedMemory: result.HostConfig.Memory,
-			AllocatedCpu: result.HostConfig.CPUShares,
-			AccountId:    v.Labels[constants.ACCOUNT_ID],
-			AssemblyId:   v.Labels[constants.ASSEMBLY_ID],
-			AssembliesId: v.Labels[constants.ASSEMBLIES_ID],
-			AssemblyName: v.Labels[constants.ASSEMBLY_NAME],
-			CPUUnitCost: v.Labels[carton.CONTAINER_CPU_COST],
-			MemoryUnitCost: v.Labels[carton.CONTAINER_MEMORY_COST],
-			QuotaId: v.Labels[constants.QUOTA_ID],
+			AllocatedCpu:    result.HostConfig.CPUShares,
+			AccountId:       v.Labels[constants.ACCOUNT_ID],
+			AssemblyId:      v.Labels[constants.ASSEMBLY_ID],
+			AssembliesId:    v.Labels[constants.ASSEMBLIES_ID],
+			AssemblyName:    v.Labels[constants.ASSEMBLY_NAME],
+			CPUUnitCost:     v.Labels[carton.CONTAINER_CPU_COST],
+			MemoryUnitCost:  v.Labels[carton.CONTAINER_MEMORY_COST],
+			QuotaId:         v.Labels[constants.QUOTA_ID],
 			//AuditPeriod:  stats.Read,
-			Status:       v.State,
+			Status: v.State,
 		}
-		resultStats = append(resultStats,res)
+		resultStats = append(resultStats, res)
 	}
-		return resultStats, nil
-		}
+	return resultStats, nil
+}
