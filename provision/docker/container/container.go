@@ -227,7 +227,10 @@ func (c *Container) Remove(p DockerProvisioner) error {
 	err = p.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
 	if err != nil {
 		log.Errorf("Failed to remove container from docker: %s", err)
+		return err
 	}
+	c.SetMileStone(constants.StateDestroyed)
+	c.SetStatus(constants.StatusDestroyed)
 	return nil
 }
 
