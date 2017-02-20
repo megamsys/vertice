@@ -1,19 +1,17 @@
 package container
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net"
 	"net/url"
 	"time"
-	"bytes"
-//	"os"
+	//	"os"
 	//	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/utils"
-	"github.com/megamsys/libgo/events"
-	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
@@ -34,7 +32,7 @@ type DockerProvisioner interface {
 type Container struct {
 	Id                      string //container id.
 	BoxId                   string
-	AccountId              string
+	AccountId               string
 	CartonId                string
 	Name                    string
 	BoxName                 string
@@ -46,7 +44,7 @@ type Container struct {
 	Version                 string
 	Image                   string
 	Status                  utils.Status
-	State										utils.State
+	State                   utils.State
 	BuildingImage           string
 	LastStatusUpdate        time.Time
 	LastSuccessStatusUpdate time.Time
@@ -97,11 +95,10 @@ func (c *Container) Create(args *CreateArgs) error {
 		CPUShares:    int64(args.Box.GetCpushare()),
 		Labels: map[string]string{utils.ASSEMBLY_ID: args.Box.CartonId, utils.ASSEMBLY_NAME: c.BoxName,
 			utils.ASSEMBLIES_ID: args.Box.CartonsId, utils.ACCOUNT_ID: args.Box.AccountId, utils.QUOTA_ID: args.Box.QuotaId,
-		  carton.CONTAINER_CPU_COST: asm.GetContainerCpuCost(), carton.CONTAINER_MEMORY_COST: asm.GetContainerCpuCost()},
+			carton.CONTAINER_CPU_COST: asm.GetContainerCpuCost(), carton.CONTAINER_MEMORY_COST: asm.GetContainerCpuCost()},
 	}
 	opts := docker.CreateContainerOptions{Name: c.BoxName, Config: &config}
 	cl := args.Provisioner.Cluster()
-	cl.Region = args.Box.Region
 	cl.VNets = args.Box.Vnets
 	addr, cont, err := cl.CreateContainerSchedulerOpts(opts)
 	if err != nil {
@@ -113,26 +110,26 @@ func (c *Container) Create(args *CreateArgs) error {
 	return nil
 }
 
-func (c *Container) Logs(p DockerProvisioner)   error {
+func (c *Container) Logs(p DockerProvisioner) error {
 	var outBuffer bytes.Buffer
-		var closeChan chan bool
-		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
-		logWriter := carton.NewLogWriter(b)
-		writer := io.MultiWriter(&outBuffer, &logWriter)
-	  logopt := docker.LogsOptions{
-    Container:  c.Id,
+	var closeChan chan bool
+	b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
+	logWriter := carton.NewLogWriter(b)
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	logopt := docker.LogsOptions{
+		Container:    c.Id,
 		OutputStream: writer,
-		ErrorStream: writer,
-			Follow:    true,
-			//	RawTerminal:  true,
-				Stdout:       true,
-				Stderr:       true,
-				Timestamps:   false,
-			//	Tail:         "100",
-		}
+		ErrorStream:  writer,
+		Follow:       true,
+		//	RawTerminal:  true,
+		Stdout:     true,
+		Stderr:     true,
+		Timestamps: false,
+		//	Tail:         "100",
+	}
 
 	cs := make(chan []byte)
-  go p.Cluster().SetLogs(cs,logopt, closeChan)
+	go p.Cluster().SetLogs(cs, logopt, closeChan)
 
 	go func(closeChan chan bool, logWriter carton.LogWriter) {
 		select {
@@ -142,11 +139,11 @@ func (c *Container) Logs(p DockerProvisioner)   error {
 		}
 	}(closeChan, logWriter)
 
-var err error
+	var err error
 	if err != nil {
-		return  err
+		return err
 	}
-return  nil
+	return nil
 
 }
 func (c *Container) hostToNodeAddress(p DockerProvisioner, host string) (string, error) {
@@ -251,9 +248,8 @@ func (c *Container) Start(args *StartArgs) error {
 		MemorySwap: int64(args.Box.ConGetMemory() + args.Box.GetSwap()),
 		CPUShares:  int64(args.Box.GetCpushare()),
 	}
-  st := args.Provisioner.Cluster()
-	st.Region = c.Region
-	err = st.StartContainer(c.Id, &hostConfig)
+
+	err = args.Provisioner.Cluster().StartContainer(c.Id, &hostConfig)
 	if err != nil {
 		return err
 	}
@@ -269,11 +265,11 @@ func (c *Container) Stop(p DockerProvisioner) error {
 	if c.Status.String() == constants.StatusContainerStopped.String() {
 		return nil
 	}
-	st := p.Cluster()
-	st.Region = c.Region
-	err := st.StopContainer(c.Id, 10)
+
+	err := p.Cluster().StopContainer(c.Id, 10)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
+		return err
 	}
 	c.SetStatus(constants.StatusContainerStopped)
 	c.SetMileStone(constants.StateStopped)
@@ -334,36 +330,6 @@ func (c *Container) SetStatus(status utils.Status) error {
 	return nil
 }
 
-//trigger multi event in the order
-func (c *Container) Deduct() error {
-	mi := make(map[string]string)
-	mi[constants.ACCOUNTID] = c.AccountId
-	mi[constants.ASSEMBLYID] = c.CartonId
-	mi[constants.ASSEMBLYNAME] = c.Name
-	mi[constants.CONSUMED] = "0.1"
-	mi[constants.START_TIME] = time.Now().String()
-	mi[constants.END_TIME] = time.Now().String()
-
-	newEvent := events.NewMulti(
-		[]*events.Event{
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.DEDUCT,
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-			&events.Event{
-				AccountsId:  c.AccountId,
-				EventAction: alerts.BILLEDHISTORY, //Change type to transaction
-				EventType:   constants.EventBill,
-				EventData:   alerts.EventData{M: mi},
-				Timestamp:   time.Now().Local(),
-			},
-		})
-	return newEvent.Write()
-}
-
 type NetworkInfo struct {
 	HTTPHostPort string
 	IP           string
@@ -371,15 +337,7 @@ type NetworkInfo struct {
 
 func (c *Container) NetworkInfo(p DockerProvisioner) (NetworkInfo, error) {
 	var netInfo NetworkInfo
-	cl := p.Cluster()
-	cl.Region = c.Region
-//	ip, gateway, bridge, err := cl.GetIP() //gets the IP
-var err error
-	if err != nil {
-		return netInfo, err
-	}
-	//netInfo.IP = ip.String()
-	err = p.Cluster().SetNetworkinNode(c.Id, c.CartonId,c.AccountId)
+	err := p.Cluster().SetNetworkinNode(c.Id, c.CartonId, c.AccountId)
 	return netInfo, err
 }
 
