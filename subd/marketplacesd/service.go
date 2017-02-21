@@ -1,4 +1,4 @@
-package deployd
+package marketplacesd
 
 import (
 	"fmt"
@@ -8,14 +8,16 @@ import (
 	nsq "github.com/crackcomm/nsqueue/consumer"
 	"github.com/megamsys/libgo/cmd"
 	constants "github.com/megamsys/libgo/utils"
-	"github.com/megamsys/vertice/carton"
+	//"github.com/megamsys/vertice/carton"
+	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/meta"
-	"github.com/megamsys/vertice/provision"
-	_ "github.com/megamsys/vertice/provision/one"
+	"github.com/megamsys/vertice/marketplaces"
+	"github.com/megamsys/vertice/marketplaces/provision"
+	_ "github.com/megamsys/vertice/marketplaces/provision/one"
 )
 
 const (
-	TOPIC       = "vms"
+	TOPIC       = "marketplaces"
 	maxInFlight = 150
 )
 
@@ -26,17 +28,19 @@ type Service struct {
 	Handler  *Handler
 	Consumer *nsq.Consumer
 	Meta     *meta.Config
-	Deployd  *Config
+	Deployd  *deployd.Config
+	Config   *Config
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config, d *Config) *Service {
+func NewService(c *meta.Config,config *Config, d *deployd.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Deployd: d,
+		Config: config,
 	}
-	s.Handler = NewHandler(s.Deployd)
+	s.Handler = NewHandler(s.Config)
 	//c.MkGlobal() //a setter for global meta config
 	return s
 }
@@ -44,7 +48,7 @@ func NewService(c *meta.Config, d *Config) *Service {
 // Open starts the service
 func (s *Service) Open() error {
 	go func() error {
-		log.Info("starting deployd service")
+		log.Info("starting marketplacesd service")
 		if err := nsq.Register(TOPIC, "engine", maxInFlight, s.processNSQ); err != nil {
 			return err
 		}
@@ -56,25 +60,26 @@ func (s *Service) Open() error {
 		return nil
 	}()
 	if s.Deployd.One.Enabled {
-		if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
-			return err
-		}
+		 if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
+		 	 return err
+		 }
 	}
 	return nil
 }
 
 func (s *Service) processNSQ(msg *nsq.Message) {
 	log.Debugf(TOPIC + " queue received message  :" + string(msg.Body))
-	p, err := carton.NewPayload(msg.Body)
+	p, err := marketplaces.NewPayload(msg.Body)
 	if err != nil {
 		return
 	}
-	re, err := p.Convert()
-	if err != nil {
-		log.Errorf("%s",err)
-		return
-	}
-	go s.Handler.serveNSQ(re)
+	fmt.Println("***********************",p)
+	// re, err := p.Convert()
+	// if err != nil {
+	// 	log.Errorf("%s",err)
+	// 	return
+	// }
+	// go s.Handler.serveNSQ(re)
 	return
 }
 
@@ -93,8 +98,8 @@ func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
 func (s *Service) setProvisioner(pt string) error {
-	var err error
-	var tempProv provision.Provisioner
+ 	var err error
+ 	var tempProv provision.Provisioner
 
 	if tempProv, err = provision.Get(pt); err != nil {
 		return err
@@ -117,6 +122,9 @@ func (s *Service) setProvisioner(pt string) error {
 		}
 	}
 
-	carton.ProvisionerMap[pt] = tempProv
-	return nil
-}
+	marketplaces.ProvisionerMap[pt] = tempProv
+
+	fmt.Println("***************************setProvisioner*************", marketplaces.ProvisionerMap)
+
+ 	return nil
+ }

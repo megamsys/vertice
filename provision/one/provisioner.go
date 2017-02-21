@@ -51,7 +51,7 @@ type oneProvisioner struct {
 	defaultImage string
 	vcpuThrottle string
 	cluster      *cluster.Cluster
-	storage      cluster.Storage
+	storage       cluster.Storage
 }
 
 type One struct {
@@ -121,8 +121,8 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 		p.defaultImage = w.Image
 		p.vcpuThrottle = w.VCPUPercentage
 		for i := 0; i < len(w.Regions); i++ {
-			m := w.Regions[i].toMap()
-			c := w.Regions[i].toClusterMap()
+			m := w.Regions[i].ToMap()
+			c := w.Regions[i].ToClusterMap()
 			n := cluster.Node{
 				Address:  m[api.ENDPOINT],
 				Region:   m[api.ONEZONE],
@@ -142,7 +142,7 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 }
 
 //convert the config to just a map.
-func (c Region) toMap() map[string]string {
+func (c Region) ToMap() map[string]string {
 	m := make(map[string]string)
 	m[api.ONEZONE] = c.OneZone
 	m[api.ENDPOINT] = c.OneEndPoint
@@ -154,7 +154,7 @@ func (c Region) toMap() map[string]string {
 	return m
 }
 
-func (c Region) toClusterMap() map[string]map[string]string {
+func (c Region) ToClusterMap() map[string]map[string]string {
 	clData := make(map[string]map[string]string)
 	for i := 0; i < len(c.Clusters); i++ {
 		if c.Clusters[i].Enabled {

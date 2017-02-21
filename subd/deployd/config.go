@@ -132,6 +132,6 @@ func (c Config) String() string {
 }
 
 //convert the config to just an interface.
-func (c Config) toInterface() interface{} {
+func (c Config) ToInterface() interface{} {
 	return c.One
 }
