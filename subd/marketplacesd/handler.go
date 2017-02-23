@@ -1,10 +1,11 @@
 package marketplacesd
-//
-// import (
-// 	"github.com/megamsys/vertice/carton"
-// 	log "github.com/Sirupsen/logrus"
-// )
-//
+
+import (
+ 	"github.com/megamsys/vertice/marketplaces"
+ 	log "github.com/Sirupsen/logrus"
+	"fmt"
+ )
+
 type Handler struct {
 	d            *Config
 	EventChannel chan bool
@@ -15,18 +16,12 @@ func NewHandler(c *Config) *Handler {
 
 }
 
-// func (h *Handler) serveNSQ(r *carton.Requests) error {
-// 	p, err := carton.ParseRequest(r)
-// 	if err != nil {
-// 		return err
-// 	}
-//  	if rp := carton.NewReqOperator(r); rp != nil {
-// 		err = rp.Accept(&p)
-// 		if err != nil {
-// 			  log.Errorf("Error Request : %s  -  %s  : %s",r.Category, r.Action, err)
-// 		}
-// 		return  err
-// 	}
-//
-// return nil
-// }
+func (h *Handler) serveNSQ(r *marketplaces.Requests) error {
+	req, err := r.ParseRequest()
+	if err != nil {
+		log.Errorf("Error parsing request : %s  -  %s  : %s",r.Category, r.Action, err)
+		return err
+	}
+	fmt.Println("*************************",req)
+  return req.Process(r.Action)
+}

@@ -8,10 +8,8 @@ import (
 	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
-	"github.com/megamsys/opennebula-go/snapshot"
-	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
-	"github.com/megamsys/opennebula-go/virtualmachine"
+	constants "github.com/megamsys/libgo/utils"
 	"net"
 	"net/url"
 	"strconv"
@@ -110,156 +108,37 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	return opts.Name, vmid, nil
 }
 
-func (c *Cluster) GetVM(opts virtualmachine.Vnc, region string) (*virtualmachine.VM, error) {
+func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, error) {
+  var ds string
+	nodlist, err := c.Nodes()
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == region {
+			ds = v.Metadata[constants.DATASTORE]
+			if ds == "" {
+				return ds, fmt.Errorf("%s", cmd.Colorfy("Datastore id is empty (hint: start or beat it).\n", "red", "", ""))
+			}
+			break
+		}
+	}
+
+	if ds == "" {
+		return ds, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+ region +" ) nodes (hint: start or beat it).\n", "red", "", ""))
+	}
 
 	node, err := c.getNodeRegion(region)
 	if err != nil {
 		return nil, err
 	}
 
-	opts.T = node.Client
-	res, err := opts.GetVm()
+	ds_id, err := strconv.Atoi(ds)
 	if err != nil {
-		return nil, wrapErrorWithCmd(node, err, "GetVM")
-	}
-
-	return res, err
-}
-
-// DestroyVM kills a vm, returning an error in case of failure.
-func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
-
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	opts.T = node.Client
-
-	_, err = opts.Delete()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "DestroyVM")
-	}
-
-	return nil
-}
-
-// DestroyVM kills a vm, returning an error in case of failure.
-func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
-
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	opts.T = node.Client
-
-	_, err = opts.RecoverDelete()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "DestroyVM")
-	}
-
-	return nil
-}
-
-func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
-	switch action {
-	case START:
-		return c.StartVM(opts)
-	case STOP:
-		return c.StopVM(opts)
-	case RESTART:
-		return c.RestartVM(opts)
-	default:
-		return nil
-	}
-}
-func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
-
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	opts.T = node.Client
-
-	_, err = opts.Resume()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "StartVM")
-	}
-
-	return nil
-}
-
-func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
-
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	opts.T = node.Client
-
-	_, err = opts.Reboot()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "RebootVM")
-	}
-
-	return nil
-}
-
-func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
-
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-
-	opts.T = node.Client
-
-	_, err = opts.Poweroff()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "StopVM")
-	}
-
-	return nil
-}
-
-func (c *Cluster) getNodeRegion(region string) (node, error) {
-	return c.getNode(func(s Storage) (Node, error) {
-		return s.RetrieveNode(region)
-	})
-}
-
-func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return "", err
+		return nil, wrapErrorWithCmd(node, err, "createimage")
 	}
 	opts.T = node.Client
-
-	res, err := opts.DiskSaveAs()
-	if err != nil {
-		return "", wrapErrorWithCmd(node, err, "CreateImage")
-	}
-	imageId := res.(string)
-	return imageId, nil
+	opts.DatastoreID = ds_id
+	return opts.Create()
 }
 
-func (c *Cluster) RemoveBackup(opts compute.Image) error {
-	node, err := c.getNodeRegion(opts.Region)
-	if err != nil {
-		return err
-	}
-	opts.T = node.Client
-
-	_, err = opts.RemoveImage()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "DeleteSnap")
-	}
-
-	return nil
-}
 
 func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	node, err := c.getNodeRegion(region)
@@ -281,124 +160,10 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 }
 
 
-
-func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, error) {
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return "", err
-	}
-	opts.T = node.Client
-
-	res, err := opts.CreateSnapshot()
-	if err != nil {
-		return "", wrapErrorWithCmd(node, err, "CreateSnap")
-	}
-	imageId := res.(string)
-	return imageId, nil
-}
-
-func (c *Cluster) RemoveSnap(opts snapshot.Snapshot, region string) error {
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return err
-	}
-	opts.T = node.Client
-
-	_, err = opts.DeleteSnapshot()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "DeleteSnap")
-	}
-
-	return nil
-}
-
-func (c *Cluster) RestoreSnap(opts snapshot.Snapshot, region string) error {
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return err
-	}
-	opts.T = node.Client
-
-	_, err = opts.RevertSnapshot()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "RestoreSnap")
-	}
-
-	return nil
-}
-
-
-func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return err
-	}
-	v.T = node.Client
-	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
-		res, err := v.ImageShow()
-		if err != nil || res.State_string() == "failure" {
-			return false, fmt.Errorf("fails to create snapshot")
-		}
-		return (res.State_string() == "ready"), nil
+func (c *Cluster) getNodeRegion(region string) (node, error) {
+	return c.getNode(func(s Storage) (Node, error) {
+		return s.RetrieveNode(region)
 	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//*********************************
-
-
-func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
-	var a []int
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return a, err
-	}
-	vd.T = node.Client
-
-	dsk, err := vd.ListDisk()
-	if err != nil {
-		return a, err
-	}
-
-	a = dsk.GetDiskIds()
-	return a, nil
-}
-
-func (c *Cluster) AttachDisk(v *disk.VmDisk, region string) error {
-
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return err
-	}
-
-	v.T = node.Client
-
-	_, err = v.AttachDisk()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "AttachDisk")
-	}
-
-	return nil
-}
-
-func (c *Cluster) DetachDisk(v *disk.VmDisk, region string) error {
-
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return err
-	}
-
-	v.T = node.Client
-
-	_, err = v.DetachDisk()
-	if err != nil {
-		return wrapErrorWithCmd(node, err, "DetachDisk")
-	}
-
-	return nil
 }
 
 func cpuThrottle(vcpu, cpu string) string {

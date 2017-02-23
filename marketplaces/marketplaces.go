@@ -1,139 +1,220 @@
 package marketplaces
 
 import (
-  "github.com/megamsys/vertice/marketplaces/provision"
+  "fmt"
+	"github.com/megamsys/vertice/marketplaces/provision"
+	 "bytes"
+	 "github.com/megamsys/libgo/cmd"
+	 "io"
+	// "strings"
+	 "time"
+	  "gopkg.in/yaml.v2"
+	log "github.com/Sirupsen/logrus"
+  "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/vertice/meta"
+	"encoding/json"
 )
+
+const (
+	APIMARKETPLACES = "/marketplaces"
+	UPDATE          = "/update"
+)
+
+type apiMarketplaces struct {
+	JsonClaz string         `json:"json_claz" cql:"json_claz"`
+	Results  []Marketplaces `json:"results" cql:"results"`
+}
+
 //Global provisioners set by the subd daemons.
 var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
-/*
-type RawImageAccess interface{
-}
-type MarketPlaceAccess interface{
-}
-
-type MarketplaceInterface interface {
-   access(cat string) (interface, error)
-}
-
-type Global struct {
-  AccountId string
-  Category  string
-  Action    string
-  Access    interface{}
-}
-
-func (g *Global) access(cat string) (interface, error) {
-  switch expression {
-  case condition:
-
-  }
-}
-
-category: rawimage             //Get rawimages build market
-action: rawimage.iso.create
-
-category: marketplaces        // Get Marketplaces build market
-action: rawimage.iso.customize
-
-category: marketplaces       // get marketplaces build market
-action:   marketplaces.add.customized
-
-func (p *ReqOperator) getAccess() (MarketplaceInterface, error) {
-  switch p.Category {
-  case condition:
-
-  }
-  return getAccess(p.Category,p.CartonsId,p.AccountId)
-}
-
-func getAccess(cat ,id ,email string)(*MarketplaceInterface, error)
-  if err != nil {
-    return nil, err
-  }
-  c, err := b.MkCloudMark()
-  if err != nil {
-    return nil, err
-  }
-  return c, nil
-
-case marketplaces:
-  d, err := GetMarkplace(p.CartonsId,p.AccountId)
-  if err != nil {
-    return nil, err
-  }
-  c, err := d.MkCloudMark()
-  if err != nil {
-    return nil, err
-  }
-  return c, nil
-
-}
-}
-
-type RawImages struct {
-  Id        string
-  AccountId string
-  OrgId     string
-  Api       api.ApiArgs
-  Inputs    pairs.JsonPairs
-  Outputs   pairs.JsonPairs
-  Repos     Repos
-}
-
-type Repos struct {
- Source string
- PubliceUrl string
- Properties pairs.JsonPairs
-}
+// category: rawimage             //Get rawimages build market
+// action: rawimage.iso.create
+//
+// category: marketplaces        // Get Marketplaces build market
+// action: marketplaces.iso.customize
+//
+// category: marketplaces        // Get Marketplaces build market
+// action: marketplaces.iso.finished
+//
+// category: marketplaces       // get marketplaces build market
+// action:   marketplaces.image.add
 
 // struct for marketplaces and rawimages
 type Marketplaces struct {
-  Id        string
-  AccountId string
-  Api       api.ApiArgs
-  Inputs    pairs.JsonPairs
-  Outputs   pairs.JsonPairs
-  Envs      pairs.JsonPairs
-  Options   pairs.JsonPairs
-  Name      string
-  Flavor    string
-  Image     string
-  CatOrder  string
-  Plans     map[string]string
-  Status    string
-  JsonClaz  string
+	Id           string            `json:"id"`
+	AccountId    string            `json:"account_id"`
+	SettingsName string            `json:"settings_name"`
+	Inputs       pairs.JsonPairs   `json:"inputs"`
+	Outputs      pairs.JsonPairs   `json:"outputs"`
+	Envs         pairs.JsonPairs   `json:"envs"`
+	Options      pairs.JsonPairs   `json:"options"`
+	CatType      string            `json:"cattype"`
+	Flavor       string            `json:"flavor"`
+	Image        string            `json:"image"`
+	CatOrder     string            `json:"catorder"`
+	Plans        map[string]string `json:""plans`
+	Status       string            `json:"status"`
+	JsonClaz     string            `json:"json_claz"`
+}
+
+func NewArgs(email, org string) api.ApiArgs {
+	return newArgs(email, org)
+}
+
+func newArgs(email, org string) api.ApiArgs {
+	return api.ApiArgs{
+		Master_Key: meta.MC.MasterKey,
+		Url:        meta.MC.Api,
+		Email:      email,
+		Org_Id:     org,
+	}
+}
+
+// marketplaces json string
+func (s *Marketplaces) String() string {
+	if d, err := yaml.Marshal(s); err != nil {
+		return err.Error()
+	} else {
+		return string(d)
+	}
+}
+
+func (m *Marketplaces) Get() (*Marketplaces, error) {
+	return m.get()
+}
+
+func GetMarketplace(email, id string) (*Marketplaces, error) {
+	r := new(Marketplaces)
+	r.AccountId = email
+	r.Id = id
+	return r.get()
+}
+
+/** A public function which pulls the snapshot for disk save as image.
+and any others we do. **/
+func (m *Marketplaces) get() (*Marketplaces, error) {
+	cl := api.NewClient(newArgs(m.AccountId, ""), APIMARKETPLACES+"/"+m.Id)
+
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &apiMarketplaces{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+	a := &res.Results[0]
+	log.Debugf("Marketplaces %v", a)
+	return a, nil
 }
 
 
-{
-Id: “RAW10001”,
-name: “myfirst_iso”
-org_id : “ORG123”,
-account_id: “info@megam.io”,
-Inputs: [region]
-Json_claz: “”
-repos: {
-   source: “ISO”,
-   public_url:  “”,
-   properties: [key,value list],
+
+/** A public function which pulls all marketplaces items under particular settings_name like vertice,bitnami.**/
+func GetBySettingsName(settings_name, email string) ([]Marketplaces, error) {
+	cl := api.NewClient(newArgs(email, ""), APIMARKETPLACES+settings_name)
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+	res := &apiMarketplaces{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debugf("Marketplaces of current Assemmbly %v", &res.Results)
+	return res.Results, nil
 }
-outputs [image_id: 20 , ]
-Status: “inprogress, active”
+
+/** A public function which pulls all marketplaces items.**/
+func (s *Marketplaces) Gets() ([]Marketplaces, error) {
+	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), APIMARKETPLACES)
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &apiMarketplaces{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Results, nil
 }
 
+func (s *Marketplaces) Update() error {
+	cl := api.NewClient(newArgs(s.AccountId, ""), APIMARKETPLACES+UPDATE)
+	if _, err := cl.Post(s); err != nil {
+		return err
+	}
+	return nil
+}
 
-   CREATE TABLE marketplaces ( settings_name text,  cattype text, flavor text,  image text, catorder text, url text, json_claz text, envs list<text>,  options list<text>, plans map <text, text>,  PRIMARY KEY ((settings_name), flavor));
+func (m *Marketplaces) rawImageCustomize() error {
+	box, err := m.mkBox()
+	if err != nil {
+		return err
+	}
+	var outBuffer bytes.Buffer
+	start := time.Now()
+	logWriter := LogWriter{Box: box}
+	logWriter.Async()
+	 defer logWriter.Close()
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	deployer, ok := ProvisionerMap[box.Provider].(provision.MarketPlaceAccess)
+	if !ok {
+		return fmt.Errorf("cannot provision marketplaces")
+	}
+	err = deployer.CustomiseRawImage(box, writer)
+	if err != nil {
+		return err
+	}
+	elapsed := time.Since(start)
+	log.Debugf("%s in (%s)\n%s", cmd.Colorfy(box.Name, "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
+	return nil
+}
 
-   ALTER TABLE marketplaces ADD  id text, account_id  text, status text;
-   ALTER TABLE marketplaces ADD  inputs list<text>, outputs list<text>, acl_policies list<text>;
+func (m *Marketplaces) mkBox() (*provision.Box, error) {
+	raw := new(RawImages)
+	raw.AccountId = m.AccountId
+	raw.Id = m.rawImageId()
+	raw, err := raw.get()
+	if err != nil {
+		return nil, err
+	}
 
-   data
-   {
-   id:”MKP0001 “,
-   account_id: “ “,
-   status: “inprogress”,
-   Inputs: [raw_image_id: “RAW10001 “,
-             image_id: 20, region: sydney],
-   }
-*/
+  box := &provision.Box{
+    CartonId: m.Id,
+    AccountId: m.AccountId,
+		Name: m.ImageName(),
+    Region: m.Region(),
+    Provider: raw.provider(),
+		SourceImage: raw.Name,
+  }
+  return box, nil
+}
+
+func (s *Marketplaces) ImageName() string {
+	return s.Inputs.Match(utils.IMAGE_NAME)
+}
+
+func (s *Marketplaces) rawImageId() string {
+	return s.Inputs.Match(utils.RAW_IMAGE_ID)
+}
+
+func (s *Marketplaces) instanceId() string {
+	return s.Inputs.Match(utils.INSTANCE_ID)
+}
+
+func (s *Marketplaces) Region() string {
+	return s.Inputs.Match(utils.REGION)
+}

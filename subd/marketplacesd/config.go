@@ -25,6 +25,7 @@ type Config struct {
 	DiskSize string `json:"marketplace_disk_size" toml:"marketplace_disk_size"`
 	CpuCore  string `json:"marketplace_cpu" toml:"marketplace_cpu"`
 	RAM      string `json:"marketplace_ram" toml:"marketplace_ram"`
+	Datastore string `json:"datastore" toml:"datastore"`
 }
 
 func NewConfig() *Config {

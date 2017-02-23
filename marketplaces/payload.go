@@ -17,10 +17,10 @@ package marketplaces
 
 import (
 	"encoding/json"
-	//log "github.com/Sirupsen/logrus"
-	//"github.com/megamsys/libgo/api"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
-	//"strings"
+	"strings"
 	"time"
 )
 
@@ -51,38 +51,38 @@ func NewPayload(b []byte) (*Payload, error) {
 /**
 **fetch the request json from riak and parse the json to struct
 **/
-// func (p *Payload) Convert() (*Requests, error) {
-// 	if len(strings.TrimSpace(p.CatId)) < 10 {
-// 		return listReqsById(p.Id, p.AccountId)
-// 	} else {
-// 		return &Requests{
-// 			Action:    p.Action,
-// 			Category:  p.Category,
-// 			AccountId: p.AccountId,
-// 			CatId:     p.CatId,
-// 			CreatedAt: p.CreatedAt,
-// 		}, nil
-// 	}
-//
-// }
+func (p *Payload) Convert() (*Requests, error) {
+	if len(strings.TrimSpace(p.CatId)) < 10 {
+		return listReqsById(p.Id, p.AccountId)
+	} else {
+		return &Requests{
+			Action:    p.Action,
+			Category:  p.Category,
+			AccountId: p.AccountId,
+			CatId:     p.CatId,
+			CreatedAt: p.CreatedAt,
+		}, nil
+	}
 
-//The payload in the queue can be just a pointer or a value.
-//pointer means just the id will be available and rest is blank.
-//value means the id is blank and others are available.
-// func listReqsById(id, email string) (*Requests, error) {
-// 	log.Debugf("list requests %s", id)
-// 	cl := api.NewClient(newArgs(email,""), "/requests/" + id)
-// 	response, err := cl.Get()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	res := &ApiRequests{}
-// 	err = json.Unmarshal(response, res)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	r := &res.Results[0]
-// 	log.Debugf("Requests %v", r)
-// 	return r, nil
-// }
+}
+
+// The payload in the queue can be just a pointer or a value.
+// pointer means just the id will be available and rest is blank.
+// value means the id is blank and others are available.
+func listReqsById(id, email string) (*Requests, error) {
+	log.Debugf("list requests %s", id)
+	cl := api.NewClient(newArgs(email,""), "/requests/" + id)
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	res := &ApiRequests{}
+	err = json.Unmarshal(response, res)
+	if err != nil {
+		return nil, err
+	}
+	r := &res.Results[0]
+	log.Debugf("Requests %v", r)
+	return r, nil
+}

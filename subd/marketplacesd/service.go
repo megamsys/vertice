@@ -70,16 +70,17 @@ func (s *Service) Open() error {
 func (s *Service) processNSQ(msg *nsq.Message) {
 	log.Debugf(TOPIC + " queue received message  :" + string(msg.Body))
 	p, err := marketplaces.NewPayload(msg.Body)
+	fmt.Println("***********************",err)
 	if err != nil {
 		return
 	}
 	fmt.Println("***********************",p)
-	// re, err := p.Convert()
-	// if err != nil {
-	// 	log.Errorf("%s",err)
-	// 	return
-	// }
-	// go s.Handler.serveNSQ(re)
+	re, err := p.Convert()
+	if err != nil {
+		log.Errorf("%s",err)
+		return
+	}
+	go s.Handler.serveNSQ(re)
 	return
 }
 
@@ -107,7 +108,7 @@ func (s *Service) setProvisioner(pt string) error {
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
 
 	if initializableProvisioner, ok := tempProv.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Deployd.ToInterface())
+		err = initializableProvisioner.Initialize(s.Deployd.ToInterface(), s.Config.toMap())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
 		} else {
@@ -123,8 +124,5 @@ func (s *Service) setProvisioner(pt string) error {
 	}
 
 	marketplaces.ProvisionerMap[pt] = tempProv
-
-	fmt.Println("***************************setProvisioner*************", marketplaces.ProvisionerMap)
-
- 	return nil
+	return nil
  }

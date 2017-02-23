@@ -14,37 +14,10 @@ const (
 
 var LogPubSubQueueSuffix = "_log"
 
-
-// Boxlevel represents the deployment level.
-type BoxLevel int
-
-// Boxlog represents a log entry.
-type Boxlog struct {
-	Timestamp string
-	Message   string
-	Source    string
-	Name      string
-	Unit      string
-}
-
-type Box struct {
-	Name string
-}
-
 type LogListener struct {
 	B <-chan Boxlog
 	c *nsqc.Consumer
 }
-
-type BoxSSH struct {
-	User   string
-	Prefix string
-}
-
-func (bs *BoxSSH) Pub() string {
-	return bs.Prefix + "_pub"
-}
-
 
 func logQueue(boxName string) string {
 	return boxName + LogPubSubQueueSuffix

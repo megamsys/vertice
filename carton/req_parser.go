@@ -55,7 +55,7 @@ var (
 	//vmbackup actions
 	BACKUPS = "backup"
 	IMAGECREATE = "backupcreate"
-	IMAGEDESTROY = "backupdestroy"
+	IMAGEDESTROY = "backupremove"
 
 	// disks actions
 	DISKS      = "disks"

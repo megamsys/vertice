@@ -19,23 +19,24 @@ package one
 import (
 	"bytes"
 	"fmt"
-  "io"
+	"io"
 	"strings"
 	"text/tabwriter"
 
-//	log "github.com/Sirupsen/logrus"
-//	"github.com/megamsys/libgo/action"
+	//	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/cmd"
-//	"github.com/megamsys/libgo/events"
-//	"github.com/megamsys/libgo/events/alerts"
-//	"github.com/megamsys/libgo/utils"
-//	constants "github.com/megamsys/libgo/utils"
+	//	"github.com/megamsys/libgo/events"
+	//	"github.com/megamsys/libgo/events/alerts"
+	//	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
-//	lb "github.com/megamsys/vertice/logbox"
+	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/marketplaces/provision"
 	"github.com/megamsys/vertice/provision/one"
+	//	"github.com/megamsys/vertice/marketplaces"
 	"github.com/megamsys/vertice/marketplaces/provision/one/cluster"
-//	"github.com/megamsys/vertice/router"
+	//	"github.com/megamsys/vertice/router"
 	_ "github.com/megamsys/vertice/router/route53"
 )
 
@@ -49,11 +50,12 @@ func init() {
 type oneProvisioner struct {
 	defaultImage string
 	vcpuThrottle string
+	vcpu         string
+	disksize     string
+	ram          string
 	cluster      *cluster.Cluster
-	storage       cluster.Storage
+	storage      cluster.Storage
 }
-
-
 
 func (p *oneProvisioner) Cluster() *cluster.Cluster {
 	if p.cluster == nil {
@@ -69,11 +71,11 @@ func (p *oneProvisioner) String() string {
 	return "ready"
 }
 
-func (p *oneProvisioner) Initialize(m interface{}) error {
-	return p.initOneCluster(m)
+func (p *oneProvisioner) Initialize(m interface{}, mkc map[string]string) error {
+	return p.initOneCluster(m, mkc)
 }
 
-func (p *oneProvisioner) initOneCluster(i interface{}) error {
+func (p *oneProvisioner) initOneCluster(i interface{}, mkc map[string]string) error {
 	var err error
 	if p.storage == nil {
 		p.storage, err = buildClusterStorage()
@@ -84,8 +86,13 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 
 	if w, ok := i.(one.One); ok {
 		var nodes []cluster.Node
+
 		p.defaultImage = w.Image
 		p.vcpuThrottle = w.VCPUPercentage
+		p.vcpu = mkc[constants.CPU]
+		p.ram = mkc[constants.RAM]
+		p.disksize = mkc[constants.STORAGE]
+
 		for i := 0; i < len(w.Regions); i++ {
 			m := w.Regions[i].ToMap()
 			c := w.Regions[i].ToClusterMap()
@@ -130,6 +137,74 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 	return strings.TrimSpace(b.String()), nil
 }
 
-func (p *oneProvisioner) Create(m interface{},w io.Writer) error {
+func (p *oneProvisioner) ISODeploy(box interface{}, w io.Writer) error {
+  m := box.(provision.Box)
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s)", m.Name)))
+
+	actions := []*action.Action{
+		&machCreating,
+		&createRawISOImage,
+		&updateRawImageId,
+		&waitUntillImageReady,
+		&updateRawStatus,
+	}
+	pipeline := action.NewPipeline(actions...)
+	args := runMachineActionsArgs{
+		box:           &m,
+		writer:        w,
+		machineStatus: constants.StatusCreating,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- create iso pipeline for box (%s)\n --> %s", m.Name, err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- create iso pipeline for box (%s)OK", m.Name)))
 	return nil
+}
+
+func (p *oneProvisioner) CustomiseRawImage(box interface{}, w io.Writer) error {
+  m := box.(provision.Box)
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)", m.Name)))
+
+	actions := []*action.Action{
+		&machCreating,
+	  &createDatablockImage,
+		//&updateMarketplaceStatus,
+	  &updateMarketplaceImageId,
+	  &waitUntillImageReady,
+		// &updateMarketplaceStatus,
+		// &createInstanceForCustomize,
+		// &updateMarketplaceStatus,
+		// &waitUntillvmReady,
+		// &updateVncHostIp,
+	  // &updateMarketplaceStatus,
+	}
+	pipeline := action.NewPipeline(actions...)
+	args := runMachineActionsArgs{
+		box:           &m,
+		writer:        w,
+		machineStatus: constants.StatusCreating,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- Error:  customize rawimage pipeline for box (%s)\n --> %s", m.Name, err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)OK", m.Name)))
+	return nil
+}
+
+func (o *oneProvisioner) Resource() map[string]string {
+	m := make(map[string]string)
+	m[constants.CPU] = o.vcpu
+	m[constants.RAM] = o.ram
+	m[constants.STORAGE] = o.disksize
+	return m
 }

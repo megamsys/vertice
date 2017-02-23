@@ -71,6 +71,7 @@ type Region struct {
 	OneTemplate    string    `json:"one_template" toml:"one_template"`
 	Image          string    `json:"image" toml:"image"`
 	VCPUPercentage string    `json:"vcpu_percentage" toml:"vcpu_percentage"`
+	Datastore      string    `json:"datastore" toml:"datastore"`
 	Certificate    string    `json:"certificate" toml:"certificate"`
 	Clusters       []Cluster `json:"cluster" toml:"cluster"`
 	CpuUnit        string    `json:"cpu_unit" toml:"cpu_unit"`
@@ -151,6 +152,7 @@ func (c Region) ToMap() map[string]string {
 	m[api.TEMPLATE] = c.OneTemplate
 	m[api.IMAGE] = c.Image
 	m[api.VCPU_PERCENTAGE] = c.VCPUPercentage
+	m[constants.DATASTORE] = c.Datastore
 	return m
 }
 

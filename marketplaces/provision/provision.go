@@ -18,11 +18,10 @@ package provision
 import (
 	"errors"
 	"fmt"
-//	"github.com/megamsys/libgo/utils"
+	//	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton/bind"
 	"io"
 )
-
 
 var (
 	ErrInvalidStatus  = errors.New("invalid status")
@@ -80,16 +79,16 @@ type ShellOptions struct {
 	Term   string
 }
 
-// GitDeployer is a provisioner that can deploy the box from a Git
-// repository.
-type GitDeployer interface {
-	GitDeploy(b *Box, w io.Writer) (string, error)
+type RawImageAccess interface {
+	ISODeploy(b interface{}, w io.Writer) error
+}
+type MarketPlaceAccess interface {
+	CustomiseRawImage(b interface{}, w io.Writer) error
 }
 
 // ImageDeployer is a provisioner that can deploy the box from a
 // previously generated image.
 type ImageDeployer interface {
-	ISODeploy(b interface{}, image string, w io.Writer) (string, error)
 }
 
 // Provisioner is the basic interface of this package.
@@ -97,8 +96,6 @@ type ImageDeployer interface {
 // Any vertice provisioner must implement this interface in order to provision
 
 type Provisioner interface {
-	// Create is called when vertice is destroying the box.
-	Create(interface{}, io.Writer) error
 }
 
 type MessageProvisioner interface {
@@ -109,7 +106,7 @@ type MessageProvisioner interface {
 // method that should be called when the carton is started,
 //additionally provide a map of configuration info.
 type InitializableProvisioner interface {
-	Initialize(m interface{}) error
+	Initialize(m interface{}, mkc map[string]string) error
 }
 
 // ExtensibleProvisioner is a provisioner where administrators can manage

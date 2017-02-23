@@ -10,8 +10,8 @@ import (
 )
 
 func (s *S) TestMachineName(c *check.C) {
-	mach := Machine{Id: "abc123", Name: "alpha.megambox.com"}
-	c.Check(mach.Id, check.Equals, "abc123")
+	mach := Machine{CartonId: "abc123", Name: "alpha.megambox.com"}
+	c.Check(mach.CartonId, check.Equals, "abc123")
 	c.Check(mach.Name, check.Equals, "alpha.megambox.com")
 }
 
