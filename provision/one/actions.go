@@ -72,6 +72,7 @@ var machCreating = action.Action{
 			State:        args.machineState,
 			Image:        args.imageId,
 			StorageType:  args.box.StorageType,
+			PublicUrl:    args.box.PublicUrl,
 			Region:       args.box.Region,
 			VMId:         args.box.InstanceId,
 			VCPUThrottle: args.provisioner.vcpuThrottle,

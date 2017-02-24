@@ -24,18 +24,19 @@ import (
 	log "github.com/Sirupsen/logrus"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
+	lw "github.com/megamsys/libgo/writer"
 )
 
 type LifecycleOpts struct {
 	B         *provision.Box
 	start     time.Time
-	logWriter LogWriter
+	logWriter lw.LogWriter
 	writer    io.Writer
 }
 
 func (cy *LifecycleOpts) setLogger() {
 	cy.start = time.Now()
-	cy.logWriter = NewLogWriter(cy.B)
+	cy.logWriter = lw.NewLogWriter(cy.B)
 	cy.writer = io.MultiWriter(&cy.logWriter)
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/fsouza/go-dockerclient"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/docker/cluster"
@@ -114,7 +115,7 @@ func (c *Container) Logs(p DockerProvisioner) error {
 	var outBuffer bytes.Buffer
 	var closeChan chan bool
 	b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
-	logWriter := carton.NewLogWriter(b)
+	logWriter := lw.NewLogWriter(b)
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	logopt := docker.LogsOptions{
 		Container:    c.Id,
@@ -131,7 +132,7 @@ func (c *Container) Logs(p DockerProvisioner) error {
 	cs := make(chan []byte)
 	go p.Cluster().SetLogs(cs, logopt, closeChan)
 
-	go func(closeChan chan bool, logWriter carton.LogWriter) {
+	go func(closeChan chan bool, logWriter lw.LogWriter) {
 		select {
 		case <-closeChan:
 			logWriter.Close()

@@ -14,7 +14,7 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/libgo/events"
-	//	"github.com/megamsys/libgo/events/alerts"
+	//lw	"github.com/megamsys/libgo/writer"
 	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
@@ -264,7 +264,7 @@ func (c *Container) Logs(p DockerProvisioner)   error {
 	var outBuffer bytes.Buffer
 		var closeChan chan bool
 		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
-		logWriter := carton.NewLogWriter(b)
+		logWriter := lw.NewLogWriter(b)
 		writer := io.MultiWriter(&outBuffer, &logWriter)
 	  logopt := docker.LogsOptions{
     Container:  c.Id,

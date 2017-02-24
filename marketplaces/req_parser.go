@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"strings"
-	"time"
 )
 
 var (
@@ -28,22 +27,22 @@ var (
 	MARKETPLACES = "marketplaces"
 )
 
-type Requests struct {
-	Id        string    `json:"id" cql:"id"`
-	Name      string    `json:"name" cql:"name"`
+type ReqOpts struct {
 	AccountId string    `json:"account_id" cql:"account_id"`
 	CatId     string    `json:"cat_id" cql:"cat_id"`
 	Action    string    `json:"action" cql:"action"`
 	Category  string    `json:"category" cql:"category"`
-	CreatedAt time.Time `json:"created_at" cql:"created_at"`
 }
 
-type ApiRequests struct {
-	JsonClaz string     `json:"json_claz" cql:"json_claz"`
-	Results  []Requests `json:"results" cql:"results"`
+func NewRequestOpt(acc, cat_id, category, action string) *ReqOpts {
+	return &ReqOpts{
+    AccountId: acc,
+		CatId: cat_id,
+		Action: action,
+		Category: category,
+	}
 }
-
-func (r *Requests) String() string {
+func (r *ReqOpts) String() string {
 	if d, err := yaml.Marshal(r); err != nil {
 		return err.Error()
 	} else {
@@ -51,7 +50,7 @@ func (r *Requests) String() string {
 	}
 }
 
-func (r *Requests) ParseRequest() (MarketplaceInterface, error) {
+func (r *ReqOpts) ParseRequest() (MarketplaceInterface, error) {
 	switch r.Category {
 	case RAWIMAGE:
 		return r.getRawImage()
@@ -62,14 +61,14 @@ func (r *Requests) ParseRequest() (MarketplaceInterface, error) {
 	}
 }
 
-func (r *Requests) getRawImage() (*RawImages, error) {
+func (r *ReqOpts) getRawImage() (*RawImages, error) {
 	raw := new(RawImages)
 	raw.AccountId = r.AccountId
 	raw.Id = r.CatId
 	return raw.Get()
 }
 
-func (r *Requests) getMarketplace() (*Marketplaces, error) {
+func (r *ReqOpts) getMarketplace() (*Marketplaces, error) {
 	return GetMarketplace(r.AccountId, r.CatId)
 }
 

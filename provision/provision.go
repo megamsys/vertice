@@ -99,6 +99,16 @@ type StateChanger interface {
 	SetState(*Box, io.Writer, utils.Status) error
 }
 
+
+type RawImageAccess interface {
+	ISODeploy(b *Box, w io.Writer) error
+}
+type MarketPlaceAccess interface {
+	CustomiseRawImage(b *Box, w io.Writer) error
+}
+
+
+
 // Provisioner is the basic interface of this package.
 //
 // Any vertice provisioner must implement this interface in order to provision

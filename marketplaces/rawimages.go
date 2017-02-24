@@ -9,7 +9,8 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
 	"github.com/megamsys/libgo/utils"
-	"github.com/megamsys/vertice/marketplaces/provision"
+	lw "github.com/megamsys/libgo/writer"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"io"
 	"time"
@@ -33,18 +34,21 @@ type RawImages struct {
 	Inputs     pairs.JsonPairs `json:"inputs"`
 	Outputs    pairs.JsonPairs `json:"outputs"`
 	Repository string          `json:"repos"`
-	Repos      Repos           `json:"-"`
+	Repos      *Repos          `json:"-"`
 	Status     string          `json:"status"`
+	JsonClaz   string          `json:"json_claz"`
+	CreatedAt  string          `json:"created_at"`
+	UpdatedAt  string          `json:"updated_at"`
 }
 
 type Repos struct {
-	Source     string          `json:"source"`
-	PublicUrl  string          `json:"public_url"`
-	Properties pairs.JsonPairs `json:"properties"`
+	Source    string `json:"source"`
+	PublicUrl string `json:"public_url"`
+	//	Properties string          `json:"properties"`
 }
 
 func (r Repos) toMap() map[string]string {
-	m := r.Properties.ToMap()
+	m := make(map[string]string) //r.Properties.ToMap()
 	m["source"] = r.Source
 	m["public_url"] = r.PublicUrl
 	return m
@@ -71,15 +75,20 @@ func (r *RawImages) get() (*RawImages, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	res := &apiRawImages{}
 	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
-	a := &res.Results[0]
-	log.Debugf("rawimages  %v", a)
-	return a, nil
+	raw := &res.Results[0]
+	repo := &Repos{}
+	err = json.Unmarshal([]byte(raw.Repository), repo)
+	if err != nil {
+		return nil, err
+	}
+	raw.Repos = repo
+	log.Debugf("rawimages  %v", raw)
+	return raw, nil
 }
 
 func (r *RawImages) Update() error {
@@ -100,11 +109,12 @@ func (r *RawImages) update() error {
 func (r *RawImages) create() error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{}
-	// logWriter.Async()
-	// defer logWriter.Close()
+	box := r.mkBox()
+	logWriter := lw.LogWriter{Box: box}
+	logWriter.Async()
+	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	err := r.deployToProvisioner(writer)
+	err := r.deployToProvisioner(box, writer)
 	elapsed := time.Since(start)
 	if err != nil {
 		return err
@@ -115,8 +125,7 @@ func (r *RawImages) create() error {
 	return nil
 }
 
-func (r *RawImages) deployToProvisioner(writer io.Writer) error {
-	box := r.mkBox()
+func (r *RawImages) deployToProvisioner(box *provision.Box, writer io.Writer) error {
 	if deployer, ok := ProvisionerMap[utils.PROVIDER_ONE].(provision.RawImageAccess); ok {
 		return deployer.ISODeploy(box, writer)
 	}
@@ -124,15 +133,14 @@ func (r *RawImages) deployToProvisioner(writer io.Writer) error {
 }
 
 func (r *RawImages) mkBox() *provision.Box {
-	box := &provision.Box{
+	return &provision.Box{
 		CartonId:  r.Id,
 		AccountId: r.AccountId,
 		Name:      r.Name,
 		Region:    r.Region(),
 		Provider:  r.provider(),
+		PublicUrl: r.publicUrl(),
 	}
-	box.Repos = r.Repos.toMap()
-	return box
 }
 
 func (s *RawImages) Region() string {
@@ -145,4 +153,11 @@ func (a *RawImages) provider() string {
 
 func (a *RawImages) ImageId() string {
 	return a.Outputs.Match(utils.RAW_IMAGE_ID)
+}
+
+func (r *RawImages) publicUrl() string {
+	// if r.Repos != nil {
+	// 	return r.Repos.PublicUrl
+	// }
+	return ""
 }

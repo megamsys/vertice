@@ -6,6 +6,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -58,7 +59,7 @@ func (s *Backups) String() string {
 func SaveImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -80,7 +81,7 @@ func SaveImage(opts *DiskOpts) error {
 func DeleteImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)

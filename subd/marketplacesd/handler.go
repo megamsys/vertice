@@ -15,7 +15,7 @@ func NewHandler(c *Config) *Handler {
 
 }
 
-func (h *Handler) serveNSQ(r *marketplaces.Requests) error {
+func (h *Handler) serveNSQ(r *marketplaces.ReqOpts) error {
 	req, err := r.ParseRequest()
 	if err != nil {
 		log.Errorf("Error parsing request : %s  -  %s  : %s", r.Category, r.Action, err)

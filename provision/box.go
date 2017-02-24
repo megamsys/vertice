@@ -134,6 +134,7 @@ type Box struct {
 	State        utils.State
 	Provider     string
 	PublicIp     string
+	PublicUrl    string
 	InstanceId   string
 	Region       string
 	Vnets        map[string]string

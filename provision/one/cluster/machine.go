@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/safe"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/snapshot"
@@ -380,7 +381,6 @@ func (c *Cluster) AttachDisk(v *disk.VmDisk, region string) error {
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "AttachDisk")
 	}
-
 	return nil
 }
 
@@ -401,12 +401,41 @@ func (c *Cluster) DetachDisk(v *disk.VmDisk, region string) error {
 	return nil
 }
 
+func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, error) {
+	var ds string
+	nodlist, err := c.Nodes()
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == region {
+			ds = v.Metadata[constants.DATASTORE]
+			if ds == "" {
+				return ds, fmt.Errorf("%s", cmd.Colorfy("Datastore id is empty (hint: start or beat it).\n", "red", "", ""))
+			}
+			break
+		}
+	}
+
+	if ds == "" {
+		return ds, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
+	}
+
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+
+	ds_id, err := strconv.Atoi(ds)
+	if err != nil {
+		return nil, wrapErrorWithCmd(node, err, "createimage")
+	}
+	opts.T = node.Client
+	opts.DatastoreID = ds_id
+	return opts.Create()
+}
+
 func cpuThrottle(vcpu, cpu string) string {
 	ThrottleFactor, _ := strconv.Atoi(vcpu)
-	cpuThrottleFactor := float64(ThrottleFactor)
 	ICpu, _ := strconv.Atoi(cpu)
-	throttle := float64(ICpu)
-	realCPU := throttle / cpuThrottleFactor
-	cpu = strconv.FormatFloat(realCPU, 'f', 6, 64) //ugly, compute has the info.
-	return cpu
+	realCPU := float64(ICpu) / float64(ThrottleFactor)
+  //ugly, compute has the info.
+	return strconv.FormatFloat(realCPU, 'f', 6, 64)
 }

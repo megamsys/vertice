@@ -6,6 +6,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -56,7 +57,7 @@ func (s *Snaps) String() string {
 func CreateSnapshot(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -78,7 +79,7 @@ func CreateSnapshot(opts *DiskOpts) error {
 func RestoreSnapshot(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -100,7 +101,7 @@ func RestoreSnapshot(opts *DiskOpts) error {
 func SnapshotSaveAs(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -122,7 +123,7 @@ func SnapshotSaveAs(opts *DiskOpts) error {
 func DeleteSnapshot(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)

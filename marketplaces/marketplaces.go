@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/vertice/marketplaces/provision"
+	"github.com/megamsys/vertice/provision"
 	"io"
 	// "strings"
 	"encoding/json"
@@ -13,6 +13,7 @@ import (
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/meta"
@@ -192,7 +193,7 @@ func (m *Marketplaces) trigger_event(status utils.Status) error {
 			&events.Event{
 				AccountsId:  m.AccountId,
 				EventAction: alerts.STATUS,
-				EventType:   constants.EventMarketplace,
+				EventType:   constants.EventUser,
 				EventData:   alerts.EventData{M: mi, D: js.ToString()},
 				Timestamp:   time.Now().Local(),
 			},
@@ -207,7 +208,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 	}
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: box}
+	logWriter := lw.LogWriter{Box: box}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -241,7 +242,7 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 		Name:        m.ImageName(),
 		Region:      m.Region(),
 		Provider:    raw.provider(),
-		SourceImage: raw.Name,
+	//	SourceImage: raw.Name,
 	}
 	return box, nil
 }

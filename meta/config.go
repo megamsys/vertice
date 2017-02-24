@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
-
+  "github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/cmd"
 )
 
@@ -105,4 +105,13 @@ func (c *Config) ToMap() map[string]string {
 
 func (c *Config) MkGlobal() {
 	MC = c
+}
+
+func (c *Config) Client(email, org string) *api.ApiArgs {
+ return	&api.ApiArgs{
+		Master_Key: MC.MasterKey,
+		Url:        MC.Api,
+		Email:      email,
+		Org_Id:     org,
+	}
 }

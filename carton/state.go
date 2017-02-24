@@ -9,6 +9,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/repository"
 	_ "github.com/megamsys/vertice/repository/github"
 	_ "github.com/megamsys/vertice/repository/gitlab"
@@ -23,7 +24,7 @@ type StateChangeOpts struct {
 func ChangeState(opts *StateChangeOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)

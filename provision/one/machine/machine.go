@@ -25,6 +25,8 @@ import (
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
+
+	mk "github.com/megamsys/vertice/marketplaces"
 )
 
 type OneProvisioner interface {
@@ -48,6 +50,7 @@ type Machine struct {
 	ImageId      string
 	StorageType  string
 	Routable     bool
+	PublicUrl    string
 	Status       utils.Status
 	State        utils.State
 }
@@ -685,12 +688,97 @@ func (m *Machine) UpdateVMQuotas(id string) error {
 	if err != nil {
 		return err
 	}
-	// if m.Status == constants.StatusLaunching || m.Status == constants.StatusRunning {
-	// 		quota.AllocatedTo = m.CartonId
-	// } else
 	if m.Status == constants.StatusDestroying {
 		quota.AllocatedTo = ""
 	}
 
 	return quota.Update()
+}
+
+func (m *Machine) getRaw() (*mk.RawImages, error) {
+	r := new(mk.RawImages)
+	r.AccountId = m.AccountId
+	r.Id = m.CartonId
+	return r.Get()
+}
+
+func (m *Machine) getMarket() (*mk.Marketplaces, error) {
+	r := new(mk.Marketplaces)
+	r.AccountId = m.AccountId
+	r.Id = m.CartonId
+	return r.Get()
+}
+
+func (m *Machine) CreateISO(p OneProvisioner) error {
+	opts := images.Image{
+		Name: m.Name,
+		Path: m.PublicUrl,
+		Type: images.CD_ROM,
+	}
+
+	res, err := p.Cluster().ImageCreate(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	m.ImageId = res.(string)
+	return nil
+}
+
+func (m *Machine) UpdateRawImageId() error {
+	raw, err := m.getRaw()
+	if err != nil {
+		return err
+	}
+	var id = make(map[string][]string)
+	id[constants.RAW_IMAGE_ID] = []string{m.ImageId}
+	raw.Status = string(m.Status)
+	raw.Outputs.NukeAndSet(id)
+	return raw.Update()
+}
+
+func (m *Machine) UpdateRawStatus() error {
+	raw, err := m.getRaw()
+	if err != nil {
+		return err
+	}
+	raw.Status = string(m.Status)
+	return raw.Update()
+}
+
+func (m *Machine) UpdateMarketImageId() error {
+	mark, err := m.getMarket()
+	if err != nil {
+		return err
+	}
+	var id = make(map[string][]string)
+	id[constants.IMAGE_ID] = []string{m.ImageId}
+	mark.Outputs.NukeAndSet(id)
+	return mark.Update()
+}
+
+func (m *Machine) UpdateMarketStatus() error {
+	mark, err := m.getMarket()
+	if err != nil {
+		return err
+	}
+	return mark.UpdateStatus(m.Status)
+}
+
+func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
+	size, _ := strconv.Atoi(strconv.FormatInt(int64(box.GetHDD()), 10))
+	opts := images.Image{
+		Name: m.Name,
+		Size: size,
+		Type: images.DATABLOCK,
+	}
+	res, err := p.Cluster().ImageCreate(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	m.ImageId = res.(string)
+	return nil
+}
+
+func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
+	return nil
 }

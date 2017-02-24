@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 	"code.cloudfoundry.org/bytefmt"
 	"io"
@@ -49,7 +50,7 @@ func NewDisk(email, org, assembly, id string) *Disks {
 func AttachDisk(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -71,7 +72,7 @@ func AttachDisk(opts *DiskOpts) error {
 func DetachDisk(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
