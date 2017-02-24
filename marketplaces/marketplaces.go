@@ -1,23 +1,23 @@
 package marketplaces
 
 import (
-  "fmt"
+	"bytes"
+	"fmt"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/vertice/marketplaces/provision"
-	 "bytes"
-	 "github.com/megamsys/libgo/cmd"
-	 "io"
+	"io"
 	// "strings"
-	 "time"
-	  "gopkg.in/yaml.v2"
-	log "github.com/Sirupsen/logrus"
-  constants "github.com/megamsys/libgo/utils"
-  "github.com/megamsys/libgo/utils"
-  "github.com/megamsys/libgo/events"
-  "github.com/megamsys/libgo/events/alerts"
-	"github.com/megamsys/libgo/api"
-	"github.com/megamsys/libgo/pairs"
-	"github.com/megamsys/vertice/meta"
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/events"
+	"github.com/megamsys/libgo/events/alerts"
+	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/meta"
+	"gopkg.in/yaml.v2"
+	"time"
 )
 
 const (
@@ -47,20 +47,20 @@ var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.
 
 // struct for marketplaces and rawimages
 type Marketplaces struct {
-	Id           string            `json:"id"`
-	AccountId    string            `json:"account_id"`
-	ProvidedBy   string            `json:"provided_by"`
-	Inputs       pairs.JsonPairs   `json:"inputs"`
-	Outputs      pairs.JsonPairs   `json:"outputs"`
-	Envs         pairs.JsonPairs   `json:"envs"`
-	Options      pairs.JsonPairs   `json:"options"`
-	CatType      string            `json:"cattype"`
-	Flavor       string            `json:"flavor"`
-	Image        string            `json:"image"`
-	CatOrder     string            `json:"catorder"`
-	Plans        map[string]string `json:""plans`
-//	Status       string            `json:"status"`
-	JsonClaz     string            `json:"json_claz"`
+	Id         string            `json:"id"`
+	AccountId  string            `json:"account_id"`
+	ProvidedBy string            `json:"provided_by"`
+	Inputs     pairs.JsonPairs   `json:"inputs"`
+	Outputs    pairs.JsonPairs   `json:"outputs"`
+	Envs       pairs.JsonPairs   `json:"envs"`
+	Options    pairs.JsonPairs   `json:"options"`
+	CatType    string            `json:"cattype"`
+	Flavor     string            `json:"flavor"`
+	Image      string            `json:"image"`
+	CatOrder   string            `json:"catorder"`
+	Plans      map[string]string `json:""plans`
+	//	Status       string            `json:"status"`
+	JsonClaz string `json:"json_claz"`
 }
 
 func NewArgs(email, org string) api.ApiArgs {
@@ -116,8 +116,6 @@ func (m *Marketplaces) get() (*Marketplaces, error) {
 	return a, nil
 }
 
-
-
 /** A public function which pulls all marketplaces items under particular settings_name like vertice,bitnami.**/
 func GetBySettingsName(settings_name, email string) ([]Marketplaces, error) {
 	cl := api.NewClient(newArgs(email, ""), APIMARKETPLACES+settings_name)
@@ -153,53 +151,53 @@ func (s *Marketplaces) Gets() ([]Marketplaces, error) {
 }
 
 func (m *Marketplaces) Update() error {
-  return m.update()
+	return m.update()
 }
 
 func (m *Marketplaces) update() error {
-  cl := api.NewClient(newArgs(m.AccountId, ""), APIMARKETPLACES+UPDATE)
-  if _, err := cl.Post(m); err != nil {
-    return err
-  }
-  return nil
+	cl := api.NewClient(newArgs(m.AccountId, ""), APIMARKETPLACES+UPDATE)
+	if _, err := cl.Post(m); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *Marketplaces) UpdateStatus(status utils.Status) error {
-  lastStatusUpdate := time.Now().Local().Format(time.RFC822)
-  i := make(map[string][]string, 2)
-  i["lastsuccessstatusupdate"] = []string{lastStatusUpdate}
-  i["status"] = []string{status.String()}
-  m.Inputs.NukeAndSet(i) //just nuke the matching output key:
-  err := m.update()
-  if err != nil {
-    return err
-  }
-  return m.trigger_event(status)
+	lastStatusUpdate := time.Now().Local().Format(time.RFC822)
+	i := make(map[string][]string, 2)
+	i["lastsuccessstatusupdate"] = []string{lastStatusUpdate}
+	i["status"] = []string{status.String()}
+	m.Inputs.NukeAndSet(i) //just nuke the matching output key:
+	err := m.update()
+	if err != nil {
+		return err
+	}
+	return m.trigger_event(status)
 }
 
 func (m *Marketplaces) trigger_event(status utils.Status) error {
-  mi := make(map[string]string)
-  js := make(pairs.JsonPairs, 0)
-  in := make(map[string][]string, 2)
-  in["status"] = []string{status.String()}
-  in["description"] = []string{status.Description(m.ImageName())}
-  js.NukeAndSet(in) //just nuke the matching output key:
+	mi := make(map[string]string)
+	js := make(pairs.JsonPairs, 0)
+	in := make(map[string][]string, 2)
+	in["status"] = []string{status.String()}
+	in["description"] = []string{status.Description(m.ImageName())}
+	js.NukeAndSet(in) //just nuke the matching output key:
 
-  mi[constants.MARKETPLACE_ID] = m.Id
-  mi[constants.ACCOUNT_ID] = m.AccountId
-  mi[constants.EVENT_TYPE] = status.Event_type()
+	mi[constants.MARKETPLACE_ID] = m.Id
+	mi[constants.ACCOUNT_ID] = m.AccountId
+	mi[constants.EVENT_TYPE] = status.Event_type()
 
-  newEvent := events.NewMulti(
-    []*events.Event{
-      &events.Event{
-        AccountsId:  m.AccountId,
-        EventAction: alerts.STATUS,
-        EventType:   constants.EventMarketplace,
-        EventData:   alerts.EventData{M: mi, D: js.ToString()},
-        Timestamp:   time.Now().Local(),
-      },
-    })
- return newEvent.Write()
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  m.AccountId,
+				EventAction: alerts.STATUS,
+				EventType:   constants.EventMarketplace,
+				EventData:   alerts.EventData{M: mi, D: js.ToString()},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+	return newEvent.Write()
 }
 
 func (m *Marketplaces) rawImageCustomize() error {
@@ -211,7 +209,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 	start := time.Now()
 	logWriter := LogWriter{Box: box}
 	logWriter.Async()
-	 defer logWriter.Close()
+	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	deployer, ok := ProvisionerMap[box.Provider].(provision.MarketPlaceAccess)
 	if !ok {
@@ -237,15 +235,15 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 		return nil, err
 	}
 
-  box := &provision.Box{
-    CartonId: m.Id,
-    AccountId: m.AccountId,
-		Name: m.ImageName(),
-    Region: m.Region(),
-    Provider: raw.provider(),
+	box := &provision.Box{
+		CartonId:    m.Id,
+		AccountId:   m.AccountId,
+		Name:        m.ImageName(),
+		Region:      m.Region(),
+		Provider:    raw.provider(),
 		SourceImage: raw.Name,
-  }
-  return box, nil
+	}
+	return box, nil
 }
 
 func (s *Marketplaces) ImageName() string {

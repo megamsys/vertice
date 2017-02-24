@@ -23,8 +23,8 @@ import (
 )
 
 var (
- // categories of marketplaces queue process
-	RAWIMAGE    = "rawimage"
+	// categories of marketplaces queue process
+	RAWIMAGE     = "rawimage"
 	MARKETPLACES = "marketplaces"
 )
 
@@ -32,7 +32,7 @@ type Requests struct {
 	Id        string    `json:"id" cql:"id"`
 	Name      string    `json:"name" cql:"name"`
 	AccountId string    `json:"account_id" cql:"account_id"`
-  CatId     string    `json:"cat_id" cql:"cat_id"`
+	CatId     string    `json:"cat_id" cql:"cat_id"`
 	Action    string    `json:"action" cql:"action"`
 	Category  string    `json:"category" cql:"category"`
 	CreatedAt time.Time `json:"created_at" cql:"created_at"`
@@ -51,9 +51,7 @@ func (r *Requests) String() string {
 	}
 }
 
-
 func (r *Requests) ParseRequest() (MarketplaceInterface, error) {
-	fmt.Println("***********ParseRequest**************",r)
 	switch r.Category {
 	case RAWIMAGE:
 		return r.getRawImage()
@@ -66,13 +64,13 @@ func (r *Requests) ParseRequest() (MarketplaceInterface, error) {
 
 func (r *Requests) getRawImage() (*RawImages, error) {
 	raw := new(RawImages)
-  raw.AccountId = r.AccountId
+	raw.AccountId = r.AccountId
 	raw.Id = r.CatId
-  return raw.Get()
+	return raw.Get()
 }
 
-func (r *Requests) getMarketplace() (*Marketplaces, error)  {
-  return GetMarketplace(r.AccountId, r.CatId)
+func (r *Requests) getMarketplace() (*Marketplaces, error) {
+	return GetMarketplace(r.AccountId, r.CatId)
 }
 
 // ParseError represents an error that occurred during parsing.

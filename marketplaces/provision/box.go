@@ -21,6 +21,7 @@ import (
 	// constants "github.com/megamsys/libgo/utils"
 	lb "github.com/megamsys/vertice/logbox"
 )
+
 type Box struct {
 	Id           string
 	AccountId    string
@@ -53,7 +54,6 @@ type Boxlog struct {
 	Name      string
 	Unit      string
 }
-
 
 type BoxSSH struct {
 	User   string
@@ -221,8 +221,8 @@ func (box *Box) Log(message, source, unit string) error {
 	} else if sp[0] == "INFO" {
 		lo = lb.W(lb.DEPLOY, lb.INFO, sp[1])
 	} else {
-			lo = message
-		}
+		lo = message
+	}
 
 	messages := strings.Split(lo, "\n")
 	logs := make([]interface{}, 0, len(messages))

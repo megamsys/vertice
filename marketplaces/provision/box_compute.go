@@ -16,16 +16,16 @@
 package provision
 
 import (
+	"code.cloudfoundry.org/bytefmt"
 	"regexp"
 	"strconv"
 	"strings"
-	"code.cloudfoundry.org/bytefmt"
 )
 
-const(
+const (
 	CPU = "cpu"
-  RAM = "ram"
-  HDD = "hdd"
+	RAM = "ram"
+	HDD = "hdd"
 )
 
 type BoxCompute struct {
@@ -47,7 +47,6 @@ func (bc *BoxCompute) trimMemory() string {
 	return c[:len(c)-1]
 }
 
-
 func (bc *BoxCompute) numCpushare() uint64 {
 	if cs, err := strconv.ParseUint(bc.trimCore(), 10, 64); err != nil {
 		return 0
@@ -60,7 +59,7 @@ func (bc *BoxCompute) ConnumMemory() uint64 {
 	if cp, err := bytefmt.ToMegabytes(strings.Replace(bc.Memory, " ", "", -1)); err != nil {
 		return 0
 	} else {
-		return cp*1024*1024
+		return cp * 1024 * 1024
 	}
 }
 

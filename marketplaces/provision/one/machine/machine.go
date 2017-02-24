@@ -3,17 +3,17 @@ package machine
 import (
 	"github.com/megamsys/libgo/utils"
 	// log "github.com/Sirupsen/logrus"
-	 constants "github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/images"
 	mk "github.com/megamsys/vertice/marketplaces"
 	"github.com/megamsys/vertice/marketplaces/provision"
 	"github.com/megamsys/vertice/marketplaces/provision/one/cluster"
-  "strconv"
+	"strconv"
 )
 
 type OneProvisioner interface {
 	Cluster() *cluster.Cluster
-  Resource() map[string]string
+	Resource() map[string]string
 }
 
 type Machine struct {
@@ -68,23 +68,23 @@ func (m *Machine) CreateISO(p OneProvisioner) error {
 }
 
 func (m *Machine) UpdateRawImageId() error {
-  raw, err := m.getRaw()
-  if err != nil {
-    return err
-  }
+	raw, err := m.getRaw()
+	if err != nil {
+		return err
+	}
 	var id = make(map[string][]string)
 	id[constants.RAW_IMAGE_ID] = []string{m.ImageId}
-  raw.Status = string(m.Status)
+	raw.Status = string(m.Status)
 	raw.Outputs.NukeAndSet(id)
 	return raw.Update()
 }
 
 func (m *Machine) UpdateRawStatus() error {
-  raw, err := m.getRaw()
-  if err != nil {
-    return err
-  }
-  raw.Status = string(m.Status)
+	raw, err := m.getRaw()
+	if err != nil {
+		return err
+	}
+	raw.Status = string(m.Status)
 	return raw.Update()
 }
 
@@ -97,10 +97,10 @@ func (m *Machine) IsImageReady(p OneProvisioner) error {
 }
 
 func (m *Machine) UpdateMarketImageId() error {
-  mark, err := m.getMarket()
-  if err != nil {
-    return err
-  }
+	mark, err := m.getMarket()
+	if err != nil {
+		return err
+	}
 	var id = make(map[string][]string)
 	id[constants.IMAGE_ID] = []string{m.ImageId}
 	mark.Outputs.NukeAndSet(id)
@@ -108,10 +108,10 @@ func (m *Machine) UpdateMarketImageId() error {
 }
 
 func (m *Machine) UpdateMarketStatus() error {
-  mark, err := m.getMarket()
-  if err != nil {
-    return err
-  }
+	mark, err := m.getMarket()
+	if err != nil {
+		return err
+	}
 	return mark.UpdateStatus(m.Status)
 }
 
@@ -131,7 +131,7 @@ func (m *Machine) CreateDatablock(p OneProvisioner) error {
 	return nil
 }
 
-func (m *Machine) CreateInstance(p OneProvisioner,box *provision.Box)  error {
+func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 	// resources := p.Resource()
 	// opts := compute.VirtualMachine{
 	// 	Name:       box.Name,

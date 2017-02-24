@@ -1,10 +1,9 @@
 package marketplacesd
 
 import (
- 	"github.com/megamsys/vertice/marketplaces"
- 	log "github.com/Sirupsen/logrus"
-	"fmt"
- )
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/vertice/marketplaces"
+)
 
 type Handler struct {
 	d            *Config
@@ -19,9 +18,8 @@ func NewHandler(c *Config) *Handler {
 func (h *Handler) serveNSQ(r *marketplaces.Requests) error {
 	req, err := r.ParseRequest()
 	if err != nil {
-		log.Errorf("Error parsing request : %s  -  %s  : %s",r.Category, r.Action, err)
+		log.Errorf("Error parsing request : %s  -  %s  : %s", r.Category, r.Action, err)
 		return err
 	}
-	fmt.Println("*************************",req)
-  return req.Process(r.Action)
+	return req.Process(r.Action)
 }

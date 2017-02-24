@@ -6,10 +6,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/safe"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
 	"github.com/megamsys/opennebula-go/images"
-	constants "github.com/megamsys/libgo/utils"
 	"net"
 	"net/url"
 	"strconv"
@@ -109,7 +109,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 }
 
 func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, error) {
-  var ds string
+	var ds string
 	nodlist, err := c.Nodes()
 	for _, v := range nodlist {
 		if v.Metadata[api.ONEZONE] == region {
@@ -122,7 +122,7 @@ func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, er
 	}
 
 	if ds == "" {
-		return ds, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+ region +" ) nodes (hint: start or beat it).\n", "red", "", ""))
+		return ds, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 	}
 
 	node, err := c.getNodeRegion(region)
@@ -138,7 +138,6 @@ func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, er
 	opts.DatastoreID = ds_id
 	return opts.Create()
 }
-
 
 func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	node, err := c.getNodeRegion(region)
@@ -158,7 +157,6 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	}
 	return nil
 }
-
 
 func (c *Cluster) getNodeRegion(region string) (node, error) {
 	return c.getNode(func(s Storage) (Node, error) {

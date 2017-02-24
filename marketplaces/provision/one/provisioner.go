@@ -138,7 +138,7 @@ func (p *oneProvisioner) StartupMessage() (string, error) {
 }
 
 func (p *oneProvisioner) ISODeploy(box interface{}, w io.Writer) error {
-  m := box.(provision.Box)
+	m := box.(provision.Box)
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s)", m.Name)))
 
 	actions := []*action.Action{
@@ -167,21 +167,21 @@ func (p *oneProvisioner) ISODeploy(box interface{}, w io.Writer) error {
 }
 
 func (p *oneProvisioner) CustomiseRawImage(box interface{}, w io.Writer) error {
-  m := box.(provision.Box)
+	m := box.(provision.Box)
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)", m.Name)))
 
 	actions := []*action.Action{
 		&machCreating,
-	  &createDatablockImage,
+		&createDatablockImage,
 		&updateMarketplaceStatus,
-	  &updateMarketplaceImageId,
-	  &waitUntillImageReady,
+		&updateMarketplaceImageId,
+		&waitUntillImageReady,
 		&updateMarketplaceStatus,
 		// &createInstanceForCustomize,
 		// &updateMarketplaceStatus,
 		// &waitUntillvmReady,
 		// &updateVncHostIp,
-	  // &updateMarketplaceStatus,
+		// &updateMarketplaceStatus,
 	}
 	pipeline := action.NewPipeline(actions...)
 	args := runMachineActionsArgs{

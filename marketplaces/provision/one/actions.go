@@ -18,19 +18,19 @@ package one
 import (
 	// "errors"
 	// "fmt"
-	 "io"
-	 "io/ioutil"
+	"io"
+	"io/ioutil"
 
 	//log "github.com/Sirupsen/logrus"
-	 "github.com/megamsys/libgo/action"
+	"github.com/megamsys/libgo/action"
 	// "github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/vertice/marketplaces"
-	 constants "github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
 	// vm "github.com/megamsys/opennebula-go/virtualmachine"
-//	 lb "github.com/megamsys/vertice/logbox"
-	 "github.com/megamsys/vertice/marketplaces/provision"
-	 "github.com/megamsys/vertice/marketplaces/provision/one/machine"
+	//	 lb "github.com/megamsys/vertice/logbox"
+	"github.com/megamsys/vertice/marketplaces/provision"
+	"github.com/megamsys/vertice/marketplaces/provision/one/machine"
 )
 
 type runMachineActionsArgs struct {
@@ -55,12 +55,12 @@ var machCreating = action.Action{
 		}
 		mach := machine.Machine{
 			AccountId: args.box.AccountId,
-			CartonId: args.box.Id,
-			Name: args.box.Name,
-			Region: args.box.Region,
+			CartonId:  args.box.Id,
+			Name:      args.box.Name,
+			Region:    args.box.Region,
 			PublicUrl: args.box.PublicUrl,
 		}
-		  mach.Status =  args.machineStatus
+		mach.Status = args.machineStatus
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -76,12 +76,12 @@ var createRawISOImage = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.CreateISO(args.provisioner)
-	 if err != nil {
-		 return mach, err
-	 }
-	 mach.Status = constants.StatusCreating
-	 return mach, nil
+		err := mach.CreateISO(args.provisioner)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusCreating
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
@@ -116,16 +116,15 @@ var updateRawImageId = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.UpdateRawImageId()
-	 if err != nil {
-		 return mach, err
-	 }
+		err := mach.UpdateRawImageId()
+		if err != nil {
+			return mach, err
+		}
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
 }
-
 
 var updateRawStatus = action.Action{
 	Name: "update-rawimage-status",
@@ -136,10 +135,10 @@ var updateRawStatus = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.UpdateRawStatus()
-	 if err != nil {
-		 return mach, err
-	 }
+		err := mach.UpdateRawStatus()
+		if err != nil {
+			return mach, err
+		}
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
@@ -155,12 +154,12 @@ var createDatablockImage = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.CreateDatablock(args.provisioner)
-	 if err != nil {
-		 return mach, err
-	 }
-	 mach.Status = constants.StatusCreating
-	 return mach, nil
+		err := mach.CreateDatablock(args.provisioner)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusCreating
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
@@ -175,12 +174,12 @@ var updateMarketplaceImageId = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.UpdateMarketImageId()
-	 if err != nil {
-		 return mach, err
-	 }
-	 mach.Status = constants.StatusCreating
-	 return mach, nil
+		err := mach.UpdateMarketImageId()
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusCreating
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
@@ -195,12 +194,12 @@ var createInstanceForCustomize = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.CreateInstance(args.provisioner, args.box)
-	 if err != nil {
-		 return mach, err
-	 }
-	 mach.Status = constants.StatusLaunching
-	 return mach, nil
+		err := mach.CreateInstance(args.provisioner, args.box)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusLaunching
+		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
 	},
@@ -215,10 +214,10 @@ var updateMarketplaceStatus = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-   err := mach.UpdateMarketStatus()
-	 if err != nil {
-		 return mach, err
-	 }
+		err := mach.UpdateMarketStatus()
+		if err != nil {
+			return mach, err
+		}
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {

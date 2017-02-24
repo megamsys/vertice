@@ -9,11 +9,11 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	constants "github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/vertice/carton"
-	"github.com/megamsys/vertice/subd/deployd"
-	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/marketplaces"
 	"github.com/megamsys/vertice/marketplaces/provision"
 	_ "github.com/megamsys/vertice/marketplaces/provision/one"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/subd/deployd"
 )
 
 const (
@@ -33,12 +33,12 @@ type Service struct {
 }
 
 // NewService returns a new instance of Service.
-func NewService(c *meta.Config,config *Config, d *deployd.Config) *Service {
+func NewService(c *meta.Config, config *Config, d *deployd.Config) *Service {
 	s := &Service{
 		err:     make(chan error),
 		Meta:    c,
 		Deployd: d,
-		Config: config,
+		Config:  config,
 	}
 	s.Handler = NewHandler(s.Config)
 	//c.MkGlobal() //a setter for global meta config
@@ -60,9 +60,9 @@ func (s *Service) Open() error {
 		return nil
 	}()
 	if s.Deployd.One.Enabled {
-		 if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
-		 	 return err
-		 }
+		if err := s.setProvisioner(constants.PROVIDER_ONE); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -70,14 +70,13 @@ func (s *Service) Open() error {
 func (s *Service) processNSQ(msg *nsq.Message) {
 	log.Debugf(TOPIC + " queue received message  :" + string(msg.Body))
 	p, err := marketplaces.NewPayload(msg.Body)
-	fmt.Println("***********************",err)
 	if err != nil {
 		return
 	}
-	fmt.Println("***********************",p)
+
 	re, err := p.Convert()
 	if err != nil {
-		log.Errorf("%s",err)
+		log.Errorf("%s", err)
 		return
 	}
 	go s.Handler.serveNSQ(re)
@@ -99,8 +98,8 @@ func (s *Service) Err() <-chan error { return s.err }
 
 //this is an array, a property provider helps to load the provider specific stuff
 func (s *Service) setProvisioner(pt string) error {
- 	var err error
- 	var tempProv provision.Provisioner
+	var err error
+	var tempProv provision.Provisioner
 
 	if tempProv, err = provision.Get(pt); err != nil {
 		return err
@@ -125,4 +124,4 @@ func (s *Service) setProvisioner(pt string) error {
 
 	marketplaces.ProvisionerMap[pt] = tempProv
 	return nil
- }
+}
