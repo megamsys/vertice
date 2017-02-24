@@ -205,3 +205,22 @@ var createInstanceForCustomize = action.Action{
 	Backward: func(ctx action.BWContext) {
 	},
 }
+
+var updateMarketplaceStatus = action.Action{
+	Name: "update-rawimage-status",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+   err := mach.UpdateMarketStatus()
+	 if err != nil {
+		 return mach, err
+	 }
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}

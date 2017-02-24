@@ -6,9 +6,9 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
-  "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/marketplaces/provision"
 	"gopkg.in/yaml.v2"
 	"io"
@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	APIRAWIMAGES = "/rawimages"
+	APIRAWIMAGES        = "/rawimages"
 	APIRAWIMAGES_UPDATE = "/rawimages/update"
 )
 
@@ -26,14 +26,15 @@ type apiRawImages struct {
 }
 
 type RawImages struct {
-	Id        string          `json:"id"`
-	Name      string          `json:"name"`
-	AccountId string          `json:"account_id"`
-	OrgId     string          `json:"org_id"`
-	Inputs    pairs.JsonPairs `json:"inputs"`
-	Outputs   pairs.JsonPairs `json:"outputs"`
-	Repos     Repos           `json:"repos"`
-	Status    string          `json:"status"`
+	Id         string          `json:"id"`
+	Name       string          `json:"name"`
+	AccountId  string          `json:"account_id"`
+	OrgId      string          `json:"org_id"`
+	Inputs     pairs.JsonPairs `json:"inputs"`
+	Outputs    pairs.JsonPairs `json:"outputs"`
+	Repository string          `json:"repos"`
+	Repos      Repos           `json:"-"`
+	Status     string          `json:"status"`
 }
 
 type Repos struct {
@@ -43,10 +44,10 @@ type Repos struct {
 }
 
 func (r Repos) toMap() map[string]string {
-  m := r.Properties.ToMap()
-  m["source"] = r.Source
-  m["public_url"] = r.PublicUrl
-  return m
+	m := r.Properties.ToMap()
+	m["source"] = r.Source
+	m["public_url"] = r.PublicUrl
+	return m
 }
 
 // marketplaces json string
@@ -82,7 +83,7 @@ func (r *RawImages) get() (*RawImages, error) {
 }
 
 func (r *RawImages) Update() error {
-  return r.update()
+	return r.update()
 }
 
 func (r *RawImages) update() error {
@@ -94,7 +95,6 @@ func (r *RawImages) update() error {
 	return nil
 }
 
-
 // Deploy runs a deployment of an application. It will first try to run an
 // image based deploy, and then fallback to the Git based deployment.
 func (r *RawImages) create() error {
@@ -104,7 +104,7 @@ func (r *RawImages) create() error {
 	// logWriter.Async()
 	// defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	 err := r.deployToProvisioner(writer)
+	err := r.deployToProvisioner(writer)
 	elapsed := time.Since(start)
 	if err != nil {
 		return err
@@ -116,23 +116,23 @@ func (r *RawImages) create() error {
 }
 
 func (r *RawImages) deployToProvisioner(writer io.Writer) error {
-	 box := r.mkBox()
-	if deployer, ok := ProvisionerMap[box.Provider].(provision.RawImageAccess); ok {
+	box := r.mkBox()
+	if deployer, ok := ProvisionerMap[utils.PROVIDER_ONE].(provision.RawImageAccess); ok {
 		return deployer.ISODeploy(box, writer)
 	}
 	return fmt.Errorf("cannot provision rawimages")
 }
 
 func (r *RawImages) mkBox() *provision.Box {
-  box := &provision.Box{
-    CartonId: r.Id,
-    AccountId: r.AccountId,
-		Name: r.Name,
-    Region: r.Region(),
-    Provider: r.provider(),
-  }
-  box.Repos = r.Repos.toMap()
-  return box
+	box := &provision.Box{
+		CartonId:  r.Id,
+		AccountId: r.AccountId,
+		Name:      r.Name,
+		Region:    r.Region(),
+		Provider:  r.provider(),
+	}
+	box.Repos = r.Repos.toMap()
+	return box
 }
 
 func (s *RawImages) Region() string {

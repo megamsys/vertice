@@ -103,9 +103,16 @@ func (m *Machine) UpdateMarketImageId() error {
   }
 	var id = make(map[string][]string)
 	id[constants.IMAGE_ID] = []string{m.ImageId}
-  mark.Status = string(m.Status)
 	mark.Outputs.NukeAndSet(id)
 	return mark.Update()
+}
+
+func (m *Machine) UpdateMarketStatus() error {
+  mark, err := m.getMarket()
+  if err != nil {
+    return err
+  }
+	return mark.UpdateStatus(m.Status)
 }
 
 func (m *Machine) CreateDatablock(p OneProvisioner) error {

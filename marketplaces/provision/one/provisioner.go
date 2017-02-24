@@ -173,10 +173,10 @@ func (p *oneProvisioner) CustomiseRawImage(box interface{}, w io.Writer) error {
 	actions := []*action.Action{
 		&machCreating,
 	  &createDatablockImage,
-		//&updateMarketplaceStatus,
+		&updateMarketplaceStatus,
 	  &updateMarketplaceImageId,
 	  &waitUntillImageReady,
-		// &updateMarketplaceStatus,
+		&updateMarketplaceStatus,
 		// &createInstanceForCustomize,
 		// &updateMarketplaceStatus,
 		// &waitUntillvmReady,
