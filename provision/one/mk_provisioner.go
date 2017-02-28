@@ -65,17 +65,45 @@ func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 		&updateMarketplaceImageId,
 		&waitUntillImageReady,
 		&updateMarketplaceStatus,
-		// &createInstanceForCustomize,
-		// &updateMarketplaceStatus,
-		// &waitUntillvmReady,
-		// &updateVncHostIp,
-		// &updateMarketplaceStatus,
+		&createInstanceForCustomize,
+		&updateMarketplaceStatus,
+		&waitUntillVmReady,
+		&updateMarketplaceStatus,
+		&getMarketplaceVncPost,
+		&updateMarketplaceVnc,
+		&updateMarketplaceStatus,
+		&setFinalStatus,
+		&updateMarketplaceStatus,
 	}
 	pipeline := action.NewPipeline(actions...)
 	args := runMachineActionsArgs{
 		box:           m,
 		writer:        w,
-		machineStatus: constants.StatusCreating,
+		machineStatus: constants.StatusDataBlockCreating,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- Error:  customize rawimage pipeline for box (%s)\n --> %s", m.Name, err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)OK", m.Name)))
+	return nil
+}
+
+func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- save customized marketplace image pipeline for box (%s)", m.Name)))
+	actions := []*action.Action{
+		&machCreating,
+		//
+	}
+	pipeline := action.NewPipeline(actions...)
+	args := runMachineActionsArgs{
+		box:           m,
+		writer:        w,
+		machineStatus: constants.StatusMarketplaceSaving,
 		provisioner:   p,
 	}
 

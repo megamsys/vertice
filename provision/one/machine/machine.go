@@ -19,6 +19,7 @@ import (
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/snapshot"
+	"github.com/megamsys/opennebula-go/template"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
@@ -695,17 +696,17 @@ func (m *Machine) UpdateVMQuotas(id string) error {
 	return quota.Update()
 }
 
-func (m *Machine) getImage() (*mk.RawImages, error) {
+func (m *Machine) getImage(id string) (*mk.RawImages, error) {
 	r := new(mk.RawImages)
 	r.AccountId = m.AccountId
-	r.Id = m.CartonId
+	r.Id = id
 	return r.Get()
 }
 
-func (m *Machine) getMarketPlace() (*mk.Marketplaces, error) {
+func (m *Machine) getMarketPlace(id string) (*mk.Marketplaces, error) {
 	r := new(mk.Marketplaces)
 	r.AccountId = m.AccountId
-	r.Id = m.CartonId
+	r.Id = id
 	return r.Get()
 }
 
@@ -725,7 +726,7 @@ func (m *Machine) CreateImage(p OneProvisioner) error {
 }
 
 func (m *Machine) UpdateImage() error {
-	raw, err := m.getImage()
+	raw, err := m.getImage(m.CartonId)
 	if err != nil {
 		return err
 	}
@@ -737,7 +738,7 @@ func (m *Machine) UpdateImage() error {
 }
 
 func (m *Machine) UpdateImageStatus() error {
-	raw, err := m.getImage()
+	raw, err := m.getImage(m.CartonId)
 	if err != nil {
 		return err
 	}
@@ -746,7 +747,7 @@ func (m *Machine) UpdateImageStatus() error {
 }
 
 func (m *Machine) UpdateMarketImageId() error {
-	mark, err := m.getMarketPlace()
+	mark, err := m.getMarketPlace(m.CartonId)
 	if err != nil {
 		return err
 	}
@@ -756,8 +757,8 @@ func (m *Machine) UpdateMarketImageId() error {
 	return mark.Update()
 }
 
-func (m *Machine) UpdateMarketStatus() error {
-	mark, err := m.getMarketPlace()
+func (m *Machine) UpdateMarketplaceStatus() error {
+	mark, err := m.getMarketPlace(m.CartonId)
 	if err != nil {
 		return err
 	}
@@ -767,9 +768,10 @@ func (m *Machine) UpdateMarketStatus() error {
 func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
 	size, _ := strconv.Atoi(strconv.FormatInt(int64(box.GetHDD()), 10))
 	opts := images.Image{
-		Name: m.Name,
-		Size: size,
-		Type: images.DATABLOCK,
+		Name:       m.Name,
+		Size:       size,
+		Type:       images.DATABLOCK,
+		Persistent: "yes",
 	}
 	res, err := p.Cluster().ImageCreate(opts, m.Region)
 	if err != nil {
@@ -780,5 +782,114 @@ func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
 }
 
 func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
+	var uname, rawname, imagename string
+
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+
+	raw, err := m.getImage(mark.RawImageId())
+	if err != nil {
+		return err
+	}
+	rawname = raw.Name
+	imagename = mark.ImageName()
+
+	XMLtemplate, err := p.Cluster().GetTemplate(m.Region)
+	if err != nil {
+		return err
+	}
+
+	XMLtemplate.Template.Cpu = strconv.FormatInt(int64(box.GetCpushare()), 10)
+	XMLtemplate.Template.VCpu = XMLtemplate.Template.Cpu
+	XMLtemplate.Template.Memory = strconv.FormatInt(int64(box.GetMemory()), 10)
+	XMLtemplate.Template.Cpu_cost = mark.GetVMCpuCost()
+	XMLtemplate.Template.Memory_cost = mark.GetVMMemoryCost()
+	XMLtemplate.Template.Disk_cost = mark.GetVMHDDCost()
+	XMLtemplate.Template.Context.Accounts_id = box.AccountId
+	XMLtemplate.Template.Context.Marketplace_id = box.CartonId
+	XMLtemplate.Template.Context.ApiKey = box.ApiArgs.Api_Key
+	XMLtemplate.Template.Context.Org_id = box.OrgId
+
+	if len(XMLtemplate.Template.Disks) >= 0 {
+		uname = XMLtemplate.Template.Disks[0].Image_Uname
+	} else {
+		uname = "oneadmin"
+	}
+	disks := make([]*template.Disk, 0)
+	disks = append(disks, &template.Disk{Image_Uname: uname, Image: rawname})
+	disks = append(disks, &template.Disk{Image_Uname: uname, Image: imagename})
+	XMLtemplate.Template.Disks = disks
+
+	vmid, err := p.Cluster().InstantiateVM(XMLtemplate, imagename, m.VCPUThrottle, m.Region)
+	if err != nil {
+		return err
+	}
+
+	m.VMId = vmid
+	var id = make(map[string][]string)
+	id[carton.INSTANCE_ID] = []string{m.VMId}
+	if err = mark.NukeAndSetOutputs(id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) MarketplaceInstanceState(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	res := &virtualmachine.VM{}
+	_ = mark.UpdateStatus(utils.Status(constants.StatusLcmStateChecking))
+
+	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
+		_ = mark.Trigger_event(utils.Status(constants.StatusWaitUntill))
+		res, err = p.Cluster().GetVM(opts, m.Region)
+		if err != nil {
+			return false, err
+		}
+		if res.State == int(virtualmachine.DONE) {
+			return false, fmt.Errorf("VM deleted while machine deploying")
+		}
+		status := res.StateString()
+		if res.LcmStateString() != "" {
+			status = status + "_" + res.LcmStateString()
+		}
+		_ = mark.Trigger_event(utils.Status(status))
+		return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
+	})
+	return err
+}
+
+func (m *Machine) GetMarketplaceVNC(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	res, err := p.Cluster().GetVM(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	//	ips := m.mergeSameIPtype(m.IPs(res.Nics()))
+	m.VNCHost = res.GetHostIp()
+	m.VNCPort = res.GetPort()
+	return nil
+}
+
+func (m *Machine) UpdateMarketplaceVNC() error {
+	var vnc = make(map[string][]string)
+	vnc[carton.VNCHOST] = []string{m.VNCHost}
+	vnc[carton.VNCPORT] = []string{m.VNCPort}
+
+	if mark, err := m.getMarketPlace(m.CartonId); err != nil {
+		return err
+	} else if err = mark.NukeAndSetOutputs(vnc); err != nil {
+		return err
+	}
 	return nil
 }

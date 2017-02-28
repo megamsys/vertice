@@ -1,8 +1,10 @@
 package cluster
 
 import (
+	"encoding/xml"
 	"errors"
 	"fmt"
+
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/safe"
@@ -12,6 +14,7 @@ import (
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/snapshot"
+	"github.com/megamsys/opennebula-go/template"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"net"
 	"net/url"
@@ -269,7 +272,7 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	}
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
-		res, err := v.ImageShow()
+		res, err := v.Show()
 		if err != nil || res.State_string() == "failure" {
 			return false, fmt.Errorf("fails to create snapshot")
 		}
@@ -333,7 +336,7 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	}
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
-		res, err := v.ImageShow()
+		res, err := v.Show()
 		if err != nil || res.State_string() == "failure" {
 			return false, fmt.Errorf("fails to create snapshot")
 		}
@@ -426,6 +429,98 @@ func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, er
 	opts.T = node.Client
 	opts.DatastoreID = ds_id
 	return opts.Create()
+}
+
+func (c *Cluster) InstantiateVM(opts *template.UserTemplate, vname, throttle, region string) (string, error) {
+	var (
+		addr string
+		vmid string
+		err  error
+	)
+	maxTries := 5
+	nodlist, err := c.Nodes()
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == region {
+			addr = v.Address
+			if v.Metadata[api.VCPU_PERCENTAGE] != "" {
+				opts.Template.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Template.Cpu)
+			} else {
+				opts.Template.Cpu = cpuThrottle(throttle, opts.Template.Cpu)
+			}
+		}
+	}
+
+	if addr == "" {
+		return vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailabldd region ( "+region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
+	}
+	userTemps := make([]*template.UserTemplate, 0)
+	for ; maxTries > 0; maxTries-- {
+		finalXML := template.UserTemplates{}
+		finalXML.UserTemplate = append(userTemps, opts)
+		finalData, err := xml.Marshal(finalXML)
+		if err == nil {
+			tmp := &template.TemplateReqs{
+				TemplateName: opts.Template.Name,
+				TemplateId:   opts.Id,
+				TemplateData: string(finalData),
+			}
+			vmid, err = c.instantiateVMInNode(tmp, vname, region)
+			if err == nil {
+				c.handleNodeSuccess(addr)
+				break
+			}
+			log.Errorf("  > Trying... %s", addr)
+		}
+		shouldIncrementFailures := false
+		isCreateMachineErr := false
+		baseErr := err
+		if nodeErr, ok := baseErr.(OneNodeError); ok {
+			isCreateMachineErr = nodeErr.cmd == "createVM"
+			baseErr = nodeErr.BaseError()
+		}
+		if urlErr, ok := baseErr.(*url.Error); ok {
+			baseErr = urlErr.Err
+		}
+		_, isNetErr := baseErr.(*net.OpError)
+		if isNetErr || isCreateMachineErr || baseErr == ErrConnRefused {
+			shouldIncrementFailures = true
+		}
+		c.handleNodeError(addr, err, shouldIncrementFailures)
+		return vmid, err
+	}
+	if err != nil {
+		return vmid, fmt.Errorf("CreateVM: maximum number of tries exceeded, last error: %s", err.Error())
+	}
+	return vmid, err
+}
+
+func (c *Cluster) instantiateVMInNode(v *template.TemplateReqs, vmname, region string) (string, error) {
+
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return "", err
+	}
+	v.T = node.Client
+
+	res, err := v.Instantiate(vmname)
+	if err != nil {
+		return "", wrapErrorWithCmd(node, err, "InstantiateVM")
+	}
+
+	return res.(string), nil
+}
+
+func (c *Cluster) GetTemplate(region string) (*template.UserTemplate, error) {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+	templateObj := &template.TemplateReqs{TemplateName: node.template, T: node.Client}
+	res, err := templateObj.Get()
+	if err != nil {
+		return nil, err
+	}
+	return res[0], nil
 }
 
 func cpuThrottle(vcpu, cpu string) string {

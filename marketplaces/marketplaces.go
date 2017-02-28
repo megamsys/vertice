@@ -176,6 +176,10 @@ func (m *Marketplaces) UpdateStatus(status utils.Status) error {
 	return m.trigger_event(status)
 }
 
+func (m *Marketplaces) Trigger_event(status utils.Status) error {
+	return m.trigger_event(status)
+}
+
 func (m *Marketplaces) trigger_event(status utils.Status) error {
 	mi := make(map[string]string)
 	js := make(pairs.JsonPairs, 0)
@@ -186,7 +190,7 @@ func (m *Marketplaces) trigger_event(status utils.Status) error {
 
 	mi[constants.MARKETPLACE_ID] = m.Id
 	mi[constants.ACCOUNT_ID] = m.AccountId
-	mi[constants.EVENT_TYPE] = status.Event_type()
+	mi[constants.EVENT_TYPE] = status.MkEvent_type()
 
 	newEvent := events.NewMulti(
 		[]*events.Event{
@@ -230,7 +234,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	raw := new(RawImages)
 	raw.AccountId = m.AccountId
-	raw.Id = m.rawImageId()
+	raw.Id = m.RawImageId()
 	raw, err := raw.get()
 	if err != nil {
 		return nil, err
@@ -246,11 +250,17 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	return box, nil
 }
 
+func (m *Marketplaces) NukeAndSetOutputs(out map[string][]string) error {
+	log.Debugf("nuke and set outputs in scylla [%s]", out)
+	m.Outputs.NukeAndSet(out) //just nuke the matching output key:
+	return m.update()
+}
+
 func (s *Marketplaces) ImageName() string {
 	return s.Inputs.Match(utils.IMAGE_NAME)
 }
 
-func (s *Marketplaces) rawImageId() string {
+func (s *Marketplaces) RawImageId() string {
 	return s.Inputs.Match(utils.RAW_IMAGE_ID)
 }
 
@@ -260,4 +270,16 @@ func (s *Marketplaces) instanceId() string {
 
 func (s *Marketplaces) Region() string {
 	return s.Inputs.Match(utils.REGION)
+}
+
+func (m *Marketplaces) GetVMCpuCost() string {
+	return ""
+}
+
+func (m *Marketplaces) GetVMMemoryCost() string {
+	return ""
+}
+
+func (m *Marketplaces) GetVMHDDCost() string {
+	return ""
 }

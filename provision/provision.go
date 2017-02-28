@@ -103,6 +103,7 @@ type RawImageAccess interface {
 }
 type MarketPlaceAccess interface {
 	CustomizeImage(b *Box, w io.Writer) error
+	SaveImage(b *Box, w io.Writer) error
 }
 
 // Provisioner is the basic interface of this package.

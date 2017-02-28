@@ -75,6 +75,7 @@ func (r *RawImages) get() (*RawImages, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("*****************RawImages******response json*********", string(response))
 	res := &apiRawImages{}
 	err = json.Unmarshal(response, res)
 	if err != nil {
