@@ -180,9 +180,9 @@ func (p *rancherProvisioner) deployPipeline(box *provision.Box, imageId string, 
 		&updateStatusInScylla,
 		&setNetworkInfo,
 		&updateStatusInScylla,
-	//	&followLogsAndCommit,
-	//	&MileStoneUpdate,
-	//	&updateStatusInScylla,
+		//	&followLogsAndCommit,
+		//	&MileStoneUpdate,
+		//	&updateStatusInScylla,
 	}
 
 	pipeline := action.NewPipeline(actions...)
@@ -223,7 +223,7 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 		boxDestroy:  true,
 	}
 	pipeline := action.NewPipeline(
-	&destroyOldContainers,
+		&destroyOldContainers,
 	//&removeOldRoutes,
 	)
 	err = pipeline.Execute(args)
@@ -234,37 +234,37 @@ func (p *rancherProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 }
 
 func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writer) error {
-		containers, err := p.listContainersByBox(box)
+	containers, err := p.listContainersByBox(box)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+	}
+	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
+		err := c.Start(&container.StartArgs{
+			Provisioner: p,
+			Box:         box,
+		})
 		if err != nil {
-			fmt.Fprintf(w, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+			return err
 		}
-		return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
-			err := c.Start(&container.StartArgs{
-				Provisioner: p,
-				Box:         box,
-			})
-			if err != nil {
-				return err
-			}
-			c.SetStatus(constants.StatusContainerStarting)
-			return nil
-		}, nil, true)
+		c.SetStatus(constants.StatusContainerStarting)
+		return nil
+	}, nil, true)
 
 	return nil
 }
 
 func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
-		containers, err := p.listContainersByBox(box)
+	containers, err := p.listContainersByBox(box)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+	}
+	return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
+		err := c.Stop(p)
 		if err != nil {
-			fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("Failed to list box containers (%s) --> %s", box.GetFullName(), err)))
+			log.Errorf("Failed to stop %q: %s", box.GetFullName(), err)
 		}
-		return runInContainers(containers, func(c *container.Container, _ chan *container.Container) error {
-			err := c.Stop(p)
-			if err != nil {
-				log.Errorf("Failed to stop %q: %s", box.GetFullName(), err)
-			}
-			return err
-		}, nil, true)
+		return err
+	}, nil, true)
 
 	return nil
 }

@@ -51,7 +51,7 @@ type oneProvisioner struct {
 	defaultImage string
 	vcpuThrottle string
 	cluster      *cluster.Cluster
-	storage       cluster.Storage
+	storage      cluster.Storage
 }
 
 type One struct {

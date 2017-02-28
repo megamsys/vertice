@@ -53,8 +53,8 @@ var (
 	SNAPSAVE    = "snapsave"
 
 	//vmbackup actions
-	BACKUPS = "backup"
-	IMAGECREATE = "backupcreate"
+	BACKUPS      = "backup"
+	IMAGECREATE  = "backupcreate"
 	IMAGEDESTROY = "backupremove"
 
 	// disks actions
@@ -96,7 +96,7 @@ func (p *ReqParser) ParseRequest(category string, action string) (MegdProcessor,
 	case DONE:
 		return p.parseDone(action)
 	default:
-		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS, SNAPSHOT, DISKS,BACKUPS })
+		return nil, newParseError([]string{category, action}, []string{STATE, CONTROL, OPERATIONS, SNAPSHOT, DISKS, BACKUPS})
 	}
 }
 

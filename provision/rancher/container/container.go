@@ -223,7 +223,6 @@ func (c *Container) Remove(r RancherProvisioner) error {
 	return nil
 }
 
-
 type StartArgs struct {
 	Provisioner RancherProvisioner
 	Box         *provision.Box
@@ -246,8 +245,8 @@ func (c *Container) Start(args *StartArgs) error {
 }
 
 func (c *Container) Stop(p RancherProvisioner) error {
- st := p.Cluster()
- st.Region = c.Region
+	st := p.Cluster()
+	st.Region = c.Region
 	err := st.StopContainer(c.Id)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
@@ -257,7 +256,6 @@ func (c *Container) Stop(p RancherProvisioner) error {
 	c.SetMileStone(constants.StateStopped)
 	return nil
 }
-
 
 /*
 func (c *Container) Logs(p DockerProvisioner)   error {

@@ -47,7 +47,7 @@ func (p *ReqOperator) Accept(r *MegdProcessor) error {
 func (p *ReqOperator) Get() (Cartons, error) {
 	switch p.Category {
 	case BACKUPS:
-		b, err := GetBackup(p.CartonsId,p.AccountId)
+		b, err := GetBackup(p.CartonsId, p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		return c, nil
 
 	case DISKS:
-		d, err := GetDisks(p.CartonsId,p.AccountId)
+		d, err := GetDisks(p.CartonsId, p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +69,7 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		return c, nil
 
 	case SNAPSHOT:
-		s, err := GetSnap(p.CartonsId,p.AccountId)
+		s, err := GetSnap(p.CartonsId, p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		}
 		return c, nil
 	default:
-		a, err := Get(p.CartonsId,p.AccountId)
+		a, err := Get(p.CartonsId, p.AccountId)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,6 @@ func (p *ReqOperator) Get() (Cartons, error) {
 		return c, nil
 	}
 }
-
 
 // MegdProcessor represents a single operation in vertice.
 type MegdProcessor interface {

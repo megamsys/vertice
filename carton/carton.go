@@ -36,7 +36,6 @@ type Carton struct {
 	State        utils.State
 }
 
-
 //Global provisioners set by the subd daemons.
 var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.Provisioner)
 
@@ -227,7 +226,6 @@ func (c *Carton) CreateSnapshot() error {
 	return nil
 }
 
-
 // SnapCreate a carton, which creates an image by current state of its box.
 func (c *Carton) SnapshotSaveAs() error {
 	for _, box := range *c.Boxes {
@@ -238,7 +236,6 @@ func (c *Carton) SnapshotSaveAs() error {
 	}
 	return nil
 }
-
 
 // SnapDelete a carton, which removes an existing image created from state of its box.
 func (c *Carton) DeleteSnapshot() error {

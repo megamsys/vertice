@@ -2,15 +2,15 @@ package carton
 
 import (
 	"bytes"
-	"strconv"
+	"code.cloudfoundry.org/bytefmt"
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/cmd"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
-	"code.cloudfoundry.org/bytefmt"
 	"io"
-	"encoding/json"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,8 +20,8 @@ type DiskOpts struct {
 }
 
 type ApiDisks struct {
-	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	Results    []Disks  `json:"results" cql:"results"`
+	JsonClaz string  `json:"json_claz" cql:"json_claz"`
+	Results  []Disks `json:"results" cql:"results"`
 }
 
 type Disks struct {
@@ -37,14 +37,13 @@ type Disks struct {
 }
 
 func NewDisk(email, org, assembly, id string) *Disks {
-  return &Disks{
-		Id: id,
-		OrgId: org,
-		AccountId: email,
+	return &Disks{
+		Id:         id,
+		OrgId:      org,
+		AccountId:  email,
 		AssemblyId: assembly,
 	}
 }
-
 
 // ChangeState runs a state increment of a machine or a container.
 func AttachDisk(opts *DiskOpts) error {
@@ -81,7 +80,7 @@ func DetachDisk(opts *DiskOpts) error {
 	if err != nil {
 		return err
 	}
-  err = destroyDiskData(opts)
+	err = destroyDiskData(opts)
 	if err != nil {
 		return err
 	}
@@ -102,11 +101,10 @@ func destroyDiskData(opts *DiskOpts) error {
 	return nil
 }
 
-
 /** A public function which pulls the disks that attached to vm.
 and any others we do. **/
 func GetDisks(id, email string) (*Disks, error) {
-	cl := api.NewClient(newArgs(email,""), "/disks/show/" + id)
+	cl := api.NewClient(newArgs(email, ""), "/disks/show/"+id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -123,13 +121,12 @@ func GetDisks(id, email string) (*Disks, error) {
 }
 
 func (a *Disks) RemoveDisk() error {
-	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/disks/"+a.AssemblyId +"/" +  a.Id)
-	if	_, err := cl.Delete(); err != nil {
+	cl := api.NewClient(newArgs(a.AccountId, a.OrgId), "/disks/"+a.AssemblyId+"/"+a.Id)
+	if _, err := cl.Delete(); err != nil {
 		return err
 	}
 	return nil
 }
-
 
 func (d *Disks) UpdateDisk() error {
 	cl := api.NewClient(newArgs(d.AccountId, d.OrgId), "/disks/update")

@@ -25,14 +25,14 @@ type Service struct {
 	Handler  *Handler
 	Consumer *nsq.Consumer
 	Meta     *meta.Config
-	Rancherd  *Config
+	Rancherd *Config
 }
 
 // NewService returns a new instance of Service.
 func NewService(c *meta.Config, d *Config) *Service {
 	s := &Service{
-		err:     make(chan error),
-		Meta:    c,
+		err:      make(chan error),
+		Meta:     c,
 		Rancherd: d,
 	}
 	s.Handler = NewHandler(s.Rancherd)

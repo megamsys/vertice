@@ -1,4 +1,5 @@
 package marketplaces
+
 /*
 import (
 	"gopkg.in/check.v1"

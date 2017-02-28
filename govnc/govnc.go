@@ -14,13 +14,13 @@ type VncListener struct {
 }
 
 type VncHost struct {
-  IpAddress string
-  Port string
-  Password string
+	IpAddress string
+	Port      string
+	Password  string
 }
 
 func Connect(vh *VncHost) {
 
-  fmt.Println(vh)
+	fmt.Println(vh)
 
 }

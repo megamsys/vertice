@@ -3,10 +3,9 @@ package cluster
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/megamsys/vertice/carton"
 	"net/http"
-		"github.com/megamsys/vertice/carton"
-		//	"github.com/megamsys/vertice/provision"
-
+	//	"github.com/megamsys/vertice/provision"
 )
 
 const (
@@ -26,7 +25,7 @@ type DockerClient struct {
 	IpAddr        string
 	Gateway       string
 	CartonId      string
-	AccountId    string
+	AccountId     string
 	//HostAddr       string
 }
 
@@ -44,7 +43,7 @@ func (d *DockerClient) NetworkRequest(url, port string) error {
 	hostip := []string{}
 	hostip = []string{url}
 	ips[carton.HOSTIP] = hostip
-	if asm, err := carton.NewAssembly(d.CartonId,d.AccountId, ""); err != nil {
+	if asm, err := carton.NewAssembly(d.CartonId, d.AccountId, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err

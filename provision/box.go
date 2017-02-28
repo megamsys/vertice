@@ -16,6 +16,13 @@
 package provision
 
 import (
+	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/utils"
+	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/carton/bind"
+	lb "github.com/megamsys/vertice/logbox"
+	"github.com/megamsys/vertice/repository"
+	"gopkg.in/yaml.v2"
 	"net/url"
 	"os"
 	"os/user"
@@ -24,13 +31,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-  "github.com/megamsys/libgo/api"
-	"github.com/megamsys/libgo/utils"
-	constants "github.com/megamsys/libgo/utils"
-	"github.com/megamsys/vertice/carton/bind"
-	lb "github.com/megamsys/vertice/logbox"
-	"github.com/megamsys/vertice/repository"
-	"gopkg.in/yaml.v2"
 	//"encoding/json"
 )
 
@@ -113,7 +113,7 @@ type BoxDeploy struct {
 // IP-addressable.
 type Box struct {
 	Id           string
-	AccountId   string
+	AccountId    string
 	CartonsId    string
 	CartonId     string
 	OrgId        string
@@ -191,14 +191,13 @@ func (b *Box) GetPublicIp() string {
 }
 
 func (b *Box) CanCycleStop() bool {
-  return b.State == constants.StateRunning ||
+	return b.State == constants.StateRunning ||
 		b.State == constants.StatePostError
 }
 
 func (b *Box) CanCycleStart() bool {
 	return b.State == constants.StateStopped
 }
-
 
 // Available returns true if the unit is available. It will return true
 // whenever the unit itself is available, even when the application process is

@@ -23,8 +23,8 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	constants "github.com/megamsys/libgo/utils"
-	"github.com/megamsys/vertice/provision"
 	lw "github.com/megamsys/libgo/writer"
+	"github.com/megamsys/vertice/provision"
 )
 
 type LifecycleOpts struct {
@@ -77,7 +77,7 @@ func Stop(cy *LifecycleOpts) error {
 			return err
 		}
 	} else {
-	   fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
+		fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    stop (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil

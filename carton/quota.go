@@ -1,9 +1,9 @@
 package carton
 
 import (
+	"encoding/json"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
-	"encoding/json"
 )
 
 type Quota struct {
@@ -24,7 +24,7 @@ type ApiQuota struct {
 }
 
 func (q *Quota) Update() error {
- return q.update(newArgs(q.AccountId, ""))
+	return q.update(newArgs(q.AccountId, ""))
 }
 
 func (q *Quota) update(args api.ApiArgs) error {
@@ -40,11 +40,11 @@ func NewQuota(accountid, id string) (*Quota, error) {
 	q := new(Quota)
 	q.AccountId = accountid
 	q.Id = id
-   return q.get(newArgs(accountid, ""))
+	return q.get(newArgs(accountid, ""))
 }
 
 func (q *Quota) get(args api.ApiArgs) (*Quota, error) {
-	cl := api.NewClient(args, "/quotas/"+ q.Id)
+	cl := api.NewClient(args, "/quotas/"+q.Id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -59,15 +59,14 @@ func (q *Quota) get(args api.ApiArgs) (*Quota, error) {
 	return &ac.Results[0], nil
 }
 
-
 func (q *Quota) ContainerQuota() (bool, error) {
 	asm, err := NewAssembly(q.AllocatedTo, q.AccountId, "")
 	if err != nil {
 		return true, err
 	}
-  return !(len(asm.quotaID()) > 0), nil
+	return !(len(asm.quotaID()) > 0), nil
 }
 
 func (q *Quota) AllowedSnaps() string {
-		return q.Allowed.Match("no_of_units")
+	return q.Allowed.Match("no_of_units")
 }

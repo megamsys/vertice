@@ -3,7 +3,7 @@ package metrix
 import (
 	"io/ioutil"
 	"testing"
-  //"fmt"
+	//"fmt"
 
 	"github.com/BurntSushi/toml"
 	"github.com/megamsys/vertice/meta"
@@ -17,8 +17,8 @@ func Test(t *testing.T) {
 type S struct {
 	testjson []byte
 	testxml  []byte
-	cm      meta.Config
-	sensor  *Sensor
+	cm       meta.Config
+	sensor   *Sensor
 }
 
 var _ = check.Suite(&S{})
@@ -29,21 +29,21 @@ func (s *S) SetUpSuite(c *check.C) {
 	s.testxml = b
 	c.Assert(s.testxml, check.NotNil)
 
-  sen := &Sensor{
-		Id: "22a0fd6ac83411e6aa700cc47a143ea0",
-		AccountId: "rajthilak@megam.io",
-		SensorType: "compute.instance.exists",
-		AssemblyId: "ASM8963235353929524317",
-		AssemblyName: "lingering-feather-2706.megambox.com",
-		AssembliesId: "AMS5473376480118161453",
-		Node: "146.0.247.2",
-		System: "one",
-		Status: "Active",
-		Source: "one",
-		Message: "vm billing",
+	sen := &Sensor{
+		Id:                   "22a0fd6ac83411e6aa700cc47a143ea0",
+		AccountId:            "rajthilak@megam.io",
+		SensorType:           "compute.instance.exists",
+		AssemblyId:           "ASM8963235353929524317",
+		AssemblyName:         "lingering-feather-2706.megambox.com",
+		AssembliesId:         "AMS5473376480118161453",
+		Node:                 "146.0.247.2",
+		System:               "one",
+		Status:               "Active",
+		Source:               "one",
+		Message:              "vm billing",
 		AuditPeriodBeginning: "1970-01-01 01:00:00 +0100 CET",
-		AuditPeriodEnding: "1970-01-01 01:10:00 +0100 CET",
-		AuditPeriodDelta: "4.117788035058207E+05",
+		AuditPeriodEnding:    "1970-01-01 01:10:00 +0100 CET",
+		AuditPeriodDelta:     "4.117788035058207E+05",
 	}
 	s.sensor = sen
 

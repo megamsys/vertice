@@ -27,7 +27,6 @@ import (
 	"github.com/megamsys/vertice/provision"
 )
 
-
 func (p *oneProvisioner) ISODeploy(m *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s)", m.Name)))
 

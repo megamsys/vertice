@@ -28,7 +28,6 @@ var (
 	version string = "1.5.1"
 	date    string
 	commit  string
-
 )
 
 func init() {

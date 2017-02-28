@@ -28,18 +28,18 @@ var (
 )
 
 type ReqOpts struct {
-	AccountId string    `json:"account_id" cql:"account_id"`
-	CatId     string    `json:"cat_id" cql:"cat_id"`
-	Action    string    `json:"action" cql:"action"`
-	Category  string    `json:"category" cql:"category"`
+	AccountId string `json:"account_id" cql:"account_id"`
+	CatId     string `json:"cat_id" cql:"cat_id"`
+	Action    string `json:"action" cql:"action"`
+	Category  string `json:"category" cql:"category"`
 }
 
 func NewRequestOpt(acc, cat_id, category, action string) *ReqOpts {
 	return &ReqOpts{
-    AccountId: acc,
-		CatId: cat_id,
-		Action: action,
-		Category: category,
+		AccountId: acc,
+		CatId:     cat_id,
+		Action:    action,
+		Category:  category,
 	}
 }
 func (r *ReqOpts) String() string {

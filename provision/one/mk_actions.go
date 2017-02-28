@@ -1,10 +1,10 @@
 package one
 
 import (
-	"io/ioutil"
 	"github.com/megamsys/libgo/action"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/provision/one/machine"
+	"io/ioutil"
 )
 
 var createRawISOImage = action.Action{

@@ -16,15 +16,15 @@
 package carton
 
 import (
-	"github.com/megamsys/vertice/repository"
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/vertice/repository"
 )
 
 type Operations struct {
-	Type        string    `json:"operation_type"`
-	Description string    `json:"description"`
+	Type        string          `json:"operation_type"`
+	Description string          `json:"description"`
 	Properties  pairs.JsonPairs `json:"properties"`
-	Status      string    `json:"status"`
+	Status      string          `json:"status"`
 }
 
 func (o *Operations) prepBuildHook() *repository.Hook {

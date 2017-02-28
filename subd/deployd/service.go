@@ -71,7 +71,7 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 	}
 	re, err := p.Convert()
 	if err != nil {
-		log.Errorf("%s",err)
+		log.Errorf("%s", err)
 		return
 	}
 	go s.Handler.serveNSQ(re)

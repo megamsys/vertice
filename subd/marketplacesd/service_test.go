@@ -16,7 +16,7 @@ type S struct {
 var _ = check.Suite(&S{})
 
 func (s *S) SetUpSuite(c *check.C) {
-	srv := NewService(nil,	&Config{},nil)
+	srv := NewService(nil, &Config{}, nil)
 	s.service = srv
 	c.Assert(srv, check.NotNil)
 }

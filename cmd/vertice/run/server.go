@@ -14,8 +14,8 @@ import (
 	"github.com/megamsys/vertice/subd/docker"
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
-	"github.com/megamsys/vertice/subd/metricsd"
 	"github.com/megamsys/vertice/subd/marketplacesd"
+	"github.com/megamsys/vertice/subd/metricsd"
 	"github.com/megamsys/vertice/subd/rancher"
 )
 

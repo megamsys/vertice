@@ -24,12 +24,12 @@ import (
 )
 
 type Payload struct {
-	Id        string `json:"id"`
-	Action    string `json:"action"`
-	CatId     string `json:"cat_id"`
-	AccountId string `json:"account_id"`
-	CatType   string `json:"cattype"`
-	Category  string `json:"category"`
+	Id        string    `json:"id"`
+	Action    string    `json:"action"`
+	CatId     string    `json:"cat_id"`
+	AccountId string    `json:"account_id"`
+	CatType   string    `json:"cattype"`
+	Category  string    `json:"category"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -69,7 +69,7 @@ func (p *Payload) Convert() (*Requests, error) {
 //value means the id is blank and others are available.
 func listReqsById(id, email string) (*Requests, error) {
 	log.Debugf("list requests %s", id)
-	cl := api.NewClient(newArgs(email,""), "/requests/" + id)
+	cl := api.NewClient(newArgs(email, ""), "/requests/"+id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err

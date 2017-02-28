@@ -2,45 +2,43 @@ package carton
 
 import (
 	"bytes"
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
-	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"io"
-	"encoding/json"
 	"strings"
 	"time"
 )
 
 const (
-	SNAPSHOTS = "/snapshots/"
-	SNAPSHOTS_SHOW =  "/snapshots/show/"
+	SNAPSHOTS      = "/snapshots/"
+	SNAPSHOTS_SHOW = "/snapshots/show/"
 )
 
-
 type ApiSnaps struct {
-	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	Results    []Snaps  `json:"results" cql:"results"`
+	JsonClaz string  `json:"json_claz" cql:"json_claz"`
+	Results  []Snaps `json:"results" cql:"results"`
 }
-
 
 //The grand elephant for megam cloud platform.
 type Snaps struct {
-	Id         string `json:"id" cql:"id"`
-	DiskId    string `json:"disk_id" cql:"disk_id"`
-	SnapId    string `json:"snap_id" cql:"snap_id"`
-	OrgId      string `json:"org_id" cql:"org_id"`
-	AccountId  string `json:"account_id" cql:"account_id"`
-	Name       string `json:"name" cql:"name"`
-	AssemblyId string `json:"asm_id" cql:"asm_id"`
-	JsonClaz   string `json:"json_claz" cql:"json_claz"`
-	CreatedAt  string `json:"created_at" cql:"created_at"`
-	UpdatedAt  string `json:"updated_at" cql:"updated_at"`
-	Status     string `json:"status" cql:"status"`
-	Tosca      string `json:"tosca_type" cql:"tosca_type"`
+	Id         string          `json:"id" cql:"id"`
+	DiskId     string          `json:"disk_id" cql:"disk_id"`
+	SnapId     string          `json:"snap_id" cql:"snap_id"`
+	OrgId      string          `json:"org_id" cql:"org_id"`
+	AccountId  string          `json:"account_id" cql:"account_id"`
+	Name       string          `json:"name" cql:"name"`
+	AssemblyId string          `json:"asm_id" cql:"asm_id"`
+	JsonClaz   string          `json:"json_claz" cql:"json_claz"`
+	CreatedAt  string          `json:"created_at" cql:"created_at"`
+	UpdatedAt  string          `json:"updated_at" cql:"updated_at"`
+	Status     string          `json:"status" cql:"status"`
+	Tosca      string          `json:"tosca_type" cql:"tosca_type"`
 	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
 	Outputs    pairs.JsonPairs `json:"outputs" cql:"outputs"`
 }
@@ -143,8 +141,8 @@ func DeleteSnapshot(opts *DiskOpts) error {
 
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
-func GetSnap(id , email string) (*Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS_SHOW + id)
+func GetSnap(id, email string) (*Snaps, error) {
+	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS_SHOW+id)
 
 	response, err := cl.Get()
 	if err != nil {
@@ -163,8 +161,8 @@ func GetSnap(id , email string) (*Snaps, error) {
 
 /** A public function which pulls all snapshots of the VM.
 and any others we do. **/
-func GetAsmSnaps(asm_id , email string) ([]Snaps, error) {
-	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS + asm_id)
+func GetAsmSnaps(asm_id, email string) ([]Snaps, error) {
+	cl := api.NewClient(newArgs(email, ""), SNAPSHOTS+asm_id)
 
 	response, err := cl.Get()
 	if err != nil {
@@ -184,7 +182,7 @@ func GetAsmSnaps(asm_id , email string) ([]Snaps, error) {
 /** A public function which pulls the snapshot for disk save as image.
 and any others we do. **/
 func (s *Snaps) GetBox() ([]Snaps, error) {
-	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin/snapshots" )
+	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), "/admin/snapshots")
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -200,7 +198,7 @@ func (s *Snaps) GetBox() ([]Snaps, error) {
 }
 
 func (s *Snaps) UpdateSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId),SNAPSHOTS + UPDATE )
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS+UPDATE)
 	if _, err := cl.Post(s); err != nil {
 		return err
 	}
@@ -208,10 +206,9 @@ func (s *Snaps) UpdateSnap() error {
 
 }
 
-
 func (s *Snaps) RemoveSnap() error {
-	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS + s.AssemblyId + "/" + s.Id)
-	if	_, err := cl.Delete(); err != nil {
+	cl := api.NewClient(newArgs(s.AccountId, s.OrgId), SNAPSHOTS+s.AssemblyId+"/"+s.Id)
+	if _, err := cl.Delete(); err != nil {
 		return err
 	}
 	return nil

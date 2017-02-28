@@ -9,9 +9,9 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/compute"
-	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
+	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"net"
 	"net/url"
@@ -281,8 +281,6 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	return nil
 }
 
-
-
 func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, error) {
 	node, err := c.getNodeRegion(region)
 	if err != nil {
@@ -328,7 +326,6 @@ func (c *Cluster) RestoreSnap(opts snapshot.Snapshot, region string) error {
 	return nil
 }
 
-
 func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	node, err := c.getNodeRegion(region)
 	if err != nil {
@@ -349,7 +346,6 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 }
 
 //*********************************
-
 
 func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
 	var a []int
@@ -436,6 +432,6 @@ func cpuThrottle(vcpu, cpu string) string {
 	ThrottleFactor, _ := strconv.Atoi(vcpu)
 	ICpu, _ := strconv.Atoi(cpu)
 	realCPU := float64(ICpu) / float64(ThrottleFactor)
-  //ugly, compute has the info.
+	//ugly, compute has the info.
 	return strconv.FormatFloat(realCPU, 'f', 6, 64)
 }

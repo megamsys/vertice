@@ -1,12 +1,12 @@
 package eventsd
 
 import (
-	"sync"
 	log "github.com/Sirupsen/logrus"
 	nsq "github.com/crackcomm/nsqueue/consumer"
-	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/subd/deployd"
+	"sync"
 )
 
 const (
@@ -70,7 +70,7 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 		return
 	}
 
-	go s.Handler.serveNSQ(e,pe.Inputs.Match("email"))
+	go s.Handler.serveNSQ(e, pe.Inputs.Match("email"))
 	return
 }
 

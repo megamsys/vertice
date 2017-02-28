@@ -1,15 +1,15 @@
 package cluster
 
 import (
-//	"encoding/json"
+	//	"encoding/json"
 	"errors"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/go-rancher/v2"
-//	"github.com/megamsys/libgo/cmd"
+	//	"github.com/megamsys/libgo/cmd"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
-//	"github.com/megamsys/vertice/metrix"
+	//	"github.com/megamsys/vertice/metrix"
 	"net"
 	"net/url"
 	//"sync"
@@ -34,14 +34,14 @@ type Container struct {
 func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *client.Container, error) {
 
 	var (
-		addr string
+		addr      string
 		container *client.Container
 		err       error
 	)
 
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
-    node, err :=  c.getNodeClient(c.Region)
+		node, err := c.getNodeClient(c.Region)
 		if err != nil {
 			return "", nil, err
 		}
@@ -71,30 +71,29 @@ func (c *Cluster) CreateContainerSchedulerOpts(opts client.Container) (string, *
 		return addr, nil, fmt.Errorf("CreateContainer: maximum number of tries exceeded, last error: %s", err.Error())
 	}
 	//err = c.storage().StoreContainer(container.ID, addr)
-  //err = c.storage().StoreContainerByName(container.ID, container.Name)
+	//err = c.storage().StoreContainerByName(container.ID, container.Name)
 	return addr, container, err
 }
 
-
-func (c *Cluster) GetContainerById(id string) (*client.Container, error)  {
-	node, err :=  c.getNodeClient(c.Region)
+func (c *Cluster) GetContainerById(id string) (*client.Container, error) {
+	node, err := c.getNodeClient(c.Region)
 	if err != nil {
 		return nil, err
 	}
-  return node.RancherClient.Container.ById(id)
+	return node.RancherClient.Container.ById(id)
 }
 
 func (c *Cluster) getContainerNode(hostId string) (*client.Host, error) {
-	node, err :=  c.getNodeClient(c.Region)
+	node, err := c.getNodeClient(c.Region)
 	if err != nil {
 		return nil, err
 	}
-  return node.RancherClient.Host.ById(hostId)
+	return node.RancherClient.Host.ById(hostId)
 }
 
 func (c *Cluster) getNodeClient(region string) (node, error) {
 	var n node
-	var	addr,aid,access,secret   string
+	var addr, aid, access, secret string
 	nodes, err := c.Nodes()
 	if err != nil {
 		return n, err
@@ -103,26 +102,26 @@ func (c *Cluster) getNodeClient(region string) (node, error) {
 		if v.Metadata[RANCHER_ZONE] == region {
 			addr = v.Address
 			aid = v.Metadata[ADMIN_ID]
-			access =  v.Metadata[ACCESSKEY]
-			secret =  v.Metadata[SECRETKEY]
+			access = v.Metadata[ACCESSKEY]
+			secret = v.Metadata[SECRETKEY]
 		}
 	}
 	if addr == "" {
-		return  n, errors.New("selected region unavailable [" + c.Region + "]" )
+		return n, errors.New("selected region unavailable [" + c.Region + "]")
 	}
-	cliaddr := client.ClientOpts{Url: addr,AccountId: aid, AccessKey: access, SecretKey: secret}
+	cliaddr := client.ClientOpts{Url: addr, AccountId: aid, AccessKey: access, SecretKey: secret}
 	return c.getNodeByAddr(cliaddr)
 }
 
 func (c *Cluster) SetNetworkinNode(hostId, IpAddress, cartonId, email string) error {
 	if hostId == "" {
-		return errors.New("empty host Id" )
+		return errors.New("empty host Id")
 	}
 	host, err := c.getContainerNode(hostId)
 	if err != nil {
 		return err
 	}
-	err = c.IpNode(IpAddress,host.AgentIpAddress, cartonId,email)
+	err = c.IpNode(IpAddress, host.AgentIpAddress, cartonId, email)
 	if err != nil {
 		return err
 	}
@@ -130,11 +129,11 @@ func (c *Cluster) SetNetworkinNode(hostId, IpAddress, cartonId, email string) er
 	return nil
 }
 
-func (c *Cluster) IpNode(contIp, nodeIp, CartonId,email string) error {
+func (c *Cluster) IpNode(contIp, nodeIp, CartonId, email string) error {
 	var ips = make(map[string][]string)
 	ips[c.getIps()] = []string{contIp}
 	ips[carton.HOSTIP] = []string{nodeIp}
-	if asm, err := carton.NewAssembly(CartonId,email, ""); err != nil {
+	if asm, err := carton.NewAssembly(CartonId, email, ""); err != nil {
 		return err
 	} else if err = asm.NukeAndSetOutputs(ips); err != nil {
 		return err
@@ -153,7 +152,7 @@ func (c *Cluster) getIps() string {
 			case constants.IPV4PRI:
 				return carton.PRIVATEIPV4
 			case constants.IPV6PRI:
-        return carton.PRIVATEIPV6
+				return carton.PRIVATEIPV6
 			}
 		}
 	}
@@ -172,7 +171,7 @@ func (c *Cluster) removeFromStorage(opts *client.Container) error {
 	}
 	err = node.RancherClient.Container.Delete(opts)
 	if err != nil {
-			return wrapError(node, err)
+		return wrapError(node, err)
 	}
 	return nil
 }
@@ -200,10 +199,10 @@ func (c *Cluster) StopContainer(id string) error {
 		return err
 	}
 	insStop, err := node.RancherClient.InstanceStop.ById(id)
-    if err != nil {
-      return err
-    }
+	if err != nil {
+		return err
+	}
 
-    _, err = node.RancherClient.Container.ActionStop(cont, insStop)
+	_, err = node.RancherClient.Container.ActionStop(cont, insStop)
 	return wrapError(node, err)
 }

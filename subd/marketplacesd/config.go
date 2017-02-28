@@ -10,11 +10,11 @@ import (
 )
 
 type Config struct {
-	Enabled   bool   `json:"enabled" toml:"enabled"`
+	Enabled bool `json:"enabled" toml:"enabled"`
 }
 
 func NewConfig() *Config {
-	return &Config{	Enabled:  false}
+	return &Config{Enabled: false}
 }
 
 func (c Config) String() string {

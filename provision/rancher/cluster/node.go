@@ -94,6 +94,7 @@ func (n *Node) ResetFailures() {
 	delete(n.Metadata, "DisabledUntil")
 	delete(n.Metadata, "LastError")
 }
+
 /*
 func (n *Node) Client() (*docker.Client, error) {
 

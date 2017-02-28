@@ -116,8 +116,8 @@ var updateStatusInScylla = action.Action{
 			ncont, _ := args.provisioner.GetContainerByBox(args.box)
 			cont = *ncont
 			cont.Status = args.containerStatus
-			cont.State  = args.containerState
-			cont.Image  = args.imageId
+			cont.State = args.containerState
+			cont.Image = args.imageId
 		}
 		if err := cont.SetStatus(cont.Status); err != nil {
 			return nil, err
@@ -168,7 +168,7 @@ var updateContainerIdInScylla = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(), cont.Id)))
 		if err := cont.UpdateContId(); err != nil {
 			return nil, err
 		}
@@ -185,7 +185,7 @@ var MileStoneUpdate = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
 		if err := cont.SetMileStone(cont.State); err != nil {
 			return nil, err
 		}
@@ -208,7 +208,7 @@ var startContainer = action.Action{
 		if err != nil {
 			return nil, err
 		}
-		c.State  = constants.StateBootstrapped
+		c.State = constants.StateBootstrapped
 		c.Status = constants.StatusContainerBootstrapped
 		return c, nil
 	},
@@ -311,7 +311,7 @@ var followLogsAndCommit = action.Action{
 			log.Errorf("---- follow logs for container\n     %s", err.Error())
 			return nil, err
 		}
-		c.State  = constants.StateRunning
+		c.State = constants.StateRunning
 		c.Status = constants.StatusContainerRunning
 
 		return c, nil

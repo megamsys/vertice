@@ -13,9 +13,9 @@ import (
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
-	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
 	"time"
@@ -237,12 +237,11 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	}
 
 	box := &provision.Box{
-		CartonId:    m.Id,
-		AccountId:   m.AccountId,
-		Name:        m.ImageName(),
-		Region:      m.Region(),
-		Provider:    raw.provider(),
-	//	SourceImage: raw.Name,
+		CartonId:  m.Id,
+		AccountId: m.AccountId,
+		Name:      m.ImageName(),
+		Region:    m.Region(),
+		Provider:  raw.provider(),
 	}
 	return box, nil
 }

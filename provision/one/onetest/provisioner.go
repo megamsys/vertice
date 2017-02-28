@@ -28,7 +28,7 @@ func NewFakeOneProvisioner(regions ...string) (*FakeOneProvisioner, error) {
 	}
 	nodes := make([]cluster.Node, len(regions))
 	for i, server := range regions {
-		nodes[i] = cluster.Node{Region: server, }
+		nodes[i] = cluster.Node{Region: server}
 	}
 	p.cluster, err = cluster.New(p.storage, nodes...)
 	if err != nil {
