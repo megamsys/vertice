@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 )
 
-var createRawISOImage = action.Action{
+var createImage = action.Action{
 	Name: "create-rawimage-iso",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -16,7 +16,7 @@ var createRawISOImage = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		err := mach.CreateISO(args.provisioner)
+		err := mach.CreateImage(args.provisioner)
 		if err != nil {
 			return mach, err
 		}
@@ -27,7 +27,7 @@ var createRawISOImage = action.Action{
 	},
 }
 
-var updateRawImageId = action.Action{
+var updateImage = action.Action{
 	Name: "update-rawimage-id",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -36,7 +36,7 @@ var updateRawImageId = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		err := mach.UpdateRawImageId()
+		err := mach.UpdateImage()
 		if err != nil {
 			return mach, err
 		}
@@ -46,7 +46,7 @@ var updateRawImageId = action.Action{
 	},
 }
 
-var updateRawStatus = action.Action{
+var updateImageStatus = action.Action{
 	Name: "update-rawimage-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -55,7 +55,7 @@ var updateRawStatus = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		err := mach.UpdateRawStatus()
+		err := mach.UpdateImageStatus()
 		if err != nil {
 			return mach, err
 		}

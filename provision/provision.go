@@ -102,7 +102,7 @@ type RawImageAccess interface {
 	ISODeploy(b *Box, w io.Writer) error
 }
 type MarketPlaceAccess interface {
-	CustomiseRawImage(b *Box, w io.Writer) error
+	CustomizeImage(b *Box, w io.Writer) error
 }
 
 // Provisioner is the basic interface of this package.

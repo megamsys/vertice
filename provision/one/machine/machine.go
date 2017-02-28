@@ -695,21 +695,21 @@ func (m *Machine) UpdateVMQuotas(id string) error {
 	return quota.Update()
 }
 
-func (m *Machine) getRaw() (*mk.RawImages, error) {
+func (m *Machine) getImage() (*mk.RawImages, error) {
 	r := new(mk.RawImages)
 	r.AccountId = m.AccountId
 	r.Id = m.CartonId
 	return r.Get()
 }
 
-func (m *Machine) getMarket() (*mk.Marketplaces, error) {
+func (m *Machine) getMarketPlace() (*mk.Marketplaces, error) {
 	r := new(mk.Marketplaces)
 	r.AccountId = m.AccountId
 	r.Id = m.CartonId
 	return r.Get()
 }
 
-func (m *Machine) CreateISO(p OneProvisioner) error {
+func (m *Machine) CreateImage(p OneProvisioner) error {
 	opts := images.Image{
 		Name: m.Name,
 		Path: m.PublicUrl,
@@ -724,8 +724,8 @@ func (m *Machine) CreateISO(p OneProvisioner) error {
 	return nil
 }
 
-func (m *Machine) UpdateRawImageId() error {
-	raw, err := m.getRaw()
+func (m *Machine) UpdateImage() error {
+	raw, err := m.getImage()
 	if err != nil {
 		return err
 	}
@@ -736,8 +736,8 @@ func (m *Machine) UpdateRawImageId() error {
 	return raw.Update()
 }
 
-func (m *Machine) UpdateRawStatus() error {
-	raw, err := m.getRaw()
+func (m *Machine) UpdateImageStatus() error {
+	raw, err := m.getImage()
 	if err != nil {
 		return err
 	}
@@ -746,7 +746,7 @@ func (m *Machine) UpdateRawStatus() error {
 }
 
 func (m *Machine) UpdateMarketImageId() error {
-	mark, err := m.getMarket()
+	mark, err := m.getMarketPlace()
 	if err != nil {
 		return err
 	}
@@ -757,7 +757,7 @@ func (m *Machine) UpdateMarketImageId() error {
 }
 
 func (m *Machine) UpdateMarketStatus() error {
-	mark, err := m.getMarket()
+	mark, err := m.getMarketPlace()
 	if err != nil {
 		return err
 	}

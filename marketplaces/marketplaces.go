@@ -216,7 +216,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 	if !ok {
 		return fmt.Errorf("cannot provision marketplaces")
 	}
-	err = deployer.CustomiseRawImage(box, writer)
+	err = deployer.CustomizeImage(box, writer)
 	if err != nil {
 		return err
 	}

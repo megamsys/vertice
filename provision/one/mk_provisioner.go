@@ -32,10 +32,10 @@ func (p *oneProvisioner) ISODeploy(m *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&machCreating,
-		&createRawISOImage,
-		&updateRawImageId,
+		&createImage,
+		&updateImage,
 		&waitUntillImageReady,
-		&updateRawStatus,
+		&updateImageStatus,
 	}
 	pipeline := action.NewPipeline(actions...)
 	args := runMachineActionsArgs{
@@ -55,7 +55,7 @@ func (p *oneProvisioner) ISODeploy(m *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *oneProvisioner) CustomiseRawImage(m *provision.Box, w io.Writer) error {
+func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)", m.Name)))
 
 	actions := []*action.Action{
