@@ -6,8 +6,8 @@ import (
 	"github.com/codegangsta/negroni"
 	"github.com/googollee/go-socket.io"
 	"github.com/megamsys/libgo/cmd"
-	"golang.org/x/net/websocket"
 	"github.com/rs/cors"
+	"golang.org/x/net/websocket"
 	"net/http"
 )
 

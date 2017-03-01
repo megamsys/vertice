@@ -14,6 +14,7 @@ import (
 	"github.com/megamsys/vertice/subd/docker"
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
+	"github.com/megamsys/vertice/subd/marketplacesd"
 	"github.com/megamsys/vertice/subd/metricsd"
 	"github.com/megamsys/vertice/subd/rancher"
 )
@@ -47,6 +48,7 @@ func NewServer(c *Config, version string) (*Server, error) {
 	s.appendMetricsdService(c)
 	s.appendEventsdService(c.Meta, c.Events, c.Deployd)
 	s.appendRancherService(c.Meta, c.Rancher)
+	s.appendMarketplacesService(c.Meta, c.MarketPlaces, c.Deployd)
 	s.selfieDNS(c.DNS)
 	c.Meta.MkGlobal() //a setter for global meta config
 	return s, nil
@@ -79,6 +81,16 @@ func (s *Server) appendDockerService(c *meta.Config, d *docker.Config) {
 		return
 	}
 	srv := docker.NewService(c, d)
+	s.Services = append(s.Services, srv)
+}
+
+func (s *Server) appendMarketplacesService(c *meta.Config, d *marketplacesd.Config, one *deployd.Config) {
+	e := *d
+	if !e.Enabled {
+		log.Warn("skip marketplacesd service.")
+		return
+	}
+	srv := marketplacesd.NewService(c, d, one)
 	s.Services = append(s.Services, srv)
 }
 

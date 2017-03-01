@@ -16,11 +16,11 @@
 package carton
 
 import (
+	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
 	"gopkg.in/yaml.v2"
-	"encoding/json"
 	"reflect"
 	"strings"
 )
@@ -28,23 +28,24 @@ import (
 const (
 	ASSEMBLIESBUCKET = "assemblies"
 )
+
 //bunch Assemblys
 type Cartons []*Carton
 
 type ApiAssemblies struct {
-	JsonClaz string     `json:"json_claz"`
+	JsonClaz string       `json:"json_claz"`
 	Results  []Assemblies `json:"results"`
 }
 
 //The grand elephant for megam cloud platform.
 type Assemblies struct {
-	Id          string   `json:"id" cql:"id"`
-	OrgId			  string   `json:"org_id" cql:"org_id"`
-	JsonClaz    string   `json:"json_claz" cql:"json_claz"`
-	Name        string   `json:"name" cql:"name"`
-	AssemblysId []string `json:"assemblies" cql:"assemblies"`
+	Id          string          `json:"id" cql:"id"`
+	OrgId       string          `json:"org_id" cql:"org_id"`
+	JsonClaz    string          `json:"json_claz" cql:"json_claz"`
+	Name        string          `json:"name" cql:"name"`
+	AssemblysId []string        `json:"assemblies" cql:"assemblies"`
 	Inputs      pairs.JsonPairs `json:"inputs" cql:"inputs"`
-	CreatedAt   string   `json:"created_at" cql:"created_at"`
+	CreatedAt   string          `json:"created_at" cql:"created_at"`
 }
 
 func (a *Assemblies) String() string {
@@ -59,14 +60,14 @@ func (a *Assemblies) String() string {
 and any others we do. **/
 
 func Get(id, email string) (*Assemblies, error) {
- 	args := newArgs(email,"")
+	args := newArgs(email, "")
 	a := new(Assemblies)
 	a.Id = id
- 	return a.get(args)
+	return a.get(args)
 }
 
 func (a *Assemblies) get(args api.ApiArgs) (*Assemblies, error) {
-	cl := api.NewClient(args, "/assemblies/" + a.Id)
+	cl := api.NewClient(args, "/assemblies/"+a.Id)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -107,7 +108,7 @@ func (a *Assemblies) Delete(asmid, email string, removedAssemblys []string) {
 	}
 	args := newArgs(email, a.OrgId)
 	if reflect.DeepEqual(existingAssemblys, removedAssemblys) {
-		cl := api.NewClient(args, "/assemblies/" + asmid)
+		cl := api.NewClient(args, "/assemblies/"+asmid)
 		_, _ = cl.Delete()
 	}
 }

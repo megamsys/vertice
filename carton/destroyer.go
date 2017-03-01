@@ -4,6 +4,7 @@ import (
 	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 	"io"
 	"time"
@@ -17,7 +18,7 @@ type DestroyOpts struct {
 func Destroy(opts *DestroyOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)

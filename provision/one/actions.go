@@ -72,6 +72,7 @@ var machCreating = action.Action{
 			State:        args.machineState,
 			Image:        args.imageId,
 			StorageType:  args.box.StorageType,
+			PublicUrl:    args.box.PublicUrl,
 			Region:       args.box.Region,
 			VMId:         args.box.InstanceId,
 			VCPUThrottle: args.provisioner.vcpuThrottle,
@@ -170,7 +171,7 @@ var createMachine = action.Action{
 		fmt.Println("create machine backward state : ", c.State)
 		if c.State != constants.StateInitialized {
 			fmt.Println(" backward removing machine")
-			err := c.Remove(args.provisioner, args.box.State)
+			err := c.Remove(args.provisioner)
 			if err != nil {
 				fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
 			}
@@ -254,7 +255,7 @@ var destroyOldMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("  destroying old machine %s ----", mach.Name)))
-		err := mach.Remove(args.provisioner, args.box.State)
+		err := mach.Remove(args.provisioner)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +286,7 @@ var startMachine = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
-		err = mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.ACTIVE, vm.RUNNING)
+		err = mach.WaitUntillVMState(args.provisioner, vm.ACTIVE, vm.RUNNING)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -320,7 +321,7 @@ var stopMachine = action.Action{
 			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
 		}
-		err = mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
+		err = mach.WaitUntillVMState(args.provisioner, vm.POWEROFF, vm.LCM_INIT)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -598,7 +599,7 @@ var restoreVirtualMachine = action.Action{
 		if err := mach.RestoreSnapshot(args.provisioner); err != nil {
 			return nil, err
 		}
-		err := mach.WaitUntillVMState(&machine.CreateArgs{Provisioner: args.provisioner}, vm.POWEROFF, vm.LCM_INIT)
+		err := mach.WaitUntillVMState(args.provisioner, vm.POWEROFF, vm.LCM_INIT)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err

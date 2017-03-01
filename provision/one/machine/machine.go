@@ -19,12 +19,15 @@ import (
 	"github.com/megamsys/opennebula-go/disk"
 	"github.com/megamsys/opennebula-go/images"
 	"github.com/megamsys/opennebula-go/snapshot"
+	"github.com/megamsys/opennebula-go/template"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/meta"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/provision/one/cluster"
+
+	mk "github.com/megamsys/vertice/marketplaces"
 )
 
 type OneProvisioner interface {
@@ -48,6 +51,7 @@ type Machine struct {
 	ImageId      string
 	StorageType  string
 	Routable     bool
+	PublicUrl    string
 	Status       utils.Status
 	State        utils.State
 }
@@ -90,12 +94,8 @@ func (m *Machine) Create(args *CreateArgs) error {
 		return err
 	}
 	m.VMId = vmid
-
 	var id = make(map[string][]string)
-	vm := []string{}
-	vm = []string{m.VMId}
-	id[carton.INSTANCE_ID] = vm
-
+	id[carton.INSTANCE_ID] = []string{m.VMId}
 	if err = asm.NukeAndSetOutputs(id); err != nil {
 		return err
 	}
@@ -175,11 +175,11 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	return nil
 }
 
-func (m *Machine) WaitUntillVMState(args *CreateArgs, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
+func (m *Machine) WaitUntillVMState(p OneProvisioner, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{VmId: m.VMId}
 
 	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
-		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
+		res, err := p.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
 		}
@@ -262,7 +262,7 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
 	return mm
 }
 
-func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
+func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
@@ -278,8 +278,8 @@ func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	return nil
 }
 
-func isDeleteOk(state constants.State) bool {
-	return state != constants.StateInitialized && state != constants.StateInitializing && state != constants.StatePreError
+func (m *Machine) isDeleteOk() bool {
+	return m.State != constants.StateInitialized && m.State != constants.StateInitializing && m.State != constants.StatePreError
 }
 
 func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
@@ -689,12 +689,267 @@ func (m *Machine) UpdateVMQuotas(id string) error {
 	if err != nil {
 		return err
 	}
-	// if m.Status == constants.StatusLaunching || m.Status == constants.StatusRunning {
-	// 		quota.AllocatedTo = m.CartonId
-	// } else
 	if m.Status == constants.StatusDestroying {
 		quota.AllocatedTo = ""
 	}
 
 	return quota.Update()
+}
+
+func (m *Machine) getImage(id string) (*mk.RawImages, error) {
+	r := new(mk.RawImages)
+	r.AccountId = m.AccountId
+	r.Id = id
+	return r.Get()
+}
+
+func (m *Machine) getMarketPlace(id string) (*mk.Marketplaces, error) {
+	r := new(mk.Marketplaces)
+	r.AccountId = m.AccountId
+	r.Id = id
+	return r.Get()
+}
+
+func (m *Machine) CreateImage(p OneProvisioner) error {
+	opts := images.Image{
+		Name: m.Name,
+		Path: m.PublicUrl,
+		Type: images.CD_ROM,
+	}
+
+	res, err := p.Cluster().ImageCreate(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	m.ImageId = res.(string)
+	return nil
+}
+
+func (m *Machine) UpdateImage() error {
+	raw, err := m.getImage(m.CartonId)
+	if err != nil {
+		return err
+	}
+	var id = make(map[string][]string)
+	id[constants.RAW_IMAGE_ID] = []string{m.ImageId}
+	raw.Status = string(m.Status)
+	raw.Outputs.NukeAndSet(id)
+	return raw.Update()
+}
+
+func (m *Machine) UpdateImageStatus() error {
+	raw, err := m.getImage(m.CartonId)
+	if err != nil {
+		return err
+	}
+	raw.Status = string(m.Status)
+	return raw.Update()
+}
+
+func (m *Machine) UpdateMarketImageId() error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	var id = make(map[string][]string)
+	id[constants.IMAGE_ID] = []string{m.ImageId}
+	mark.Outputs.NukeAndSet(id)
+	return mark.Update()
+}
+
+func (m *Machine) UpdateMarketplaceStatus() error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	return mark.UpdateStatus(m.Status)
+}
+
+func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
+	size, _ := strconv.Atoi(strconv.FormatInt(int64(box.GetHDD()), 10))
+	opts := images.Image{
+		Name:       m.Name,
+		Size:       size,
+		Type:       images.DATABLOCK,
+		Persistent: "yes",
+	}
+	res, err := p.Cluster().ImageCreate(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	m.ImageId = res.(string)
+	return nil
+}
+
+func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
+	var uname, rawname, imagename string
+
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+
+	raw, err := m.getImage(mark.RawImageId())
+	if err != nil {
+		return err
+	}
+	rawname = raw.Name
+	imagename = mark.ImageName()
+
+	XMLtemplate, err := p.Cluster().GetTemplate(m.Region)
+	if err != nil {
+		return err
+	}
+
+	XMLtemplate.Template.Cpu = strconv.FormatInt(int64(box.GetCpushare()), 10)
+	XMLtemplate.Template.VCpu = XMLtemplate.Template.Cpu
+	XMLtemplate.Template.Memory = strconv.FormatInt(int64(box.GetMemory()), 10)
+	XMLtemplate.Template.Cpu_cost = mark.GetVMCpuCost()
+	XMLtemplate.Template.Memory_cost = mark.GetVMMemoryCost()
+	XMLtemplate.Template.Disk_cost = mark.GetVMHDDCost()
+	XMLtemplate.Template.Context.Accounts_id = box.AccountId
+	XMLtemplate.Template.Context.Marketplace_id = box.CartonId
+	XMLtemplate.Template.Context.ApiKey = box.ApiArgs.Api_Key
+	XMLtemplate.Template.Context.Org_id = box.OrgId
+
+	if len(XMLtemplate.Template.Disks) >= 0 {
+		uname = XMLtemplate.Template.Disks[0].Image_Uname
+	} else {
+		uname = "oneadmin"
+	}
+	disks := make([]*template.Disk, 0)
+	disks = append(disks, &template.Disk{Image_Uname: uname, Image: rawname})
+	disks = append(disks, &template.Disk{Image_Uname: uname, Image: imagename})
+	XMLtemplate.Template.Disks = disks
+
+	vmid, err := p.Cluster().InstantiateVM(XMLtemplate, imagename, m.VCPUThrottle, m.Region)
+	if err != nil {
+		return err
+	}
+
+	m.VMId = vmid
+	var id = make(map[string][]string)
+	id[carton.INSTANCE_ID] = []string{m.VMId}
+	if err = mark.NukeAndSetOutputs(id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) MarketplaceInstanceState(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	res := &virtualmachine.VM{}
+	_ = mark.UpdateStatus(utils.Status(constants.StatusLcmStateChecking))
+
+	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
+		_ = mark.Trigger_event(utils.Status(constants.StatusWaitUntill))
+		res, err = p.Cluster().GetVM(opts, m.Region)
+		if err != nil {
+			return false, err
+		}
+		if res.State == int(virtualmachine.DONE) {
+			return false, fmt.Errorf("VM deleted while machine deploying")
+		}
+		status := res.StateString()
+		if res.LcmStateString() != "" {
+			status = status + "_" + res.LcmStateString()
+		}
+		_ = mark.Trigger_event(utils.Status(status))
+		return (res.HistoryRecords.History != nil && res.LcmState == 3), nil
+	})
+	return err
+}
+
+func (m *Machine) GetMarketplaceVNC(p OneProvisioner) error {
+	opts := virtualmachine.Vnc{
+		VmId: m.VMId,
+	}
+	res, err := p.Cluster().GetVM(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	//	ips := m.mergeSameIPtype(m.IPs(res.Nics()))
+	m.VNCHost = res.GetHostIp()
+	m.VNCPort = res.GetPort()
+	return nil
+}
+
+func (m *Machine) UpdateMarketplaceVNC() error {
+	var vnc = make(map[string][]string)
+	vnc[carton.VNCHOST] = []string{m.VNCHost}
+	vnc[carton.VNCPORT] = []string{m.VNCPort}
+
+	if mark, err := m.getMarketPlace(m.CartonId); err != nil {
+		return err
+	} else if err = mark.NukeAndSetOutputs(vnc); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) ImagePersistent(p OneProvisioner) error {
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id: id,
+	}
+	return p.Cluster().ImagePersistent(opts, m.Region)
+}
+
+func (m *Machine) CheckSaveImage(p OneProvisioner) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	m.ImageId = mark.ImageId()
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id: id,
+	}
+	res, err := p.Cluster().GetImage(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	if res.Persistent == "no" {
+		return fmt.Errorf("Image in Non-persistent state")
+	}
+	return m.WaitUntillVMState(p, virtualmachine.POWEROFF, virtualmachine.LCM_INIT)
+}
+
+func (m *Machine) StopMarkplaceInstance(p OneProvisioner) error {
+	if res, err := p.Cluster().GetVM(virtualmachine.Vnc{VmId: m.VMId}, m.Region); err == nil {
+		if res.State != int(virtualmachine.POWEROFF) {
+			vmid, _ := strconv.Atoi(m.VMId)
+			return p.Cluster().VM(compute.VirtualMachine{VMId: vmid, Region: m.Region}, "stop")
+		}
+	} else {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) RemoveInstance(p OneProvisioner) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	if mark.RemoveVM() == constants.YES {
+		return m.Remove(p)
+	} else {
+		vmid, _ := strconv.Atoi(m.VMId)
+		did, _ := strconv.Atoi("0")
+		opts := &disk.VmDisk{
+			VmId: vmid,
+			Vm:   disk.Vm{Disk: disk.Disk{Disk_Id: did}},
+		}
+		return p.Cluster().DetachDisk(opts, m.Region)
+	}
+
+	return nil
 }

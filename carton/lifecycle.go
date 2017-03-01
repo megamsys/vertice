@@ -23,19 +23,20 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	constants "github.com/megamsys/libgo/utils"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 )
 
 type LifecycleOpts struct {
 	B         *provision.Box
 	start     time.Time
-	logWriter LogWriter
+	logWriter lw.LogWriter
 	writer    io.Writer
 }
 
 func (cy *LifecycleOpts) setLogger() {
 	cy.start = time.Now()
-	cy.logWriter = NewLogWriter(cy.B)
+	cy.logWriter = lw.NewLogWriter(cy.B)
 	cy.writer = io.MultiWriter(&cy.logWriter)
 }
 
@@ -76,7 +77,7 @@ func Stop(cy *LifecycleOpts) error {
 			return err
 		}
 	} else {
-	   fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
+		fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	}
 	fmt.Fprintf(cy.writer, "    stop (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil

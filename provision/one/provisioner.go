@@ -71,6 +71,7 @@ type Region struct {
 	OneTemplate    string    `json:"one_template" toml:"one_template"`
 	Image          string    `json:"image" toml:"image"`
 	VCPUPercentage string    `json:"vcpu_percentage" toml:"vcpu_percentage"`
+	Datastore      string    `json:"ond_datastore_id" toml:"ond_datastore_id"`
 	Certificate    string    `json:"certificate" toml:"certificate"`
 	Clusters       []Cluster `json:"cluster" toml:"cluster"`
 	CpuUnit        string    `json:"cpu_unit" toml:"cpu_unit"`
@@ -121,8 +122,8 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 		p.defaultImage = w.Image
 		p.vcpuThrottle = w.VCPUPercentage
 		for i := 0; i < len(w.Regions); i++ {
-			m := w.Regions[i].toMap()
-			c := w.Regions[i].toClusterMap()
+			m := w.Regions[i].ToMap()
+			c := w.Regions[i].ToClusterMap()
 			n := cluster.Node{
 				Address:  m[api.ENDPOINT],
 				Region:   m[api.ONEZONE],
@@ -142,7 +143,7 @@ func (p *oneProvisioner) initOneCluster(i interface{}) error {
 }
 
 //convert the config to just a map.
-func (c Region) toMap() map[string]string {
+func (c Region) ToMap() map[string]string {
 	m := make(map[string]string)
 	m[api.ONEZONE] = c.OneZone
 	m[api.ENDPOINT] = c.OneEndPoint
@@ -151,10 +152,11 @@ func (c Region) toMap() map[string]string {
 	m[api.TEMPLATE] = c.OneTemplate
 	m[api.IMAGE] = c.Image
 	m[api.VCPU_PERCENTAGE] = c.VCPUPercentage
+	m[constants.DATASTORE] = c.Datastore
 	return m
 }
 
-func (c Region) toClusterMap() map[string]map[string]string {
+func (c Region) ToClusterMap() map[string]map[string]string {
 	clData := make(map[string]map[string]string)
 	for i := 0; i < len(c.Clusters); i++ {
 		if c.Clusters[i].Enabled {

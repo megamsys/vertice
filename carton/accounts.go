@@ -16,7 +16,7 @@ type AccountApi struct {
 }
 
 type AccountsApi struct {
-	JsonClaz string  `json:"json_claz"`
+	JsonClaz string    `json:"json_claz"`
 	Results  []Account `json:"results"`
 }
 
@@ -51,13 +51,13 @@ type Phone struct {
 }
 
 type Approval struct {
-	Approved     string    `json:"approved" cql:"approved"`
-	ApprovedById string    `json:"approved_by_id" cql:"approved_by_id"`
+	Approved     string `json:"approved" cql:"approved"`
+	ApprovedById string `json:"approved_by_id" cql:"approved_by_id"`
 	ApprovedAt   string `json:"approved_at" cql:"approved_at"`
 }
 
 type Suspend struct {
-	Suspended     string    `json:"suspended" cql:"suspended"`
+	Suspended     string `json:"suspended" cql:"suspended"`
 	SuspendedAt   string `json:"suspended_at" cql:"suspended_at"`
 	SuspendedTill string `json:"suspended_till" cql:"suspended_till"`
 }
@@ -82,7 +82,7 @@ func NewAccounts(email string) (*Account, error) {
 }
 
 func (a *Account) get(args api.ApiArgs) (*Account, error) {
-	cl := api.NewClient(args, "/accounts/" + args.Email)
+	cl := api.NewClient(args, "/accounts/"+args.Email)
 	response, err := cl.Get()
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (a *Account) get(args api.ApiArgs) (*Account, error) {
 	return &ac.Results, nil
 }
 
-func (a *Account) GetUsers() ([]Account,  error) {
+func (a *Account) GetUsers() ([]Account, error) {
 	args := newArgs(meta.MC.MasterUser, "")
 	cl := api.NewClient(args, "/admin/accounts")
 	response, err := cl.Get()
@@ -104,10 +104,10 @@ func (a *Account) GetUsers() ([]Account,  error) {
 		return nil, err
 	}
 
-		ac := &AccountsApi{}
-		err = json.Unmarshal(response, ac)
-		if err != nil {
-			return nil, err
-		}
-		return ac.Results, nil
+	ac := &AccountsApi{}
+	err = json.Unmarshal(response, ac)
+	if err != nil {
+		return nil, err
+	}
+	return ac.Results, nil
 }

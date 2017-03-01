@@ -14,7 +14,7 @@ import (
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
 	//"github.com/megamsys/libgo/events"
-	//	"github.com/megamsys/libgo/events/alerts"
+	//lw	"github.com/megamsys/libgo/writer"
 	"github.com/megamsys/libgo/safe"
 	"github.com/megamsys/vertice/carton"
 	"github.com/megamsys/vertice/provision"
@@ -223,7 +223,6 @@ func (c *Container) Remove(r RancherProvisioner) error {
 	return nil
 }
 
-
 type StartArgs struct {
 	Provisioner RancherProvisioner
 	Box         *provision.Box
@@ -246,8 +245,8 @@ func (c *Container) Start(args *StartArgs) error {
 }
 
 func (c *Container) Stop(p RancherProvisioner) error {
- st := p.Cluster()
- st.Region = c.Region
+	st := p.Cluster()
+	st.Region = c.Region
 	err := st.StopContainer(c.Id)
 	if err != nil {
 		log.Errorf("error on stop container %s: %s", c.Id, err)
@@ -258,13 +257,12 @@ func (c *Container) Stop(p RancherProvisioner) error {
 	return nil
 }
 
-
 /*
 func (c *Container) Logs(p DockerProvisioner)   error {
 	var outBuffer bytes.Buffer
 		var closeChan chan bool
 		b := &provision.Box{Id: c.Id, Name: c.BoxName, Tosca: "docker"}
-		logWriter := carton.NewLogWriter(b)
+		logWriter := lw.NewLogWriter(b)
 		writer := io.MultiWriter(&outBuffer, &logWriter)
 	  logopt := docker.LogsOptions{
     Container:  c.Id,

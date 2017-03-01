@@ -66,7 +66,7 @@ func NewConfig() *Config {
 
 	c := one.Cluster{
 		Enabled:       false,
-		StorageType:  "hdd",
+		StorageType:   "hdd",
 		ClusterId:     DefaultOneCluster,
 		Vnet_pri_ipv4: DefaultOneVnetPri,
 		Vnet_pub_ipv4: DefaultOneVnetPub,
@@ -118,7 +118,7 @@ func (c Config) String() string {
 		b.Write([]byte(api.TEMPLATE + "\t" + v.OneTemplate + "\n"))
 		b.Write([]byte(api.IMAGE + "    \t" + v.Image + "\n"))
 		b.Write([]byte(api.VCPU_PERCENTAGE + "\t" + v.VCPUPercentage + "\n"))
-		b.Write([]byte("Resource Basic Units :\n\t\t Memory: " + v.MemoryUnit + "\tCpu: " + v.CpuUnit + "\tStorage: " + v.DiskUnit+ "\n"))
+		b.Write([]byte("Resource Basic Units :\n\t\t Memory: " + v.MemoryUnit + "\tCpu: " + v.CpuUnit + "\tStorage: " + v.DiskUnit + "\n"))
 		for _, k := range v.Clusters {
 			if k.Enabled {
 				b.Write([]byte(api.CLUSTER + "\t" + k.ClusterId + "  storage type" + k.StorageType + "\n"))
@@ -132,6 +132,6 @@ func (c Config) String() string {
 }
 
 //convert the config to just an interface.
-func (c Config) toInterface() interface{} {
+func (c Config) ToInterface() interface{} {
 	return c.One
 }

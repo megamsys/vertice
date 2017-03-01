@@ -17,13 +17,13 @@ package run
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"io/ioutil"
 
-   "github.com/BurntSushi/toml"
+	"github.com/BurntSushi/toml"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"launchpad.net/gnuflag"
@@ -121,18 +121,18 @@ func (c *Start) ParseConfig(path string) (*Config, error) {
 	}
 	log.Warnf("Using configuration at: %s", path)
 	f, err := os.Open(path)
-    if err != nil {
-        panic(err)
-  }
-  defer f.Close()
-  buf, err := ioutil.ReadAll(f)
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		panic(err)
+	}
 
-  if err := toml.Unmarshal(buf, &config); err != nil {
-    panic(err)
-  }
+	if err := toml.Unmarshal(buf, &config); err != nil {
+		panic(err)
+	}
 
 	log.Debug(config)
 	return config, nil

@@ -12,7 +12,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-
 func remoteShellHandler(ws *websocket.Conn) {
 	var httpErr *errors.HTTP
 	defer func() {
@@ -87,7 +86,6 @@ func remoteShellHandler(ws *websocket.Conn) {
 		}
 	}
 }
-
 
 //Return the Box object ?  Get the carton, and make a Box
 func getBox(asmsid string, id string, account_id string) (*carton.Carton, error) {

@@ -1,7 +1,7 @@
 package api
 
 import (
-//	"encoding/json"
+	//	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/googollee/go-socket.io"
@@ -20,7 +20,7 @@ func logHandler(so socketio.Socket) {
 				log.Debugf(cmd.Colorfy("  > [nsqd] unsub   ", "blue", "", "bold") + fmt.Sprintf("Unsubscribing from the Queue"))
 			})
 			for logbox := range l.B {
-			//	logData, _ := json.Marshal(logbox)
+				//	logData, _ := json.Marshal(logbox)
 				so.Emit(entry.Name, logbox)
 			}
 		}()

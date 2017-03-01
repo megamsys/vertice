@@ -3,13 +3,13 @@ package meta
 import (
 	"bytes"
 	"fmt"
+	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/cmd"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
-
-	"github.com/megamsys/libgo/cmd"
 )
 
 const (
@@ -26,7 +26,6 @@ const (
 	// DefaultScylla is the default scylla if one is not provided.
 	DefaultScylla = "localhost"
 
-
 	// DefaultScyllaKeyspace is the default Scyllakeyspace if one is not provided.
 	DefaultScyllaKeyspace = "vertice"
 
@@ -41,13 +40,13 @@ const (
 
 // Config represents the meta configuration.
 type Config struct {
-	Home           string   `toml:"home"`
-	Dir            string   `toml:"dir"`
-	NSQd           []string `toml:"nsqd"`
-	Api            string   `toml:"api"`
-	MasterKey      string   `toml:"master_key"`
-	MasterUser     string   `toml:"master_user"`
-	User           string   `toml:"user"`
+	Home       string   `toml:"home"`
+	Dir        string   `toml:"dir"`
+	NSQd       []string `toml:"nsqd"`
+	Api        string   `toml:"api"`
+	MasterKey  string   `toml:"master_key"`
+	MasterUser string   `toml:"master_user"`
+	User       string   `toml:"user"`
 }
 
 var MC *Config
@@ -85,12 +84,12 @@ func NewConfig() *Config {
 
 	// Config represents the configuration format for the vertice.
 	return &Config{
-		Home:           homeDir,
-		Dir:            defaultDir,
-		User:           DefaultUser,
-		Api:            DefaultApi,
-		MasterKey:      DefaultMasterKey,
-		NSQd:           []string{DefaultNSQd},
+		Home:      homeDir,
+		Dir:       defaultDir,
+		User:      DefaultUser,
+		Api:       DefaultApi,
+		MasterKey: DefaultMasterKey,
+		NSQd:      []string{DefaultNSQd},
 	}
 }
 
@@ -105,4 +104,13 @@ func (c *Config) ToMap() map[string]string {
 
 func (c *Config) MkGlobal() {
 	MC = c
+}
+
+func (c *Config) Client(email, org string) *api.ApiArgs {
+	return &api.ApiArgs{
+		Master_Key: MC.MasterKey,
+		Url:        MC.Api,
+		Email:      email,
+		Org_Id:     org,
+	}
 }

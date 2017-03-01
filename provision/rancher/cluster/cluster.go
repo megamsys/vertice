@@ -9,27 +9,27 @@ import (
 	"sync"
 	"time"
 
- "github.com/megamsys/go-rancher/v2"
+	"github.com/megamsys/go-rancher/v2"
 )
 
 const (
-	RANCHER_REGISTRY  = "registry"
-	RANCHER_ZONE      = "region"
-	RANCHER_SERVER     = "rancher"
+	RANCHER_REGISTRY = "registry"
+	RANCHER_ZONE     = "region"
+	RANCHER_SERVER   = "rancher"
 
 	RANCHER_MEMSIZE   = "mem"
 	RANCHER_SWAPSIZE  = "swap"
 	RANCHER_CPUPERIOD = "cpuperiod"
 	RANCHER_CPUQUOTA  = "cpuquota"
 
-	ADMIN_ID = "admin_id"
+	ADMIN_ID  = "admin_id"
 	ACCESSKEY = "access_key"
 	SECRETKEY = "secret_key"
 
 	BRIDGE_NAME    = "name"
 	BRIDGE_NETWORK = "network"
 	BRIDGE_GATEWAY = "gateway"
-	BRIDGE_CLUSTER    = "cluster_id"
+	BRIDGE_CLUSTER = "cluster_id"
 )
 
 var (
@@ -53,9 +53,8 @@ type ImageStorage interface {
 	//StoreImage(repo, id, host string) error
 	//RetrieveImage(repo string) (Image, error)
 	//RemoveImage(repo, id, host string) error
-//	RetrieveImages() ([]Image, error)
+	//	RetrieveImages() ([]Image, error)
 }
-
 
 // ContainerStorage provides methods to store and retrieve information about
 // the relation between the node and the container. It can be easily
@@ -90,7 +89,7 @@ type NodeStorage interface {
 
 type Storage interface {
 	ContainerStorage
-  ImageStorage
+	ImageStorage
 	NodeStorage
 }
 
@@ -313,7 +312,7 @@ func (c *Cluster) runOnNodes(fn nodeFunc, errNotFound error, wait bool, nodeAddr
 	result := make(chan interface{}, len(nodeAddresses))
 	for _, addr := range nodeAddresses {
 		wg.Add(1)
-		opts := client.ClientOpts{ Url: addr ,}
+		opts := client.ClientOpts{Url: addr}
 		client, err := c.getNodeByAddr(opts)
 		if err != nil {
 			return nil, err
@@ -362,7 +361,7 @@ func (c *Cluster) getNode(retrieveFn func(Storage) (string, error)) (node, error
 	var n node
 	storage := c.storage()
 	address, err := retrieveFn(storage)
-	opts := client.ClientOpts{Url: address,}
+	opts := client.ClientOpts{Url: address}
 	if err != nil {
 		return n, err
 	}

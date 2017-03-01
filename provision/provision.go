@@ -23,7 +23,6 @@ import (
 	"io"
 )
 
-
 var (
 	ErrInvalidStatus  = errors.New("invalid status")
 	ErrEmptyCarton    = errors.New("no boxs for this carton")
@@ -95,8 +94,16 @@ type ImageDeployer interface {
 // StateChanger changes the state of a deployed box
 // A deployed box is termed as a machine or a container
 type StateChanger interface {
-  SetRunning(*Box, io.Writer) error
+	SetRunning(*Box, io.Writer) error
 	SetState(*Box, io.Writer, utils.Status) error
+}
+
+type RawImageAccess interface {
+	ISODeploy(b *Box, w io.Writer) error
+}
+type MarketPlaceAccess interface {
+	CustomizeImage(b *Box, w io.Writer) error
+	SaveMarketplaceImage(b *Box, w io.Writer) error
 }
 
 // Provisioner is the basic interface of this package.
@@ -126,22 +133,22 @@ type Provisioner interface {
 	Stop(*Box, string, io.Writer) error
 
 	// DiskSave creates the image for current state of the running VM
-  SaveImage(*Box, io.Writer) error
+	SaveImage(*Box, io.Writer) error
 
 	// DeleteImage removes the image from storage created from running VM
 	DeleteImage(*Box, io.Writer) error
 
 	// DiskSnapCreate(SnapShot) saves current state of the running VM
-  CreateSnapshot(*Box, io.Writer) error
+	CreateSnapshot(*Box, io.Writer) error
 
 	// DeleteImage removes the image from storage created from running VM
 	DeleteSnapshot(*Box, io.Writer) error
 
 	// Restore current VM state to Saved Snapshot state
-  RestoreSnapshot(*Box, io.Writer) error
+	RestoreSnapshot(*Box, io.Writer) error
 
-  // AttachDisk add additional disk to current state of the running VM
-  AttachDisk(*Box, io.Writer) error
+	// AttachDisk add additional disk to current state of the running VM
+	AttachDisk(*Box, io.Writer) error
 
 	// DetachDisk remove additional disk from current state of the running VM
 	DetachDisk(*Box, io.Writer) error
@@ -157,9 +164,9 @@ type Provisioner interface {
 	Addr(*Box) (string, error)
 
 	// Returns the metric backend collected
-	MetricEnvs(int64, int64,string,io.Writer) ([]interface{}, error)
+	MetricEnvs(int64, int64, string, io.Writer) ([]interface{}, error)
 
-	TriggerBills(string,string,string) error
+	TriggerBills(string, string, string) error
 }
 
 type MessageProvisioner interface {

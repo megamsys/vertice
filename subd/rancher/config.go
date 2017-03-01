@@ -21,7 +21,7 @@ const (
 
 	DefaultProvider = "rancher"
 
-  DefaultRancherZone = "India"
+	DefaultRancherZone = "India"
 	// DefaultNamespace is the default highlevel namespace(userid) under the registry eg: https://hub.docker.com/megam
 	DefaultNamespace = "megam"
 
@@ -47,8 +47,8 @@ const (
 )
 
 type Config struct {
-	Provider string        `json:"provider" toml:"provider"`
-	Rancher   rancher.Rancher `json:"container" toml:"container"`
+	Provider string          `json:"provider" toml:"provider"`
+	Rancher  rancher.Rancher `json:"container" toml:"container"`
 }
 
 func NewConfig() *Config {
@@ -56,13 +56,13 @@ func NewConfig() *Config {
 	rg := make([]rancher.Region, 0)
 	r := rancher.Region{
 		RancherZone:     DefaultRancherZone,
-		RancherEndPoint:  DefaultRancherEndpoint,
-		Registry:       DefaultRegistry,
-		AdminId:        "info@megam.io",
-		AdminAccess: 		DefaultAccessKey,
-		AdminSecret:    DefaultSecretKey,
-		CPUPeriod:      toml.Duration(DefaultCPUPeriod),
-		CPUQuota:       toml.Duration(DefaultCPUQuota),
+		RancherEndPoint: DefaultRancherEndpoint,
+		Registry:        DefaultRegistry,
+		AdminId:         "info@megam.io",
+		AdminAccess:     DefaultAccessKey,
+		AdminSecret:     DefaultSecretKey,
+		CPUPeriod:       toml.Duration(DefaultCPUPeriod),
+		CPUQuota:        toml.Duration(DefaultCPUQuota),
 	}
 
 	o := rancher.Rancher{
@@ -72,7 +72,7 @@ func NewConfig() *Config {
 
 	return &Config{
 		Provider: DefaultProvider,
-		Rancher:   o,
+		Rancher:  o,
 	}
 }
 
@@ -84,12 +84,12 @@ func (c Config) String() string {
 		cmd.Colorfy("rancher", "cyan", "", "") + "\n"))
 	b.Write([]byte(constants.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Rancher.Enabled) + "\n"))
-	for  _, v := range c.Rancher.Regions {
+	for _, v := range c.Rancher.Regions {
 		b.Write([]byte(cluster.RANCHER_ZONE + "\t" + v.RancherZone + "\n"))
 		b.Write([]byte(cluster.RANCHER_SERVER + "\t" + v.RancherEndPoint + "\n"))
 		b.Write([]byte("Admin Id    \t" + v.AdminId + "\n"))
 		b.Write([]byte("AdminAccess" + "    \t" + v.AdminAccess + "\n"))
-		b.Write([]byte("AdminSecret"  + "\t" + v.AdminSecret + "\n"))
+		b.Write([]byte("AdminSecret" + "\t" + v.AdminSecret + "\n"))
 		b.Write([]byte(cluster.RANCHER_CPUPERIOD + "    \t" + v.CPUPeriod.String() + "\n"))
 		b.Write([]byte(cluster.RANCHER_CPUQUOTA + "    \t" + v.CPUQuota.String() + "\n"))
 		b.Write([]byte("---\n"))

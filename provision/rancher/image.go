@@ -64,14 +64,14 @@ func (p *rancherProvisioner) cleanImage(appName, imgName string) {
 	//	shouldReme := true
 	//err := p.Cluster().RemoveImage(imgName)
 	//if err != nil {
-		//	shouldRemove = false
-		//log.Errorf("Ignored error removing old image %q: %s. Image kept on list to retry later.",
-		//	imgName, err.Error())
+	//	shouldRemove = false
+	//log.Errorf("Ignored error removing old image %q: %s. Image kept on list to retry later.",
+	//	imgName, err.Error())
 	//}
 	//err = p.Cluster().RemoveFromRegistry(imgName)
 	//if err != nil {
-		//shouldRemove = false
-		//log.Errorf("Ignored error removing old image from registry %q: %s. Image kept on list to retry later.",
-		//	imgName, err.Error())
+	//shouldRemove = false
+	//log.Errorf("Ignored error removing old image from registry %q: %s. Image kept on list to retry later.",
+	//	imgName, err.Error())
 	//}
 }

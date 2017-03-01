@@ -8,22 +8,24 @@ import (
 	"github.com/megamsys/vertice/subd/deployd"
 	"github.com/megamsys/vertice/subd/dns"
 	"github.com/megamsys/vertice/subd/docker"
-  "github.com/megamsys/vertice/subd/rancher"
 	"github.com/megamsys/vertice/subd/eventsd"
 	"github.com/megamsys/vertice/subd/httpd"
+	"github.com/megamsys/vertice/subd/marketplacesd"
 	"github.com/megamsys/vertice/subd/metricsd"
+	"github.com/megamsys/vertice/subd/rancher"
 )
 
 type Config struct {
-	Meta    *meta.Config     `toml:"meta"`
-	Deployd *deployd.Config  `toml:"deployd"`
-	HTTPD   *httpd.Config    `toml:"http"`
-	Docker  *docker.Config   `toml:"docker"`
-	Metrics *metricsd.Config `toml:"metrics"`
-	DNS     *dns.Config      `toml:"dns"`
-	Events  *eventsd.Config  `toml:"events"`
-	Storage *storage.Config  `toml:"storage"`
-  Rancher *rancher.Config  `toml:"rancher"`
+	Meta         *meta.Config          `toml:"meta"`
+	Deployd      *deployd.Config       `toml:"deployd"`
+	HTTPD        *httpd.Config         `toml:"http"`
+	Docker       *docker.Config        `toml:"docker"`
+	Metrics      *metricsd.Config      `toml:"metrics"`
+	DNS          *dns.Config           `toml:"dns"`
+	Events       *eventsd.Config       `toml:"events"`
+	Storage      *storage.Config       `toml:"storage"`
+	Rancher      *rancher.Config       `toml:"rancher"`
+	MarketPlaces *marketplacesd.Config `toml:"marketplaces"`
 }
 
 func (c Config) String() string {
@@ -35,8 +37,9 @@ func (c Config) String() string {
 		c.Metrics.String() + "\n" +
 		c.DNS.String() + "\n" +
 		c.Events.String() + "\n" +
-    c.Storage.String() + "\n" +
-    c.Rancher.String())
+		c.Storage.String() + "\n" +
+		c.MarketPlaces.String() + "\n" +
+		c.Rancher.String())
 
 }
 
@@ -51,7 +54,8 @@ func NewConfig() *Config {
 	c.Events = eventsd.NewConfig()
 	c.DNS = dns.NewConfig()
 	c.Storage = storage.NewConfig()
-  c.Rancher = rancher.NewConfig()
+	c.Rancher = rancher.NewConfig()
+	c.MarketPlaces = marketplacesd.NewConfig()
 	return c
 }
 

@@ -8,10 +8,10 @@ import (
 type Bridges []Bridge
 
 type Bridge struct {
-	ClusterId    string
-	Name    string
-	Network string
-	Gateway string
+	ClusterId string
+	Name      string
+	Network   string
+	Gateway   string
 }
 
 func (b *Bridge) IPRequest(subnet *net.IPNet, pos uint) net.IP {

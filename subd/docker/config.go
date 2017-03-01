@@ -91,10 +91,10 @@ func (c Config) String() string {
 		cmd.Colorfy("docker", "cyan", "", "") + "\n"))
 	b.Write([]byte(constants.PROVIDER + "\t" + c.Provider + "\n"))
 	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(c.Docker.Enabled) + "\n"))
-	for  _, v := range c.Docker.Regions {
+	for _, v := range c.Docker.Regions {
 		b.Write([]byte(cluster.DOCKER_ZONE + "\t" + v.DockerZone + "\n"))
 		b.Write([]byte(cluster.DOCKER_SWARM + "\t" + v.SwarmEndPoint + "\n"))
-	//	b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
+		//	b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
 		//b.Write([]byte(cluster.DOCKER_REGISTRY + "\t" + c.Docker.Regions[i].Registry + "\n"))
 		//	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.Docker.Regions[i].MemSize) + "\n"))
 		//	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.Docker.Regions[i].SwapSize) + "\n"))

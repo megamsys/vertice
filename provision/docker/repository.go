@@ -12,15 +12,15 @@ func (p *dockerProvisioner) GetContainerByBox(box *provision.Box) (*container.Co
 		id = box.InstanceId[:10]
 	}
 	return &container.Container{
-		BoxId:    box.Id,
-		CartonId: box.CartonId,
+		BoxId:     box.Id,
+		CartonId:  box.CartonId,
 		AccountId: box.AccountId,
-		Name:     box.Name,
-		BoxName:  box.GetFullName(),
-		Level:    box.Level,
-		Region:   box.Region,
-		Status:   box.Status,
-		Id: id,
+		Name:      box.Name,
+		BoxName:   box.GetFullName(),
+		Level:     box.Level,
+		Region:    box.Region,
+		Status:    box.Status,
+		Id:        id,
 	}, nil
 
 }

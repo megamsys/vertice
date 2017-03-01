@@ -3,23 +3,23 @@ package storage
 import (
 	"bytes"
 	"fmt"
+	"github.com/megamsys/libgo/cmd"
+	"strconv"
 	"strings"
 	"text/tabwriter"
-  "strconv"
-	"github.com/megamsys/libgo/cmd"
 )
 
 const (
 	// DefaultEndpoint rados gateway endpoint
 	DefaultEndpoint = "http://localhost:7480"
 
-  // Access credentials for radosgw
+	// Access credentials for radosgw
 	DefaultAccessKey = "vertadmin"
 	DefaultSecretKey = "vertadmin"
 
-  DefaultZone = "in.south.tn"
+	DefaultZone = "in.south.tn"
 
-  DefaultCost = "1.0"
+	DefaultCost = "1.0"
 )
 
 // Config represents the meta configuration.
@@ -57,11 +57,11 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		Enabled:    false,
+		Enabled: false,
 		RgwStorage: RadosGw{
-  		Enabled:        false,
-  		Regions:        append(rg, r),
-  	},
+			Enabled: false,
+			Regions: append(rg, r),
+		},
 	}
 }
 
@@ -77,7 +77,7 @@ func (c Config) String() string {
 		b.Write([]byte("Endpoint" + "\t" + v.EndPoint + "\n"))
 		b.Write([]byte("Admin User" + "    \t" + v.AdminUser + "\n"))
 		b.Write([]byte("AdminAccess" + "    \t" + v.AdminAccess + "\n"))
-		b.Write([]byte("AdminSecret"  + "\t" + v.AdminSecret + "\n"))
+		b.Write([]byte("AdminSecret" + "\t" + v.AdminSecret + "\n"))
 		b.Write([]byte("Cost per hour" + "\t" + v.CostPerHour + "\n"))
 		b.Write([]byte("---\n"))
 	}

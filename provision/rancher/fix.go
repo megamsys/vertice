@@ -1,4 +1,5 @@
 package rancher
+
 /*
 import (
 	log "github.com/Sirupsen/logrus"
@@ -17,7 +18,7 @@ func (p *rancherProvisioner) fixContainers() error {
 		log.Errorf("error checking containers for fixing: %s", err.Error())
 	}
 	return err
-	*/
+*/
 //	return nil
 //}
 /*
@@ -60,5 +61,5 @@ func (p *rancherProvisioner) fixContainer(container *container.Container, info c
 	if err != nil && err != router.ErrRouteExists {
 		return err
 	}*/
-	//return nil
+//return nil
 //}

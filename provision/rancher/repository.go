@@ -8,15 +8,15 @@ import (
 //this is essentially converting box to a container.
 func (p *rancherProvisioner) GetContainerByBox(box *provision.Box) (*container.Container, error) {
 	return &container.Container{
-		BoxId:    box.Id,
-		CartonId: box.CartonId,
+		BoxId:     box.Id,
+		CartonId:  box.CartonId,
 		AccountId: box.AccountId,
-		Name:     box.Name,
-		BoxName:  box.GetFullName(),
-		Level:    box.Level,
-		Region:   box.Region,
-		Status:   box.Status,
-		Id:       box.InstanceId,
+		Name:      box.Name,
+		BoxName:   box.GetFullName(),
+		Level:     box.Level,
+		Region:    box.Region,
+		Status:    box.Status,
+		Id:        box.InstanceId,
 	}, nil
 
 }

@@ -5,16 +5,16 @@ import (
 )
 
 const (
-	INFO                   = "Info"
-	ERROR                  = "Error"
-	WARN                   = "Warning"
-	DEPLOY              = "Deploying"
-  STARTING            = "Startingg"
-  STOPPING            = "Stopping"
-  RESTARTING          = "Restarting"
-	DESTORYING          = "Destorying"
-	UPDATING            = "Updating"
-	BILLING             = "Billing"
+	INFO       = "Info"
+	ERROR      = "Error"
+	WARN       = "Warning"
+	DEPLOY     = "Deploying"
+	STARTING   = "Startingg"
+	STOPPING   = "Stopping"
+	RESTARTING = "Restarting"
+	DESTORYING = "Destorying"
+	UPDATING   = "Updating"
+	BILLING    = "Billing"
 )
 
 type LogBox struct {

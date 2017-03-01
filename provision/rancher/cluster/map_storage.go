@@ -5,7 +5,7 @@ import (
 	"sync"
 	//	"net"
 	"time"
-		//"math"
+	//"math"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 )
 
 type MapStorage struct {
-	cMap    map[string]string
+	cMap map[string]string
 	//iMap    map[string]*Image
 	nodes   []Node
 	nodeMap map[string]*Node
@@ -224,6 +224,7 @@ func (s *MapStorage) UnlockNode(address string) error {
 	n.Healing = HealingData{}
 	return nil
 }
+
 /*
 func (s *MapStorage) StoreImage(repo, id, host string) error {
 	s.iMut.Lock()

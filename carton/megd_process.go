@@ -167,7 +167,6 @@ func (s StateupProcess) Process(ca Cartons) error {
 	return nil
 }
 
-
 // SnapCreateProcess represents a command for delete cartons.
 type SnapCreateProcess struct {
 	Name string
@@ -252,7 +251,6 @@ func (s SnapSaveAsProcess) Process(ca Cartons) error {
 	return nil
 }
 
-
 // ImageCreateProcess represents a command for create backup box.
 type ImageCreateProcess struct {
 	Name string
@@ -295,7 +293,6 @@ func (s ImageDestroyProcess) Process(ca Cartons) error {
 	return nil
 }
 
-
 // DiskAttachProcess represents a command for delete cartons.
 type DiskAttachProcess struct {
 	Name string
@@ -317,7 +314,6 @@ func (s DiskAttachProcess) Process(ca Cartons) error {
 	return nil
 }
 
-
 // DiskDetachProcess represents a command for delete cartons.
 type DiskDetachProcess struct {
 	Name string
@@ -338,7 +334,6 @@ func (s DiskDetachProcess) Process(ca Cartons) error {
 	}
 	return nil
 }
-
 
 // UpgradeProcs represents a command for starting  cartons.
 type RunningProcess struct {

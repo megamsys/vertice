@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
-//	"github.com/megamsys/go-rancher/v2"
+	//	"github.com/megamsys/go-rancher/v2"
 	"github.com/megamsys/libgo/action"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
@@ -116,8 +116,8 @@ var updateStatusInScylla = action.Action{
 			ncont, _ := args.provisioner.GetContainerByBox(args.box)
 			cont = *ncont
 			cont.Status = args.containerStatus
-			cont.State  = args.containerState
-			cont.Image  = args.imageId
+			cont.State = args.containerState
+			cont.Image = args.imageId
 		}
 		if err := cont.SetStatus(cont.Status); err != nil {
 			return nil, err
@@ -152,13 +152,13 @@ var createContainer = action.Action{
 		return cont, nil
 	},
 	Backward: func(ctx action.BWContext) {
-	//	c := ctx.FWResult.(container.Container)
-	//	args := ctx.Params[0].(runContainerActionsArgs)
+		//	c := ctx.FWResult.(container.Container)
+		//	args := ctx.Params[0].(runContainerActionsArgs)
 
 		//fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.INFO, fmt.Sprintf("\n---- Removing old container %s ----\n", c.Name)))
 		//err := args.provisioner.Cluster().RemoveContainer(docker.RemoveContainerOptions{ID: c.Id})
 		//if err != nil {
-			//log.Errorf("---- [start-container:Backward]\n     %s", err.Error())
+		//log.Errorf("---- [start-container:Backward]\n     %s", err.Error())
 		//}
 	},
 }
@@ -169,7 +169,7 @@ var updateContainerIdInScylla = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(),cont.Id )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update container id for the container (%s, %s)", args.box.GetFullName(), cont.Id)))
 		if err := cont.UpdateContId(); err != nil {
 			return nil, err
 		}
@@ -186,7 +186,7 @@ var MileStoneUpdate = action.Action{
 		cont := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
 		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(),constants.CONTAINERLAUNCHED )))
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update milestone state for container (%s, %s)", args.box.GetFullName(), constants.CONTAINERLAUNCHED)))
 		if err := cont.SetMileStone(cont.State); err != nil {
 			return nil, err
 		}
@@ -205,7 +205,7 @@ var waitToContainerUp = action.Action{
 		if err != nil {
 			return c, err
 		}
-		c.State  = constants.StateRunning
+		c.State = constants.StateRunning
 		c.Status = constants.StatusContainerRunning
 		return c, nil
 	},
@@ -218,7 +218,7 @@ var setNetworkInfo = action.Action{
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		c := ctx.Previous.(container.Container)
 		args := ctx.Params[0].(runContainerActionsArgs)
-	  err := c.NetworkInfo(args.provisioner)
+		err := c.NetworkInfo(args.provisioner)
 		if err != nil {
 			return nil, err
 		}

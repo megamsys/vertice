@@ -71,7 +71,7 @@ func (s *Service) processNSQ(msg *nsq.Message) {
 	}
 	re, err := p.Convert()
 	if err != nil {
-		log.Errorf("%s",err)
+		log.Errorf("%s", err)
 		return
 	}
 	go s.Handler.serveNSQ(re)
@@ -102,7 +102,7 @@ func (s *Service) setProvisioner(pt string) error {
 	log.Debugf(cmd.Colorfy("  > configuring ", "blue", "", "bold") + fmt.Sprintf("%s ", pt))
 
 	if initializableProvisioner, ok := tempProv.(provision.InitializableProvisioner); ok {
-		err = initializableProvisioner.Initialize(s.Deployd.toInterface())
+		err = initializableProvisioner.Initialize(s.Deployd.ToInterface())
 		if err != nil {
 			return fmt.Errorf("unable to initialize %s provisioner\n --> %s", pt, err)
 		} else {

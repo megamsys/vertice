@@ -21,6 +21,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events/alerts"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
 	"io"
@@ -52,7 +53,7 @@ type DeployOpts struct {
 func Deploy(opts *DeployOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
@@ -139,7 +140,7 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 // image based deploy, and then fallback to the Git based deployment.
 func Running(opts *DeployOpts) error {
 	var outBuffer bytes.Buffer
-	logWriter := LogWriter{Box: opts.B}
+	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)

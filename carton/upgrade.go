@@ -5,6 +5,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
+	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 )
 
@@ -27,7 +28,7 @@ func (u *Upgradeable) register() {}
 
 // this is for CI/BIND for docker only
 func (u *Upgradeable) Upgrade() error {
-	logWriter := NewLogWriter(u.B)
+	logWriter := lw.NewLogWriter(u.B)
 	defer logWriter.Close()
 	writer := io.MultiWriter(&logWriter)
 	err := u.operateBox(writer)
