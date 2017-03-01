@@ -93,17 +93,26 @@ func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
+func (p *oneProvisioner) SaveMarketplaceImage(m *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- save customized marketplace image pipeline for box (%s)", m.Name)))
 	actions := []*action.Action{
 		&machCreating,
-		//
+		&updateMarketplaceStatus,
+		&stopMachineIfRunning,
+		&waitForsaveImage,
+		&updateMarketplaceStatus,
+		&makeImageAsPersistent,
+		&removeInstance,
+		&updateMarketplaceStatus,
 	}
+
+	actions = append(actions, &updateMarketplaceStatus)
+
 	pipeline := action.NewPipeline(actions...)
 	args := runMachineActionsArgs{
 		box:           m,
 		writer:        w,
-		machineStatus: constants.StatusMarketplaceSaving,
+		machineStatus: constants.StatusImageSaving,
 		provisioner:   p,
 	}
 

@@ -348,8 +348,6 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	return nil
 }
 
-//*********************************
-
 func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
 	var a []int
 	node, err := c.getNodeRegion(region)
@@ -508,6 +506,26 @@ func (c *Cluster) instantiateVMInNode(v *template.TemplateReqs, vmname, region s
 	}
 
 	return res.(string), nil
+}
+
+func (c *Cluster) ImagePersistent(opts images.Image, region string) error {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+	_, err = opts.ChPersistent(false)
+	return err
+}
+
+func (c *Cluster) GetImage(opts images.Image, region string) (*images.Image, error) {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+	opts.T = node.Client
+	return opts.Show()
 }
 
 func (c *Cluster) GetTemplate(region string) (*template.UserTemplate, error) {

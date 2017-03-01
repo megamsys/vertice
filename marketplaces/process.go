@@ -20,6 +20,8 @@ func (m *Marketplaces) Process(action string) error {
 	switch action {
 	case MARKETPLACE_ISO_CUSTOMIZE:
 		return m.rawImageCustomize()
+	case MARKETPLACE_ISO_FINISHED:
+		return m.saveImage()
 	default:
 		return nil
 	}

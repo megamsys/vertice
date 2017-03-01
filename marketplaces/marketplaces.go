@@ -231,21 +231,40 @@ func (m *Marketplaces) rawImageCustomize() error {
 	return nil
 }
 
-func (m *Marketplaces) mkBox() (*provision.Box, error) {
-	raw := new(RawImages)
-	raw.AccountId = m.AccountId
-	raw.Id = m.RawImageId()
-	raw, err := raw.get()
+func (m *Marketplaces) saveImage() error {
+	box, err := m.mkBox()
 	if err != nil {
-		return nil, err
+		return err
 	}
+	var outBuffer bytes.Buffer
+	start := time.Now()
+	logWriter := lw.LogWriter{Box: box}
+	logWriter.Async()
+	defer logWriter.Close()
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+	deployer, ok := ProvisionerMap[box.Provider].(provision.MarketPlaceAccess)
+	if !ok {
+		return fmt.Errorf("cannot provision marketplaces")
+	}
+	err = deployer.SaveMarketplaceImage(box, writer)
+	if err != nil {
+		return err
+	}
+	elapsed := time.Since(start)
+	log.Debugf("%s in (%s)\n%s", cmd.Colorfy(box.Name, "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
+	return nil
+}
 
+func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	box := &provision.Box{
-		CartonId:  m.Id,
-		AccountId: m.AccountId,
-		Name:      m.ImageName(),
-		Region:    m.Region(),
-		Provider:  raw.provider(),
+		CartonId:   m.Id,
+		AccountId:  m.AccountId,
+		Name:       m.ImageName(),
+		Region:     m.Region(),
+		Provider:   m.provider(),
+		InstanceId: m.instanceId(),
 	}
 	return box, nil
 }
@@ -260,6 +279,14 @@ func (s *Marketplaces) ImageName() string {
 	return s.Inputs.Match(utils.IMAGE_NAME)
 }
 
+func (s *Marketplaces) ImageId() string {
+	return s.Outputs.Match(utils.IMAGE_ID)
+}
+
+func (s *Marketplaces) RemoveVM() string {
+	return s.Inputs.Match("remove_vm")
+}
+
 func (s *Marketplaces) RawImageId() string {
 	return s.Inputs.Match(utils.RAW_IMAGE_ID)
 }
@@ -270,6 +297,10 @@ func (s *Marketplaces) instanceId() string {
 
 func (s *Marketplaces) Region() string {
 	return s.Inputs.Match(utils.REGION)
+}
+
+func (s *Marketplaces) provider() string {
+	return s.Inputs.Match(utils.PROVIDER)
 }
 
 func (m *Marketplaces) GetVMCpuCost() string {

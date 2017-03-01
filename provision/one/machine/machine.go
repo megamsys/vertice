@@ -175,11 +175,11 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 	return nil
 }
 
-func (m *Machine) WaitUntillVMState(args *CreateArgs, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
+func (m *Machine) WaitUntillVMState(p OneProvisioner, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{VmId: m.VMId}
 
 	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
-		res, err := args.Provisioner.Cluster().GetVM(opts, m.Region)
+		res, err := p.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
 		}
@@ -262,7 +262,7 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
 	return mm
 }
 
-func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
+func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
@@ -278,8 +278,8 @@ func (m *Machine) Remove(p OneProvisioner, state constants.State) error {
 	return nil
 }
 
-func isDeleteOk(state constants.State) bool {
-	return state != constants.StateInitialized && state != constants.StateInitializing && state != constants.StatePreError
+func (m *Machine) isDeleteOk() bool {
+	return m.State != constants.StateInitialized && m.State != constants.StateInitializing && m.State != constants.StatePreError
 }
 
 func (m *Machine) LifecycleOps(p OneProvisioner, action string) error {
@@ -891,5 +891,65 @@ func (m *Machine) UpdateMarketplaceVNC() error {
 	} else if err = mark.NukeAndSetOutputs(vnc); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (m *Machine) ImagePersistent(p OneProvisioner) error {
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id: id,
+	}
+	return p.Cluster().ImagePersistent(opts, m.Region)
+}
+
+func (m *Machine) CheckSaveImage(p OneProvisioner) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	m.ImageId = mark.ImageId()
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id: id,
+	}
+	res, err := p.Cluster().GetImage(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	if res.Persistent == "no" {
+		return fmt.Errorf("Image in Non-persistent state")
+	}
+	return m.WaitUntillVMState(p, virtualmachine.POWEROFF, virtualmachine.LCM_INIT)
+}
+
+func (m *Machine) StopMarkplaceInstance(p OneProvisioner) error {
+	if res, err := p.Cluster().GetVM(virtualmachine.Vnc{VmId: m.VMId}, m.Region); err == nil {
+		if res.State != int(virtualmachine.POWEROFF) {
+			vmid, _ := strconv.Atoi(m.VMId)
+			return p.Cluster().VM(compute.VirtualMachine{VMId: vmid, Region: m.Region}, "stop")
+		}
+	} else {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) RemoveInstance(p OneProvisioner) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	if mark.RemoveVM() == constants.YES {
+		return m.Remove(p)
+	} else {
+		vmid, _ := strconv.Atoi(m.VMId)
+		did, _ := strconv.Atoi("0")
+		opts := &disk.VmDisk{
+			VmId: vmid,
+			Vm:   disk.Vm{Disk: disk.Disk{Disk_Id: did}},
+		}
+		return p.Cluster().DetachDisk(opts, m.Region)
+	}
+
 	return nil
 }

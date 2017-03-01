@@ -208,3 +208,87 @@ var updateMarketplaceVnc = action.Action{
 	Backward: func(ctx action.BWContext) {
 	},
 }
+
+var stopMachineIfRunning = action.Action{
+	Name: "update-vnc-host-ip-port",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.StopMarkplaceInstance(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		mach.Status = constants.StatusImageSaving
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var waitForsaveImage = action.Action{
+	Name: "wait-for-save-image",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.CheckSaveImage(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		mach.Status = constants.StatusImageSaved
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var makeImageAsPersistent = action.Action{
+	Name: "make-image-as-persistent",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.ImagePersistent(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		mach.Status = constants.StatusImageReady
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var removeInstance = action.Action{
+	Name: "remove-instance-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.RemoveInstance(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		mach.Status = constants.StatusImageReady
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
