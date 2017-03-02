@@ -953,3 +953,41 @@ func (m *Machine) RemoveInstance(p OneProvisioner) error {
 
 	return nil
 }
+
+func (m *Machine) UpdatePolicyStatus(index int) error {
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if err != nil {
+		return err
+	}
+	return asm.UpdatePolicyStatus(index, m.Status)
+}
+
+func (m *Machine) AttachNetwork(box *provision.Box, p OneProvisioner) error {
+	return p.Cluster().AttachNics(box.PolicyOps.Rules, m.VMId, m.Region, box.StorageType)
+}
+
+func (m *Machine) DetachNetwork(box *provision.Box, p OneProvisioner) error {
+	// get ips from box.PolicyOps.Rules
+	ips := []string{}
+	res, err := p.Cluster().GetVM(virtualmachine.Vnc{VmId: m.VMId}, m.Region)
+	if err != nil {
+    return err
+	}
+		ids := m.networkIds(res, ips)
+		return p.Cluster().DetachNics( ids, m.VMId,  m.Region)
+}
+
+func (m *Machine) networkIds(vm *virtualmachine.VM, ips []string) []string {
+  var net_ids []string
+	for _, ip := range ips {
+		id := vm.NetworkIdByIP(ip)
+		if id != "" {
+			net_ids = append(net_ids, id)
+		}
+	}
+	return net_ids
+}
+
+func (m *Machine) RemoveNetworkIps(box *provision.Box) error {
+	return nil
+}

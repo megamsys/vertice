@@ -317,7 +317,7 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)", box.GetFullName())))
 	actions := []*action.Action{
 		&machCreating,
-		&updateVMIps,
+		&updateNetworkIps,
 		&updateStatusInScylla,
 		&mileStoneUpdate,
 	}
@@ -808,5 +808,74 @@ func (p *oneProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provi
 		box := boxs[0]
 		return box.Exec(p, stdout, stderr, cmd, args...)
 	*/
+	return nil
+}
+
+func (p *oneProvisioner) NetworkUpdate(box *provision.Box, w io.Writer) error {
+	switch box.PolicyOps.Operation {
+	case carton.NETWORK_ATTACH:
+		return p.networkAttach(box, w)
+	case carton.NETWORK_DETACH:
+		return p.networkDetach(box, w)
+	}
+	return nil
+}
+
+func (p *oneProvisioner) networkAttach(box *provision.Box, w io.Writer) error {
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- network attach for box %s", box.GetFullName())))
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&updataPoliciesStatus,
+		&attachNetworks,
+		&updateNetworkIps,
+		&updataPoliciesStatus,
+	}
+	pipeline := action.NewPipeline(actions...)
+
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: constants.StatusInitialized,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		log.Errorf("error on execute status pipeline for box %s - %s", box.GetFullName(), err)
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- network attach for box %s OK", box.GetFullName())))
+	return nil
+}
+
+func (p *oneProvisioner) networkDetach(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- network detach for box %s", box.GetFullName())))
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&updataPoliciesStatus,
+		&detachNetworks,
+		&removeNetworkIps,
+		&updataPoliciesStatus,
+	}
+	pipeline := action.NewPipeline(actions...)
+
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: constants.StatusInitialized,
+		provisioner:   p,
+	}
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		log.Errorf("error on execute status pipeline for box %s - %s", box.GetFullName(), err)
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- network detach for box %s OK", box.GetFullName())))
 	return nil
 }

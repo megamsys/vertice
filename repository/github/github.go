@@ -6,6 +6,7 @@ import (
 	"net/http/httputil"
 	"strconv"
 	"time"
+	"context"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/google/go-github/github"
@@ -55,7 +56,7 @@ func (m githubManager) CreateHook(r repository.Repository) (string, error) {
 		return "", err
 	}
 
-	hk, response, err := client.Repositories.CreateHook(r.GetUserName(), repoName, &h)
+	hk, response, err := client.Repositories.CreateHook(context.Background(), r.GetUserName(), repoName, &h)
 	m.debugResp(response.Response)
 
 	if err != nil {

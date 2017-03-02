@@ -17,8 +17,21 @@ package carton
 
 import (
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
+	log "github.com/Sirupsen/logrus"
+	"github.com/megamsys/libgo/cmd"
+	lw "github.com/megamsys/libgo/writer"
+	"bytes"
+	"time"
+	"io"
 )
+
+const (
+	NETWORK_ATTACH = "NetworkAttachPolicy"
+	NETWORK_DETACH = "NetworkDetachPolicy"
+)
+
 
 type Operations struct {
 	Type        string          `json:"operation_type"`
@@ -42,5 +55,41 @@ func BuildHook(ops []*Operations, opsType string) *repository.Hook {
 			return o.prepBuildHook()
 		}
 	}
+	return nil
+}
+
+func newOperations(typ string) *Operations {
+	return &Operations{
+		Type: typ,
+		Status: "initialized",
+	}
+}
+
+func NetworkUpdate(box *provision.Box) error {
+	var outBuffer bytes.Buffer
+	start := time.Now()
+	logWriter := lw.LogWriter{Box: box}
+	logWriter.Async()
+	defer logWriter.Close()
+	writer := io.MultiWriter(&outBuffer, &logWriter)
+
+	err := newOperations(NETWORK).network(box, writer)
+	elapsed := time.Since(start)
+	if err != nil {
+		return err
+	}
+	log.Debugf("%s in (%s)\n%s",
+		cmd.Colorfy(box.GetFullName(), "cyan", "", "bold"),
+		cmd.Colorfy(elapsed.String(), "green", "", "bold"),
+		cmd.Colorfy(outBuffer.String(), "yellow", "", ""))
+	return nil
+}
+
+func (o *Operations) network(box *provision.Box, w io.Writer) error {
+	if box.IsPolicyOk() {
+		if deployer, ok := ProvisionerMap[box.Provider].(provision.Network); ok {
+			return deployer.NetworkUpdate(box, w)
+		}
+  }
 	return nil
 }

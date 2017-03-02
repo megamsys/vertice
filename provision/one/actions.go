@@ -219,7 +219,7 @@ var updateVnchostPostInScylla = action.Action{
 	},
 }
 
-var updateVMIps = action.Action{
+var updateNetworkIps = action.Action{
 	Name: "update-vm-assigned-ips",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
@@ -1030,5 +1030,89 @@ var checkQuotaState = action.Action{
 		if err != nil {
 			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 		}
+	},
+}
+
+var updataPoliciesStatus = action.Action{
+	Name: "update-policy-status",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update policy for machine (%s, %s)", args.box.GetFullName(), args.box.PolicyOps.Operation)))
+		if err := mach.UpdatePolicyStatus(args.box.PolicyOps.Index); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update policy for machine (%s, %s)OK", args.box.GetFullName(), args.box.PolicyOps.Operation)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- update policy Backward for %s ----", args.box.GetFullName())))
+		c.Status = constants.StatusPolicyFailure
+		err := c.UpdatePolicyStatus(args.box.PolicyOps.Index)
+		if err != nil {
+			log.Errorf("---- [policy-update:Backward]\n     %s", err.Error())
+		}
+	},
+}
+
+var attachNetworks = action.Action{
+	Name: "update-quota-for-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" attach ips to machine (%s)", args.box.GetFullName())))
+		if err := mach.AttachNetwork(args.box, args.provisioner); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusAttachInprogres
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" attach ips to machine (%s)OK", args.box.GetFullName())))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var detachNetworks = action.Action{
+	Name: "update-quota-for-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" detach ip from machine (%s)", args.box.GetFullName())))
+		if err := mach.DetachNetwork(args.box, args.provisioner); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusDetachInprogres
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" detach ip from machine (%s)OK", args.box.GetFullName())))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+
+var removeNetworkIps = action.Action{
+	Name: "remove-network-ips",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove ips for machine (%s)", args.box.GetFullName())))
+		if err := mach.RemoveNetworkIps(args.box); err != nil {
+			return nil, err
+		}
+		mach.Status = constants.StatusActive
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" remove ips for machine (%s)OK", args.box.GetFullName())))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
 	},
 }

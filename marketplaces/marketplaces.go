@@ -6,7 +6,7 @@ import (
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/vertice/provision"
 	"io"
-	// "strings"
+  "strings"
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
@@ -313,4 +313,33 @@ func (m *Marketplaces) GetVMMemoryCost() string {
 
 func (m *Marketplaces) GetVMHDDCost() string {
 	return ""
+}
+
+func (m *Marketplaces) newCompute() provision.BoxCompute {
+	return provision.BoxCompute{
+		Cpushare: m.getCpushare(),
+		Memory:   m.getMemory(),
+		Swap:     m.getSwap(),
+		HDD:      m.getHDD(),
+	}
+}
+
+func (m *Marketplaces) getCpushare() string {
+	return m.Inputs.Match(provision.CPU)
+}
+
+func (m *Marketplaces) getMemory() string {
+	return m.Inputs.Match(provision.RAM)
+}
+
+func (m *Marketplaces) getSwap() string {
+	return ""
+}
+
+//The default HDD is 10. we should configure it in the vertice.conf
+func (m *Marketplaces) getHDD() string {
+	if len(strings.TrimSpace(m.Inputs.Match(provision.HDD))) <= 0 {
+		return "10"
+	}
+	return m.Inputs.Match(provision.HDD)
 }
