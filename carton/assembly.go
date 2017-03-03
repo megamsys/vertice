@@ -56,14 +56,14 @@ const (
 )
 
 type Policy struct {
-	Name       string   `json:"name"`
-	Type       string   `json:"ptype"`
-	Resources  []string `json:"resources"`
-	Rules      []string `json:"rules"`
-	Properties []string `json:"properties"`
-	Status     string   `json:"status"`
-	CreatedAt  string   `json:"created_at"`
-	UpdatedAt  string   `json:"updated_at"`
+	Name       string          `json:"name"`
+	Type       string          `json:"ptype"`
+	Resources  pairs.JsonPairs `json:"resources"`
+	Rules      pairs.JsonPairs `json:"rules"`
+	Properties pairs.JsonPairs `json:"properties"`
+	Status     string          `json:"status"`
+	CreatedAt  string          `json:"created_at"`
+	UpdatedAt  string          `json:"updated_at"`
 }
 
 type Assembly struct {
@@ -78,7 +78,7 @@ type Assembly struct {
 	CreatedAt    string                `json:"created_at" cql:"created_at"`
 	Inputs       pairs.JsonPairs       `json:"inputs" cql:"inputs"`
 	Outputs      pairs.JsonPairs       `json:"outputs" cql:"outputs"`
-	Policies     []*Policy             `json:"policies" cql:"policies"`
+	Policies     []*Policy             `json:"policies" cql:"-"`
 	ComponentIds []string              `json:"components" cql:"components"`
 	Components   map[string]*Component `json:"-" cql:"-"`
 }
@@ -104,7 +104,7 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	}
 
 	ac := &ApiAssembly{}
-
+	fmt.Println("response :", string(response))
 	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
 	err = json.Unmarshal(response, ac)
 	if err != nil {
@@ -509,9 +509,9 @@ func (a *Assembly) policyOps() *provision.PolicyOps {
 }
 
 func (p *Policy) rules() map[string]string {
-	return pairs.ArrayToJsonPairs(p.Rules).ToMap()
+	return p.Rules.ToMap()
 }
 
 func (p *Policy) properties() map[string]string {
-	return pairs.ArrayToJsonPairs(p.Properties).ToMap()
+	return p.Properties.ToMap()
 }

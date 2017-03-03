@@ -14,11 +14,11 @@ package carton
 // }
 
 // func (s *S) TestGetAssembly(c *check.C) {
-//   s.Credentials.Email = "hello@virtengine.com"
-//    res, err := get(s.Credentials,"ASM5693183312354842825")
+//   s.Credentials.Email = "vino@gmail.co"
+//    res, err := get(s.Credentials,"ASM7049532522160752978")
 //     fmt.Println("result", res)
 //     fmt.Println("error : ",err)
-//     c.Assert(nil, check.NotNil)
+//     c.Assert(err, check.IsNil)
 // }
 
 // func (s *S) TestUpdateAssembly(c *check.C)  {
