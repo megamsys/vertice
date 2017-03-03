@@ -189,6 +189,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		Region:       a.region(),
 		Vnets:        a.vnets(),
 		InstanceId:   a.instanceId(),
+		PolicyOps:    a.policyOps(),
 		Backup:       a.isBackup(),
 		ImageName:    a.imageName(),
 		StorageType:  a.storageType(),
