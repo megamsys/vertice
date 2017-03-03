@@ -336,7 +336,7 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer) error {
 		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- set state running pipeline for box (%s)\n --> %s", box.GetFullName(), err)))
 		return err
 	}
-	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s, image:%s)OK", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- set state running box (%s)OK", box.GetFullName())))
 	return carton.DoneNotify(box, w, alerts.RUNNING)
 }
 
@@ -605,7 +605,7 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		machineStatus: constants.StatusBootstrapped,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
-		process: process,
+		process:       process,
 	}
 
 	actions := []*action.Action{
@@ -638,7 +638,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		machineStatus: constants.StatusStarting,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
-		process: process,
+		process:       process,
 	}
 
 	actions := []*action.Action{
@@ -672,7 +672,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		machineStatus: constants.StatusStopping,
 		machineState:  constants.StateStopped,
 		provisioner:   p,
-		process: process,
+		process:       process,
 	}
 	actions := []*action.Action{
 		&machCreating,
@@ -718,7 +718,7 @@ func (p *oneProvisioner) MetricEnvs(start int64, end int64, region string, w io.
 	res, err := p.Cluster().Showback(start, end, region)
 	if err != nil {
 
-		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->", start, end)))
 		return nil, err
 	}
 

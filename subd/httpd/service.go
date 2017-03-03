@@ -62,7 +62,7 @@ func (s *Service) Open() error {
 			idleTracker.trackConn(conn, state)
 		},
 		ShutdownInitiated: func() {
-			fmt.Println("httpd is shutting down, waiting for pending connections to finish.")
+			log.Debugf("httpd is shutting down, waiting for pending connections to finish.")
 			handlers := shutdown.All()
 			wg := sync.WaitGroup{}
 			for _, h := range handlers {

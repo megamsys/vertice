@@ -144,7 +144,7 @@ func (c *Cluster) IpNode(contIp, nodeIp, CartonId, email string) error {
 func (c *Cluster) getIps() string {
 	for k, v := range c.VNets {
 		if v == "true" {
-       return k
+			return k
 		}
 	}
 	return constants.PRIVATEIPV4

@@ -4,8 +4,8 @@ import (
 	//"net"
 	//"time"
 	//"log"
-	vnc "github.com/kward/go-vnc"
 	log "github.com/Sirupsen/logrus"
+	vnc "github.com/kward/go-vnc"
 	//"golang.org/x/net/context"
 )
 
@@ -20,5 +20,5 @@ type VncHost struct {
 }
 
 func Connect(vh *VncHost) {
-	log.Debugf("%v",vh)
+	log.Debugf("%v", vh)
 }

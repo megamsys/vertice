@@ -22,7 +22,7 @@ type Config struct {
 	Enabled         bool          `toml:"enabled"`
 	CollectInterval toml.Duration `toml:"collect_interval"`
 	Snapshots       *Snapshots    `json:"snapshots" toml:"snapshots"`
-	Backups         *Backups      `json:"backups", toml:"backups"`
+	Backups         *Backups      `json:"backups" toml:"backups"`
 	Skews           *Skews        `json:"skews" toml:"skews"`
 }
 

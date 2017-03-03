@@ -46,7 +46,7 @@ func NewTestConfig() *Config {
 	cm := NewConfig()
 	path := cm.Meta.Dir + "/vertice.conf"
 	if _, err := toml.DecodeFile(path, cm); err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return nil
 	}
 	return cm

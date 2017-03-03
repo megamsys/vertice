@@ -117,8 +117,6 @@ func (n RancherNodeError) Error() string {
 		return fmt.Sprintf("error in docker node %q: %s", n.node.addr, n.err.Error())
 	}
 	return fmt.Sprintf("error in docker node %q running command %q: %s", n.node.addr, n.cmd, n.err.Error())
-
-	return ""
 }
 
 func (n RancherNodeError) BaseError() error {

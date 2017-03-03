@@ -1,10 +1,10 @@
 package metrix
 
 import (
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"strconv"
-	log "github.com/Sirupsen/logrus"
 	"time"
 )
 

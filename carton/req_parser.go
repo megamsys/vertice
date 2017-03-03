@@ -36,13 +36,12 @@ var (
 	FAILURE      = "failure"
 
 	//the control actions available are.
-	CONTROL = "control"
-	STOP    = "stop"
-	START   = "start"
-	RESTART = "restart"
+	CONTROL      = "control"
+	STOP         = "stop"
+	START        = "start"
+	RESTART      = "restart"
 	HARD_RESTART = "hard-restart"
-	HARD_STOP = "hard-stop"
-
+	HARD_STOP    = "hard-stop"
 
 	//the operation actions is just one called upgrade
 	OPERATIONS = "operations"

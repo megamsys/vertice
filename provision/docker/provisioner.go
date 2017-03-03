@@ -413,7 +413,7 @@ func (p *dockerProvisioner) MetricEnvs(start, end int64, point string, w io.Writ
 	fmt.Fprintf(w, lb.W(lb.BILLING, lb.INFO, fmt.Sprintf("\n--- metrics collect for node (%s) ----", point)))
 	res, err := p.Cluster().Showback(start, end, point)
 	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->%s", start, end)))
+		fmt.Fprintf(w, lb.W(lb.BILLING, lb.ERROR, fmt.Sprintf("--- pull metrics for the duration error(%d, %d)-->", start, end)))
 		return nil, err
 	}
 

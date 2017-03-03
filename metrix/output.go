@@ -1,8 +1,8 @@
 package metrix
 
 import (
-	"os"
 	log "github.com/Sirupsen/logrus"
+	"os"
 )
 
 type OutputHandler struct {
@@ -32,6 +32,6 @@ func (o *OutputHandler) WriteMetrics(all Sensors) (e error) {
 
 func SendMetricsToStdout(metrics Sensors, hostname string) {
 	for _, m := range metrics {
-		log.Debugf("%v",m)
+		log.Debugf("%v", m)
 	}
 }

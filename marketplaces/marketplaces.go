@@ -59,9 +59,9 @@ type Marketplaces struct {
 	Flavor     string            `json:"flavor"`
 	Image      string            `json:"image"`
 	CatOrder   string            `json:"catorder"`
-	Plans      map[string]string `json:""plans`
-	//	Status       string            `json:"status"`
-	JsonClaz string `json:"json_claz"`
+	Plans      map[string]string `json:"plans"`
+	Status     string            `json:"status"`
+	JsonClaz   string            `json:"json_claz"`
 }
 
 func NewArgs(email, org string) api.ApiArgs {

@@ -249,8 +249,6 @@ func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writ
 		c.SetStatus(constants.StatusContainerStarting)
 		return nil
 	}, nil, true)
-
-	return nil
 }
 
 func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
@@ -265,8 +263,6 @@ func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Write
 		}
 		return err
 	}, nil, true)
-
-	return nil
 }
 
 func (p *rancherProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {

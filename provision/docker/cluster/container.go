@@ -372,7 +372,7 @@ func (c *Cluster) Ips(ip, CartonId, email string) error {
 func (c *Cluster) getIps() string {
 	for k, v := range c.VNets {
 		if v == "true" {
-       return k
+			return k
 		}
 	}
 	return ""

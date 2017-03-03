@@ -14,7 +14,7 @@ import (
 
 	c.Assert((len(strings.TrimSpace(path)) > 0), check.Equals, true)
 	if _, err := toml.DecodeFile(path, cm); err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 	}
 
 	c.Assert(cm, check.NotNil)

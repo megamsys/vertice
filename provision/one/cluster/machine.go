@@ -22,7 +22,6 @@ import (
 	"time"
 )
 
-
 var ErrConnRefused = errors.New("connection refused")
 
 func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string) (string, string, string, error) {

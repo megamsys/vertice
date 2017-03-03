@@ -950,8 +950,6 @@ func (m *Machine) RemoveInstance(p OneProvisioner) error {
 		}
 		return p.Cluster().DetachDisk(opts, m.Region)
 	}
-
-	return nil
 }
 
 func (m *Machine) UpdatePolicyStatus(index int) error {

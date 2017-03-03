@@ -2,10 +2,10 @@ package metrix
 
 import (
 	"flag"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"os"
-	log "github.com/Sirupsen/logrus"
 )
 
 func AbortWith(message string) {

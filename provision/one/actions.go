@@ -33,7 +33,6 @@ import (
 	"github.com/megamsys/vertice/provision/one/machine"
 )
 
-
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer
