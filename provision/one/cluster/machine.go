@@ -250,7 +250,7 @@ func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	return imageId, nil
 }
 
-func (c *Cluster) RemoveBackup(opts compute.Image) error {
+func (c *Cluster) RemoveImage(opts compute.Image) error {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return err
@@ -271,7 +271,7 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 		return err
 	}
 	v.T = node.Client
-	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		res, err := v.Show()
 		if err != nil || res.State_string() == "failure" {
 			return false, fmt.Errorf("fails to create snapshot")
@@ -609,7 +609,6 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 	}
 	return nil
 }
-
 
 func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]string, error) {
 	vnets := make([]string, 0)

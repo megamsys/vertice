@@ -875,7 +875,7 @@ var waitUntillImageReady = action.Action{
 		if err := mach.IsImageReady(args.provisioner); err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusRunning
+		mach.Status = constants.StatusImageReady
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to backups creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
 
 		return mach, nil
@@ -1096,7 +1096,6 @@ var detachNetworks = action.Action{
 	Backward: func(ctx action.BWContext) {
 	},
 }
-
 
 var removeNetworkIps = action.Action{
 	Name: "remove-network-ips",

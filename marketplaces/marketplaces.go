@@ -2,14 +2,11 @@ package marketplaces
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/megamsys/libgo/cmd"
-	"github.com/megamsys/vertice/provision"
-	"io"
-  "strings"
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
+	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events"
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/pairs"
@@ -17,7 +14,10 @@ import (
 	constants "github.com/megamsys/libgo/utils"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
+	"io"
+	"strings"
 	"time"
 )
 
@@ -262,6 +262,7 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 		CartonId:   m.Id,
 		AccountId:  m.AccountId,
 		Name:       m.ImageName(),
+		CartonName: m.ImageName(),
 		Region:     m.Region(),
 		Provider:   m.provider(),
 		InstanceId: m.instanceId(),

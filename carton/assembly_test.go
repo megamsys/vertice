@@ -15,10 +15,10 @@ package carton
 
 // func (s *S) TestGetAssembly(c *check.C) {
 //   s.Credentials.Email = "hello@virtengine.com"
-//    res, err := get(s.Credentials,"ASM6169170943066124675")
-//     c.Assert(nil, check.NotNil)
-//     fmt.Println("result",res.AccountId)
+//    res, err := get(s.Credentials,"ASM5693183312354842825")
+//     fmt.Println("result", res)
 //     fmt.Println("error : ",err)
+//     c.Assert(nil, check.NotNil)
 // }
 
 // func (s *S) TestUpdateAssembly(c *check.C)  {

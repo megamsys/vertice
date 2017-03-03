@@ -71,7 +71,7 @@ type Region struct {
 	OneTemplate    string    `json:"one_template" toml:"one_template"`
 	Image          string    `json:"image" toml:"image"`
 	VCPUPercentage string    `json:"vcpu_percentage" toml:"vcpu_percentage"`
-	Datastore      string    `json:"ond_datastore_id" toml:"ond_datastore_id"`
+	Datastore      string    `json:"one_datastore_id" toml:"one_datastore_id"`
 	Certificate    string    `json:"certificate" toml:"certificate"`
 	Clusters       []Cluster `json:"cluster" toml:"cluster"`
 	CpuUnit        string    `json:"cpu_unit" toml:"cpu_unit"`

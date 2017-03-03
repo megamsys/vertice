@@ -12,6 +12,8 @@ const (
 	NETWORK = "network"
 )
 
+var NETWORK_KEYS = []string{PUBLICIPV4, PRIVATEIPV4, PUBLICIPV6, PRIVATEIPV6}
+
 // A carton represents a real world assembly.
 // This struct provides and easy way to manage information about an assembly, instead passing it around
 type Carton struct {
