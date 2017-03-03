@@ -30,8 +30,6 @@ import (
 
 const (
 	DOMAIN        = "domain"
-	PUBLICIPV4    = "publicipv4"
-	PRIVATEIPV4   = "privateipv4"
 	COMPBUCKET    = "components"
 	IMAGE_VERSION = "version"
 	BACKUPNAME    = "backup_name"

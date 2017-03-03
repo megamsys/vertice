@@ -57,6 +57,8 @@ var (
 	IMAGECREATE  = "backupcreate"
 	IMAGEDESTROY = "backupremove"
 
+	NETWORK_UPDATE = "assembly.network.update"
+
 	// disks actions
 	DISKS      = "disks"
 	ATTACHDISK = "attachdisk"
@@ -147,6 +149,10 @@ func (p *ReqParser) parseOperations(action string) (MegdProcessor, error) {
 	switch action {
 	case UPGRADE:
 		return UpgradeProcess{
+			Name: p.name,
+		}, nil
+	case NETWORK_UPDATE:
+		return UpdateNetworkProcess{
 			Name: p.name,
 		}, nil
 	default:

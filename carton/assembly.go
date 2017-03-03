@@ -46,6 +46,8 @@ const (
 	BACKUP                = "backup"
 	YES                   = "yes"
 	REGION                = "region"
+	PUBLICIPV4            = "publicipv4"
+	PRIVATEIPV4           = "privateipv4"
 	PUBLICIPV6            = "publicipv6"
 	PRIVATEIPV6           = "privateipv6"
 	QUOTAID               = "quota_id"
@@ -58,9 +60,14 @@ const (
 )
 
 type Policy struct {
-	Name    string   `json:"name" cql:"name"`
-	Type    string   `json:"type" cql:"type"`
-	Members []string `json:"members" cql:"members"`
+	Name       string   `json:"name"`
+	Type       string   `json:"ptype"`
+	Resources  []string `json:"resources"`
+	Rules      []string `json:"rules"`
+	Properties []string `json:"properties"`
+	Status     string   `json:"status"`
+	CreatedAt  string   `json:"created_at"`
+	UpdatedAt  string   `json:"updated_at"`
 }
 
 type Assembly struct {
@@ -126,7 +133,7 @@ func (a *Assembly) dig() (*Assembly, error) {
 	return a, nil
 }
 
-func (a *Assembly) updateAsm() error {
+func (a *Assembly) update() error {
 	args := newArgs(a.AccountId, a.OrgId)
 	cl := api.NewClient(args, "/assembly/update")
 	_, err := cl.Post(a)
@@ -228,6 +235,7 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 					b.Repo.Hook.BoxId = comp.Id
 				}
 				b.Compute = a.newCompute()
+				b.PolicyOps = a.policyOps()
 				b.SSH = a.newSSH()
 				b.Region = a.region()
 				b.Status = utils.Status(a.Status)
@@ -261,7 +269,7 @@ func (a *Assembly) SetStatus(status utils.Status) error {
 	m["status"] = []string{status.String()}
 	a.Inputs.NukeAndSet(m) //just nuke the matching output key:
 	a.Status = status.String()
-	err := a.updateAsm()
+	err := a.update()
 	if err != nil {
 		return err
 	}
@@ -270,7 +278,7 @@ func (a *Assembly) SetStatus(status utils.Status) error {
 
 func (a *Assembly) SetState(state utils.State) error {
 	a.State = state.String()
-	return a.updateAsm()
+	return a.update()
 }
 
 func (a *Assembly) Trigger_event(status utils.Status) error {
@@ -328,7 +336,7 @@ func (a *Assembly) NukeAndSetOutputs(m map[string][]string) error {
 	if len(m) > 0 {
 		log.Debugf("nuke and set outputs in scylla [%s]", m)
 		a.Outputs.NukeAndSet(m) //just nuke the matching output key:
-		err := a.updateAsm()
+		err := a.update()
 		if err != nil {
 			return err
 		}
@@ -482,4 +490,32 @@ func parseStringToStruct(str string, data interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (a *Assembly) UpdatePolicyStatus(index int, status utils.Status) error {
+	a.Policies[index].Status = status.String()
+	return a.update()
+}
+
+func (a *Assembly) policyOps() *provision.PolicyOps {
+	for i, policy := range a.Policies {
+		if policy.Status == "initializing" {
+			return &provision.PolicyOps{
+				Type:       policy.Type,
+				Operation:  policy.Name,
+				Index:      i,
+				Rules:      policy.rules(),
+				Properties: policy.properties(),
+			}
+		}
+	}
+	return nil
+}
+
+func (p *Policy) rules() map[string]string {
+	return pairs.ArrayToJsonPairs(p.Rules).ToMap()
+}
+
+func (p *Policy) properties() map[string]string {
+	return pairs.ArrayToJsonPairs(p.Properties).ToMap()
 }

@@ -335,6 +335,27 @@ func (s DiskDetachProcess) Process(ca Cartons) error {
 	return nil
 }
 
+// UpdateProcess represents a command for update operations based on poliecs cartons.
+type UpdateNetworkProcess struct {
+	Name string
+}
+
+func (s UpdateNetworkProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("DONE CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s UpdateNetworkProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.NetworkUpdate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // UpgradeProcs represents a command for starting  cartons.
 type RunningProcess struct {
 	Name string

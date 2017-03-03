@@ -106,6 +106,11 @@ type MarketPlaceAccess interface {
 	SaveMarketplaceImage(b *Box, w io.Writer) error
 }
 
+
+type Network interface {
+   NetworkUpdate(b *Box, w io.Writer) error 
+}
+
 // Provisioner is the basic interface of this package.
 //
 // Any vertice provisioner must implement this interface in order to provision

@@ -8,6 +8,10 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	NETWORK = "network"
+)
+
 // A carton represents a real world assembly.
 // This struct provides and easy way to manage information about an assembly, instead passing it around
 type Carton struct {
@@ -149,6 +153,17 @@ func (c *Carton) Available() bool {
 func (c *Carton) Upgrade() error {
 	for _, box := range *c.Boxes {
 		err := NewUpgradeable(&box).Upgrade()
+		if err != nil {
+			log.Errorf("Unable to upgrade box : %s", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Carton) NetworkUpdate() error {
+	for _, box := range *c.Boxes {
+		err := NetworkUpdate(&box)
 		if err != nil {
 			log.Errorf("Unable to upgrade box : %s", err)
 			return err

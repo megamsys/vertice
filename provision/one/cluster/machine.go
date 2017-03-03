@@ -548,3 +548,113 @@ func cpuThrottle(vcpu, cpu string) string {
 	//ugly, compute has the info.
 	return strconv.FormatFloat(realCPU, 'f', 6, 64)
 }
+
+func (c *Cluster) AttachNics(rules map[string]string, vmid, region, storage string) error {
+	vnets, err := c.getNics(rules, region, storage)
+	if err != nil {
+		return err
+	}
+	return c.attachNics(vnets, vmid, region)
+}
+
+func (c *Cluster) attachNics(vnets []string, vmid, region string) error {
+	var failures []error
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+
+	opts := virtualmachine.Vnc{VmId: vmid}
+	opts.T = node.Client
+	for _, vnet := range vnets {
+		err := opts.AttachNic(vnet)
+		err = safe.WaitCondition(1*time.Minute, 5*time.Second, func() (bool, error) {
+			res, err := opts.GetVm()
+			if err != nil {
+				return false, err
+			}
+			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == int(virtualmachine.RUNNING)), nil
+		})
+		if err != nil {
+			failures = append(failures, err)
+			log.Debugf("  failed to attach nic (%s)", err)
+		}
+	}
+	return nil
+}
+
+func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
+	var failures []error
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+
+	opts := virtualmachine.Vnc{VmId: vmid}
+	opts.T = node.Client
+	for _, nid := range net_ids {
+		id, _ := strconv.Atoi(nid)
+		err := opts.DetachNic(id)
+		err = safe.WaitCondition(1*time.Minute, 5*time.Second, func() (bool, error) {
+			res, err := opts.GetVm()
+			if err != nil {
+				return false, err
+			}
+			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == int(virtualmachine.RUNNING)), nil
+		})
+		if err != nil {
+			failures = append(failures, err)
+			log.Debugf("  failed to attach nic (%s)", err)
+		}
+	}
+	return nil
+}
+
+
+func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]string, error) {
+	vnets := make([]string, 0)
+	var nics, nics_count map[string]string
+	nodlist, err := c.Nodes()
+	if err != nil {
+		return vnets, err
+	}
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == region {
+			nics, nics_count = c.netAttachPolicy(v, rules, storage)
+		}
+	}
+
+	for key, vnet := range nics {
+		count, _ := strconv.Atoi(nics_count[key])
+		for i := 0; i < count; i++ {
+			vnets = append(vnets, vnet)
+		}
+	}
+	if len(nics) == 0 {
+		return vnets, fmt.Errorf("no networks available in this region (%s)", region)
+	}
+
+	return vnets, nil
+}
+
+// "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
+// if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
+// nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":"private-net4","ipv6private":"private-net6"}
+
+func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, st string) (map[string]string, map[string]string) {
+	var nic, nic_count map[string]string
+	for id, cluster := range nodeo.Clusters {
+		if cluster[constants.STORAGE_TYPE] == st && cluster[constants.VONE_CLOUD] != constants.TRUE {
+			for nic_key, nic_value := range nodeo.Clusters[id] {
+				if count, ok := rules[nic_key]; ok {
+					nic[nic_key] = nic_value
+					nic_count[nic_key] = count
+				}
+			}
+			if len(nic) > 0 {
+				return nic, nic_count
+			}
+		}
+	}
+	return nic, nic_count
+}
