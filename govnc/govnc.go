@@ -1,11 +1,11 @@
 package govnc
 
 import (
-	"fmt"
 	//"net"
 	//"time"
 	//"log"
 	vnc "github.com/kward/go-vnc"
+	log "github.com/Sirupsen/logrus"
 	//"golang.org/x/net/context"
 )
 
@@ -20,7 +20,5 @@ type VncHost struct {
 }
 
 func Connect(vh *VncHost) {
-
-	fmt.Println(vh)
-
+	log.Debugf("%v",vh)
 }

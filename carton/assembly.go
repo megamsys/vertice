@@ -104,7 +104,6 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	}
 
 	ac := &ApiAssembly{}
-	fmt.Println("response :", string(response))
 	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
 	err = json.Unmarshal(response, ac)
 	if err != nil {

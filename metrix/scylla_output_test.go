@@ -3,7 +3,6 @@ package metrix
 /*
 import (
 	"gopkg.in/check.v1"
-	"fmt"
 )
 
 func (s *S) TestStoreCollectedr(c *check.C) {
@@ -26,8 +25,7 @@ func (s *S) TestStoreCollectedr(c *check.C) {
 func (s *S) TestBalanceEvents(c *check.C) {
 
   err := mkBalance(s.sensor, map[string]string{"memory_unit": "1024", "cpu_unit": "1", "disk_unit": "10240"})
-  fmt.Println(err)
-  c.Assert(nil, check.NotNil)
+  c.Assert(err, check.IsNil)
 }
 
 */

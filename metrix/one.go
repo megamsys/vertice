@@ -2,7 +2,6 @@ package metrix
 
 import (
 	"encoding/xml"
-	"fmt"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
@@ -47,7 +46,6 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 func (on *OpenNebula) Collect(c *MetricsCollection) (e error) {
 	b, e := on.ReadStatus()
 	if e != nil {
-		fmt.Println(e)
 		return
 	}
 

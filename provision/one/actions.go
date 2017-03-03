@@ -164,9 +164,9 @@ var createMachine = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		fmt.Println("create machine backward state : ", c.State)
+		log.Debugf("create machine backward state : %v", c.State)
 		if c.State != constants.StateInitialized {
-			fmt.Println(" backward removing machine")
+			log.Debugf(" backward removing machine")
 			err := c.Remove(args.provisioner)
 			if err != nil {
 				fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
