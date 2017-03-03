@@ -244,8 +244,8 @@ func (m *Machine) IPs(nics []virtualmachine.Nic) map[string][]string {
 		}
 	}
 
-	ips[carton.PUBLICIPV4] = pubipv4s
-	ips[carton.PRIVATEIPV4] = priipv4s
+	ips[constants.PUBLICIPV4] = pubipv4s
+	ips[constants.PRIVATEIPV4] = priipv4s
 	return ips
 }
 
@@ -623,7 +623,7 @@ func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
 		return err
 	}
 	id, _ := strconv.Atoi(bk.ImageId)
-	log.Debugf("  remove snap machine in one (%s)", m.Name)
+	log.Debugf("  remove backup image (%s) in one ", m.Name)
 	opts := compute.Image{
 		Name:    bk.Name,
 		Region:  m.Region,

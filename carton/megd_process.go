@@ -86,6 +86,7 @@ func (s StartProcess) Process(ca Cartons) error {
 // StopProcs represents a command for stoping  cartons.
 type StopProcess struct {
 	Name string
+	Hard bool
 }
 
 func (s StopProcess) String() string {
@@ -97,7 +98,7 @@ func (s StopProcess) String() string {
 
 func (s StopProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Stop(); err != nil {
+		if err := c.Stop(s.Hard); err != nil {
 			return err
 		}
 	}
@@ -107,6 +108,7 @@ func (s StopProcess) Process(ca Cartons) error {
 // RestartProcs represents a command for restarting  cartons.
 type RestartProcess struct {
 	Name string
+	Hard bool
 }
 
 func (s RestartProcess) String() string {
@@ -118,7 +120,7 @@ func (s RestartProcess) String() string {
 
 func (s RestartProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.Restart(); err != nil {
+		if err := c.Restart(s.Hard); err != nil {
 			return err
 		}
 	}
@@ -342,7 +344,7 @@ type UpdateNetworkProcess struct {
 
 func (s UpdateNetworkProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("DONE CARTON ")
+	_, _ = buf.WriteString("NETWORK CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }
@@ -363,7 +365,7 @@ type RunningProcess struct {
 
 func (s RunningProcess) String() string {
 	var buf bytes.Buffer
-	_, _ = buf.WriteString("DONE CARTON ")
+	_, _ = buf.WriteString("RUNNING CARTON ")
 	_, _ = buf.WriteString(s.Name)
 	return buf.String()
 }

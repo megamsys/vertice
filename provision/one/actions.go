@@ -33,11 +33,6 @@ import (
 	"github.com/megamsys/vertice/provision/one/machine"
 )
 
-const (
-	START   = "start"
-	STOP    = "stop"
-	RESTART = "restart"
-)
 
 type runMachineActionsArgs struct {
 	box           *provision.Box
@@ -47,6 +42,7 @@ type runMachineActionsArgs struct {
 	machineStatus utils.Status
 	machineState  utils.State
 	provisioner   *oneProvisioner
+	process       string
 }
 
 //If there is a previous machine created and it has a status, we use that.
@@ -281,7 +277,7 @@ var startMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, START)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -316,7 +312,7 @@ var stopMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, STOP)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -350,7 +346,7 @@ var restartMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.RESTARTING, lb.INFO, fmt.Sprintf("restarting  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, RESTART)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			return nil, err
 		}

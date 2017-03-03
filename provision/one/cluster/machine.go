@@ -22,13 +22,6 @@ import (
 	"time"
 )
 
-// CreateVM creates a vm in the specified node.
-// It returns the vm, or an error, in case of failures.
-const (
-	START   = "start"
-	STOP    = "stop"
-	RESTART = "restart"
-)
 
 var ErrConnRefused = errors.New("connection refused")
 
@@ -168,12 +161,16 @@ func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
 
 func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 	switch action {
-	case START:
+	case constants.START:
 		return c.StartVM(opts)
-	case STOP:
+	case constants.STOP:
 		return c.StopVM(opts)
-	case RESTART:
+	case constants.RESTART:
 		return c.RestartVM(opts)
+	case constants.HARD_STOP:
+		return c.ForceStopVM(opts)
+	case constants.HARD_RESTART:
+		return c.ForceRestartVM(opts)
 	default:
 		return nil
 	}
@@ -213,6 +210,40 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 }
 
 func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
+	_, err = opts.PoweroffHard()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "StopVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) ForceRestartVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
+	_, err = opts.RebootHard()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "RebootVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
 
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {

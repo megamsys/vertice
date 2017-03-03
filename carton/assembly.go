@@ -46,10 +46,6 @@ const (
 	BACKUP                = "backup"
 	YES                   = "yes"
 	REGION                = "region"
-	PUBLICIPV4            = "publicipv4"
-	PRIVATEIPV4           = "privateipv4"
-	PUBLICIPV6            = "publicipv6"
-	PRIVATEIPV6           = "privateipv6"
 	QUOTAID               = "quota_id"
 	VM_CPU_COST           = "vm_cpu_cost_per_hour"
 	VM_MEMORY_COST        = "vm_memory_cost_per_hour"
@@ -374,31 +370,31 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB] = a.ipv4Pub()
-	v[utils.IPV4PRI] = a.ipv4Pri()
-	v[utils.IPV6PUB] = a.ipv6Pub()
-	v[utils.IPV6PRI] = a.ipv6Pri()
+	v[utils.PUBLICIPV4] = a.ipv4Pub()
+	v[utils.PRIVATEIPV4] = a.ipv4Pri()
+	v[utils.PUBLICIPV6] = a.ipv6Pub()
+	v[utils.PRIVATEIPV6] = a.ipv6Pri()
 	return v
 }
 
 func (a *Assembly) ipv4Pub() string {
-	return a.Inputs.Match(utils.IPV4PUB)
+	return a.Inputs.Match(utils.PUBLICIPV4)
 }
 
 func (a *Assembly) ipv4Pri() string {
-	return a.Inputs.Match(utils.IPV4PRI)
+	return a.Inputs.Match(utils.PRIVATEIPV4)
 }
 
 func (a *Assembly) ipv6Pri() string {
-	return a.Inputs.Match(utils.IPV6PRI)
+	return a.Inputs.Match(utils.PRIVATEIPV6)
 }
 
 func (a *Assembly) ipv6Pub() string {
-	return a.Inputs.Match(utils.IPV6PUB)
+	return a.Inputs.Match(utils.PUBLICIPV6)
 }
 
 func (a *Assembly) publicIp() string {
-	return a.Outputs.Match(PUBLICIPV4)
+	return a.Outputs.Match(utils.PUBLICIPV4)
 }
 func (a *Assembly) vncHost() string {
 	return a.Outputs.Match(VNCHOST)

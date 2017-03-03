@@ -163,10 +163,10 @@ func (c Region) ToClusterMap() map[string]map[string]string {
 			mm, ok := clData[c.Clusters[i].ClusterId]
 			if !ok {
 				mm = make(map[string]string)
-				mm[utils.IPV4PRI] = c.Clusters[i].Vnet_pri_ipv4
-				mm[utils.IPV4PUB] = c.Clusters[i].Vnet_pub_ipv4
-				mm[utils.IPV6PRI] = c.Clusters[i].Vnet_pri_ipv6
-				mm[utils.IPV6PUB] = c.Clusters[i].Vnet_pub_ipv6
+				mm[utils.PRIVATEIPV4] = c.Clusters[i].Vnet_pri_ipv4
+				mm[utils.PUBLICIPV4] = c.Clusters[i].Vnet_pub_ipv4
+				mm[utils.PRIVATEIPV6] = c.Clusters[i].Vnet_pri_ipv6
+				mm[utils.PUBLICIPV6] = c.Clusters[i].Vnet_pub_ipv6
 				mm[utils.STORAGE_TYPE] = c.Clusters[i].StorageType
 				if c.Clusters[i].VOneCloud {
 					mm[utils.VONE_CLOUD] = utils.TRUE
@@ -605,6 +605,7 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 		machineStatus: constants.StatusBootstrapped,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
+		process: process,
 	}
 
 	actions := []*action.Action{
@@ -637,6 +638,7 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 		machineStatus: constants.StatusStarting,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
+		process: process,
 	}
 
 	actions := []*action.Action{
@@ -670,6 +672,7 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 		machineStatus: constants.StatusStopping,
 		machineState:  constants.StateStopped,
 		provisioner:   p,
+		process: process,
 	}
 	actions := []*action.Action{
 		&machCreating,

@@ -201,7 +201,7 @@ func (c *Component) storageType() string {
 }
 
 func (c *Component) publicIp() string {
-	return c.Outputs.Match(PUBLICIPV4)
+	return c.Outputs.Match(utils.PUBLICIPV4)
 }
 
 func (c *Component) withOneClick() bool {
