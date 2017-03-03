@@ -38,6 +38,7 @@ type Carton struct {
 	Region       string
 	Vnets        map[string]string
 	Boxes        *[]provision.Box
+	PolicyOps    *provision.PolicyOps
 	Status       utils.Status
 	State        utils.State
 }
@@ -85,6 +86,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
 			InstanceId:   c.InstanceId,
+			PolicyOps:    c.PolicyOps,
 			QuotaId:      c.QuotaId,
 			Region:       c.Region,
 			Vnets:        c.Vnets,
