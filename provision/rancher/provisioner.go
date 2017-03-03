@@ -249,8 +249,6 @@ func (p *rancherProvisioner) Start(box *provision.Box, process string, w io.Writ
 		c.SetStatus(constants.StatusContainerStarting)
 		return nil
 	}, nil, true)
-
-	return nil
 }
 
 func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Writer) error {
@@ -265,8 +263,6 @@ func (p *rancherProvisioner) Stop(box *provision.Box, process string, w io.Write
 		}
 		return err
 	}, nil, true)
-
-	return nil
 }
 
 func (p *rancherProvisioner) Restart(box *provision.Box, process string, w io.Writer) error {
@@ -387,25 +383,22 @@ func (p *rancherProvisioner) PlatformRemove(name string) error {
 
 func (p *rancherProvisioner) Shell(opts provision.ShellOptions) error {
 	var (
-		c   *container.Container
 		err error
 	)
-	c, err = p.GetContainerByBox(opts.Box)
+	_, err = p.GetContainerByBox(opts.Box)
 
 	if err != nil {
 		return err
 	}
-	fmt.Println(c)
 	//return c.Shell(p, opts.Conn, opts.Conn, opts.Conn, container.Pty{Width: opts.Width, Height: opts.Height, Term: opts.Term})
 	return nil
 }
 
 func (p *rancherProvisioner) ExecuteCommandOnce(stdout, stderr io.Writer, box *provision.Box, cmd string, args ...string) error {
-	container, err := p.GetContainerByBox(box)
+	_, err := p.GetContainerByBox(box)
 	if err != nil {
 		return err
 	}
-	fmt.Println(container)
 	//return container.Exec(p, stdout, stderr, cmd, args...)
 	return nil
 }

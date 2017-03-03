@@ -244,8 +244,8 @@ func (m *Machine) IPs(nics []virtualmachine.Nic) map[string][]string {
 		}
 	}
 
-	ips[carton.PUBLICIPV4] = pubipv4s
-	ips[carton.PRIVATEIPV4] = priipv4s
+	ips[constants.PUBLICIPV4] = pubipv4s
+	ips[constants.PRIVATEIPV4] = priipv4s
 	return ips
 }
 
@@ -623,13 +623,13 @@ func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
 		return err
 	}
 	id, _ := strconv.Atoi(bk.ImageId)
-	log.Debugf("  remove snap machine in one (%s)", m.Name)
+	log.Debugf("  remove backup image (%s) in one ", m.Name)
 	opts := compute.Image{
 		Name:    bk.Name,
 		Region:  m.Region,
 		ImageId: id,
 	}
-	err = p.Cluster().RemoveBackup(opts)
+	err = p.Cluster().RemoveImage(opts)
 	if err != nil {
 		return err
 	}
@@ -950,8 +950,6 @@ func (m *Machine) RemoveInstance(p OneProvisioner) error {
 		}
 		return p.Cluster().DetachDisk(opts, m.Region)
 	}
-
-	return nil
 }
 
 func (m *Machine) UpdatePolicyStatus(index int) error {
@@ -967,18 +965,17 @@ func (m *Machine) AttachNetwork(box *provision.Box, p OneProvisioner) error {
 }
 
 func (m *Machine) DetachNetwork(box *provision.Box, p OneProvisioner) error {
-	// get ips from box.PolicyOps.Rules
-	ips := []string{}
+	ips := m.removableIPs(box.PolicyOps.Rules)
 	res, err := p.Cluster().GetVM(virtualmachine.Vnc{VmId: m.VMId}, m.Region)
 	if err != nil {
-    return err
+		return err
 	}
-		ids := m.networkIds(res, ips)
-		return p.Cluster().DetachNics( ids, m.VMId,  m.Region)
+	ids := m.networkIds(res, ips)
+	return p.Cluster().DetachNics(ids, m.VMId, m.Region)
 }
 
-func (m *Machine) networkIds(vm *virtualmachine.VM, ips []string) []string {
-  var net_ids []string
+func (m *Machine) networkIds(vm *virtualmachine.VM, ips map[string]string) []string {
+	var net_ids []string
 	for _, ip := range ips {
 		id := vm.NetworkIdByIP(ip)
 		if id != "" {
@@ -988,6 +985,41 @@ func (m *Machine) networkIds(vm *virtualmachine.VM, ips []string) []string {
 	return net_ids
 }
 
+func (m *Machine) removableIPs(rules map[string]string) map[string]string {
+	var ips map[string]string
+	for _, key := range carton.NETWORK_KEYS {
+		if ip, ok := rules[key]; ok {
+			ips[key] = ip
+		}
+	}
+	return ips
+}
+
 func (m *Machine) RemoveNetworkIps(box *provision.Box) error {
-	return nil
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if err != nil {
+		return err
+	}
+	mm := make(map[string][]string, 0)
+	ips := m.removableIPs(box.PolicyOps.Rules)
+	for key, ip := range ips {
+		if value := asm.Outputs.Match(key); value != "" {
+			mm[key] = []string{strings.Replace(value, ip, "", -1)}
+		}
+	}
+
+	return asm.NukeAndSetOutputs(mm)
+}
+
+func (m *Machine) RemoveImage(p OneProvisioner) error {
+	if m.ImageId == "" {
+		return nil
+	}
+	id, _ := strconv.Atoi(m.ImageId)
+	log.Debugf("  remove image in one (%s)", m.Name)
+	opts := compute.Image{
+		Region:  m.Region,
+		ImageId: id,
+	}
+	return p.Cluster().RemoveImage(opts)
 }

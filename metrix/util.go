@@ -2,14 +2,14 @@ package metrix
 
 import (
 	"flag"
-	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"os"
 )
 
 func AbortWith(message string) {
-	fmt.Println("ERROR:", message)
+	log.Debugf("ERROR: %s", message)
 	flag.PrintDefaults()
 	os.Exit(1)
 }

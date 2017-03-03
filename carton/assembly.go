@@ -46,10 +46,6 @@ const (
 	BACKUP                = "backup"
 	YES                   = "yes"
 	REGION                = "region"
-	PUBLICIPV4            = "publicipv4"
-	PRIVATEIPV4           = "privateipv4"
-	PUBLICIPV6            = "publicipv6"
-	PRIVATEIPV6           = "privateipv6"
 	QUOTAID               = "quota_id"
 	VM_CPU_COST           = "vm_cpu_cost_per_hour"
 	VM_MEMORY_COST        = "vm_memory_cost_per_hour"
@@ -60,14 +56,14 @@ const (
 )
 
 type Policy struct {
-	Name       string   `json:"name"`
-	Type       string   `json:"ptype"`
-	Resources  []string `json:"resources"`
-	Rules      []string `json:"rules"`
-	Properties []string `json:"properties"`
-	Status     string   `json:"status"`
-	CreatedAt  string   `json:"created_at"`
-	UpdatedAt  string   `json:"updated_at"`
+	Name       string          `json:"name"`
+	Type       string          `json:"ptype"`
+	Resources  pairs.JsonPairs `json:"resources"`
+	Rules      pairs.JsonPairs `json:"rules"`
+	Properties pairs.JsonPairs `json:"properties"`
+	Status     string          `json:"status"`
+	CreatedAt  string          `json:"created_at"`
+	UpdatedAt  string          `json:"updated_at"`
 }
 
 type Assembly struct {
@@ -82,7 +78,7 @@ type Assembly struct {
 	CreatedAt    string                `json:"created_at" cql:"created_at"`
 	Inputs       pairs.JsonPairs       `json:"inputs" cql:"inputs"`
 	Outputs      pairs.JsonPairs       `json:"outputs" cql:"outputs"`
-	Policies     []*Policy             `json:"policies" cql:"policies"`
+	Policies     []*Policy             `json:"policies" cql:"-"`
 	ComponentIds []string              `json:"components" cql:"components"`
 	Components   map[string]*Component `json:"-" cql:"-"`
 }
@@ -108,7 +104,6 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	}
 
 	ac := &ApiAssembly{}
-
 	//log.Debugf("Response %s :  (%s)",cmd.Colorfy("[Body]", "green", "", "bold"),string(htmlData))
 	err = json.Unmarshal(response, ac)
 	if err != nil {
@@ -374,31 +369,31 @@ func (a *Assembly) region() string {
 
 func (a *Assembly) vnets() map[string]string {
 	v := make(map[string]string)
-	v[utils.IPV4PUB] = a.ipv4Pub()
-	v[utils.IPV4PRI] = a.ipv4Pri()
-	v[utils.IPV6PUB] = a.ipv6Pub()
-	v[utils.IPV6PRI] = a.ipv6Pri()
+	v[utils.PUBLICIPV4] = a.ipv4Pub()
+	v[utils.PRIVATEIPV4] = a.ipv4Pri()
+	v[utils.PUBLICIPV6] = a.ipv6Pub()
+	v[utils.PRIVATEIPV6] = a.ipv6Pri()
 	return v
 }
 
 func (a *Assembly) ipv4Pub() string {
-	return a.Inputs.Match(utils.IPV4PUB)
+	return a.Inputs.Match(utils.PUBLICIPV4)
 }
 
 func (a *Assembly) ipv4Pri() string {
-	return a.Inputs.Match(utils.IPV4PRI)
+	return a.Inputs.Match(utils.PRIVATEIPV4)
 }
 
 func (a *Assembly) ipv6Pri() string {
-	return a.Inputs.Match(utils.IPV6PRI)
+	return a.Inputs.Match(utils.PRIVATEIPV6)
 }
 
 func (a *Assembly) ipv6Pub() string {
-	return a.Inputs.Match(utils.IPV6PUB)
+	return a.Inputs.Match(utils.PUBLICIPV6)
 }
 
 func (a *Assembly) publicIp() string {
-	return a.Outputs.Match(PUBLICIPV4)
+	return a.Outputs.Match(utils.PUBLICIPV4)
 }
 func (a *Assembly) vncHost() string {
 	return a.Outputs.Match(VNCHOST)
@@ -513,9 +508,9 @@ func (a *Assembly) policyOps() *provision.PolicyOps {
 }
 
 func (p *Policy) rules() map[string]string {
-	return pairs.ArrayToJsonPairs(p.Rules).ToMap()
+	return p.Rules.ToMap()
 }
 
 func (p *Policy) properties() map[string]string {
-	return pairs.ArrayToJsonPairs(p.Properties).ToMap()
+	return p.Properties.ToMap()
 }

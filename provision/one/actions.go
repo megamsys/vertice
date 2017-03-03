@@ -33,12 +33,6 @@ import (
 	"github.com/megamsys/vertice/provision/one/machine"
 )
 
-const (
-	START   = "start"
-	STOP    = "stop"
-	RESTART = "restart"
-)
-
 type runMachineActionsArgs struct {
 	box           *provision.Box
 	writer        io.Writer
@@ -47,6 +41,7 @@ type runMachineActionsArgs struct {
 	machineStatus utils.Status
 	machineState  utils.State
 	provisioner   *oneProvisioner
+	process       string
 }
 
 //If there is a previous machine created and it has a status, we use that.
@@ -168,9 +163,9 @@ var createMachine = action.Action{
 	Backward: func(ctx action.BWContext) {
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
-		fmt.Println("create machine backward state : ", c.State)
+		log.Debugf("create machine backward state : %v", c.State)
 		if c.State != constants.StateInitialized {
-			fmt.Println(" backward removing machine")
+			log.Debugf(" backward removing machine")
 			err := c.Remove(args.provisioner)
 			if err != nil {
 				fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
@@ -281,7 +276,7 @@ var startMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.STARTING, lb.INFO, fmt.Sprintf("  starting  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, START)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STARTING, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -316,7 +311,7 @@ var stopMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   stopping  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, STOP)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error stop machine ( %s)", args.box.GetFullName())))
 			return nil, err
@@ -350,7 +345,7 @@ var restartMachine = action.Action{
 		}
 
 		fmt.Fprintf(writer, lb.W(lb.RESTARTING, lb.INFO, fmt.Sprintf("restarting  machine %s", mach.Name)))
-		err := mach.LifecycleOps(args.provisioner, RESTART)
+		err := mach.LifecycleOps(args.provisioner, args.process)
 		if err != nil {
 			return nil, err
 		}
@@ -875,7 +870,7 @@ var waitUntillImageReady = action.Action{
 		if err := mach.IsImageReady(args.provisioner); err != nil {
 			return nil, err
 		}
-		mach.Status = constants.StatusRunning
+		mach.Status = constants.StatusImageReady
 		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" waiting to backups creating  for machine (%s, %s)OK", args.box.GetFullName(), constants.SNAPSHOTTING)))
 
 		return mach, nil
@@ -1096,7 +1091,6 @@ var detachNetworks = action.Action{
 	Backward: func(ctx action.BWContext) {
 	},
 }
-
 
 var removeNetworkIps = action.Action{
 	Name: "remove-network-ips",

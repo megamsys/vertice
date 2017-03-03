@@ -1,7 +1,7 @@
 package metrix
 
 import (
-	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
 	"strconv"
@@ -76,7 +76,7 @@ func (s *Swarm) ParseStatus(a []interface{}) ([]*Stats, error) {
 	for _, v := range a {
 		f, ok := v.(*Stats)
 		if !ok {
-			fmt.Println("failed to converter")
+			log.Debugf("failed to converter")
 		}
 		stats = append(stats, f)
 	}

@@ -22,14 +22,6 @@ import (
 	"time"
 )
 
-// CreateVM creates a vm in the specified node.
-// It returns the vm, or an error, in case of failures.
-const (
-	START   = "start"
-	STOP    = "stop"
-	RESTART = "restart"
-)
-
 var ErrConnRefused = errors.New("connection refused")
 
 func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string) (string, string, string, error) {
@@ -168,12 +160,16 @@ func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
 
 func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 	switch action {
-	case START:
+	case constants.START:
 		return c.StartVM(opts)
-	case STOP:
+	case constants.STOP:
 		return c.StopVM(opts)
-	case RESTART:
+	case constants.RESTART:
 		return c.RestartVM(opts)
+	case constants.HARD_STOP:
+		return c.ForceStopVM(opts)
+	case constants.HARD_RESTART:
+		return c.ForceRestartVM(opts)
 	default:
 		return nil
 	}
@@ -221,6 +217,40 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 
 	opts.T = node.Client
 
+	_, err = opts.PoweroffHard()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "StopVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) ForceRestartVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
+	_, err = opts.RebootHard()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "RebootVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
 	_, err = opts.Poweroff()
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "StopVM")
@@ -250,7 +280,7 @@ func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	return imageId, nil
 }
 
-func (c *Cluster) RemoveBackup(opts compute.Image) error {
+func (c *Cluster) RemoveImage(opts compute.Image) error {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return err
@@ -271,7 +301,7 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 		return err
 	}
 	v.T = node.Client
-	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
+	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		res, err := v.Show()
 		if err != nil || res.State_string() == "failure" {
 			return false, fmt.Errorf("fails to create snapshot")
@@ -609,7 +639,6 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 	}
 	return nil
 }
-
 
 func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]string, error) {
 	vnets := make([]string, 0)

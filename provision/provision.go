@@ -106,9 +106,8 @@ type MarketPlaceAccess interface {
 	SaveMarketplaceImage(b *Box, w io.Writer) error
 }
 
-
 type Network interface {
-   NetworkUpdate(b *Box, w io.Writer) error 
+	NetworkUpdate(b *Box, w io.Writer) error
 }
 
 // Provisioner is the basic interface of this package.

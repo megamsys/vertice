@@ -16,22 +16,21 @@
 package carton
 
 import (
-	"github.com/megamsys/libgo/pairs"
-	"github.com/megamsys/vertice/provision"
-	"github.com/megamsys/vertice/repository"
+	"bytes"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
+	"github.com/megamsys/libgo/pairs"
 	lw "github.com/megamsys/libgo/writer"
-	"bytes"
-	"time"
+	"github.com/megamsys/vertice/provision"
+	"github.com/megamsys/vertice/repository"
 	"io"
+	"time"
 )
 
 const (
 	NETWORK_ATTACH = "NetworkAttachPolicy"
 	NETWORK_DETACH = "NetworkDetachPolicy"
 )
-
 
 type Operations struct {
 	Type        string          `json:"operation_type"`
@@ -60,7 +59,7 @@ func BuildHook(ops []*Operations, opsType string) *repository.Hook {
 
 func newOperations(typ string) *Operations {
 	return &Operations{
-		Type: typ,
+		Type:   typ,
 		Status: "initialized",
 	}
 }
@@ -90,6 +89,6 @@ func (o *Operations) network(box *provision.Box, w io.Writer) error {
 		if deployer, ok := ProvisionerMap[box.Provider].(provision.Network); ok {
 			return deployer.NetworkUpdate(box, w)
 		}
-  }
+	}
 	return nil
 }

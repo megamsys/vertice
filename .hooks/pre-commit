@@ -8,7 +8,7 @@ fi
 
 printcount=`grep --exclude-dir={config,.git,bin,log,spec,tmp,.hooks,*.md} -rnw './' -e "fmt.Println" | wc -l`
 if [ $printcount -gt 0 ]; then
-  echo "Some files have puts, please run 'grep --exclude-dir={config,.hooks,log,bin,spec,tmp,public,.git} -rnw './' -e "puts"'"
+  echo "Some files have puts, please run 'grep --exclude-dir={config,.hooks,log,bin,spec,tmp,public,.git,vertice} -rnw './' -e "fmt.Println"'"
   exit 1
 fi
 

@@ -112,37 +112,37 @@ type BoxDeploy struct {
 // Box represents a provision unit. Can be a machine, container or anything
 // IP-addressable.
 type Box struct {
-	Id              string
-	AccountId       string
-	CartonsId       string
-	CartonId        string
-	OrgId           string
-	ApiArgs         api.ApiArgs
-	QuotaId         string
-	CartonName      string
-	Name            string
-	Level           BoxLevel
-	DomainName      string
-	Tosca           string
-	StorageType     string
-	ImageVersion    string
-	ImageName       string
-	Backup          bool
-	Compute         BoxCompute
-	Repo            *repository.Repo
-	Status          utils.Status
-	State           utils.State
-	PolicyOps       *PolicyOps
-	Provider        string
-	PublicIp        string
-	PublicUrl       string
-	InstanceId      string
-	Region          string
-	Vnets           map[string]string
-	SSH             BoxSSH
-	Commit          string
-	Envs            []bind.EnvVar
-	Address         *url.URL
+	Id           string
+	AccountId    string
+	CartonsId    string
+	CartonId     string
+	OrgId        string
+	ApiArgs      api.ApiArgs
+	QuotaId      string
+	CartonName   string
+	Name         string
+	Level        BoxLevel
+	DomainName   string
+	Tosca        string
+	StorageType  string
+	ImageVersion string
+	ImageName    string
+	Backup       bool
+	Compute      BoxCompute
+	Repo         *repository.Repo
+	Status       utils.Status
+	State        utils.State
+	PolicyOps    *PolicyOps
+	Provider     string
+	PublicIp     string
+	PublicUrl    string
+	InstanceId   string
+	Region       string
+	Vnets        map[string]string
+	SSH          BoxSSH
+	Commit       string
+	Envs         []bind.EnvVar
+	Address      *url.URL
 }
 
 type PolicyOps struct {
@@ -182,9 +182,8 @@ func (b *Box) GetHDD() uint64 {
 }
 
 func (b *Box) IsPolicyOk() bool {
-  return b.PolicyOps != nil
+	return b.PolicyOps != nil
 }
-
 
 // GetName returns the assemblyname.domain(assembly001YeahBoy.megambox.com) of the box.
 func (b *Box) GetFullName() string {

@@ -12,6 +12,8 @@ const (
 	NETWORK = "network"
 )
 
+var NETWORK_KEYS = []string{utils.PUBLICIPV4, utils.PRIVATEIPV4, utils.PUBLICIPV6, utils.PRIVATEIPV6}
+
 // A carton represents a real world assembly.
 // This struct provides and easy way to manage information about an assembly, instead passing it around
 type Carton struct {
@@ -185,9 +187,9 @@ func (c *Carton) Start() error {
 }
 
 // stops the box
-func (c *Carton) Stop() error {
+func (c *Carton) Stop(hard bool) error {
 	for _, box := range *c.Boxes {
-		err := Stop(&LifecycleOpts{B: &box})
+		err := Stop(&LifecycleOpts{B: &box, Hard: hard})
 		if err != nil {
 			log.Errorf("Unable to stop the box %s", err)
 			return err
@@ -197,9 +199,9 @@ func (c *Carton) Stop() error {
 }
 
 // restarts the box
-func (c *Carton) Restart() error {
+func (c *Carton) Restart(hard bool) error {
 	for _, box := range *c.Boxes {
-		err := Restart(&LifecycleOpts{B: &box})
+		err := Restart(&LifecycleOpts{B: &box, Hard: hard})
 		if err != nil {
 			log.Errorf("Unable to restart the box %s", err)
 			return err

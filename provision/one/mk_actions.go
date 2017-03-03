@@ -26,6 +26,32 @@ var createImage = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		mach := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		err := mach.RemoveImage(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err image %s", err.Error())))
+		}
+	},
+}
+
+var removeImage = action.Action{
+	Name: "remove-rawimage-iso",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.RemoveImage(args.provisioner)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusCreating
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
 	},
 }
 

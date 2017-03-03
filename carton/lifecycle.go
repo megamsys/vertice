@@ -30,6 +30,7 @@ import (
 type LifecycleOpts struct {
 	B         *provision.Box
 	start     time.Time
+	Hard      bool
 	logWriter lw.LogWriter
 	writer    io.Writer
 }
@@ -51,13 +52,20 @@ func (cy *LifecycleOpts) canCycleStop() bool {
 		cy.B.State == constants.StatePostError
 }
 
+func (cy *LifecycleOpts) process(process string) string {
+	if cy.Hard {
+		return "hard-" + process
+	}
+	return process
+}
+
 // Starts  the box.
 func Start(cy *LifecycleOpts) error {
 	log.Debugf("  start cycle for box (%s, %s)", cy.B.Id, cy.B.GetFullName())
 	cy.setLogger()
 	defer cy.logWriter.Close()
 	if cy.canCycleStart() {
-		if err := ProvisionerMap[cy.B.Provider].Start(cy.B, "", cy.writer); err != nil {
+		if err := ProvisionerMap[cy.B.Provider].Start(cy.B, cy.process(constants.START), cy.writer); err != nil {
 			return err
 		}
 	} else {
@@ -73,7 +81,8 @@ func Stop(cy *LifecycleOpts) error {
 	cy.setLogger()
 	defer cy.logWriter.Close()
 	if cy.canCycleStop() {
-		if err := ProvisionerMap[cy.B.Provider].Stop(cy.B, "", cy.writer); err != nil {
+
+		if err := ProvisionerMap[cy.B.Provider].Stop(cy.B, cy.process(constants.STOP), cy.writer); err != nil {
 			return err
 		}
 	} else {
@@ -89,7 +98,7 @@ func Restart(cy *LifecycleOpts) error {
 	cy.setLogger()
 	defer cy.logWriter.Close()
 	if cy.canCycleStop() {
-		if err := ProvisionerMap[cy.B.Provider].Restart(cy.B, "", cy.writer); err != nil {
+		if err := ProvisionerMap[cy.B.Provider].Restart(cy.B, cy.process(constants.RESTART), cy.writer); err != nil {
 			return err
 		}
 	} else {

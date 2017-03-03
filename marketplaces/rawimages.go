@@ -34,20 +34,20 @@ type RawImages struct {
 	Inputs     pairs.JsonPairs `json:"inputs"`
 	Outputs    pairs.JsonPairs `json:"outputs"`
 	Repository string          `json:"repos"`
-	Repos      *Repos          `json:"-"`
+	Repo       *Repo           `json:"-"`
 	Status     string          `json:"status"`
 	JsonClaz   string          `json:"json_claz"`
 	CreatedAt  string          `json:"created_at"`
 	UpdatedAt  string          `json:"updated_at"`
 }
 
-type Repos struct {
+type Repo struct {
 	Source    string `json:"source"`
 	PublicUrl string `json:"public_url"`
-	//	Properties string          `json:"properties"`
+	//	Properties []string `json:"properties"`
 }
 
-func (r Repos) toMap() map[string]string {
+func (r Repo) toMap() map[string]string {
 	m := make(map[string]string) //r.Properties.ToMap()
 	m["source"] = r.Source
 	m["public_url"] = r.PublicUrl
@@ -75,19 +75,18 @@ func (r *RawImages) get() (*RawImages, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("*****************RawImages******response json*********", string(response))
 	res := &apiRawImages{}
 	err = json.Unmarshal(response, res)
 	if err != nil {
 		return nil, err
 	}
 	raw := &res.Results[0]
-	repo := &Repos{}
+	repo := &Repo{}
 	err = json.Unmarshal([]byte(raw.Repository), repo)
 	if err != nil {
 		return nil, err
 	}
-	raw.Repos = repo
+	raw.Repo = repo
 	log.Debugf("rawimages  %v", raw)
 	return raw, nil
 }
@@ -111,6 +110,7 @@ func (r *RawImages) create() error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	box := r.mkBox()
+	log.Debugf("box  %v", box)
 	logWriter := lw.LogWriter{Box: box}
 	logWriter.Async()
 	defer logWriter.Close()
@@ -135,12 +135,13 @@ func (r *RawImages) deployToProvisioner(box *provision.Box, writer io.Writer) er
 
 func (r *RawImages) mkBox() *provision.Box {
 	return &provision.Box{
-		CartonId:  r.Id,
-		AccountId: r.AccountId,
-		Name:      r.Name,
-		Region:    r.Region(),
-		Provider:  r.provider(),
-		PublicUrl: r.publicUrl(),
+		CartonId:   r.Id,
+		AccountId:  r.AccountId,
+		Name:       r.Name,
+		CartonName: r.Name,
+		Region:     r.Region(),
+		Provider:   r.provider(),
+		PublicUrl:  r.publicUrl(),
 	}
 }
 
@@ -157,8 +158,8 @@ func (a *RawImages) ImageId() string {
 }
 
 func (r *RawImages) publicUrl() string {
-	// if r.Repos != nil {
-	// 	return r.Repos.PublicUrl
+	// if r.Repo != nil {
+	// 	return r.Repo.PublicUrl
 	// }
-	return ""
+	return r.Repo.PublicUrl
 }

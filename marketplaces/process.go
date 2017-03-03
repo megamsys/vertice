@@ -25,7 +25,6 @@ func (m *Marketplaces) Process(action string) error {
 	default:
 		return nil
 	}
-	return nil
 }
 
 //process trigger based on acction

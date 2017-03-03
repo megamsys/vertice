@@ -144,19 +144,10 @@ func (c *Cluster) IpNode(contIp, nodeIp, CartonId, email string) error {
 func (c *Cluster) getIps() string {
 	for k, v := range c.VNets {
 		if v == "true" {
-			switch k {
-			case constants.IPV4PUB:
-				return carton.PUBLICIPV4
-			case constants.IPV6PUB:
-				return carton.PUBLICIPV6
-			case constants.IPV4PRI:
-				return carton.PRIVATEIPV4
-			case constants.IPV6PRI:
-				return carton.PRIVATEIPV6
-			}
+			return k
 		}
 	}
-	return carton.PRIVATEIPV4
+	return constants.PRIVATEIPV4
 }
 
 // RemoveContainer removes a container from the cluster.

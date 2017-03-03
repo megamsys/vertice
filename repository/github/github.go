@@ -1,12 +1,12 @@
 package github
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
 	"strconv"
 	"time"
-	"context"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/google/go-github/github"
