@@ -386,7 +386,6 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 		&updateBackupStatus,
 		&updateStatusInScylla,
 		&removeBackup,
-		&updateBackupStatus,
 		&updateStatusInScylla,
 	}
 
@@ -861,7 +860,7 @@ func (p *oneProvisioner) networkDetach(box *provision.Box, w io.Writer) error {
 		&updateStatusInScylla,
 		&updataPoliciesStatus,
 		&detachNetworks,
-		&removeNetworkIps,
+		&updateNetworkIps,
 		&updataPoliciesStatus,
 	}
 	pipeline := action.NewPipeline(actions...)
