@@ -671,7 +671,8 @@ func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]st
 // nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":"private-net4","ipv6private":"private-net6"}
 
 func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, st string) (map[string]string, map[string]string) {
-	var nic, nic_count map[string]string
+	nic := make(map[string]string, 0)
+	nic_count :=  make(map[string]string, 0)
 	for id, cluster := range nodeo.Clusters {
 		if cluster[constants.STORAGE_TYPE] == st && cluster[constants.VONE_CLOUD] != constants.TRUE {
 			for nic_key, nic_value := range nodeo.Clusters[id] {
