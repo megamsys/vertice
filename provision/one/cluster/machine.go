@@ -481,11 +481,9 @@ func (c *Cluster) InstantiateVM(opts *template.UserTemplate, vname, throttle, re
 	if addr == "" {
 		return vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailabldd region ( "+region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 	}
-	userTemps := make([]*template.UserTemplate, 0)
+
 	for ; maxTries > 0; maxTries-- {
-		finalXML := template.UserTemplates{}
-		finalXML.UserTemplate = append(userTemps, opts)
-		finalData, err := xml.Marshal(finalXML)
+		finalData, err := xml.Marshal(opts.Template)
 		if err == nil {
 			tmp := &template.TemplateReqs{
 				TemplateName: opts.Template.Name,

@@ -27,8 +27,8 @@ const (
 )
 
 type apiMarketplaces struct {
-	JsonClaz string         `json:"json_claz" cql:"json_claz"`
-	Results  []Marketplaces `json:"results" cql:"results"`
+	JsonClaz string       `json:"json_claz" cql:"json_claz"`
+	Results  Marketplaces `json:"results" cql:"results"`
 }
 
 //Global provisioners set by the subd daemons.
@@ -48,20 +48,24 @@ var ProvisionerMap map[string]provision.Provisioner = make(map[string]provision.
 
 // struct for marketplaces and rawimages
 type Marketplaces struct {
-	Id         string            `json:"id"`
-	AccountId  string            `json:"account_id"`
-	ProvidedBy string            `json:"provided_by"`
-	Inputs     pairs.JsonPairs   `json:"inputs"`
-	Outputs    pairs.JsonPairs   `json:"outputs"`
-	Envs       pairs.JsonPairs   `json:"envs"`
-	Options    pairs.JsonPairs   `json:"options"`
-	CatType    string            `json:"cattype"`
-	Flavor     string            `json:"flavor"`
-	Image      string            `json:"image"`
-	CatOrder   string            `json:"catorder"`
-	Plans      map[string]string `json:"plans"`
-	Status     string            `json:"status"`
-	JsonClaz   string            `json:"json_claz"`
+	Id          string          `json:"id"`
+	AccountId   string          `json:"account_id"`
+	ProvidedBy  string          `json:"provided_by"`
+	Inputs      pairs.JsonPairs `json:"inputs"`
+	Outputs     pairs.JsonPairs `json:"outputs"`
+	Envs        pairs.JsonPairs `json:"envs"`
+	Options     pairs.JsonPairs `json:"options"`
+	AclPolicies pairs.JsonPairs `json:"acl_policies"`
+	CatType     string          `json:"cattype"`
+	Flavor      string          `json:"flavor"`
+	Image       string          `json:"image"`
+	CatOrder    string          `json:"catorder"`
+	Plans       pairs.JsonPairs `json:"plans"`
+	Status      string          `json:"status"`
+	Url         string          `json:"url"`
+	JsonClaz    string          `json:"json_claz"`
+	CreatedAt   string          `json:"created_at"`
+	UpdatedAt   string          `json:"updated_at"`
 }
 
 func NewArgs(email, org string) api.ApiArgs {
@@ -87,7 +91,10 @@ func (s *Marketplaces) String() string {
 }
 
 func (m *Marketplaces) Get() (*Marketplaces, error) {
-	return m.get()
+	if m.AccountId != "" && m.Id != "" {
+		return m.get()
+	}
+	return nil, fmt.Errorf("Get credentials missing email (%s) id(%s)", m.AccountId, m.Id)
 }
 
 func GetMarketplace(email, id string) (*Marketplaces, error) {
@@ -112,43 +119,9 @@ func (m *Marketplaces) get() (*Marketplaces, error) {
 	if err != nil {
 		return nil, err
 	}
-	a := &res.Results[0]
-	log.Debugf("Marketplaces %v", a)
+	a := &res.Results
+	a.AccountId = m.AccountId
 	return a, nil
-}
-
-/** A public function which pulls all marketplaces items under particular settings_name like vertice,bitnami.**/
-func GetBySettingsName(settings_name, email string) ([]Marketplaces, error) {
-	cl := api.NewClient(newArgs(email, ""), APIMARKETPLACES+settings_name)
-	response, err := cl.Get()
-	if err != nil {
-		return nil, err
-	}
-	res := &apiMarketplaces{}
-	err = json.Unmarshal(response, res)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debugf("Marketplaces of current Assemmbly %v", &res.Results)
-	return res.Results, nil
-}
-
-/** A public function which pulls all marketplaces items.**/
-func (s *Marketplaces) Gets() ([]Marketplaces, error) {
-	cl := api.NewClient(newArgs(meta.MC.MasterUser, ""), APIMARKETPLACES)
-	response, err := cl.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	res := &apiMarketplaces{}
-	err = json.Unmarshal(response, res)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.Results, nil
 }
 
 func (m *Marketplaces) Update() error {
@@ -164,11 +137,7 @@ func (m *Marketplaces) update() error {
 }
 
 func (m *Marketplaces) UpdateStatus(status utils.Status) error {
-	lastStatusUpdate := time.Now().Local().Format(time.RFC822)
-	i := make(map[string][]string, 2)
-	i["lastsuccessstatusupdate"] = []string{lastStatusUpdate}
-	i["status"] = []string{status.String()}
-	m.Inputs.NukeAndSet(i) //just nuke the matching output key:
+	m.Status = status.String()
 	err := m.update()
 	if err != nil {
 		return err
@@ -259,13 +228,15 @@ func (m *Marketplaces) saveImage() error {
 
 func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	box := &provision.Box{
-		CartonId:   m.Id,
-		AccountId:  m.AccountId,
-		Name:       m.ImageName(),
-		CartonName: m.ImageName(),
-		Region:     m.Region(),
-		Provider:   m.provider(),
-		InstanceId: m.instanceId(),
+		CartonId:    m.Id,
+		AccountId:   m.AccountId,
+		Name:        m.ImageName(),
+		CartonName:  m.ImageName(),
+		Region:      m.Region(),
+		Provider:    m.provider(),
+		InstanceId:  m.instanceId(),
+		Compute:     m.newCompute(),
+		StorageType: m.storageType(),
 	}
 	return box, nil
 }
@@ -343,4 +314,8 @@ func (m *Marketplaces) getHDD() string {
 		return "10"
 	}
 	return m.Inputs.Match(provision.HDD)
+}
+
+func (m *Marketplaces) storageType() string {
+	return strings.ToLower(m.Inputs.Match(utils.STORAGE_TYPE))
 }

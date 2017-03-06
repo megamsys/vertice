@@ -821,7 +821,6 @@ func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 	disks = append(disks, &template.Disk{Image_Uname: uname, Image: rawname})
 	disks = append(disks, &template.Disk{Image_Uname: uname, Image: imagename})
 	XMLtemplate.Template.Disks = disks
-
 	vmid, err := p.Cluster().InstantiateVM(XMLtemplate, imagename, m.VCPUThrottle, m.Region)
 	if err != nil {
 		return err
