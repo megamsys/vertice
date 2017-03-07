@@ -32,7 +32,7 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 	for _, mc := range c.Sensors {
 		on.SkewsActions[constants.RESOURCES] = mc.Resources
 		if mc.Resources != "" {
-			 mkBalance(mc, on.DefaultUnits)
+			mkBalance(mc, on.DefaultUnits)
 		}
 
 		if on.SkewsActions[constants.ENABLED] == constants.TRUE {

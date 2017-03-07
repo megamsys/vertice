@@ -527,7 +527,7 @@ func (a *Assembly) SetStatusErr(status utils.Status, causeof error) error {
 	if err != nil {
 		return err
 	}
-	return a.trigger_error_event(status,causeof)
+	return a.trigger_error_event(status, causeof)
 }
 
 func (a *Assembly) trigger_error_event(status utils.Status, causeof error) error {

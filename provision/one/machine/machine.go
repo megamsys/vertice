@@ -1024,22 +1024,22 @@ func (m *Machine) RemoveImage(p OneProvisioner) error {
 }
 
 func (m *Machine) SetStatusErr(status utils.Status, causeof error) error {
+	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
+
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId, ""); err != nil {
+		return err
+	} else if err = asm.SetStatusErr(status, causeof); err != nil {
+		return err
+	}
+
+	if m.Level == provision.BoxSome {
 		log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
 
-		if asm, err := carton.NewAssembly(m.CartonId, m.AccountId, ""); err != nil {
+		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
 			return err
-		} else if err = asm.SetStatusErr(status, causeof); err != nil {
+		} else if err = comp.SetStatus(status, m.AccountId); err != nil {
 			return err
 		}
-
-		if m.Level == provision.BoxSome {
-			log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
-
-			if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
-				return err
-			} else if err = comp.SetStatus(status, m.AccountId); err != nil {
-				return err
-			}
-		}
-		return nil
 	}
+	return nil
+}
