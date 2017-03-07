@@ -304,7 +304,7 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		res, err := v.Show()
 		if err != nil || res.State_string() == "failure" {
-			return false, fmt.Errorf("fails to create snapshot")
+			return false, fmt.Errorf("fails to create backup")
 		}
 		return (res.State_string() == "ready"), nil
 	})

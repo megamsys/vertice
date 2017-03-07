@@ -515,3 +515,43 @@ func (p *Policy) rules() map[string]string {
 func (p *Policy) properties() map[string]string {
 	return p.Properties.ToMap()
 }
+
+func (a *Assembly) SetStatusErr(status utils.Status, causeof error) error {
+	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
+	m := make(map[string][]string, 2)
+	m["lastsuccessstatusupdate"] = []string{LastStatusUpdate}
+	m["status"] = []string{status.String()}
+	a.Inputs.NukeAndSet(m) //just nuke the matching output key:
+	a.Status = status.String()
+	err := a.update()
+	if err != nil {
+		return err
+	}
+	return a.trigger_error_event(status,causeof)
+}
+
+func (a *Assembly) trigger_error_event(status utils.Status, causeof error) error {
+	mi := make(map[string]string)
+	js := make(pairs.JsonPairs, 0)
+	m := make(map[string][]string, 2)
+	m["status"] = []string{status.String()}
+	m["description"] = []string{status.Description(causeof.Error())}
+	js.NukeAndSet(m) //just nuke the matching output key:
+
+	mi[constants.ASSEMBLY_ID] = a.Id
+	mi[constants.ACCOUNT_ID] = a.AccountId
+	mi[constants.EVENT_TYPE] = status.Event_type()
+
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  a.AccountId,
+				EventAction: alerts.STATUS,
+				EventType:   constants.EventUser,
+				EventData:   alerts.EventData{M: mi, D: js.ToString()},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+
+	return newEvent.Write()
+}

@@ -354,8 +354,8 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 		&machCreating,
 		&updateStatusInScylla,
 		&createBackupImage,
-		&waitUntillImageReady,
 		&updateIdInBackupTable,
+		&waitUntillImageReady,
 		&updateBackupStatus,
 		&updateStatusInScylla,
 	}
