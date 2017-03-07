@@ -92,7 +92,7 @@ func (on *OpenNebula) CollectMetricsFromStats(mc *MetricsCollection, s *metrics.
 		if len(h.QuotaId()) > 0 {
 			cpu = "0"
 			ram = "0"
-			if len(disks) > 0 {
+			if len(disks) > 1 {
 				sc.Resources = "disks"
 				storage = strconv.FormatInt(on.quotaDisks(disks), 10)
 			}

@@ -103,7 +103,7 @@ var updateStatusInScylla = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		c.SetStatus(constants.StatusPreError)
+		c.SetStatusErr(constants.StatusPreError, ctx.CauseOf)
 	},
 }
 
@@ -152,7 +152,6 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
-			mach.SetStatus(constants.StatusPreError)
 			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
@@ -209,8 +208,7 @@ var updateVnchostPostInScylla = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		c := ctx.FWResult.(machine.Machine)
-		c.SetStatus(constants.StatusPreError)
+
 	},
 }
 

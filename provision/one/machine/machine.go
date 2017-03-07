@@ -253,10 +253,10 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
 	for IPtype, ips := range mm {
 		var sameIp string
 		for _, ip := range ips {
-			sameIp = sameIp + ip + ", "
+			sameIp = sameIp + ip + ","
 		}
 		if sameIp != "" {
-			mm[IPtype] = []string{strings.TrimRight(sameIp, ", ")}
+			mm[IPtype] = []string{strings.TrimRight(sameIp, ",")}
 		}
 	}
 	return mm
@@ -1021,4 +1021,25 @@ func (m *Machine) RemoveImage(p OneProvisioner) error {
 		ImageId: id,
 	}
 	return p.Cluster().RemoveImage(opts)
+}
+
+func (m *Machine) SetStatusErr(status utils.Status, causeof error) error {
+	log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
+
+	if asm, err := carton.NewAssembly(m.CartonId, m.AccountId, ""); err != nil {
+		return err
+	} else if err = asm.SetStatusErr(status, causeof); err != nil {
+		return err
+	}
+
+	if m.Level == provision.BoxSome {
+		log.Debugf("  set status[%s] of machine (%s, %s)", m.Id, m.Name, status.String())
+
+		if comp, err := carton.NewComponent(m.Id, m.AccountId, ""); err != nil {
+			return err
+		} else if err = comp.SetStatus(status, m.AccountId); err != nil {
+			return err
+		}
+	}
+	return nil
 }
