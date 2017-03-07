@@ -362,19 +362,19 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "f88d4e4a0a425451f41d4937afb87cb41ecf26ba"
+			"Rev": "b82e31366af163db90f7490555e8fa231a644622"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/api",
-			"Rev": "f88d4e4a0a425451f41d4937afb87cb41ecf26ba"
+			"Rev": "b82e31366af163db90f7490555e8fa231a644622"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "f88d4e4a0a425451f41d4937afb87cb41ecf26ba"
+			"Rev": "b82e31366af163db90f7490555e8fa231a644622"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "f88d4e4a0a425451f41d4937afb87cb41ecf26ba"
+			"Rev": "b82e31366af163db90f7490555e8fa231a644622"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
