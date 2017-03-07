@@ -821,7 +821,6 @@ func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 	disks = append(disks, &template.Disk{Image_Uname: uname, Image: rawname})
 	disks = append(disks, &template.Disk{Image_Uname: uname, Image: imagename})
 	XMLtemplate.Template.Disks = disks
-
 	vmid, err := p.Cluster().InstantiateVM(XMLtemplate, imagename, m.VCPUThrottle, m.Region)
 	if err != nil {
 		return err
@@ -986,7 +985,7 @@ func (m *Machine) networkIds(vm *virtualmachine.VM, ips map[string]string) []str
 }
 
 func (m *Machine) removableIPs(rules map[string]string) map[string]string {
-	var ips map[string]string
+	ips := make(map[string]string, 0)
 	for _, key := range carton.NETWORK_KEYS {
 		if ip, ok := rules[key]; ok {
 			ips[key] = ip
