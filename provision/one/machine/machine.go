@@ -569,7 +569,6 @@ func (m *Machine) UpdateBackup() error {
 		return err
 	}
 	bk.ImageId = m.ImageId
-	bk.Status = "ready"
 	return bk.UpdateBackup()
 }
 
