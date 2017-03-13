@@ -200,6 +200,18 @@ func (c *Carton) Stop(hard bool) error {
 	return nil
 }
 
+// suspends the box
+func (c *Carton) Suspend() error {
+	for _, box := range *c.Boxes {
+		err := SuspendBox(&LifecycleOpts{B: &box})
+		if err != nil {
+			log.Errorf("Unable to suspend the box %s", err)
+			return err
+		}
+	}
+	return nil
+}
+
 // restarts the box
 func (c *Carton) Restart(hard bool) error {
 	for _, box := range *c.Boxes {

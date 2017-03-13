@@ -449,6 +449,10 @@ func (p *rancherProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
+func (p *rancherProvisioner) Suspend(box *provision.Box, process string, w io.Writer) error {
+	return nil
+}
+
 func (p *rancherProvisioner) TriggerBills(account_id, cat_id, name string) error {
 	/*
 		cont := &container.Container{

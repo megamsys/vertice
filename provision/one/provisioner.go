@@ -693,6 +693,37 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 	return nil
 }
 
+func (p *oneProvisioner) Suspend(box *provision.Box, process string, w io.Writer) error {
+
+	fmt.Fprintf(w, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("--- suspending box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: constants.StatusSuspending,
+		machineState:  constants.StateStopped,
+		provisioner:   p,
+		process:       process,
+	}
+	actions := []*action.Action{
+		&machCreating,
+		&updateStatusInScylla,
+		&suspendMachine,
+		&mileStoneUpdate,
+		&updateStatusInScylla,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("--- suspending box (%s)-->%s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("--- suspending box (%s) OK", box.GetFullName())))
+	return nil
+}
+
 func (p *oneProvisioner) Shell(provision.ShellOptions) error {
 	return provision.ErrNotImplemented
 }

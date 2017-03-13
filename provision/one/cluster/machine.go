@@ -170,6 +170,8 @@ func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 		return c.ForceStopVM(opts)
 	case constants.HARD_RESTART:
 		return c.ForceRestartVM(opts)
+	case constants.SUSPEND:
+		return c.SuspendVM(opts)
 	default:
 		return nil
 	}
@@ -217,7 +219,24 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 
 	opts.T = node.Client
 
-	_, err = opts.PoweroffHard()
+	_, err = opts.Poweroff()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "StopVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) SuspendVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
+	_, err = opts.Suspends()
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "StopVM")
 	}
@@ -251,7 +270,7 @@ func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
 
 	opts.T = node.Client
 
-	_, err = opts.Poweroff()
+	_, err = opts.PoweroffHard()
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "StopVM")
 	}

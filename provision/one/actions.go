@@ -359,6 +359,40 @@ var restartMachine = action.Action{
 	MinParams: 1,
 }
 
+var suspendMachine = action.Action{
+	Name: "suspend-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+
+		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   suspending  machine %s", mach.Name)))
+		err := mach.LifecycleOps(args.provisioner, args.process)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error suspend machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		err = mach.WaitUntillVMState(args.provisioner, vm.POWEROFF, vm.LCM_INIT)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.ERROR, fmt.Sprintf("  error suspend machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+
+		mach.Status = constants.StatusSuspended
+		mach.State = constants.StateStopped
+		fmt.Fprintf(writer, lb.W(lb.STOPPING, lb.INFO, fmt.Sprintf("\n   suspending  machine (%s, %s)OK", mach.Id, mach.Name)))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
 var changeStateofMachine = action.Action{
 	Name: "change-state-machine",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

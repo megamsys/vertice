@@ -136,6 +136,10 @@ type Provisioner interface {
 	// parameter represeting the name of the process to stop.
 	Stop(*Box, string, io.Writer) error
 
+	// Suspend suspends the boxes of the application, with an optional string
+	// parameter represeting the name of the process to suspend.
+	Suspend(*Box, string, io.Writer) error
+
 	// DiskSave creates the image for current state of the running VM
 	SaveImage(*Box, io.Writer) error
 
