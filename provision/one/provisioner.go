@@ -80,14 +80,14 @@ type Region struct {
 }
 
 type Cluster struct {
-	Enabled       bool   `json:"enabled" toml:"enabled"`
-	StorageType   string `json:"storage_hddtype" toml:"storage_hddtype"`
-	VOneCloud     bool   `json:"vonecloud" toml:"vonecloud"`
-	ClusterId     string `json:"cluster_id" toml:"cluster_id"`
-	Vnet_pri_ipv4 string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
-	Vnet_pub_ipv4 string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
-	Vnet_pri_ipv6 string `json:"vnet_pri_ipv6" toml:"vnet_pri_ipv6"`
-	Vnet_pub_ipv6 string `json:"vnet_pub_ipv6" toml:"vnet_pub_ipv6"`
+	Enabled       bool     `json:"enabled" toml:"enabled"`
+	StorageType   string   `json:"storage_hddtype" toml:"storage_hddtype"`
+	VOneCloud     bool     `json:"vonecloud" toml:"vonecloud"`
+	ClusterId     string   `json:"cluster_id" toml:"cluster_id"`
+	Vnet_pri_ipv4 []string `json:"vnet_pri_ipv4" toml:"vnet_pri_ipv4"`
+	Vnet_pub_ipv4 []string `json:"vnet_pub_ipv4" toml:"vnet_pub_ipv4"`
+	Vnet_pri_ipv6 []string `json:"vnet_pri_ipv6" toml:"vnet_pri_ipv6"`
+	Vnet_pub_ipv6 []string `json:"vnet_pub_ipv6" toml:"vnet_pub_ipv6"`
 }
 
 func (p *oneProvisioner) Cluster() *cluster.Cluster {
@@ -156,20 +156,20 @@ func (c Region) ToMap() map[string]string {
 	return m
 }
 
-func (c Region) ToClusterMap() map[string]map[string]string {
-	clData := make(map[string]map[string]string)
+func (c Region) ToClusterMap() map[string]map[string][]string {
+	clData := make(map[string]map[string][]string)
 	for i := 0; i < len(c.Clusters); i++ {
 		if c.Clusters[i].Enabled {
 			mm, ok := clData[c.Clusters[i].ClusterId]
 			if !ok {
-				mm = make(map[string]string)
+				mm = make(map[string][]string)
 				mm[utils.PRIVATEIPV4] = c.Clusters[i].Vnet_pri_ipv4
 				mm[utils.PUBLICIPV4] = c.Clusters[i].Vnet_pub_ipv4
 				mm[utils.PRIVATEIPV6] = c.Clusters[i].Vnet_pri_ipv6
 				mm[utils.PUBLICIPV6] = c.Clusters[i].Vnet_pub_ipv6
-				mm[utils.STORAGE_TYPE] = c.Clusters[i].StorageType
+				mm[utils.STORAGE_TYPE] = []string{c.Clusters[i].StorageType}
 				if c.Clusters[i].VOneCloud {
-					mm[utils.VONE_CLOUD] = utils.TRUE
+					mm[utils.VONE_CLOUD] = []string{utils.TRUE}
 				}
 				clData[c.Clusters[i].ClusterId] = mm
 			}

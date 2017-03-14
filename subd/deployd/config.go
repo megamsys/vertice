@@ -68,10 +68,10 @@ func NewConfig() *Config {
 		Enabled:       false,
 		StorageType:   "hdd",
 		ClusterId:     DefaultOneCluster,
-		Vnet_pri_ipv4: DefaultOneVnetPri,
-		Vnet_pub_ipv4: DefaultOneVnetPub,
-		Vnet_pri_ipv6: DefaultOneVnetPri,
-		Vnet_pub_ipv6: DefaultOneVnetPri,
+		Vnet_pri_ipv4: []string{DefaultOneVnetPri},
+		Vnet_pub_ipv4: []string{DefaultOneVnetPub},
+		Vnet_pri_ipv6: []string{DefaultOneVnetPri},
+		Vnet_pub_ipv6: []string{DefaultOneVnetPri},
 	}
 
 	r := one.Region{
