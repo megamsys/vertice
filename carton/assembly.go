@@ -48,7 +48,7 @@ const (
 	REGION                = "region"
 	QUOTAID               = "quota_id"
 	VM_CPU_COST           = "vm_cpu_cost_per_hour"
-	VM_MEMORY_COST        = "vm_memory_cost_per_hour"
+	VM_MEMORY_COST        = "vm_ram_cost_per_hour"
 	VM_DISK_COST          = "vm_disk_cost_per_hour"
 	CONTAINER_CPU_COST    = "container_cpu_cost_per_hour"
 	CONTAINER_MEMORY_COST = "container_memory_cost_per_hour"

@@ -14,7 +14,7 @@ type Node struct {
 	Region         string `json:"_id"`
 	Healing        HealingData
 	Metadata       map[string]string
-	Clusters       map[string]map[string]string
+	Clusters       map[string]map[string][]string
 	CreationStatus string
 }
 

@@ -107,3 +107,20 @@ func Restart(cy *LifecycleOpts) error {
 	fmt.Fprintf(cy.writer, "    restart (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
 	return nil
 }
+
+// Stops the box
+func SuspendBox(cy *LifecycleOpts) error {
+	log.Debugf("  suspend cycle for box (%s, %s)", cy.B.Id, cy.B.GetFullName())
+	cy.setLogger()
+	defer cy.logWriter.Close()
+	if cy.canCycleStop() {
+
+		if err := ProvisionerMap[cy.B.Provider].Suspend(cy.B, cy.process(constants.SUSPEND), cy.writer); err != nil {
+			return err
+		}
+	} else {
+		fmt.Printf("start (%s, %s, %s) Unsuccessfull because of lifecycle not allowed\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
+	}
+	fmt.Fprintf(cy.writer, "    suspend (%s, %s, %s) OK\n", cy.B.GetFullName(), cy.B.Status.String(), time.Since(cy.start))
+	return nil
+}

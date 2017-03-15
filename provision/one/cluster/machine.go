@@ -16,6 +16,7 @@ import (
 	"github.com/megamsys/opennebula-go/snapshot"
 	"github.com/megamsys/opennebula-go/template"
 	"github.com/megamsys/opennebula-go/virtualmachine"
+	onenet "github.com/megamsys/opennebula-go/vnet"
 	"net"
 	"net/url"
 	"strconv"
@@ -40,7 +41,10 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 		for _, v := range nodlist {
 			if v.Metadata[api.ONEZONE] == opts.Region {
 				addr = v.Address
-				opts.Vnets, opts.ClusterId = c.getVnets(v, opts.Vnets, storage)
+				opts.Vnets, opts.ClusterId, err = c.getVnets(v, opts.Vnets, opts.Region, storage)
+				if err != nil {
+					return addr, machine, vmid, err
+				}
 				if v.Metadata[api.VCPU_PERCENTAGE] != "" {
 					opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
 				} else {
@@ -170,6 +174,8 @@ func (c *Cluster) VM(opts compute.VirtualMachine, action string) error {
 		return c.ForceStopVM(opts)
 	case constants.HARD_RESTART:
 		return c.ForceRestartVM(opts)
+	case constants.SUSPEND:
+		return c.SuspendVM(opts)
 	default:
 		return nil
 	}
@@ -217,7 +223,24 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 
 	opts.T = node.Client
 
-	_, err = opts.PoweroffHard()
+	_, err = opts.Poweroff()
+	if err != nil {
+		return wrapErrorWithCmd(node, err, "StopVM")
+	}
+
+	return nil
+}
+
+func (c *Cluster) SuspendVM(opts compute.VirtualMachine) error {
+
+	node, err := c.getNodeRegion(opts.Region)
+	if err != nil {
+		return err
+	}
+
+	opts.T = node.Client
+
+	_, err = opts.Suspends()
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "StopVM")
 	}
@@ -251,7 +274,7 @@ func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
 
 	opts.T = node.Client
 
-	_, err = opts.Poweroff()
+	_, err = opts.PoweroffHard()
 	if err != nil {
 		return wrapErrorWithCmd(node, err, "StopVM")
 	}
@@ -640,49 +663,112 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 
 func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]string, error) {
 	vnets := make([]string, 0)
-	var nics, nics_count map[string]string
 	nodlist, err := c.Nodes()
 	if err != nil {
 		return vnets, err
 	}
 	for _, v := range nodlist {
 		if v.Metadata[api.ONEZONE] == region {
-			nics, nics_count = c.netAttachPolicy(v, rules, storage)
+			vnets, err = c.netAttachPolicy(v, rules, region, storage)
+			if err != nil {
+				return vnets, err
+			}
 		}
 	}
 
-	for key, vnet := range nics {
-		count, _ := strconv.Atoi(nics_count[key])
-		for i := 0; i < count; i++ {
-			vnets = append(vnets, vnet)
-		}
-	}
-	if len(nics) == 0 {
+	if len(vnets) == 0 {
 		return vnets, fmt.Errorf("no networks available in this region (%s)", region)
 	}
 
 	return vnets, nil
 }
 
-// "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
-// if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
-// nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":"private-net4","ipv6private":"private-net6"}
-
-func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, st string) (map[string]string, map[string]string) {
-	nic := make(map[string]string, 0)
-	nic_count := make(map[string]string, 0)
-	for id, cluster := range nodeo.Clusters {
-		if cluster[constants.STORAGE_TYPE] == st && cluster[constants.VONE_CLOUD] != constants.TRUE {
-			for nic_key, nic_value := range nodeo.Clusters[id] {
-				if count, ok := rules[nic_key]; ok {
-					nic[nic_key] = nic_value
-					nic_count[nic_key] = count
+//return vnets and cluster id which is choosen
+func (c *Cluster) getVnets(nodeo Node, m map[string]string, region, st string) (map[string]string, string, error) {
+	res := make(map[string]string)
+	nets, err := c.GetVNets(region)
+	if err != nil {
+		return res, "", err
+	}
+	for k, v := range nodeo.Clusters {
+		if v[constants.STORAGE_TYPE][0] == st && !c.isVOne(v[constants.VONE_CLOUD]) {
+			for i, j := range nodeo.Clusters[k] {
+				if m[i] == constants.TRUE {
+					avail, err := c.availableNet(nets, j, i)
+					if err != nil {
+						return res, "", err
+					}
+					res[i] = avail
 				}
 			}
-			if len(nic) > 0 {
-				return nic, nic_count
+			return res, k, nil
+		}
+	}
+	return res, "", fmt.Errorf("Storage (%s) unavailable in selected region (%s)", st, region)
+}
+
+func (c *Cluster) isVOne(v []string) bool {
+	return len(v) > 0 && v[0] == constants.TRUE
+}
+
+//gets a single IP available in given list of networks
+func (c *Cluster) availableNet(v *onenet.VNetPool, names []string, netType string) (string, error) {
+	for _, name := range names {
+		net, err := v.FilletByName(name)
+		if err != nil {
+			return "", err
+		}
+		if net.TotalIps-net.UsedIps > 0 {
+			return net.Name, nil
+		}
+	}
+	return "", fmt.Errorf("No IP/MAC available in selected (%s) network", netType)
+}
+
+func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := &onenet.VNetPool{T: node.Client}
+	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
+	err = opts.VnetPoolInfos(filter)
+	if err != nil {
+		return nil, err
+	}
+	return opts, err
+}
+
+// "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
+// if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
+// nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":["private-net4","private-net4-a"],"ipv6private":["private-net6","private-net6-a"]}
+// checks the given no. of network available in network if available all return network_names([]string) otherwise return error
+func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, region, st string) ([]string, error) {
+	vnets := make([]string, 0)
+	nets, err := c.GetVNets(region)
+	if err != nil {
+		return vnets, err
+	}
+	for id, cluster := range nodeo.Clusters {
+		if cluster[constants.STORAGE_TYPE][0] == st && !c.isVOne(cluster[constants.VONE_CLOUD]) {
+			for nic_key, nics := range nodeo.Clusters[id] {
+				if count, ok := rules[nic_key]; ok {
+					count, _ := strconv.Atoi(count)
+					for i := 0; i < count; i++ {
+						avail, err := c.availableNet(nets, nics, nic_key)
+						if err != nil {
+							return vnets, err
+						}
+						vnets = append(vnets, avail)
+					}
+				}
+			}
+			if len(vnets) > 0 {
+				return vnets, nil
 			}
 		}
 	}
-	return nic, nic_count
+
+	return vnets, fmt.Errorf("Unavailable storage (%s) ", st)
 }

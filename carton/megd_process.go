@@ -105,6 +105,27 @@ func (s StopProcess) Process(ca Cartons) error {
 	return nil
 }
 
+// SuspendProcess represents a command for suspend  cartons.
+type SuspendProcess struct {
+	Name string
+}
+
+func (s SuspendProcess) String() string {
+	var buf bytes.Buffer
+	_, _ = buf.WriteString("SUSPEND CARTON ")
+	_, _ = buf.WriteString(s.Name)
+	return buf.String()
+}
+
+func (s SuspendProcess) Process(ca Cartons) error {
+	for _, c := range ca {
+		if err := c.Suspend(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // RestartProcs represents a command for restarting  cartons.
 type RestartProcess struct {
 	Name string

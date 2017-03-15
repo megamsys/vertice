@@ -42,6 +42,7 @@ var (
 	RESTART      = "restart"
 	HARD_RESTART = "hard-restart"
 	HARD_STOP    = "hard-stop"
+	SUSPEND      = "suspend"
 
 	//the operation actions is just one called upgrade
 	OPERATIONS = "operations"
@@ -137,7 +138,10 @@ func (p *ReqParser) parseControl(action string) (MegdProcessor, error) {
 		return StopProcess{
 			Name: p.name,
 		}, nil
-
+	case SUSPEND:
+		return SuspendProcess{
+			Name: p.name,
+		}, nil
 	case RESTART:
 		return RestartProcess{
 			Name: p.name,

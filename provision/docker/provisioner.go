@@ -421,6 +421,10 @@ func (p *dockerProvisioner) MetricEnvs(start, end int64, point string, w io.Writ
 	return res, nil
 }
 
+func (p *dockerProvisioner) Suspend(box *provision.Box, process string, w io.Writer) error {
+	return nil
+}
+
 func (p *dockerProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	return nil
 }
