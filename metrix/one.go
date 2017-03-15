@@ -36,7 +36,21 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 		}
 
 		if on.SkewsActions[constants.ENABLED] == constants.TRUE {
-			e = eventSkews(mc, on.SkewsActions)
+			if len(mc.QuotaId) > 0 {
+				quota, err := carton.NewQuota(mc.AccountId, mc.QuotaId)
+				if err != nil {
+					og.Debugf("quota get error : %s", err.Error())
+				}
+				action = alerts.QUOTA_UNPAID
+				if quota.Status == "paid" {
+					continue
+				}
+				on.SkewsActions[constants.SKEWS_TYPE] = "vm.quota.unpaid"
+			} else {
+				action = alerts.SKEWS_ACTIONS
+				on.SkewsActions[constants.SKEWS_TYPE] = "vm.ondemand.bills"
+			}
+			e = eventSkews(mc, action, on.SkewsActions)
 		}
 
 	}
