@@ -56,7 +56,6 @@ func mkBalance(s *Sensor, du map[string]string) error {
 }
 
 func eventSkews(s *Sensor, action alerts.EventAction, skews map[string]string) error {
-	var action alerts.EventAction
 	mi := make(map[string]string, 0)
 
 	mi[constants.ACCOUNTID] = s.AccountId

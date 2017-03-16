@@ -14,7 +14,7 @@ import (
 
 type Config struct {
 	Enabled bool    `toml:"enabled"`
-	Mailgun Mailgun `toml:"mailgun"`
+	Mailer  Mailer  `toml:"smtp"`
 	Slack   Slack   `toml:"slack"`
 	Infobip Infobip `toml:"infobip"`
 	BillMgr BillMgr `toml:"bill"`
@@ -33,7 +33,7 @@ func (c Config) String() string {
 	w.Init(&b, 0, 8, 0, '\t', 0)
 	b.Write([]byte(cmd.Colorfy("Config:", "white", "", "bold") + "\t" +
 		cmd.Colorfy("Eventsd", "cyan", "", "") + "\n"))
-	b.Write([]byte(c.Mailgun.String()))
+	b.Write([]byte(c.Mailer.String()))
 	b.Write([]byte(c.Infobip.String()))
 	b.Write([]byte(c.Slack.String() + "\n"))
 	b.Write([]byte(c.BillMgr.String() + "\n"))
@@ -45,7 +45,7 @@ func (c Config) String() string {
 
 func (c Config) toMap() events.EventsConfigMap {
 	em := make(events.EventsConfigMap)
-	em[constants.MAILGUN] = c.Mailgun.toMap()
+	em[constants.SMTP] = c.Mailer.toMap()
 	em[constants.SLACK] = c.Slack.toMap()
 	em[constants.INFOBIP] = c.Infobip.toMap()
 	em[constants.BILLMGR] = c.BillMgr.toMap()

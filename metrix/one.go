@@ -2,7 +2,9 @@ package metrix
 
 import (
 	"encoding/xml"
+	log "github.com/Sirupsen/logrus"
 	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"
@@ -29,6 +31,7 @@ func (on *OpenNebula) Prefix() string {
 }
 
 func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
+	var action alerts.EventAction
 	for _, mc := range c.Sensors {
 		on.SkewsActions[constants.RESOURCES] = mc.Resources
 		if mc.Resources != "" {
@@ -39,7 +42,7 @@ func (on *OpenNebula) DeductBill(c *MetricsCollection) (e error) {
 			if len(mc.QuotaId) > 0 {
 				quota, err := carton.NewQuota(mc.AccountId, mc.QuotaId)
 				if err != nil {
-					og.Debugf("quota get error : %s", err.Error())
+					log.Debugf("quota get error : %s", err.Error())
 				}
 				action = alerts.QUOTA_UNPAID
 				if quota.Status == "paid" {

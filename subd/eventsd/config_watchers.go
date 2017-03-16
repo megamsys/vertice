@@ -10,29 +10,34 @@ import (
 	"text/tabwriter"
 )
 
-type Mailgun struct {
+type Mailer struct {
 	Enabled bool   `toml:"enabled"`
-	ApiKey  string `toml:"api_key"`
 	Domain  string `toml:"domain"`
+	Username  string `toml:"username"`
+	Password  string `toml:"password"`
+	Identity  string `toml:"identity"`
 	Sender  string `toml:"sender"`
 	Logo    string `toml:"logo"`
 	Nilavu  string `toml:"nilavu"`
 }
 
-func NewMaingun() Mailgun {
-	return Mailgun{
-		ApiKey: "team",
-		Domain: "ojamail.megambox.com",
+func NewMailer() Mailer {
+	return Mailer{
+		Domain: "smtp.mailgun.org",
+		Username: "postmaster.megambox.com",
+		Password: "donotallow",
 		Sender: "Megam Systems <support@megam.io>",
 		Logo:   "https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/megam_vertice.png",
 		Nilavu: "localhost:3000",
 	}
 }
 
-func (m Mailgun) toMap() map[string]string {
+func (m Mailer) toMap() map[string]string {
 	mp := make(map[string]string)
 	mp[constants.ENABLED] = strconv.FormatBool(m.Enabled)
-	mp[constants.API_KEY] = m.ApiKey
+	mp[constants.USERNAME] = m.Username
+	mp[constants.PASSWORD] = m.Password
+	mp[constants.IDENTITY] = m.Identity
 	mp[constants.DOMAIN] = m.Domain
 	mp[constants.SENDER] = m.Sender
 	mp[constants.NILAVU] = m.Nilavu
@@ -40,21 +45,26 @@ func (m Mailgun) toMap() map[string]string {
 	return mp
 }
 
-func (m Mailgun) String() string {
+func (m Mailer) String() string {
 	w := new(tabwriter.Writer)
 	var b bytes.Buffer
 	w.Init(&b, 1, 8, 0, '\t', 0)
-	b.Write([]byte(cmd.Colorfy("Mailgun", "green", "", "") + "\n"))
+	b.Write([]byte(cmd.Colorfy("SMTP Mailer", "green", "", "") + "\n"))
 	b.Write([]byte("enabled      " + "\t" + strconv.FormatBool(m.Enabled) + "\n"))
-	b.Write([]byte("api_key" + "\t" + m.ApiKey + "\n"))
-	b.Write([]byte("sender" + "\t" + m.Sender + "\n"))
 	b.Write([]byte("domain" + "\t" + m.Domain + "\n"))
+	b.Write([]byte("sender" + "\t" + m.Sender + "\n"))
+	b.Write([]byte("username" + "\t" + m.Username + "\n"))
+	b.Write([]byte("password" + "\t" + m.Password + "\n"))
+	b.Write([]byte("identity" + "\t" + m.Identity + "\n"))
 	b.Write([]byte("nilavu    " + "\t" + m.Nilavu + "\n"))
 	b.Write([]byte("logo      " + "\t" + m.Logo + "\n"))
 	fmt.Fprintln(w)
 	w.Flush()
 	return strings.TrimSpace(b.String())
 }
+
+
+
 
 type Slack struct {
 	Enabled bool   `toml:"enabled"`

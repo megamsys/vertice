@@ -23,8 +23,8 @@ import (
 
 var (
 	// categories of marketplaces queue process
-	RAWIMAGE     = "rawimage"
-	MARKETPLACES = "marketplaces"
+	RAWIMAGE     = "marketplaces.rawimage"
+	MARKETPLACES = "localsite.marketplaces"
 )
 
 type ReqOpts struct {
