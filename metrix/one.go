@@ -3,8 +3,8 @@ package metrix
 import (
 	"encoding/xml"
 	log "github.com/Sirupsen/logrus"
-	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/libgo/events/alerts"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/metrics"
 	"github.com/megamsys/vertice/carton"
 	"io/ioutil"

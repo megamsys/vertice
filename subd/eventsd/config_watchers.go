@@ -11,24 +11,24 @@ import (
 )
 
 type Mailer struct {
-	Enabled bool   `toml:"enabled"`
-	Domain  string `toml:"domain"`
-	Username  string `toml:"username"`
-	Password  string `toml:"password"`
-	Identity  string `toml:"identity"`
-	Sender  string `toml:"sender"`
-	Logo    string `toml:"logo"`
-	Nilavu  string `toml:"nilavu"`
+	Enabled  bool   `toml:"enabled"`
+	Domain   string `toml:"domain"`
+	Username string `toml:"username"`
+	Password string `toml:"password"`
+	Identity string `toml:"identity"`
+	Sender   string `toml:"sender"`
+	Logo     string `toml:"logo"`
+	Nilavu   string `toml:"nilavu"`
 }
 
 func NewMailer() Mailer {
 	return Mailer{
-		Domain: "smtp.mailgun.org",
+		Domain:   "smtp.mailgun.org",
 		Username: "postmaster.megambox.com",
 		Password: "donotallow",
-		Sender: "Megam Systems <support@megam.io>",
-		Logo:   "https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/megam_vertice.png",
-		Nilavu: "localhost:3000",
+		Sender:   "Megam Systems <support@megam.io>",
+		Logo:     "https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/megam_vertice.png",
+		Nilavu:   "localhost:3000",
 	}
 }
 
@@ -62,9 +62,6 @@ func (m Mailer) String() string {
 	w.Flush()
 	return strings.TrimSpace(b.String())
 }
-
-
-
 
 type Slack struct {
 	Enabled bool   `toml:"enabled"`
