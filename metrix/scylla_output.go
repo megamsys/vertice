@@ -28,6 +28,7 @@ func mkBalance(s *Sensor, du map[string]string) error {
 	m := s.Metrics.Totalcost(du)
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
+	mi[constants.ASSEMBLIESID] = s.AssembliesId
 	mi[constants.ASSEMBLYNAME] = s.AssemblyName
 	mi[constants.CONSUMED] = m
 	mi[constants.START_TIME] = s.AuditPeriodBeginning
@@ -54,28 +55,14 @@ func mkBalance(s *Sensor, du map[string]string) error {
 	return newEvent.Write()
 }
 
-func eventSkews(s *Sensor, skews map[string]string) error {
-	var action alerts.EventAction
+func eventSkews(s *Sensor, action alerts.EventAction, skews map[string]string) error {
 	mi := make(map[string]string, 0)
 
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
+	mi[constants.ASSEMBLIESID] = s.AssembliesId
 	mi[constants.ASSEMBLYNAME] = s.AssemblyName
 	mi[constants.QUOTAID] = s.QuotaId
-	if len(s.QuotaId) > 0 {
-		quota, err := carton.NewQuota(s.AccountId, s.QuotaId)
-		if err != nil {
-			return err
-		}
-		action = alerts.QUOTA_UNPAID
-		if quota.Status == "paid" {
-			return nil
-		}
-		mi[constants.SKEWS_TYPE] = "vm.quota.unpaid"
-	} else {
-		action = alerts.SKEWS_ACTIONS
-		mi[constants.SKEWS_TYPE] = "vm.ondemand.bills"
-	}
 
 	for k, v := range skews {
 		mi[k] = v

@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Running in cloud !</title>
+    <title>Failed to launch !</title>
 </head>
 <div style="font-family: sans-serif; font-size: 14px; color: #8a9ca2;">
 <body bgcolor="#eaf0f2">
@@ -19,20 +19,29 @@
                             <h3 style="font-size: 28px; font-weight: normal;">Hey <b>{{.email}}</b></h3>
                             <table width="500px" cellspacing="0" cellpadding="3" >
                                 <tr style=" background-color: #fff;">
-                                    <td align="center" width="30%"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/check.png"></td>
-                                    <td align="left" style="padding: 30px;" >
-                                        <h2 style="margin: 30px 0px;">Running !</h2>
-                                        <p>Access {{.appname}} using your SSH private key or Password</p>
-                                      </td>
+                                    <td align="center" width="30%"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/piggy-bank-icon.png"></td>
+                                    <td align="left" style="padding: 41px;padding-top: 3px;padding-bottom: 43px;" >
+                                        <h2 style="margin: 30px 0px;"> Failed !</h2>
+                                        <p>I hope you're having a great day today. There are some issues on your account that need your attention. There is an invoice(s) that are past due on your account. Please be aware that any invoices more than {{.SoftGracePeriod}} days OR credit {{.SoftLimit}} amount past due are subject to {{.SoftAction}} and more than {{.HardGracePeriod}} days OR credit {{.HardLimit}} amount past due are subject to {{.HardAction}}.</p>
+
+                                        <p>GENERATED AT:       {{.action_trigger_at}}</p>
+                                        <p>DUE DATE:           {{.next_action_due_at}}</p>
+
+                                        <p>This mail is to intimate for {{.action}}</p>
+
+                                        <p>If next due over dated {{.appname}} will be {{.next_action}}.</p>
+
+                                        <p>If you can please make a payment on your outstanding invoices to avoid cancellation of your services we would greatly appreciate it.</p>
+
+                                        <p>If your account balance is zero and your invoice still shows as unpaid, you may need to apply credit to the invoice. </p>
+
+                                        <p>Please be aware that any servers that are reconnected after termination will incur a $10 reconnection fee.</p>                                      </td>
                                 </tr>
                             </table >
                             <table width="500px" cellspacing="0" cellpadding="3" style=" background-color: #fff;" >
-                                <tr>
-                                <td><hr></td>
-                                </tr>
-                                <tr>
+
                                     <td align="center" style="padding: 45px;">
-                                        <a href="{{.nilavu}}"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/login.png"></a>
+                                        <a href="{{.nilavu}}"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/add_funds.png"></a>
                                     </td>
                                 </tr>
                             </table>

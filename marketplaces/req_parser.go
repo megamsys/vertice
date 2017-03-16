@@ -1,5 +1,5 @@
 /*
-** Copyright [2013-2016] [Megam Systems]
+** Copyright [2013-2017] [Megam Systems]
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import (
 
 var (
 	// categories of marketplaces queue process
-	RAWIMAGE     = "rawimage"
-	MARKETPLACES = "marketplaces"
+	RAWIMAGE     = "marketplaces.rawimage"
+	MARKETPLACES = "localsite.marketplaces"
 )
 
 type ReqOpts struct {

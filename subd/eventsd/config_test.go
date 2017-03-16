@@ -13,7 +13,7 @@ func (s *S) TestEventsConfig_Parse(c *check.C) {
 		[events]
 	    enabled = false
 
-	  [mailgun]
+	  [smtp]
 	    api_key = "temp"
 	    domain  = "ojamail.megambox.com"
 			nilavu = "https://console.megam.io"
@@ -38,7 +38,7 @@ func (s *S) TestEventsConfig_Parse(c *check.C) {
 	}
 
 	c.Assert(cm.Enabled, check.Equals, false)
-	c.Assert(cm.Mailgun.ApiKey, check.Equals, "temp")
+	c.Assert(cm.Mailer.Domain, check.Equals, "ojamail.megambox.com")
 	c.Assert(cm.Infobip.Username, check.Equals, "info_username")
 	c.Assert(cm.Slack.Token, check.Equals, "temp")
 }
