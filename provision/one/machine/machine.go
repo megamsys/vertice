@@ -128,7 +128,7 @@ func (m *Machine) CheckQuotaState(b *provision.Box, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if quota.Status != "paid" {
+	if strings.ToLower(quota.Status) != "paid" {
 		carton.DoneNotify(b, w, alerts.QUOTA_UNPAID)
 		log.Debugf(" quota payment overdue for the user (%s)", b.AccountId)
 		return fmt.Errorf("quota state unpaid")
