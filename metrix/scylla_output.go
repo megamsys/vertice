@@ -25,6 +25,7 @@ func SendMetricsToScylla(metrics Sensors, hostname string) (err error) {
 
 func mkBalance(s *Sensor, du map[string]string) error {
 	mi := make(map[string]string, 0)
+
 	m := s.Metrics.Totalcost(du)
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
@@ -57,7 +58,6 @@ func mkBalance(s *Sensor, du map[string]string) error {
 
 func eventSkews(s *Sensor, action alerts.EventAction, skews map[string]string) error {
 	mi := make(map[string]string, 0)
-
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
 	mi[constants.ASSEMBLIESID] = s.AssembliesId
