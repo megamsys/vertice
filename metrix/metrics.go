@@ -94,5 +94,5 @@ func (m *Metrics) Totalcost(units map[string]string) string {
 		}
 	}
 	res := strconv.FormatFloat(cost/float64(diff_ival), 'f', 6, 64)
-	return res //for 1 hr to 10min It should be customized
+	return res //for 1 hr to 10min  based on interval it measures
 }

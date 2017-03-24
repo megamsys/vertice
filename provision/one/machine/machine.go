@@ -412,7 +412,7 @@ func (m *Machine) addEnvsToContext(envs string, cfg *compute.VirtualMachine) {
 }
 
 func (m *Machine) CreateDiskImage(p OneProvisioner) error {
-	log.Debugf("  creating snap machine in one (%s)", m.Name)
+	log.Debugf("  creating backup machine in one (%s)", m.Name)
 	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
@@ -441,7 +441,14 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
+	vm := virtualmachine.Vnc{VmId: m.VMId}
+	res, err := p.Cluster().GetVM(vm, m.Region)
+	if err != nil {
+		return err
+	}
 
+	fmt.Println("****************************",res.LenSnapshots())
+	expects := res.LenSnapshots() + 1
 	vmid, _ := strconv.Atoi(m.VMId)
 	opts := snapshot.Snapshot{
 		VMId:            vmid,
@@ -453,8 +460,18 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-	m.ImageId = id
-	return nil
+	fmt.Println(expects,"****************************",res.LenSnapshots())
+
+	res, err = p.Cluster().GetVM(vm, m.Region)
+	if err != nil {
+		return err
+	}
+	fmt.Println(res.UserTemplate.Error)
+	if res.LenSnapshots() == expects {
+		m.ImageId = id
+		return nil
+	}
+	return fmt.Errorf(res.UserTemplate.Error)
 }
 
 func (m *Machine) RestoreSnapshot(p OneProvisioner) error {
@@ -497,10 +514,7 @@ func (m *Machine) IsSnapReady(p OneProvisioner) error {
 		return res.IsSnapshotReady(), nil
 	})
 
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 //it possible to have a Notifier interface that does this, duck typed by Snap id

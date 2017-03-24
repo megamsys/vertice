@@ -280,7 +280,6 @@ func (p *oneProvisioner) Destroy(box *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusDestroying,
 		machineState:  constants.StateDestroying,
 		provisioner:   p,
@@ -341,11 +340,10 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating backup box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusBackupCreating,
 		provisioner:   p,
 	}
@@ -363,20 +361,19 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	pipeline := action.NewPipeline(actions...)
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating snapshot box (%s)--> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating backup box (%s)--> %s", box.GetFullName(), err)))
 		return err
 	}
 
-	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating snapshot box (%s)OK", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating backup box (%s)OK", box.GetFullName())))
 	return nil
 }
 
 func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
-	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing backup box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusBackupDeleting,
 		provisioner:   p,
 	}
@@ -392,11 +389,11 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	pipeline := action.NewPipeline(actions...)
 	err := pipeline.Execute(args)
 	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- removing snapshot box (%s)--> %s", box.GetFullName(), err)))
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- removing backup box (%s)--> %s", box.GetFullName(), err)))
 		return err
 	}
 
-	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing snapshot box (%s)OK", box.GetFullName())))
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing backup box (%s)OK", box.GetFullName())))
 	return nil
 }
 
@@ -405,7 +402,7 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&machCreating,
-		&updateStatusInScylla,
+		&updateSnapStatus,
 		&createSnapshot,
 		&waitUntillSnapReady,
 		&updateIdInSnapTable,
@@ -420,7 +417,6 @@ func (p *oneProvisioner) CreateSnapshot(box *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusSnapCreating,
 		provisioner:   p,
 	}
@@ -441,7 +437,6 @@ func (p *oneProvisioner) RestoreSnapshot(box *provision.Box, w io.Writer) error 
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusSnapRestoring,
 		provisioner:   p,
 	}
@@ -471,7 +466,6 @@ func (p *oneProvisioner) DeleteSnapshot(box *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusSnapDeleting,
 		provisioner:   p,
 	}
@@ -509,7 +503,6 @@ func (p *oneProvisioner) AttachDisk(box *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusDiskAttaching,
 		provisioner:   p,
 	}
@@ -538,7 +531,6 @@ func (p *oneProvisioner) DetachDisk(box *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusDiskDetaching,
 		provisioner:   p,
 	}
@@ -600,7 +592,6 @@ func (p *oneProvisioner) Restart(box *provision.Box, process string, w io.Writer
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusBootstrapped,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
@@ -633,7 +624,6 @@ func (p *oneProvisioner) Start(box *provision.Box, process string, w io.Writer) 
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusStarting,
 		machineState:  constants.StateRunning,
 		provisioner:   p,
@@ -667,7 +657,6 @@ func (p *oneProvisioner) Stop(box *provision.Box, process string, w io.Writer) e
 	args := runMachineActionsArgs{
 		box:           box,
 		writer:        w,
-		isDeploy:      false,
 		machineStatus: constants.StatusStopping,
 		machineState:  constants.StateStopped,
 		provisioner:   p,
