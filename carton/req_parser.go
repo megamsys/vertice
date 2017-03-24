@@ -26,14 +26,15 @@ var (
 
 	//the state actions available are.
 	STATE        = "state"
-	DONE         = "done"
 	CREATE       = "create"
 	BOOTSTRAPPED = "bootstrapped"
 	DESTROY      = "destroy"
 	STATEUP      = "stateup"
 	STATEDOWN    = "statedown"
-	RUNNING      = "running"
-	FAILURE      = "failure"
+
+	DONE    = "done"
+	RUNNING = "running"
+	FAILURE = "failure"
 
 	//the control actions available are.
 	CONTROL      = "control"

@@ -152,7 +152,6 @@ var createMachine = action.Action{
 			Provisioner: args.provisioner,
 		})
 		if err != nil {
-			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
 		mach.State = constants.StateInitialized
@@ -184,7 +183,6 @@ var getVmHostIpPort = action.Action{
 		}
 		err := mach.VmHostIpPort(&machine.CreateArgs{Provisioner: args.provisioner})
 		if err != nil {
-			_ = carton.DoneNotify(args.box, writer, alerts.FAILURE)
 			return nil, err
 		}
 		mach.Status = constants.StatusVncHostUpdating
@@ -599,17 +597,12 @@ var createSnapshot = action.Action{
 	Backward: func(ctx action.BWContext) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.FWResult.(machine.Machine)
-		mach.Status = constants.Status("error")
 		w := args.writer
 		if w == nil {
 			w = ioutil.Discard
 		}
 		if err := mach.RemoveSnapshot(args.provisioner); err != nil {
 			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot remove failure error (%s)   %s", mach.Name, err.Error())))
-		}
-		err := mach.UpdateSnapStatus(mach.Status)
-		if err != nil {
-			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot create failure update error (%s)   %s", mach.Name, err.Error())))
 		}
 	},
 	OnError:   rollbackNotice,
@@ -768,7 +761,15 @@ var mileStoneUpdate = action.Action{
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
-		err = c.SetMileStone(constants.StatePreError)
+		var state constants.State
+		if args.isDeploy {
+			state = constants.StatePreError
+			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE)
+		} else {
+			state = constants.StateError
+		}
+
+		err = c.SetMileStone(state)
 		if err != nil {
 			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 		}
@@ -844,7 +845,16 @@ var updateSnapStatus = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.FWResult.(machine.Machine)
+		w := args.writer
+		if w == nil {
+			w = ioutil.Discard
+		}
+		err := mach.UpdateSnapStatus(constants.StatusError)
+		if err != nil {
+			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot create failure update error (%s)   %s", mach.Name, err.Error())))
+		}
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
