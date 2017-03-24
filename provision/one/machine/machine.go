@@ -447,7 +447,6 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 		return err
 	}
 
-	fmt.Println("****************************",res.LenSnapshots())
 	expects := res.LenSnapshots() + 1
 	vmid, _ := strconv.Atoi(m.VMId)
 	opts := snapshot.Snapshot{
@@ -460,13 +459,11 @@ func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(expects,"****************************",res.LenSnapshots())
 
 	res, err = p.Cluster().GetVM(vm, m.Region)
 	if err != nil {
 		return err
 	}
-	fmt.Println(res.UserTemplate.Error)
 	if res.LenSnapshots() == expects {
 		m.ImageId = id
 		return nil
