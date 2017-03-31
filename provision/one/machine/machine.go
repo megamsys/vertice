@@ -175,7 +175,7 @@ func (m *Machine) VmHostIpPort(args *CreateArgs) error {
 func (m *Machine) WaitUntillVMState(p OneProvisioner, vm virtualmachine.VmState, lcm virtualmachine.LcmState) error {
 	opts := virtualmachine.Vnc{VmId: m.VMId}
 
-	err := safe.WaitCondition(10*time.Minute, 15*time.Second, func() (bool, error) {
+	err := safe.WaitCondition(20*time.Minute, 15*time.Second, func() (bool, error) {
 		res, err := p.Cluster().GetVM(opts, m.Region)
 		if err != nil {
 			return false, err
@@ -939,6 +939,15 @@ func (m *Machine) ImagePersistent(p OneProvisioner) error {
 		Id: id,
 	}
 	return p.Cluster().ImagePersistent(opts, m.Region)
+}
+
+func (m *Machine) ImageTypeChange(p OneProvisioner) error {
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id:   id,
+		Type: images.OPERATING_SYSTEM,
+	}
+	return p.Cluster().ImageTypeChange(opts, m.Region)
 }
 
 func (m *Machine) CheckSaveImage(p OneProvisioner) error {

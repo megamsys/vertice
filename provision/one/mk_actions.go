@@ -276,7 +276,7 @@ var updateMarketplaceVnc = action.Action{
 }
 
 var stopMachineIfRunning = action.Action{
-	Name: "update-vnc-host-ip-port",
+	Name: "shutdown-if-machine-running",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.Previous.(machine.Machine)
@@ -327,6 +327,26 @@ var makeImageAsPersistent = action.Action{
 			writer = ioutil.Discard
 		}
 		err := mach.ImagePersistent(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
+			return nil, err
+		}
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+	},
+}
+
+var changeAsOsImage = action.Action{
+	Name: "make-as-os-image",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.ImageTypeChange(args.provisioner)
 		if err != nil {
 			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  error start machine ( %s)", args.box.GetFullName())))
 			return nil, err

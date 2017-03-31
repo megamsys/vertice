@@ -570,6 +570,16 @@ func (c *Cluster) ImagePersistent(opts images.Image, region string) error {
 	return err
 }
 
+func (c *Cluster) ImageTypeChange(opts images.Image, region string) error {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return err
+	}
+	opts.T = node.Client
+	_, err = opts.ChType()
+	return err
+}
+
 func (c *Cluster) GetImage(opts images.Image, region string) (*images.Image, error) {
 	node, err := c.getNodeRegion(region)
 	if err != nil {

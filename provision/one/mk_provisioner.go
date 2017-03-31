@@ -103,7 +103,8 @@ func (p *oneProvisioner) SaveMarketplaceImage(m *provision.Box, w io.Writer) err
 		&waitForsaveImage,
 		&updateMarketplaceStatus,
 		&makeImageAsPersistent,
-		&removeInstance,
+		&changeAsOsImage,
+		//	&removeInstance,
 		&updateMarketplaceStatus,
 	}
 
