@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"github.com/megamsys/vertice/api/context"
 	"net/http"
 )
