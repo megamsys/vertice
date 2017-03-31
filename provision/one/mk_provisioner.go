@@ -57,9 +57,9 @@ func (p *oneProvisioner) ISODeploy(m *provision.Box, w io.Writer) error {
 
 func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- customize rawimage pipeline for box (%s)", m.Name)))
-
 	actions := []*action.Action{
 		&machCreating,
+		&updateMarketplaceStatus,
 		&createDatablockImage,
 		&updateMarketplaceStatus,
 		&updateMarketplaceImageId,
@@ -68,6 +68,7 @@ func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 		&createInstanceForCustomize,
 		&updateMarketplaceStatus,
 		&waitUntillVmReady,
+		&attachDatablockImage,
 		&updateMarketplaceStatus,
 		&getMarketplaceVncPost,
 		&updateMarketplaceVnc,
@@ -79,7 +80,7 @@ func (p *oneProvisioner) CustomizeImage(m *provision.Box, w io.Writer) error {
 	args := runMachineActionsArgs{
 		box:           m,
 		writer:        w,
-		machineStatus: constants.StatusDataBlockCreating,
+		machineStatus: constants.StatusLaunching,
 		provisioner:   p,
 	}
 

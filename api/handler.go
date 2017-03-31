@@ -1,9 +1,9 @@
 package api
 
 import (
-	"net/http"
-
+	"fmt"
 	"github.com/megamsys/vertice/api/context"
+	"net/http"
 )
 
 type Handler func(http.ResponseWriter, *http.Request) error

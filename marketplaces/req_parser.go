@@ -23,7 +23,7 @@ import (
 
 var (
 	// categories of marketplaces queue process
-	RAWIMAGE     = "marketplaces.rawimage"
+	RAWIMAGE     = "marketplaces.rawimages"
 	MARKETPLACES = "localsite.marketplaces"
 )
 
@@ -57,7 +57,7 @@ func (r *ReqOpts) ParseRequest() (MarketplaceInterface, error) {
 	case MARKETPLACES:
 		return r.getMarketplace()
 	default:
-		return nil, newParseError([]string{r.Category, r.Action}, []string{RAWIMAGE, MARKETPLACES})
+		return nil, newParseError([]string{"Category: ", r.Category}, []string{RAWIMAGE, MARKETPLACES})
 	}
 }
 
@@ -85,5 +85,5 @@ func newParseError(found []string, expected []string) *ParseError {
 
 // Error returns the string representation of the error.
 func (e *ParseError) Error() string {
-	return fmt.Sprintf("found %s, expected %s", e.Found, strings.Join(e.Expected, ", "))
+	return fmt.Sprintf("found %s, expected [ %s ]", e.Found, strings.Join(e.Expected, ", "))
 }

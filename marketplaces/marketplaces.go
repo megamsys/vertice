@@ -27,8 +27,8 @@ const (
 )
 
 type apiMarketplaces struct {
-	JsonClaz string       `json:"json_claz" cql:"json_claz"`
-	Results  Marketplaces `json:"results" cql:"results"`
+	JsonClaz string         `json:"json_claz" cql:"json_claz"`
+	Results  []Marketplaces `json:"results" cql:"results"`
 }
 
 //Global provisioners set by the subd daemons.
@@ -119,7 +119,7 @@ func (m *Marketplaces) get() (*Marketplaces, error) {
 	if err != nil {
 		return nil, err
 	}
-	a := &res.Results
+	a := &res.Results[0]
 	a.AccountId = m.AccountId
 	return a, nil
 }
@@ -143,6 +143,41 @@ func (m *Marketplaces) UpdateStatus(status utils.Status) error {
 		return err
 	}
 	return m.trigger_event(status)
+}
+
+func (m *Marketplaces) UpdateError(status utils.Status, cause error) error {
+	m.Status = status.String()
+	err := m.update()
+	if err != nil {
+		return err
+	}
+	return m.trigger_error_event(status, cause)
+}
+
+func (m *Marketplaces) trigger_error_event(status utils.Status, causeof error) error {
+	mi := make(map[string]string)
+	js := make(pairs.JsonPairs, 0)
+	a := make(map[string][]string, 2)
+	a["status"] = []string{status.String()}
+	a["description"] = []string{status.Description(causeof.Error())}
+	js.NukeAndSet(a) //just nuke the matching output key:
+
+	mi[constants.MARKETPLACE_ID] = m.Id
+	mi[constants.ACCOUNT_ID] = m.AccountId
+	mi[constants.EVENT_TYPE] = status.MkEvent_type()
+
+	newEvent := events.NewMulti(
+		[]*events.Event{
+			&events.Event{
+				AccountsId:  m.AccountId,
+				EventAction: alerts.STATUS,
+				EventType:   constants.EventUser,
+				EventData:   alerts.EventData{M: mi, D: js.ToString()},
+				Timestamp:   time.Now().Local(),
+			},
+		})
+
+	return newEvent.Write()
 }
 
 func (m *Marketplaces) Trigger_event(status utils.Status) error {
@@ -179,15 +214,18 @@ func (m *Marketplaces) rawImageCustomize() error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("marketplaces  %v", box)
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := lw.LogWriter{Box: box}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	deployer, ok := ProvisionerMap[box.Provider].(provision.MarketPlaceAccess)
+	// have to get provisioner from User
+	deployer, ok := ProvisionerMap[utils.PROVIDER_ONE].(provision.MarketPlaceAccess)
 	if !ok {
-		return fmt.Errorf("cannot provision marketplaces")
+		log.Debugf("cannot provision marketplaces  %s", utils.PROVIDER_ONE)
+		return fmt.Errorf("cannot provision marketplaces %s", utils.PROVIDER_ONE)
 	}
 	err = deployer.CustomizeImage(box, writer)
 	if err != nil {
@@ -230,8 +268,8 @@ func (m *Marketplaces) mkBox() (*provision.Box, error) {
 	box := &provision.Box{
 		CartonId:    m.Id,
 		AccountId:   m.AccountId,
-		Name:        m.ImageName(),
-		CartonName:  m.ImageName(),
+		Name:        m.Flavor,
+		CartonName:  m.Flavor,
 		Region:      m.Region(),
 		Provider:    m.provider(),
 		InstanceId:  m.instanceId(),
@@ -318,4 +356,18 @@ func (m *Marketplaces) getHDD() string {
 
 func (m *Marketplaces) storageType() string {
 	return strings.ToLower(m.Inputs.Match(utils.STORAGE_TYPE))
+}
+
+func (m *Marketplaces) NukeKeysOutputs(k string) error {
+	if len(k) > 0 {
+		log.Debugf("nuke keys from outputs in cassandra [%s]", k)
+		m.Outputs.NukeKeys(k) //just nuke the matching output key:
+		err := m.update()
+		if err != nil {
+			return err
+		}
+	} else {
+		return provision.ErrNoOutputsFound
+	}
+	return nil
 }

@@ -47,6 +47,7 @@ const (
 	YES                   = "yes"
 	REGION                = "region"
 	QUOTAID               = "quota_id"
+	FLAVOR_ID             = "flavor_id"
 	VM_CPU_COST           = "vm_cpu_cost_per_hour"
 	VM_MEMORY_COST        = "vm_ram_cost_per_hour"
 	VM_DISK_COST          = "vm_disk_cost_per_hour"
@@ -182,7 +183,6 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		ApiArgs:      args,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),
-		Compute:      a.newCompute(),
 		SSH:          a.newSSH(),
 		Provider:     a.provider(),
 		PublicIp:     a.publicIp(),
@@ -198,6 +198,11 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		Status:       utils.Status(a.Status),
 		State:        utils.State(a.State),
 	}
+	comp, err := a.newCompute()
+	if err != nil {
+		return nil, err
+	}
+	c.Compute = comp
 	return c, nil
 }
 
@@ -230,7 +235,11 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 					b.Repo.Hook.CartonId = a.Id //this is screwy, why do we need it.
 					b.Repo.Hook.BoxId = comp.Id
 				}
-				b.Compute = a.newCompute()
+				c, err := a.newCompute()
+				if err != nil {
+					return nil, err
+				}
+				b.Compute = c
 				b.PolicyOps = a.policyOps()
 				b.SSH = a.newSSH()
 				b.Region = a.region()
@@ -425,13 +434,21 @@ func (a *Assembly) isBackup() bool {
 	return (strings.TrimSpace(a.Inputs.Match(BACKUP)) == YES)
 }
 
-func (a *Assembly) newCompute() provision.BoxCompute {
-	return provision.BoxCompute{
-		Cpushare: a.getCpushare(),
-		Memory:   a.getMemory(),
-		Swap:     a.getSwap(),
-		HDD:      a.getHDD(),
+func (a *Assembly) flavorId() string {
+	return a.Inputs.Match(FLAVOR_ID)
+}
+
+func (a *Assembly) newCompute() (provision.BoxCompute, error) {
+	comp := provision.BoxCompute{}
+	f, err := GetFlavor(a.AccountId, a.flavorId())
+	if err != nil {
+		return comp, err
 	}
+	comp.Cpushare = f.getCpushare()
+	comp.Memory = f.getMemory()
+	comp.Swap = f.getSwap()
+	comp.HDD = f.getHDD()
+	return comp, nil
 }
 
 func (a *Assembly) newSSH() provision.BoxSSH {
@@ -441,20 +458,20 @@ func (a *Assembly) newSSH() provision.BoxSSH {
 	}
 }
 
-func (a *Assembly) getCpushare() string {
+func (a *Assembly) GetCpushare() string {
 	return a.Inputs.Match(provision.CPU)
 }
 
-func (a *Assembly) getMemory() string {
+func (a *Assembly) GetMemory() string {
 	return a.Inputs.Match(provision.RAM)
 }
 
-func (a *Assembly) getSwap() string {
+func (a *Assembly) GetSwap() string {
 	return ""
 }
 
 //The default HDD is 10. we should configure it in the vertice.conf
-func (a *Assembly) getHDD() string {
+func (a *Assembly) GetHDD() string {
 	if len(strings.TrimSpace(a.Inputs.Match(provision.HDD))) <= 0 {
 		return "10"
 	}
