@@ -179,7 +179,7 @@ var attachDatablockImage = action.Action{
 		if err != nil {
 			return mach, err
 		}
-		mach.Status = mach.Status
+		mach.Status = mach.StatusDataBlockCreated
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
