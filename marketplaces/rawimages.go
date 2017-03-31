@@ -87,7 +87,6 @@ func (r *RawImages) get() (*RawImages, error) {
 		return nil, err
 	}
 	raw.Repo = repo
-	log.Debugf("rawimages  %v", raw)
 	return raw, nil
 }
 

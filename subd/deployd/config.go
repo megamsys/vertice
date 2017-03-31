@@ -80,6 +80,7 @@ func NewConfig() *Config {
 		OneUserid:      DefaultOneUserid,
 		OnePassword:    DefaultOnePassword,
 		OneTemplate:    DefaultOneCluster,
+		Datastore:      "1",
 		MemoryUnit:     "1024",
 		CpuUnit:        "1",
 		DiskUnit:       "10240",

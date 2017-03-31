@@ -71,15 +71,12 @@ func (m *Machine) Create(args *CreateArgs) error {
 	}
 
 	opts := compute.VirtualMachine{
-		Name:       m.Name,
-		Image:      m.Image,
-		Region:     args.Box.Region,
-		Cpu:        strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
-		Memory:     strconv.FormatInt(int64(args.Box.GetMemory()), 10),
-		HDD:        strconv.FormatInt(int64(args.Box.GetHDD()), 10),
-		CpuCost:    asm.GetVMCpuCost(),
-		MemoryCost: asm.GetVMMemoryCost(),
-		HDDCost:    asm.GetVMHDDCost(),
+		Name:   m.Name,
+		Image:  m.Image,
+		Region: args.Box.Region,
+		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
+		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key, constants.QUOTA_ID: args.Box.QuotaId},
 		Vnets: args.Box.Vnets,
@@ -775,6 +772,14 @@ func (m *Machine) UpdateMarketplaceStatus() error {
 	return mark.UpdateStatus(m.Status)
 }
 
+func (m *Machine) UpdateMarketplaceError(causeof error) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	return mark.UpdateError(m.Status, causeof)
+}
+
 func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
 	size, _ := strconv.Atoi(strconv.FormatInt(int64(box.GetHDD()), 10))
 	opts := images.Image{
@@ -791,6 +796,23 @@ func (m *Machine) CreateDatablock(p OneProvisioner, box *provision.Box) error {
 	return nil
 }
 
+func (m *Machine) RemoveDatablock(p OneProvisioner) error {
+	mark, err := m.getMarketPlace(m.CartonId)
+	if err != nil {
+		return err
+	}
+	id, _ := strconv.Atoi(mark.ImageId())
+	opts := compute.Image{
+		Region:  m.Region,
+		ImageId: id,
+	}
+	err = p.Cluster().RemoveImage(opts)
+	if err != nil {
+		return err
+	}
+	return mark.NukeKeysOutputs(constants.IMAGE_ID)
+}
+
 func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 	var uname, rawname, imagename string
 
@@ -804,7 +826,7 @@ func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 		return err
 	}
 	rawname = raw.Name
-	imagename = mark.ImageName()
+	imagename = box.CartonName
 
 	XMLtemplate, err := p.Cluster().GetTemplate(m.Region)
 	if err != nil {
@@ -829,7 +851,6 @@ func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 	}
 	disks := make([]*template.Disk, 0)
 	disks = append(disks, &template.Disk{Image_Uname: uname, Image: rawname})
-	disks = append(disks, &template.Disk{Image_Uname: uname, Image: imagename})
 	XMLtemplate.Template.Disks = disks
 	vmid, err := p.Cluster().InstantiateVM(XMLtemplate, imagename, m.VCPUThrottle, m.Region)
 	if err != nil {
@@ -843,6 +864,15 @@ func (m *Machine) CreateInstance(p OneProvisioner, box *provision.Box) error {
 		return err
 	}
 	return nil
+}
+
+func (m *Machine) AttachDatablock(p OneProvisioner, b *provision.Box) error {
+	id, _ := strconv.Atoi(m.VMId)
+	opts := &disk.VmDisk{
+		VmId: id,
+		Vm:   disk.Vm{Disk: disk.Disk{Image: b.CartonName}},
+	}
+	return p.Cluster().AttachDisk(opts, m.Region)
 }
 
 func (m *Machine) MarketplaceInstanceState(p OneProvisioner) error {

@@ -106,10 +106,16 @@ var createDatablockImage = action.Action{
 		if err != nil {
 			return mach, err
 		}
-		mach.Status = constants.StatusCreating
+		mach.Status = constants.StatusDataBlockCreating
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		mach := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		err := mach.RemoveDatablock(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err datablock %s", err.Error())))
+		}
 	},
 }
 
@@ -150,11 +156,38 @@ var createInstanceForCustomize = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		mach := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  removing instance %s", ctx.CauseOf.Error())))
+		err := mach.Remove(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  removing err instance %s", err.Error())))
+		}
+	},
+}
+
+var attachDatablockImage = action.Action{
+	Name: "attach-datablock-image-to-vm",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.AttachDatablock(args.provisioner, args.box)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusDataBlockCreated
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
 	},
 }
 
 var updateMarketplaceStatus = action.Action{
-	Name: "update-rawimage-status",
+	Name: "update-marketplaces-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		args := ctx.Params[0].(runMachineActionsArgs)
 		mach := ctx.Previous.(machine.Machine)
@@ -169,6 +202,13 @@ var updateMarketplaceStatus = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
+		mach := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach.Status = constants.StatusPreError
+		err := mach.UpdateMarketplaceError(ctx.CauseOf)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  failure update marketplace status  %s", err.Error())))
+		}
 	},
 }
 
