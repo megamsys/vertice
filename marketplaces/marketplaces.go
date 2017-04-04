@@ -121,6 +121,7 @@ func (m *Marketplaces) get() (*Marketplaces, error) {
 	}
 	a := &res.Results[0]
 	a.AccountId = m.AccountId
+	log.Debugf("marketplaces GET %s ok ", a.Id)
 	return a, nil
 }
 
@@ -214,7 +215,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 	if err != nil {
 		return err
 	}
-	log.Debugf("marketplaces  %v", box)
+	log.Debugf("marketplaces INITIALIZE %v", box)
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := lw.LogWriter{Box: box}
@@ -224,7 +225,7 @@ func (m *Marketplaces) rawImageCustomize() error {
 	// have to get provisioner from User
 	deployer, ok := ProvisionerMap[utils.PROVIDER_ONE].(provision.MarketPlaceAccess)
 	if !ok {
-		log.Debugf("cannot provision marketplaces  %s", utils.PROVIDER_ONE)
+		log.Debugf("cannot provision marketplaces as (%s) provisioner", utils.PROVIDER_ONE)
 		return fmt.Errorf("cannot provision marketplaces %s", utils.PROVIDER_ONE)
 	}
 	err = deployer.CustomizeImage(box, writer)
@@ -243,14 +244,16 @@ func (m *Marketplaces) saveImage() error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("marketplaces  SAVE %v", box)
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := lw.LogWriter{Box: box}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
-	deployer, ok := ProvisionerMap[box.Provider].(provision.MarketPlaceAccess)
+	deployer, ok := ProvisionerMap[utils.PROVIDER_ONE].(provision.MarketPlaceAccess)
 	if !ok {
+		log.Debugf("cannot provision marketplaces as (%s) provisioner", utils.PROVIDER_ONE)
 		return fmt.Errorf("cannot provision marketplaces")
 	}
 	err = deployer.SaveMarketplaceImage(box, writer)
@@ -302,7 +305,7 @@ func (s *Marketplaces) RawImageId() string {
 }
 
 func (s *Marketplaces) instanceId() string {
-	return s.Inputs.Match(utils.INSTANCE_ID)
+	return s.Outputs.Match(utils.INSTANCE_ID)
 }
 
 func (s *Marketplaces) Region() string {
