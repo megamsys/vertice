@@ -69,14 +69,20 @@ func (m *Machine) Create(args *CreateArgs) error {
 	if err != nil {
 		return err
 	}
-
+	flv, err := carton.GetFlavor(m.AccountId, asm.FlavorId())
+	if err != nil {
+		return err
+	}
 	opts := compute.VirtualMachine{
-		Name:   m.Name,
-		Image:  m.Image,
-		Region: args.Box.Region,
-		Cpu:    strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
-		Memory: strconv.FormatInt(int64(args.Box.GetMemory()), 10),
-		HDD:    strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		Name:       m.Name,
+		Image:      m.Image,
+		Region:     args.Box.Region,
+		Cpu:        strconv.FormatInt(int64(args.Box.GetCpushare()), 10),
+		Memory:     strconv.FormatInt(int64(args.Box.GetMemory()), 10),
+		HDD:        strconv.FormatInt(int64(args.Box.GetHDD()), 10),
+		CpuCost:    flv.GetCpuCost(),
+		MemoryCost: flv.GetMemoryCost(),
+		HDDCost:    flv.GetHDDCost(),
 		ContextMap: map[string]string{compute.ASSEMBLY_ID: args.Box.CartonId, compute.ORG_ID: args.Box.OrgId,
 			compute.ASSEMBLIES_ID: args.Box.CartonsId, compute.ACCOUNTS_ID: args.Box.AccountId, compute.API_KEY: args.Box.ApiArgs.Api_Key, constants.QUOTA_ID: args.Box.QuotaId},
 		Vnets: args.Box.Vnets,

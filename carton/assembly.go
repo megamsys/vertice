@@ -446,6 +446,10 @@ func (a *Assembly) flavorId() string {
 	return strings.TrimSpace(a.Inputs.Match(FLAVOR_ID))
 }
 
+func (a *Assembly) FlavorId() string {
+	return strings.TrimSpace(a.Inputs.Match(FLAVOR_ID))
+}
+
 func (a *Assembly) newCompute() (provision.BoxCompute, error) {
 	comp := provision.BoxCompute{}
 	f, err := GetFlavor(a.AccountId, a.flavorId())
