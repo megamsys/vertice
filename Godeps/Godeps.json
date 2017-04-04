@@ -429,47 +429,47 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/compute",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/disk",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/images",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/metrics",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/snapshot",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/template",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/testing",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/users",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/virtualmachine",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/vnet",
-			"Rev": "2512026cc587612043b2fe744385afedc0efee90"
+			"Rev": "294e35e5b899e18f645efca23586a1725e3ffdd1"
 		},
 		{
 			"ImportPath": "github.com/megamsys/whmcs_go/whmcs",
