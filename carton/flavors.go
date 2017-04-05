@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+const (
+	GB = "GB"
+)
+
 type Flavor struct {
 	Name       string          `json:"name"`
 	Id         string          `json:"id"`
@@ -72,7 +76,7 @@ func (f *Flavor) getCpushare() string {
 }
 
 func (f *Flavor) getMemory() string {
-	return f.Ram
+	return f.Ram + GB
 }
 
 func (f *Flavor) getSwap() string {
@@ -82,9 +86,9 @@ func (f *Flavor) getSwap() string {
 //The default HDD is 10. we should configure it in the vertice.conf
 func (f *Flavor) getHDD() string {
 	if len(strings.TrimSpace(f.Disk)) <= 0 {
-		return "10"
+		return "10" + GB
 	}
-	return f.Disk
+	return f.Disk + GB
 }
 
 func (f *Flavor) GetCpuCost() string {
