@@ -1,14 +1,13 @@
-=======
 vertice
 =================
 
-vertice is the core engine for Megam Vertice
+vertice is the core engine for Megam Vertice 1.5.x
 
 
 ### Requirements
 
 >
-[Golang 1.5 > +](http://www.golang.org/dl)
+[Golang 1.8 > +](http://www.golang.org/dl)
 
 
 ## Usage
@@ -35,7 +34,10 @@ make
 
 ### Documentation
 
-Refer [documentation] (http://docs.megam.io)
+[development documentation] (https://github.com/megamsys/verticedev/tree/master/development)
+
+[documentation] (http://docs.megam.io) for usage.
+
 
 
 
@@ -55,8 +57,7 @@ We are glad to help if you have questions, or request for new features..
 | 	                   | KishorekumarNeelamegam (<nkishore@megam.io>)
 |                      | Ranjitha  (<ranjithar@megam.io>)
 |                      | MVijaykanth  (<mvijaykanth@megam.io>)
-|                      | Yeshwanth Kumar (<getyesh@megam.io>)
-| **Copyright:**       | Copyright (c) 2013-2016 Megam Systems.
+| **Copyright:**       | Copyright (c) 2013-2017 Megam Systems.
 | **License:**         | Apache License, Version 2.0
 
 Licensed under the Apache License, Version 2.0 (the "License");
