@@ -17,6 +17,7 @@ package carton
 
 import (
 	"encoding/json"
+	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
@@ -39,13 +40,14 @@ type ApiAssemblies struct {
 
 //The grand elephant for megam cloud platform.
 type Assemblies struct {
-	Id          string          `json:"id" cql:"id"`
-	OrgId       string          `json:"org_id" cql:"org_id"`
-	JsonClaz    string          `json:"json_claz" cql:"json_claz"`
-	Name        string          `json:"name" cql:"name"`
-	AssemblysId []string        `json:"assemblies" cql:"assemblies"`
-	Inputs      pairs.JsonPairs `json:"inputs" cql:"inputs"`
-	CreatedAt   string          `json:"created_at" cql:"created_at"`
+	Id          string              `json:"id" cql:"id"`
+	OrgId       string              `json:"org_id" cql:"org_id"`
+	JsonClaz    string              `json:"json_claz" cql:"json_claz"`
+	Name        string              `json:"name" cql:"name"`
+	AssemblysId []string            `json:"assemblies" cql:"assemblies"`
+	Inputs      pairs.JsonPairs     `json:"inputs" cql:"inputs"`
+	CreatedAt   string              `json:"created_at" cql:"created_at"`
+	Assemblys   map[string]Assembly `json:"-"`
 }
 
 func (a *Assemblies) String() string {
@@ -60,10 +62,14 @@ func (a *Assemblies) String() string {
 and any others we do. **/
 
 func Get(id, email string) (*Assemblies, error) {
-	args := newArgs(email, "")
 	a := new(Assemblies)
 	a.Id = id
-	return a.get(args)
+	return a.get(newArgs(email, ""))
+}
+
+// get all assemblies under a user
+func Gets(email, org string) ([]Assemblies, error) {
+	return new(Assemblies).gets(newArgs(email, org))
 }
 
 func (a *Assemblies) get(args api.ApiArgs) (*Assemblies, error) {
@@ -80,6 +86,21 @@ func (a *Assemblies) get(args api.ApiArgs) (*Assemblies, error) {
 	}
 	a = &ac.Results[0]
 	return a, nil
+}
+
+func (a *Assemblies) gets(args api.ApiArgs) ([]Assemblies, error) {
+	cl := api.NewClient(args, "/assemblies")
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	ac := &ApiAssemblies{}
+	err = json.Unmarshal(response, ac)
+	if err != nil {
+		return nil, err
+	}
+	return ac.Results, nil
 }
 
 //make cartons from assemblies.

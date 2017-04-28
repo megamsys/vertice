@@ -64,14 +64,14 @@ type CreateArgs struct {
 	Provisioner OneProvisioner
 }
 
-func (m *Machine) Create(args *CreateArgs) error {
+func (m *Machine) create(args *CreateArgs) (compute.VirtualMachine, *carton.Assembly, error) {
 	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
 	if err != nil {
-		return err
+		return compute.VirtualMachine{}, nil, err
 	}
 	flv, err := carton.GetFlavor(m.AccountId, asm.FlavorId())
 	if err != nil {
-		return err
+		return compute.VirtualMachine{}, nil, err
 	}
 	opts := compute.VirtualMachine{
 		Name:       m.Name,
@@ -91,8 +91,50 @@ func (m *Machine) Create(args *CreateArgs) error {
 	if strings.Contains(args.Box.Tosca, "freebsd") {
 		opts.Files = "/detio/freebsd/init.sh"
 	}
+	return opts, asm, nil
+}
 
-	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType)
+func (m *Machine) Create(args *CreateArgs) error {
+	nics := make([]*template.NIC, 0)
+	opts, asm, err := m.create(args)
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType, nics)
+	if err != nil {
+		return err
+	}
+	m.VMId = vmid
+	var id = make(map[string][]string)
+	id[carton.INSTANCE_ID] = []string{m.VMId}
+	if err = asm.NukeAndSetOutputs(id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Machine) CreateBackupVM(args *CreateArgs) error {
+	var ips = make(map[string][]string)
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
+	for _, nic := range nics {
+		ips[nic] = strings.Split(bk.Outputs.Match(nic), ", ")
+	}
+
+	opts, asm, err := m.create(args)
+	if err != nil {
+		return err
+	}
+
+	res, err := args.Provisioner.Cluster().GetIpsNetwork(m.Region, ips)
+	if err != nil {
+		err = m.SetStatusErr(constants.StatusNetworkUnavail, err)
+		opts.ForceNetwork = false
+	} else {
+		opts.ForceNetwork = true
+	}
+
+	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType, res)
 	if err != nil {
 		return err
 	}
@@ -256,10 +298,10 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
 	for IPtype, ips := range mm {
 		var sameIp string
 		for _, ip := range ips {
-			sameIp = sameIp + ip + ","
+			sameIp = sameIp + ip + ", "
 		}
 		if sameIp != "" {
-			mm[IPtype] = []string{strings.TrimRight(sameIp, ",")}
+			mm[IPtype] = []string{strings.TrimRight(sameIp, ", ")}
 		}
 	}
 	return mm
@@ -587,12 +629,40 @@ func (m *Machine) UpdateBackup() error {
 }
 
 func (m *Machine) UpdateBackupStatus(status utils.Status) error {
-	sns, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
 	}
-	sns.Status = status.String()
-	return sns.UpdateBackup()
+	bk.Status = status.String()
+	return bk.UpdateBackup()
+}
+
+func (m *Machine) UpdateBackupId() error {
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if err != nil {
+		return err
+	}
+	return asm.NukeAndSetOutputs(map[string][]string{"backup_id": []string{m.CartonsId}})
+}
+
+func (m *Machine) UpdateBackupVMIps() error {
+	var ips = make(map[string][]string)
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
+	if err != nil {
+		return err
+	}
+
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+
+	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
+	for _, nic := range nics {
+		ips[nic] = strings.Split(asm.Inputs.Match(nic), ", ")
+	}
+	bk.Outputs.NukeAndSet(ips)
+	return bk.UpdateBackup()
 }
 
 func (m *Machine) UpdateDisk(p OneProvisioner) error {

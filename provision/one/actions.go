@@ -881,6 +881,89 @@ var updateIdInBackupTable = action.Action{
 	MinParams: 1,
 }
 
+var updateSourceVMIdIps = action.Action{
+	Name: "update-backups-vm-ips",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups source machine ips (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateBackupVMIps(); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups source machine ips  (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
+var createBackupMachine = action.Action{
+	Name: "create-backup-machine",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.SetStatus(mach.Status)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s", args.box.GetFullName(), args.imageId, args.box.Compute)))
+		err = mach.CreateBackupVM(&machine.CreateArgs{
+			Box:         args.box,
+			Compute:     args.box.Compute,
+			Deploy:      true,
+			Provisioner: args.provisioner,
+		})
+		if err != nil {
+			return nil, err
+		}
+		mach.State = constants.StateInitialized
+		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" create machine for box (%s, image:%s)/%s OK", args.box.GetFullName(), args.imageId, args.box.Compute)))
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		log.Debugf("create machine backward state : %v", c.State)
+		if c.State != constants.StateInitialized {
+			log.Debugf(" backward removing machine")
+			err := c.Remove(args.provisioner)
+			if err != nil {
+				fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err machine %s", err.Error())))
+			}
+		}
+	},
+}
+
+var updateBackupId = action.Action{
+	Name: "update-backup-id-in-assembly",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateBackupId(); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
 var updateBackupStatus = action.Action{
 	Name: "update-backup-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

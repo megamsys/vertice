@@ -30,6 +30,7 @@ import (
 	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 	// "github.com/megamsys/libgo/cmd"
@@ -112,6 +113,23 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	}
 	a := ac.Results[0]
 	return a.dig()
+}
+
+func gets(args api.ApiArgs) ([]Assembly, error) {
+	cl := api.NewClient(args, "/assembly")
+	response, err := cl.Get()
+	if err != nil {
+		return nil, err
+	}
+	ac := &ApiAssembly{}
+	err = json.Unmarshal(response, ac)
+	if err != nil {
+		return nil, err
+	}
+	if len(ac.Results) > 0 {
+		return ac.Results, nil
+	}
+	return nil, fmt.Errorf("No records found")
 }
 
 func (a *Assembly) dig() (*Assembly, error) {
@@ -269,6 +287,10 @@ func (a *Assembly) mkBoxes(aies string, args api.ApiArgs) ([]provision.Box, erro
 func NewAssembly(id, email, org string) (*Assembly, error) {
 	args := newArgs(email, org)
 	return get(args, id)
+}
+
+func AssemblyBox(email, org string) ([]Assembly, error) {
+	return gets(newArgs(email, org))
 }
 
 func NewCarton(aies, ay, email string) (*Carton, error) {
@@ -434,6 +456,14 @@ func (a *Assembly) quotaID() string {
 	return strings.TrimSpace(a.Inputs.Match(QUOTAID))
 }
 
+func (a *Assembly) QuotaId() string {
+	return a.quotaID()
+}
+
+func (a *Assembly) IsQuota() bool {
+	return len(a.quotaID()) > 0
+}
+
 func (a *Assembly) storageType() string {
 	return strings.ToLower(a.Inputs.Match(utils.STORAGE_TYPE))
 }
@@ -456,20 +486,16 @@ func (a *Assembly) newCompute() (provision.BoxCompute, error) {
 	if err != nil {
 		return comp, err
 	}
-	comp.Cpushare = f.getCpushare()
-	comp.Memory = f.getMemory()
-	comp.Swap = f.getSwap()
-	comp.HDD = f.getHDD()
-	return comp, nil
+	return f.compute(), nil
 }
 
 func (a *Assembly) compute() provision.BoxCompute {
-	comp := provision.BoxCompute{}
-	comp.Cpushare = a.getCpushare()
-	comp.Memory = a.getMemory()
-	comp.Swap = a.getSwap()
-	comp.HDD = a.getHDD()
-	return comp
+	return provision.BoxCompute{
+		Cpushare: a.getCpushare(),
+		Memory:   a.getMemory(),
+		Swap:     a.getSwap(),
+		HDD:      a.getHDD(),
+	}
 }
 
 func (a *Assembly) newSSH() provision.BoxSSH {
@@ -517,6 +543,18 @@ func (a *Assembly) GetContainerCpuCost() string {
 
 func (a *Assembly) GetContainerMemoryCost() string {
 	return a.Inputs.Match(CONTAINER_MEMORY_COST)
+}
+
+func (a *Assembly) HostName() string {
+	return a.Outputs.Match(VNCHOST)
+}
+
+func (a *Assembly) GetFullName() string {
+	domain := a.domain()
+	if len(strings.TrimSpace(domain)) > 0 {
+		return strings.Join([]string{a.Name, domain}, ".")
+	}
+	return a.Name
 }
 
 func parseStringToStruct(str string, data interface{}) error {
@@ -592,4 +630,75 @@ func (a *Assembly) trigger_error_event(status utils.Status, causeof error) error
 		})
 
 	return newEvent.Write()
+}
+func (a *Assembly) IsAlive() bool {
+	return !a.isPending() && !a.isDestroyed()
+}
+
+func (a *Assembly) isPending() bool {
+	return a.State == constants.PREDEPLOY_ERROR || a.State == constants.PARKED
+}
+
+func (a *Assembly) isDestroyed() bool {
+	return a.State == constants.DESTROYING || a.State == constants.DESTROYED
+}
+
+func (a *Assembly) isStopped() bool {
+	return a.State == constants.STOPPED || a.State == constants.STOPPING
+}
+
+func (a *Assembly) isSuspended() bool {
+	return a.State == constants.SUSPENDED || a.State == constants.SUSPENDING
+}
+
+func (a *Assembly) IsContainer() bool {
+	return strings.Split(a.Tosca, ".")[1] == constants.CONTAINER
+}
+
+func (a *Assembly) IsTopedo() bool {
+	return strings.Split(a.Tosca, ".")[1] == constants.TORPEDO
+}
+func (a *Assembly) Resources(flv *Flavor) map[string]string {
+	box := &provision.Box{}
+	if flv != nil {
+		box.Compute = flv.compute()
+		return a.billaleResource(map[string]string{
+			constants.CPU:         strconv.FormatInt(int64(box.GetCpushare()), 10),
+			constants.RAM:         strconv.FormatInt(int64(box.GetMemory()), 10),
+			constants.STORAGE:     strconv.FormatInt(int64(box.GetHDD()), 10),
+			constants.CPU_COST:    flv.GetCpuCost(),
+			constants.MEMORY_COST: flv.GetMemoryCost(),
+			constants.DISK_COST:   flv.GetHDDCost(),
+		})
+	}
+	return a.resources()
+}
+
+func (a *Assembly) resources() map[string]string {
+	box := &provision.Box{Compute: a.compute()}
+	r := map[string]string{
+		constants.CPU:     strconv.FormatInt(int64(box.GetCpushare()), 10),
+		constants.RAM:     strconv.FormatInt(int64(box.GetMemory()), 10),
+		constants.STORAGE: strconv.FormatInt(int64(box.GetHDD()), 10),
+	}
+	if a.IsContainer() {
+		r[constants.CPU_COST] = a.GetContainerCpuCost()
+		r[constants.MEMORY_COST] = a.GetContainerMemoryCost()
+	} else {
+		r[constants.CPU_COST] = a.GetVMCpuCost()
+		r[constants.MEMORY_COST] = a.GetVMMemoryCost()
+		r[constants.DISK_COST] = a.GetVMHDDCost()
+	}
+	return a.billaleResource(r)
+}
+
+func (a *Assembly) billaleResource(r map[string]string) map[string]string {
+	if a.isStopped() || a.isSuspended() {
+		r[constants.CPU_COST] = "0"
+		r[constants.MEMORY_COST] = "0"
+		r[constants.RESOURCES] = "storage"
+	} else {
+		r[constants.RESOURCES] = "cpu.ram.storage"
+	}
+	return r
 }

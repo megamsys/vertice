@@ -25,7 +25,28 @@ import (
 
 var ErrConnRefused = errors.New("connection refused")
 
-func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string) (string, string, string, error) {
+func (c *Cluster) newVM(opts compute.VirtualMachine, throttle, storage string) (compute.VirtualMachine, string, error) {
+	var addr string
+	nodlist, err := c.Nodes()
+
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == opts.Region {
+			addr = v.Address
+			opts.Vnets, opts.ClusterId, err = c.getVnets(v, opts.Vnets, opts.Region, storage)
+			if err != nil {
+				return opts, addr, err
+			}
+			if v.Metadata[api.VCPU_PERCENTAGE] != "" {
+				opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
+			} else {
+				opts.Cpu = cpuThrottle(throttle, opts.Cpu)
+			}
+		}
+	}
+	return opts, addr, nil
+}
+
+func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string, nics []*template.NIC) (string, string, string, error) {
 
 	var (
 		addr    string
@@ -36,28 +57,12 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
 
-		nodlist, err := c.Nodes()
-
-		for _, v := range nodlist {
-			if v.Metadata[api.ONEZONE] == opts.Region {
-				addr = v.Address
-				opts.Vnets, opts.ClusterId, err = c.getVnets(v, opts.Vnets, opts.Region, storage)
-				if err != nil {
-					return addr, machine, vmid, err
-				}
-				if v.Metadata[api.VCPU_PERCENTAGE] != "" {
-					opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
-				} else {
-					opts.Cpu = cpuThrottle(throttle, opts.Cpu)
-				}
-			}
-		}
-
+		opts, addr, err := c.newVM(opts, throttle, storage)
 		if addr == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+opts.Region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {
-			machine, vmid, err = c.createVMInNode(opts, addr)
+			machine, vmid, err = c.createVMInNode(opts, nics)
 			if err == nil {
 				c.handleNodeSuccess(addr)
 				break
@@ -88,7 +93,7 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 }
 
 //create a vm in a node.
-func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
+func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nics []*template.NIC) (string, string, error) {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return "", "", err
@@ -101,8 +106,14 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	}
 
 	opts.T = node.Client
-
-	res, err := opts.Create()
+	tmp, err := opts.Compute()
+	if err != nil {
+		return "", "", err
+	}
+	if opts.ForceNetwork {
+		tmp.UserTemplate[0].Template.Nic = nics
+	}
+	res, err := opts.Create(tmp)
 	if err != nil {
 		return "", "", err
 	}
@@ -735,21 +746,6 @@ func (c *Cluster) availableNet(v *onenet.VNetPool, names []string, netType strin
 	return "", fmt.Errorf("No IP/MAC available in selected (%s) network", netType)
 }
 
-func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
-	node, err := c.getNodeRegion(region)
-	if err != nil {
-		return nil, err
-	}
-
-	opts := &onenet.VNetPool{T: node.Client}
-	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
-	err = opts.VnetPoolInfos(filter)
-	if err != nil {
-		return nil, err
-	}
-	return opts, err
-}
-
 // "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
 // if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
 // nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":["private-net4","private-net4-a"],"ipv6private":["private-net6","private-net6-a"]}
@@ -781,4 +777,82 @@ func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, region, s
 	}
 
 	return vnets, fmt.Errorf("Unavailable storage (%s) ", st)
+}
+
+func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
+	ids := make([]int, 0)
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+
+	vnets := &onenet.VNetPool{T: node.Client}
+	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
+	err = vnets.VnetPoolInfos(filter)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, vnet := range vnets.Vnets {
+		ids = append(ids, vnet.Id)
+	}
+
+	opts := &onenet.VNETemplate{T: node.Client}
+	nets, err := opts.VnetInfos(ids)
+	if err != nil {
+		return nil, err
+	}
+	vnets.Vnets = nets
+	return vnets, nil
+}
+
+func (c *Cluster) GetIpsNetwork(region string, ips map[string][]string) ([]*template.NIC, error) {
+	res := make([]*template.NIC, 0)
+	vnets, err := c.GetVNets(region)
+	if err != nil {
+		return nil, err
+	}
+
+	nodlist, err := c.Nodes()
+	if err != nil {
+		return nil, err
+	}
+	for _, nodeo := range nodlist {
+		if nodeo.Metadata[api.ONEZONE] == region {
+			for _, cluster := range nodeo.Clusters {
+				for nic_key, names := range cluster {
+
+					if ip, ok := ips[nic_key]; ok {
+						nicIps, err := c.AvailIps(names, ip, vnets)
+						if err != nil {
+							return nil, err
+						}
+						for _, nic := range nicIps {
+							res = append(res, nic)
+						}
+					}
+
+				}
+			}
+		}
+	}
+	return res, nil
+}
+
+func (c *Cluster) AvailIps(names, ips []string, vnets *onenet.VNetPool) ([]*template.NIC, error) {
+	availIp := make([]*template.NIC, 0)
+	for _, nic_name := range names {
+		net, err := vnets.FilletByName(nic_name)
+		if err != nil {
+			return availIp, err
+		}
+		for _, ip := range ips {
+			if net.IsUsed(ip) {
+				return availIp, fmt.Errorf("IP (%s) already allocted", ip)
+			}
+			nic := &template.NIC{Network: nic_name, Network_uname: "oneadmin", IP: ip}
+			availIp = append(availIp, nic)
+		}
+	}
+	return availIp, nil
 }

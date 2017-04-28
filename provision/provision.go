@@ -89,6 +89,7 @@ type GitDeployer interface {
 // previously generated image.
 type ImageDeployer interface {
 	ImageDeploy(b *Box, image string, w io.Writer) (string, error)
+	BackupDeploy(b *Box, image string, w io.Writer) (string, error)
 }
 
 // StateChanger changes the state of a deployed box
