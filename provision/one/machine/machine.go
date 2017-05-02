@@ -118,7 +118,10 @@ func (m *Machine) CreateBackupVM(args *CreateArgs) error {
 	}
 	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
 	for _, nic := range nics {
-		ips[nic] = strings.Split(bk.Outputs.Match(nic), ", ")
+		t := strings.Split(bk.Outputs.Match(nic), ",")
+		if len(t) > 0 {
+			ips[nic] = t
+		}
 	}
 
 	opts, asm, err := m.create(args)
@@ -129,11 +132,8 @@ func (m *Machine) CreateBackupVM(args *CreateArgs) error {
 	res, err := args.Provisioner.Cluster().GetIpsNetwork(m.Region, ips)
 	if err != nil {
 		err = m.SetStatusErr(constants.StatusNetworkUnavail, err)
-		opts.ForceNetwork = false
-	} else {
-		opts.ForceNetwork = true
 	}
-
+	opts.ForceNetwork = true
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType, res)
 	if err != nil {
 		return err
@@ -637,14 +637,6 @@ func (m *Machine) UpdateBackupStatus(status utils.Status) error {
 	return bk.UpdateBackup()
 }
 
-func (m *Machine) UpdateBackupId() error {
-	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
-	if err != nil {
-		return err
-	}
-	return asm.NukeAndSetOutputs(map[string][]string{"backup_id": []string{m.CartonsId}})
-}
-
 func (m *Machine) UpdateBackupVMIps() error {
 	var ips = make(map[string][]string)
 	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
@@ -1085,7 +1077,7 @@ func (m *Machine) UpdatePolicyStatus(index int) error {
 }
 
 func (m *Machine) AttachNetwork(box *provision.Box, p OneProvisioner) error {
-	return p.Cluster().AttachNics(box.PolicyOps.Rules, m.VMId, m.Region, box.StorageType)
+	return p.Cluster().AttachNics(box.PolicyOps, m.VMId, m.Region, box.StorageType)
 }
 
 func (m *Machine) DetachNetwork(box *provision.Box, p OneProvisioner) error {

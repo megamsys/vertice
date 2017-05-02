@@ -943,27 +943,6 @@ var createBackupMachine = action.Action{
 	},
 }
 
-var updateBackupId = action.Action{
-	Name: "update-backup-id-in-assembly",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		mach := ctx.Previous.(machine.Machine)
-		args := ctx.Params[0].(runMachineActionsArgs)
-		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
-		if err := mach.UpdateBackupId(); err != nil {
-			return nil, err
-		}
-		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
-
-		return mach, nil
-	},
-	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
-	},
-	OnError:   rollbackNotice,
-	MinParams: 1,
-}
-
 var updateBackupStatus = action.Action{
 	Name: "update-backup-status",
 	Forward: func(ctx action.FWContext) (action.Result, error) {

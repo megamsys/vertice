@@ -261,63 +261,11 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, back
 
 	actions = append(actions, &updateStatusInScylla, &mileStoneUpdate)
 	if backup {
-		actions = append(actions, &createBackupMachine, &updateBackupId)
+		actions = append(actions, &createBackupMachine)
 	} else {
 		actions = append(actions, &createMachine)
 	}
 	actions = append(actions, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
-
-	pipeline := action.NewPipeline(actions...)
-
-	args := runMachineActionsArgs{
-		box:           box,
-		imageId:       imageId,
-		writer:        w,
-		isDeploy:      true,
-		machineStatus: constants.StatusLaunching,
-		machineState:  constants.StateInitializing,
-		provisioner:   p,
-	}
-
-	err := pipeline.Execute(args)
-	if err != nil {
-		fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("--- deploy pipeline for box (%s, image:%s)\n --> %s", box.GetFullName(), imageId, err)))
-		return "", err
-	}
-
-	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)OK", box.GetFullName(), imageId)))
-	return imageId, nil
-}
-
-//start by validating the image.
-//1. &updateStatus in Scylla - Deploying..
-//2. &create an inmemory machine type from a Box.
-//3. &updateStatus in Scylla - Creating..
-//4. &followLogs by posting it in the queue.
-func (p *oneProvisioner) deployBackupPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
-
-	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
-
-	actions := []*action.Action{&machCreating}
-	if events.IsEnabled(constants.BILLMGR) {
-		if !(len(box.QuotaId) > 0) {
-			actions = append(actions, &checkBalances)
-		} else {
-			actions = append(actions, &checkQuotaState)
-		}
-	}
-
-	actions = append(actions,
-		&updateStatusInScylla,
-		&mileStoneUpdate,
-		&getVmHostIpPort,
-		&mileStoneUpdate,
-		&updateStatusInScylla,
-		&updateVnchostPostInScylla,
-		&updateStatusInScylla,
-		&setFinalStatus,
-		&updateStatusInScylla,
-		&followLogs)
 
 	pipeline := action.NewPipeline(actions...)
 
