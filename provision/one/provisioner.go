@@ -251,7 +251,7 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, back
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 
 	actions := []*action.Action{&machCreating}
-	if events.IsEnabled(constants.BILLMGR) {
+	if events.IsEnabled(constants.BILLMGR) && !strings.Contains(box.Authority, "admin") {
 		if !(len(box.QuotaId) > 0) {
 			actions = append(actions, &checkBalances)
 		} else {

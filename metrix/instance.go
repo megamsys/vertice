@@ -34,10 +34,14 @@ func (i *InstanceHandler) Collect(mc *MetricsCollection) (e error) {
 	if e != nil {
 		return
 	}
+	users, e := i.ReadUsers()
+	if e != nil {
+		return
+	}
 	// error not handled because < 1.5.2 version dont have flavors
 	flvr, e := i.parseFlavors()
 	i.Flavors = flvr
-	instances, e := i.ParseAssemblies(orgs)
+	instances, e := i.ParseAssemblies(orgs, users)
 	if e != nil {
 		return
 	}
@@ -129,33 +133,35 @@ func (i *InstanceHandler) parseFlavors() (map[string]*carton.Flavor, error) {
 	return flavors, nil
 }
 
-func (i *InstanceHandler) ParseAssemblies(orgs []carton.Organization) (map[string][]carton.Assemblies, error) {
+func (i *InstanceHandler) ParseAssemblies(orgs []carton.Organization, users map[string]*carton.Account) (map[string][]carton.Assemblies, error) {
 	assembly := make(map[string]carton.Assembly, 0)
 	one := make([]carton.Assemblies, 0)
 	docker := make([]carton.Assemblies, 0)
 	for _, org := range orgs {
-		asms, e := carton.AssemblyBox(org.AccountId, org.Id)
-		if e != nil {
-			return nil, e
-		}
-		for _, ay := range asms {
-			assembly[ay.Id] = ay
-		}
+		if !users[org.AccountId].IsAdmin() {
+			asms, e := carton.AssemblyBox(org.AccountId, org.Id)
+			if e != nil {
+				return nil, e
+			}
+			for _, ay := range asms {
+				assembly[ay.Id] = ay
+			}
 
-		amies, e := carton.Gets(org.AccountId, org.Id)
-		if e != nil {
-			return nil, e
-		}
-		for _, ays := range amies {
-			asm, ok := assembly[ays.AssemblysId[0]]
-			if ok && asm.IsAlive() {
-				switch true {
-				case asm.IsContainer():
-					ays.Assemblys[asm.Id] = asm
-					one = append(one, ays)
-				case asm.IsContainer():
-					ays.Assemblys[asm.Id] = asm
-					docker = append(docker, ays)
+			amies, e := carton.Gets(org.AccountId, org.Id)
+			if e != nil {
+				return nil, e
+			}
+			for _, ays := range amies {
+				asm, ok := assembly[ays.AssemblysId[0]]
+				if ok && asm.IsAlive() {
+					switch true {
+					case asm.IsContainer():
+						ays.Assemblys[asm.Id] = asm
+						one = append(one, ays)
+					case asm.IsContainer():
+						ays.Assemblys[asm.Id] = asm
+						docker = append(docker, ays)
+					}
 				}
 			}
 		}
@@ -172,4 +178,16 @@ func (i *InstanceHandler) ReadOrgs() ([]carton.Organization, error) {
 		return nil, e
 	}
 	return res, nil
+}
+
+func (i *InstanceHandler) ReadUsers() (map[string]*carton.Account, error) {
+	accounts := make(map[string]*carton.Account, 0)
+	acts, e := new(carton.Account).GetUsers()
+	if e != nil {
+		return accounts, e
+	}
+	for _, a := range acts {
+		accounts[a.Email] = &a
+	}
+	return accounts, nil
 }

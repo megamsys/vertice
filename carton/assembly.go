@@ -198,6 +198,7 @@ func mkCarton(aies, ay, email string) (*Carton, error) {
 		Name:         a.Name,
 		Tosca:        a.Tosca,
 		AccountId:    a.AccountId,
+		Authority:    act.States.Authority,
 		ApiArgs:      args,
 		ImageVersion: a.imageVersion(),
 		DomainName:   a.domain(),

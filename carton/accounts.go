@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/vertice/meta"
+	"strings"
 )
 
 const (
@@ -110,4 +111,8 @@ func (a *Account) GetUsers() ([]Account, error) {
 		return nil, err
 	}
 	return ac.Results, nil
+}
+
+func (a *Account) IsAdmin() bool {
+	return strings.Contains(a.States.Authority, "admin")
 }

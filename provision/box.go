@@ -114,6 +114,7 @@ type BoxDeploy struct {
 type Box struct {
 	Id           string
 	AccountId    string
+	Authority    string
 	CartonsId    string
 	CartonId     string
 	OrgId        string
