@@ -21,6 +21,8 @@ const (
 type Config struct {
 	Enabled         bool          `toml:"enabled"`
 	CollectInterval toml.Duration `toml:"collect_interval"`
+	Deployd         *Deployd      `json:"deployd" toml:"deployd"`
+	Dockerd         *Dockerd      `json:"dockerd" toml:"dockerd"`
 	Snapshots       *Snapshots    `json:"snapshots" toml:"snapshots"`
 	Backups         *Backups      `json:"backups" toml:"backups"`
 	Skews           *Skews        `json:"skews" toml:"skews"`
@@ -36,6 +38,21 @@ type Backups struct {
 	Enabled     bool   `json:"enabled" toml:"enabled"`
 	StorageUnit string `json:"storage_unit" toml:"storage_unit"`
 	CostPerHour string `json:"cost_per_hour" toml:"cost_per_hour"`
+}
+
+type Deployd struct {
+	Enabled bool `json:"enabled" toml:"enabled"`
+	Units
+}
+type Dockerd struct {
+	Enabled bool `json:"enabled" toml:"enabled"`
+	Units
+}
+
+type Units struct {
+	CpuUnit    string `json:"cpu_unit" toml:"cpu_unit"`
+	MemoryUnit string `json:"memory_unit" toml:"memory_unit"`
+	DiskUnit   string `json:"disk_unit" toml:"disk_unit"`
 }
 
 type Skews struct {

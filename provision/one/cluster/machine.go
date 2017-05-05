@@ -17,15 +17,38 @@ import (
 	"github.com/megamsys/opennebula-go/template"
 	"github.com/megamsys/opennebula-go/virtualmachine"
 	onenet "github.com/megamsys/opennebula-go/vnet"
+	"github.com/megamsys/vertice/provision"
 	"net"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
 var ErrConnRefused = errors.New("connection refused")
 
-func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string) (string, string, string, error) {
+func (c *Cluster) newVM(opts compute.VirtualMachine, throttle, storage string) (compute.VirtualMachine, string, error) {
+	var addr string
+	nodlist, err := c.Nodes()
+
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == opts.Region {
+			addr = v.Address
+			opts.Vnets, opts.ClusterId, err = c.getVnets(v, opts.Vnets, opts.Region, storage)
+			if err != nil {
+				return opts, addr, err
+			}
+			if v.Metadata[api.VCPU_PERCENTAGE] != "" {
+				opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
+			} else {
+				opts.Cpu = cpuThrottle(throttle, opts.Cpu)
+			}
+		}
+	}
+	return opts, addr, nil
+}
+
+func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string, nics []*template.NIC) (string, string, string, error) {
 
 	var (
 		addr    string
@@ -36,28 +59,12 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 	maxTries := 5
 	for ; maxTries > 0; maxTries-- {
 
-		nodlist, err := c.Nodes()
-
-		for _, v := range nodlist {
-			if v.Metadata[api.ONEZONE] == opts.Region {
-				addr = v.Address
-				opts.Vnets, opts.ClusterId, err = c.getVnets(v, opts.Vnets, opts.Region, storage)
-				if err != nil {
-					return addr, machine, vmid, err
-				}
-				if v.Metadata[api.VCPU_PERCENTAGE] != "" {
-					opts.Cpu = cpuThrottle(v.Metadata[api.VCPU_PERCENTAGE], opts.Cpu)
-				} else {
-					opts.Cpu = cpuThrottle(throttle, opts.Cpu)
-				}
-			}
-		}
-
+		opts, addr, err := c.newVM(opts, throttle, storage)
 		if addr == "" {
 			return addr, machine, vmid, fmt.Errorf("%s", cmd.Colorfy("Unavailable region ( "+opts.Region+" ) nodes (hint: start or beat it).\n", "red", "", ""))
 		}
 		if err == nil {
-			machine, vmid, err = c.createVMInNode(opts, addr)
+			machine, vmid, err = c.createVMInNode(opts, nics)
 			if err == nil {
 				c.handleNodeSuccess(addr)
 				break
@@ -88,12 +95,12 @@ func (c *Cluster) CreateVM(opts compute.VirtualMachine, throttle, storage string
 }
 
 //create a vm in a node.
-func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string) (string, string, error) {
+func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nics []*template.NIC) (string, string, error) {
 	node, err := c.getNodeRegion(opts.Region)
 	if err != nil {
 		return "", "", err
 	}
-
+	defer node.Client.Client.Close()
 	if opts.ClusterId != "" {
 		opts.TemplateName = node.template
 	} else {
@@ -101,8 +108,15 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nodeAddress string
 	}
 
 	opts.T = node.Client
+	tmp, err := opts.Compute()
+	if err != nil {
+		return "", "", err
+	}
 
-	res, err := opts.Create()
+	if opts.ForceNetwork {
+		tmp.UserTemplate[0].Template.Nic = nics
+	}
+	res, err := opts.Create(tmp)
 	if err != nil {
 		return "", "", err
 	}
@@ -118,6 +132,8 @@ func (c *Cluster) GetVM(opts virtualmachine.Vnc, region string) (*virtualmachine
 	}
 
 	opts.T = node.Client
+	defer node.Client.Client.Close()
+
 	res, err := opts.GetVm()
 	if err != nil {
 		return nil, wrapErrorWithCmd(node, err, "GetVM")
@@ -133,7 +149,7 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Delete()
@@ -153,6 +169,7 @@ func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
 	}
 
 	opts.T = node.Client
+	defer node.Client.Client.Close()
 
 	_, err = opts.RecoverDelete()
 	if err != nil {
@@ -186,7 +203,7 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Resume()
@@ -203,7 +220,7 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Reboot()
@@ -220,7 +237,7 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Poweroff()
@@ -237,7 +254,7 @@ func (c *Cluster) SuspendVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Suspends()
@@ -254,7 +271,7 @@ func (c *Cluster) ForceRestartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RebootHard()
@@ -271,7 +288,7 @@ func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.PoweroffHard()
@@ -293,6 +310,7 @@ func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	res, err := opts.DiskSaveAs()
@@ -308,6 +326,7 @@ func (c *Cluster) RemoveImage(opts compute.Image) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RemoveImage()
@@ -323,6 +342,8 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
+
 	v.T = node.Client
 	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		res, err := v.Show()
@@ -342,6 +363,7 @@ func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, err
 	if err != nil {
 		return "", err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	res, err := opts.CreateSnapshot()
@@ -357,6 +379,7 @@ func (c *Cluster) RemoveSnap(opts snapshot.Snapshot, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.DeleteSnapshot()
@@ -372,6 +395,7 @@ func (c *Cluster) RestoreSnap(opts snapshot.Snapshot, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RevertSnapshot()
@@ -387,6 +411,7 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := v.Show()
@@ -408,7 +433,7 @@ func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
 		return a, err
 	}
 	vd.T = node.Client
-
+	defer node.Client.Client.Close()
 	dsk, err := vd.ListDisk()
 	if err != nil {
 		return a, err
@@ -424,7 +449,7 @@ func (c *Cluster) AttachDisk(v *disk.VmDisk, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	v.T = node.Client
 
 	_, err = v.AttachDisk()
@@ -440,7 +465,7 @@ func (c *Cluster) DetachDisk(v *disk.VmDisk, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	v.T = node.Client
 
 	_, err = v.DetachDisk()
@@ -472,7 +497,7 @@ func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, er
 	if err != nil {
 		return nil, err
 	}
-
+	defer node.Client.Client.Close()
 	ds_id, err := strconv.Atoi(ds)
 	if err != nil {
 		return nil, wrapErrorWithCmd(node, err, "createimage")
@@ -550,7 +575,7 @@ func (c *Cluster) instantiateVMInNode(v *template.TemplateReqs, vmname, region s
 		return "", err
 	}
 	v.T = node.Client
-
+	defer node.Client.Client.Close()
 	res, err := v.Instantiate(vmname)
 	if err != nil {
 		return "", wrapErrorWithCmd(node, err, "InstantiateVM")
@@ -564,7 +589,7 @@ func (c *Cluster) ImagePersistent(opts images.Image, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	_, err = opts.ChPersistent(false)
 	return err
@@ -575,6 +600,7 @@ func (c *Cluster) ImageTypeChange(opts images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	_, err = opts.ChType()
 	return err
@@ -585,6 +611,7 @@ func (c *Cluster) GetImage(opts images.Image, region string) (*images.Image, err
 	if err != nil {
 		return nil, err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	return opts.Show()
 }
@@ -594,6 +621,7 @@ func (c *Cluster) GetTemplate(region string) (*template.UserTemplate, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer node.Client.Client.Close()
 	templateObj := &template.TemplateReqs{TemplateName: node.template, T: node.Client}
 	res, err := templateObj.Get()
 	if err != nil {
@@ -610,38 +638,145 @@ func cpuThrottle(vcpu, cpu string) string {
 	return strconv.FormatFloat(realCPU, 'f', 6, 64)
 }
 
-func (c *Cluster) AttachNics(rules map[string]string, vmid, region, storage string) error {
-	vnets, err := c.getNics(rules, region, storage)
+func (c *Cluster) AttachNics(policy *provision.PolicyOps, vmid, region, storage string) error {
+	vnets, err := c.getNics(policy, region, storage)
 	if err != nil {
 		return err
 	}
 	return c.attachNics(vnets, vmid, region)
 }
 
-func (c *Cluster) attachNics(vnets []string, vmid, region string) error {
+func (c *Cluster) attachNics(vnets []*template.NIC, vmid, region string) error {
 	var failures []error
 	node, err := c.getNodeRegion(region)
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts := virtualmachine.Vnc{VmId: vmid}
+	tmp := &onenet.VNETemplate{}
 	opts.T = node.Client
+	tmp.T = node.Client
+	res, err := opts.GetVm()
+	lcm := res.LcmState
 	for _, vnet := range vnets {
-		err := opts.AttachNic(vnet)
+		_, _ = tmp.VnetRelease(vnet.Id, vnet.IP)
+		err = opts.AttachNic(vnet.Network, vnet.IP)
+		if err != nil {
+			failures = append(failures, err)
+			log.Debugf("  failed to attach nic (%s)", err)
+			return err
+		}
 		err = safe.WaitCondition(1*time.Minute, 5*time.Second, func() (bool, error) {
 			res, err := opts.GetVm()
 			if err != nil {
 				return false, err
 			}
-			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == int(virtualmachine.RUNNING)), nil
+			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == lcm), nil
 		})
-		if err != nil {
-			failures = append(failures, err)
-			log.Debugf("  failed to attach nic (%s)", err)
-		}
 	}
 	return nil
+}
+
+func (c *Cluster) getNics(policy *provision.PolicyOps, region, storage string) ([]*template.NIC, error) {
+	vnets := make([]*template.NIC, 0)
+	nets, err := c.GetVNetPool(region)
+	if err != nil {
+		return vnets, err
+	}
+	nodlist, err := c.Nodes()
+	if err != nil {
+		return vnets, err
+	}
+	for _, v := range nodlist {
+		if v.Metadata[api.ONEZONE] == region {
+			if len(policy.Properties) > 0 {
+				vnets, err = c.matchRulesAndProperties(v, policy, nets, region, storage)
+			} else {
+				vnets, err = c.netAttachPolicy(v, policy, nets, region, storage)
+			}
+			if err != nil {
+				return vnets, err
+			}
+		}
+	}
+
+	if len(vnets) == 0 {
+		return vnets, fmt.Errorf("no networks available in this region (%s)", region)
+	}
+
+	return vnets, nil
+}
+
+// check rules ip count and property ips are match or not
+// if ignore_match is true, it will add new ip for rules count
+func (c *Cluster) matchRulesAndProperties(nodeo Node, policy *provision.PolicyOps, vnets *onenet.VNetPool, region, st string) ([]*template.NIC, error) {
+	availNet := make([]*template.NIC, 0)
+	ips := make([]string, 0)
+	for id, cluster := range nodeo.Clusters {
+		if cluster[constants.STORAGE_TYPE][0] == st && !c.isVOne(cluster[constants.VONE_CLOUD]) {
+			for nic_key, names := range nodeo.Clusters[id] {
+				if count, ok := policy.Rules[nic_key]; ok {
+					count, _ := strconv.Atoi(count)
+					ips = strings.Split(policy.Properties[nic_key], ",")
+					if len(ips) > 0 && count >= len(ips) {
+						nicIps, err := c.AvailIps(names, ips, vnets, region)
+						if err != nil {
+							return nil, err
+						}
+
+						for _, nic := range nicIps {
+							availNet = append(availNet, nic)
+						}
+						if count > len(ips) {
+							for i := 0; i < count-len(ips); i++ {
+								avail, err := c.availableNet(vnets, names, nic_key)
+								if err != nil {
+									return availNet, err
+								}
+								nic := &template.NIC{Network: avail, Network_uname: "oneadmin"}
+								availNet = append(availNet, nic)
+							}
+						}
+					} else {
+						return nil, fmt.Errorf("Mismatch of rules and properties")
+					}
+				}
+			}
+		}
+
+	}
+	return availNet, nil
+}
+
+// "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
+// if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
+// nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":["private-net4","private-net4-a"],"ipv6private":["private-net6","private-net6-a"]}
+// checks the given no. of network available in network if available all return network_names([]string) otherwise return error
+func (c *Cluster) netAttachPolicy(nodeo Node, policy *provision.PolicyOps, nets *onenet.VNetPool, region, st string) ([]*template.NIC, error) {
+	availNet := make([]*template.NIC, 0)
+	for id, cluster := range nodeo.Clusters {
+		if cluster[constants.STORAGE_TYPE][0] == st && !c.isVOne(cluster[constants.VONE_CLOUD]) {
+			for nic_key, nics := range nodeo.Clusters[id] {
+				if count, ok := policy.Rules[nic_key]; ok {
+					count, _ := strconv.Atoi(count)
+					for i := 0; i < count; i++ {
+						avail, err := c.availableNet(nets, nics, nic_key)
+						if err != nil {
+							return availNet, err
+						}
+						nic := &template.NIC{Network: avail, Network_uname: "oneadmin"}
+						availNet = append(availNet, nic)
+					}
+				}
+			}
+			if len(availNet) > 0 {
+				return availNet, nil
+			}
+		}
+	}
+
+	return availNet, fmt.Errorf("Unavailable storage (%s) ", st)
 }
 
 func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
@@ -650,7 +785,7 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts := virtualmachine.Vnc{VmId: vmid}
 	opts.T = node.Client
 	for _, nid := range net_ids {
@@ -671,35 +806,14 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 	return nil
 }
 
-func (c *Cluster) getNics(rules map[string]string, region, storage string) ([]string, error) {
-	vnets := make([]string, 0)
-	nodlist, err := c.Nodes()
-	if err != nil {
-		return vnets, err
-	}
-	for _, v := range nodlist {
-		if v.Metadata[api.ONEZONE] == region {
-			vnets, err = c.netAttachPolicy(v, rules, region, storage)
-			if err != nil {
-				return vnets, err
-			}
-		}
-	}
-
-	if len(vnets) == 0 {
-		return vnets, fmt.Errorf("no networks available in this region (%s)", region)
-	}
-
-	return vnets, nil
-}
-
 //return vnets and cluster id which is choosen
 func (c *Cluster) getVnets(nodeo Node, m map[string]string, region, st string) (map[string]string, string, error) {
 	res := make(map[string]string)
-	nets, err := c.GetVNets(region)
+	nets, err := c.GetVNetPool(region)
 	if err != nil {
 		return res, "", err
 	}
+
 	for k, v := range nodeo.Clusters {
 		if v[constants.STORAGE_TYPE][0] == st && !c.isVOne(v[constants.VONE_CLOUD]) {
 			for i, j := range nodeo.Clusters[k] {
@@ -736,49 +850,109 @@ func (c *Cluster) availableNet(v *onenet.VNetPool, names []string, netType strin
 }
 
 func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
+	ids := make([]int, 0)
 	node, err := c.getNodeRegion(region)
 	if err != nil {
 		return nil, err
 	}
-
-	opts := &onenet.VNetPool{T: node.Client}
+	defer node.Client.Client.Close()
+	vnets := &onenet.VNetPool{T: node.Client}
 	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
-	err = opts.VnetPoolInfos(filter)
+	err = vnets.VnetPoolInfos(filter)
 	if err != nil {
 		return nil, err
 	}
-	return opts, err
+
+	for _, vnet := range vnets.Vnets {
+		ids = append(ids, vnet.Id)
+	}
+
+	opts := &onenet.VNETemplate{T: node.Client}
+	nets, err := opts.VnetInfos(ids)
+	if err != nil {
+		return nil, err
+	}
+	vnets.Vnets = nets
+	return vnets, nil
 }
 
-// "rules":  [{"key":"ipv4private","value":"4"},{"key":"ipv6private","value":"2"}]
-// if rules has key then store one vnet in nic[key] and  count of vnet in nic_count[key]
-// nodeo.Clusters[Region.ClusterId] has values like map of {"ipv4private":["private-net4","private-net4-a"],"ipv6private":["private-net6","private-net6-a"]}
-// checks the given no. of network available in network if available all return network_names([]string) otherwise return error
-func (c *Cluster) netAttachPolicy(nodeo Node, rules map[string]string, region, st string) ([]string, error) {
-	vnets := make([]string, 0)
-	nets, err := c.GetVNets(region)
+func (c *Cluster) GetVNetPool(region string) (*onenet.VNetPool, error) {
+	node, err := c.getNodeRegion(region)
 	if err != nil {
-		return vnets, err
+		return nil, err
 	}
-	for id, cluster := range nodeo.Clusters {
-		if cluster[constants.STORAGE_TYPE][0] == st && !c.isVOne(cluster[constants.VONE_CLOUD]) {
-			for nic_key, nics := range nodeo.Clusters[id] {
-				if count, ok := rules[nic_key]; ok {
-					count, _ := strconv.Atoi(count)
-					for i := 0; i < count; i++ {
-						avail, err := c.availableNet(nets, nics, nic_key)
+	defer node.Client.Client.Close()
+	vnets := &onenet.VNetPool{T: node.Client}
+	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
+	err = vnets.VnetPoolInfos(filter)
+	if err != nil {
+		return nil, err
+	}
+	return vnets, nil
+}
+
+func (c *Cluster) GetIpsNetwork(region string, Ips map[string][]string) ([]*template.NIC, error) {
+	res := make([]*template.NIC, 0)
+	vnets, err := c.GetVNets(region)
+	if err != nil {
+		return res, err
+	}
+
+	nodlist, err := c.Nodes()
+	if err != nil {
+		return res, err
+	}
+	for _, nodeo := range nodlist {
+		if nodeo.Metadata[api.ONEZONE] == region {
+			for _, cluster := range nodeo.Clusters {
+				for nic_key, names := range cluster {
+
+					if ips, ok := Ips[nic_key]; ok {
+						nicIps, err := c.AvailIps(names, ips, vnets, region)
 						if err != nil {
-							return vnets, err
+							return res, err
 						}
-						vnets = append(vnets, avail)
+						for _, nic := range nicIps {
+							res = append(res, nic)
+						}
 					}
+
 				}
-			}
-			if len(vnets) > 0 {
-				return vnets, nil
 			}
 		}
 	}
+	return res, nil
+}
 
-	return vnets, fmt.Errorf("Unavailable storage (%s) ", st)
+func (c *Cluster) AvailIps(names, ips []string, vnets *onenet.VNetPool, region string) ([]*template.NIC, error) {
+	var ip_find bool
+	availIp := make([]*template.NIC, 0)
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return availIp, err
+	}
+	defer node.Client.Client.Close()
+
+	opts := &onenet.VNETemplate{T: node.Client}
+	for _, ip := range ips {
+		ip_find = false
+		for _, nic_name := range names {
+			net, err := vnets.FilletByName(nic_name)
+			if err != nil {
+				return availIp, err
+			}
+			_, err = opts.VnetHold(net.Id, ip)
+			if err == nil {
+				nic := &template.NIC{Network: nic_name, Network_uname: "oneadmin", IP: ip, Id: net.Id}
+				availIp = append(availIp, nic)
+				ip_find = true
+				break
+			}
+		}
+		if !ip_find {
+			return availIp, fmt.Errorf("IP (%s) Address is not part of the address range or in use.", ip)
+		}
+
+	}
+	return availIp, nil
 }

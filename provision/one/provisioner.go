@@ -74,9 +74,6 @@ type Region struct {
 	Datastore      string    `json:"one_datastore_id" toml:"one_datastore_id"`
 	Certificate    string    `json:"certificate" toml:"certificate"`
 	Clusters       []Cluster `json:"cluster" toml:"cluster"`
-	CpuUnit        string    `json:"cpu_unit" toml:"cpu_unit"`
-	MemoryUnit     string    `json:"memory_unit" toml:"memory_unit"`
-	DiskUnit       string    `json:"disk_unit" toml:"disk_unit"`
 }
 
 type Cluster struct {
@@ -208,7 +205,7 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 		return "", err
 	}
 
-	return p.deployPipeline(box, imageId, w)
+	return p.deployPipeline(box, imageId, false, w)
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
@@ -227,7 +224,21 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 	if !isValid {
 		imageId = p.getBuildImage(box.Repo, box.ImageVersion)
 	}
-	return p.deployPipeline(box, imageId, w)
+	return p.deployPipeline(box, imageId, false, w)
+}
+
+func (p *oneProvisioner) BackupDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
+	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
+
+	isValid, err := isValidBoxImage(box.GetFullName(), imageId)
+	if err != nil {
+		return "", err
+	}
+
+	if !isValid {
+		imageId = p.getBuildImage(box.Repo, box.ImageVersion)
+	}
+	return p.deployPipeline(box, imageId, true, w)
 }
 
 //start by validating the image.
@@ -235,12 +246,12 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 //2. &create an inmemory machine type from a Box.
 //3. &updateStatus in Scylla - Creating..
 //4. &followLogs by posting it in the queue.
-func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {
+func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, backup bool, w io.Writer) (string, error) {
 
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- deploy box (%s, image:%s)", box.GetFullName(), imageId)))
 
 	actions := []*action.Action{&machCreating}
-	if events.IsEnabled(constants.BILLMGR) {
+	if events.IsEnabled(constants.BILLMGR) && !strings.Contains(box.Authority, "admin") {
 		if !(len(box.QuotaId) > 0) {
 			actions = append(actions, &checkBalances)
 		} else {
@@ -248,8 +259,12 @@ func (p *oneProvisioner) deployPipeline(box *provision.Box, imageId string, w io
 		}
 	}
 
-	actions = append(actions, &updateStatusInScylla, &mileStoneUpdate, &createMachine)
-
+	actions = append(actions, &updateStatusInScylla, &mileStoneUpdate)
+	if backup {
+		actions = append(actions, &createBackupMachine)
+	} else {
+		actions = append(actions, &createMachine)
+	}
 	actions = append(actions, &getVmHostIpPort, &mileStoneUpdate, &updateStatusInScylla, &updateVnchostPostInScylla, &updateStatusInScylla, &setFinalStatus, &updateStatusInScylla, &followLogs)
 
 	pipeline := action.NewPipeline(actions...)
@@ -355,6 +370,7 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 		&updateIdInBackupTable,
 		&waitUntillImageReady,
 		&updateBackupStatus,
+		&updateSourceVMIdIps,
 		&updateStatusInScylla,
 	}
 

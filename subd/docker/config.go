@@ -58,24 +58,16 @@ type Config struct {
 func NewConfig() *Config {
 	rg := make([]docker.Region, 0)
 	r := docker.Region{
-		DockerZone:     DefaultDockerZone,
-		SwarmEndPoint:  DefaultSwarmEndpoint,
-		Registry:       DefaultRegistry,
-		CPUPeriod:      toml.Duration(DefaultCPUPeriod),
-		CPUQuota:       toml.Duration(DefaultCPUQuota),
-		CpuCostPerHour: "0.1",
-		RamCostPerHour: "0.1",
-		CpuUnit:        "0.5",
-		MemoryUnit:     "1024",
-		DiskUnit:       "1024",
+		DockerZone:    DefaultDockerZone,
+		SwarmEndPoint: DefaultSwarmEndpoint,
+		Registry:      DefaultRegistry,
+		CPUPeriod:     toml.Duration(DefaultCPUPeriod),
+		CPUQuota:      toml.Duration(DefaultCPUQuota),
 	}
 
 	o := docker.Docker{
 		Enabled: true,
 		Regions: append(rg, r),
-		//	Namespace: DefaultNamespace,
-		//MemSize:   DefaultMemSize,
-		//SwapSize:  DefaultSwapSize,
 	}
 	return &Config{
 		Provider: DefaultProvider,
@@ -94,10 +86,6 @@ func (c Config) String() string {
 	for _, v := range c.Docker.Regions {
 		b.Write([]byte(cluster.DOCKER_ZONE + "\t" + v.DockerZone + "\n"))
 		b.Write([]byte(cluster.DOCKER_SWARM + "\t" + v.SwarmEndPoint + "\n"))
-		//	b.Write([]byte(cluster.DOCKER_GULP + "\t" + c.Docker.Regions[i].DockerGulpPort + "\n"))
-		//b.Write([]byte(cluster.DOCKER_REGISTRY + "\t" + c.Docker.Regions[i].Registry + "\n"))
-		//	b.Write([]byte(docker.DOCKER_MEMSIZE + "       \t" + strconv.Itoa(c.Docker.Regions[i].MemSize) + "\n"))
-		//	b.Write([]byte(docker.DOCKER_SWAPSIZE + "    \t" + strconv.Itoa(c.Docker.Regions[i].SwapSize) + "\n"))
 		b.Write([]byte(cluster.DOCKER_CPUPERIOD + "    \t" + v.CPUPeriod.String() + "\n"))
 		b.Write([]byte(cluster.DOCKER_CPUQUOTA + "    \t" + v.CPUQuota.String() + "\n"))
 		b.Write([]byte("---\n"))

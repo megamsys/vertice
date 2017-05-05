@@ -24,7 +24,7 @@ import (
 const (
 	SENSORSBUCKET           = "sensors"
 	CEPH_STORAGE_SENSOR     = "storage.ceph.buckets"
-	ONE_VM_SENSOR           = "compute.instance.exists"
+	ONE_VM_SENSOR           = "compute.vm.exists"
 	DOCKER_CONTAINER_SENSOR = "compute.container.exists"
 )
 

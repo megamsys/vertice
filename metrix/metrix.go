@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+type Handler interface {
+}
+
 type Metrix struct {
 	Collectors map[string]*MetricCollector
 }

@@ -75,13 +75,7 @@ func (s *Service) runMetricsCollectors() error {
 	skews[constants.HARD_GRACEPERIOD] = s.Config.Skews.HardGracePeriod.String()
 	metrix.MetricsInterval = time.Duration(s.Config.CollectInterval)
 
-	if s.Deployd.One.Enabled {
-		s.onedCollectors(output, skews)
-	}
-
-	if s.Dockerd.Docker.Enabled {
-		s.dockerCollectors(output, skews)
-	}
+	s.asmCollectors(output, skews)
 
 	if s.Storage.Enabled {
 		s.storageCollectors(output, skews)
@@ -109,44 +103,21 @@ func (s *Service) Close() error {
 // Err returns a channel for fatal errors that occur on the listener.
 func (s *Service) Err() <-chan error { return s.err }
 
-func (s *Service) onedCollectors(output *metrix.OutputHandler, skews map[string]string) {
+func (s *Service) asmCollectors(output *metrix.OutputHandler, skews map[string]string) {
 	// One VirtualMachine Metrics collectors
-	if s.Deployd.One.Enabled {
-		for _, region := range s.Deployd.One.Regions {
-			collectors := map[string]metrix.MetricCollector{
-				metrix.OPENNEBULA: &metrix.OpenNebula{
-					Url:          region.OneEndPoint,
-					Region:       region.OneZone,
-					DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit},
-					SkewsActions: skews,
-				},
-			}
-
-			mh := &metrix.MetricHandler{}
-
-			for _, collector := range collectors {
-				go s.Handler.processCollector(mh, output, collector)
-			}
-		}
+	collectors := map[string]metrix.MetricCollector{
+		metrix.INSTANCE: &metrix.InstanceHandler{
+			VMUnits:        map[string]string{metrix.MEMORY_UNIT: s.Config.Deployd.MemoryUnit, metrix.CPU_UNIT: s.Config.Deployd.CpuUnit, metrix.DISK_UNIT: s.Config.Deployd.DiskUnit},
+			ContainerUnits: map[string]string{metrix.MEMORY_UNIT: s.Config.Dockerd.MemoryUnit, metrix.CPU_UNIT: s.Config.Dockerd.CpuUnit, metrix.DISK_UNIT: s.Config.Dockerd.DiskUnit},
+			SkewsActions:   skews,
+			Dockerd:        s.Dockerd.Docker.Enabled,
+			Deployd:        s.Deployd.One.Enabled,
+		},
 	}
+	mh := &metrix.MetricHandler{}
 
-}
-
-func (s *Service) dockerCollectors(output *metrix.OutputHandler, skews map[string]string) {
-	// Docker container Metrics collectors
-	if s.Dockerd.Docker.Enabled {
-		for _, region := range s.Dockerd.Docker.Regions {
-			collectors := map[string]metrix.MetricCollector{
-				metrix.DOCKER: &metrix.Swarm{Url: region.SwarmEndPoint, DefaultUnits: map[string]string{metrix.MEMORY_UNIT: region.MemoryUnit, metrix.CPU_UNIT: region.CpuUnit, metrix.DISK_UNIT: region.DiskUnit}},
-			}
-
-			mh := &metrix.MetricHandler{}
-
-			for _, collector := range collectors {
-				go s.Handler.processCollector(mh, output, collector)
-			}
-
-		}
+	for _, collector := range collectors {
+		go s.Handler.processCollector(mh, output, collector)
 	}
 }
 

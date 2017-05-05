@@ -5,6 +5,8 @@ import (
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/pairs"
 	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"strings"
 )
@@ -50,8 +52,8 @@ func GetFlavor(email, id string) (*Flavor, error) {
 	return &fs[0], nil
 }
 
-func GetFlavors(email string) ([]Flavor, error) {
-	return new(Flavor).gets(email, "/flavors")
+func GetFlavors() ([]Flavor, error) {
+	return new(Flavor).gets(meta.MC.MasterUser, "/flavors")
 }
 
 func (f *Flavor) gets(email, path string) ([]Flavor, error) {
@@ -101,4 +103,13 @@ func (f *Flavor) GetMemoryCost() string {
 
 func (f *Flavor) GetHDDCost() string {
 	return f.Price.Match(constants.DISK_COST_HOUR)
+}
+
+func (f *Flavor) compute() provision.BoxCompute {
+	return provision.BoxCompute{
+		Cpushare: f.getCpushare(),
+		Memory:   f.getMemory(),
+		Swap:     f.getSwap(),
+		HDD:      f.getHDD(),
+	}
 }

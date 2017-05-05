@@ -7,6 +7,7 @@ import (
 	"github.com/megamsys/libgo/events/alerts"
 	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
+	"strconv"
 	"time"
 )
 
@@ -27,10 +28,15 @@ func mkBalance(s *Sensor, du map[string]string) error {
 	mi := make(map[string]string, 0)
 
 	m := s.Metrics.Totalcost(du)
+	cb, _ := strconv.ParseFloat(m, 64)
+	if cb <= 0 {
+		return nil
+	}
 	mi[constants.ACCOUNTID] = s.AccountId
 	mi[constants.ASSEMBLYID] = s.AssemblyId
 	mi[constants.ASSEMBLIESID] = s.AssembliesId
 	mi[constants.ASSEMBLYNAME] = s.AssemblyName
+	mi[constants.RESOURCES] = s.Resources
 	mi[constants.CONSUMED] = m
 	mi[constants.START_TIME] = s.AuditPeriodBeginning
 	mi[constants.END_TIME] = s.AuditPeriodEnding

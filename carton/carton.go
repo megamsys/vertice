@@ -21,6 +21,7 @@ type Carton struct {
 	Name         string
 	CartonsId    string
 	AccountId    string
+	Authority    string
 	QuotaId      string
 	ApiArgs      api.ApiArgs
 	OrgId        string
@@ -72,6 +73,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			AccountId:    c.AccountId,
 			CartonId:     c.Id,        //We stick the assemlyid here.
 			CartonsId:    c.CartonsId, //assembliesId,
+			Authority:    c.Authority,
 			OrgId:        c.OrgId,
 			ApiArgs:      c.ApiArgs,
 			CartonName:   c.Name,

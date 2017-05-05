@@ -21,6 +21,6 @@ var _ = check.Suite(&S{})
 func (s *S) SetUpSuite(c *check.C) {
 	s.Credentials = api.ApiArgs{
 		Master_Key: "3b8eb672aa7c8db82e5d34a0744740b20ed59e1f6814cfb63364040b0994ee3f",
-		Url:        "http://192.168.0.14:9000/v2",
+		Url:        "http://192.168.0.100:9000/v2",
 	}
 }

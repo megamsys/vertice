@@ -7,7 +7,7 @@ import (
 // Ensure the configuration can be parsed.
 func (s *S) TestParseOpenNebulaCollector(c *check.C) {
 	mh := &MetricHandler{}
-	on := &OpenNebula{RawStatus: s.testxml}
+	on := &InstanceHandler{}
 	all, _ := mh.Collect(on)
 
 	for _, m := range all {

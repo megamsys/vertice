@@ -52,9 +52,6 @@ type Region struct {
 	AdminId         string        `json:"admin_id" toml:"admin_id"`
 	AdminAccess     string        `json:"access_key" toml:"access_key"`
 	AdminSecret     string        `json:"secret_key" toml:"secret_key"`
-	CpuUnit         string        `json:"cpu_unit" toml:"cpu_unit"`
-	MemoryUnit      string        `json:"memory_unit" toml:"memory_unit"`
-	DiskUnit        string        `json:"disk_unit" toml:"disk_unit"`
 }
 
 func (p *rancherProvisioner) Cluster() *cluster.Cluster {
@@ -165,6 +162,10 @@ func (p *rancherProvisioner) ImageDeploy(box *provision.Box, imageId string, w i
 		return "", fmt.Errorf("invalid image for box %s: %s", box.GetFullName(), imageId)
 	}
 	return p.deployPipeline(box, imageId, w)
+}
+
+func (p *rancherProvisioner) BackupDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {
+	return "", nil
 }
 
 func (p *rancherProvisioner) deployPipeline(box *provision.Box, imageId string, w io.Writer) (string, error) {

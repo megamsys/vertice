@@ -1,3 +1,5 @@
+
+=================
 vertice
 =================
 
@@ -9,6 +11,11 @@ vertice is the core engine for Megam Vertice 1.5.x
 >
 [Golang 1.8 > +](http://www.golang.org/dl)
 
+>
+[NSQ 0.3.x](http://nsq.io/deployment/installing.html)
+
+>
+[Cassandra 3 +](https://wiki.apache.org/cassandra/GettingStarted)
 
 ## Usage
 
@@ -45,8 +52,7 @@ We are glad to help if you have questions, or request for new features..
 
 [twitter @megamsys](http://twitter.com/megamsys) [email support@megam.io](<support@megam.io>)
 
-
-
+[devkit] (https://github.com/megamsys/vertice_dev_kit)
 
 # License
 

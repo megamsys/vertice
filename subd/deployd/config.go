@@ -81,9 +81,6 @@ func NewConfig() *Config {
 		OnePassword:    DefaultOnePassword,
 		OneTemplate:    DefaultOneCluster,
 		Datastore:      "1",
-		MemoryUnit:     "1024",
-		CpuUnit:        "1",
-		DiskUnit:       "10240",
 		Certificate:    "/var/lib/megam/vertice/id_rsa.pub",
 		Image:          DefaultImage,
 		VCPUPercentage: "",
@@ -119,7 +116,6 @@ func (c Config) String() string {
 		b.Write([]byte(api.TEMPLATE + "\t" + v.OneTemplate + "\n"))
 		b.Write([]byte(api.IMAGE + "    \t" + v.Image + "\n"))
 		b.Write([]byte(api.VCPU_PERCENTAGE + "\t" + v.VCPUPercentage + "\n"))
-		b.Write([]byte("Resource Basic Units :\n\t\t Memory: " + v.MemoryUnit + "\tCpu: " + v.CpuUnit + "\tStorage: " + v.DiskUnit + "\n"))
 		for _, k := range v.Clusters {
 			if k.Enabled {
 				b.Write([]byte(api.CLUSTER + "\t" + k.ClusterId + "  storage type" + k.StorageType + "\n"))
