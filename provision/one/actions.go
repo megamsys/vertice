@@ -103,7 +103,15 @@ var updateStatusInScylla = action.Action{
 		if w == nil {
 			w = ioutil.Discard
 		}
-		c.SetStatusErr(constants.StatusPreError, ctx.CauseOf)
+		var status constants.Status
+		if args.isDeploy {
+			status = constants.StatusPreError
+			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE)
+		} else {
+			status = constants.StatusError
+		}
+
+		c.SetStatusErr(status, ctx.CauseOf)
 	},
 }
 

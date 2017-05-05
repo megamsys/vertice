@@ -112,10 +112,15 @@ func (m *Machine) Create(args *CreateArgs) error {
 
 func (m *Machine) CreateBackupVM(args *CreateArgs) error {
 	var ips = make(map[string][]string)
-	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	asm, err := carton.NewAssembly(m.CartonId, m.AccountId, "")
 	if err != nil {
 		return err
 	}
+	bk, err := carton.GetBackup(asm.Inputs.Match("backup_id"), m.AccountId)
+	if err != nil {
+		return err
+	}
+
 	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
 	for _, nic := range nics {
 		t := strings.Split(bk.Outputs.Match(nic), ",")
@@ -651,7 +656,10 @@ func (m *Machine) UpdateBackupVMIps() error {
 
 	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
 	for _, nic := range nics {
-		ips[nic] = strings.Split(asm.Inputs.Match(nic), ", ")
+		ip := strings.Split(asm.Outputs.Match(nic), ",")
+		if len(ip) > 0 && ip[0] != "" {
+			ips[nic] = ip
+		}
 	}
 	bk.Outputs.NukeAndSet(ips)
 	return bk.UpdateBackup()

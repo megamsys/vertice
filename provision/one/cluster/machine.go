@@ -112,6 +112,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nics []*template.N
 	if err != nil {
 		return "", "", err
 	}
+
 	if opts.ForceNetwork {
 		tmp.UserTemplate[0].Template.Nic = nics
 	}
@@ -639,20 +640,26 @@ func (c *Cluster) attachNics(vnets []*template.NIC, vmid, region string) error {
 	}
 
 	opts := virtualmachine.Vnc{VmId: vmid}
+	tmp := &onenet.VNETemplate{}
 	opts.T = node.Client
+	tmp.T = node.Client
+	res, err := opts.GetVm()
+	lcm := res.LcmState
 	for _, vnet := range vnets {
-		err := opts.AttachNic(vnet.Network, vnet.IP)
+		_, _ = tmp.VnetRelease(vnet.Id, vnet.IP)
+		err = opts.AttachNic(vnet.Network, vnet.IP)
+		if err != nil {
+			failures = append(failures, err)
+			log.Debugf("  failed to attach nic (%s)", err)
+			return err
+		}
 		err = safe.WaitCondition(1*time.Minute, 5*time.Second, func() (bool, error) {
 			res, err := opts.GetVm()
 			if err != nil {
 				return false, err
 			}
-			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == int(virtualmachine.RUNNING)), nil
+			return (res.State == int(virtualmachine.ACTIVE) && res.LcmState == lcm), nil
 		})
-		if err != nil {
-			failures = append(failures, err)
-			log.Debugf("  failed to attach nic (%s)", err)
-		}
 	}
 	return nil
 }
@@ -703,6 +710,7 @@ func (c *Cluster) matchRulesAndProperties(nodeo Node, policy *provision.PolicyOp
 						if err != nil {
 							return nil, err
 						}
+
 						for _, nic := range nicIps {
 							availNet = append(availNet, nic)
 						}
@@ -787,10 +795,11 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 //return vnets and cluster id which is choosen
 func (c *Cluster) getVnets(nodeo Node, m map[string]string, region, st string) (map[string]string, string, error) {
 	res := make(map[string]string)
-	nets, err := c.GetVNets(region)
+	nets, err := c.GetVNetPool(region)
 	if err != nil {
 		return res, "", err
 	}
+
 	for k, v := range nodeo.Clusters {
 		if v[constants.STORAGE_TYPE][0] == st && !c.isVOne(v[constants.VONE_CLOUD]) {
 			for i, j := range nodeo.Clusters[k] {
@@ -853,6 +862,21 @@ func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
 	return vnets, nil
 }
 
+func (c *Cluster) GetVNetPool(region string) (*onenet.VNetPool, error) {
+	node, err := c.getNodeRegion(region)
+	if err != nil {
+		return nil, err
+	}
+
+	vnets := &onenet.VNetPool{T: node.Client}
+	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
+	err = vnets.VnetPoolInfos(filter)
+	if err != nil {
+		return nil, err
+	}
+	return vnets, nil
+}
+
 func (c *Cluster) GetIpsNetwork(region string, Ips map[string][]string) ([]*template.NIC, error) {
 	res := make([]*template.NIC, 0)
 	vnets, err := c.GetVNets(region)
@@ -903,7 +927,7 @@ func (c *Cluster) AvailIps(names, ips []string, vnets *onenet.VNetPool, region s
 			}
 			_, err = opts.VnetHold(net.Id, ip)
 			if err == nil {
-				nic := &template.NIC{Network: nic_name, Network_uname: "oneadmin", IP: ip}
+				nic := &template.NIC{Network: nic_name, Network_uname: "oneadmin", IP: ip, Id: net.Id}
 				availIp = append(availIp, nic)
 				ip_find = true
 				break

@@ -205,7 +205,7 @@ func (p *oneProvisioner) GitDeploy(box *provision.Box, w io.Writer) (string, err
 		return "", err
 	}
 
-	return p.deployPipeline(box, imageId, true, w)
+	return p.deployPipeline(box, imageId, false, w)
 }
 
 func (p *oneProvisioner) gitDeploy(re *repository.Repo, version string, w io.Writer) (string, error) {
@@ -224,7 +224,7 @@ func (p *oneProvisioner) ImageDeploy(box *provision.Box, imageId string, w io.Wr
 	if !isValid {
 		imageId = p.getBuildImage(box.Repo, box.ImageVersion)
 	}
-	return p.deployPipeline(box, imageId, true, w)
+	return p.deployPipeline(box, imageId, false, w)
 }
 
 func (p *oneProvisioner) BackupDeploy(box *provision.Box, imageId string, w io.Writer) (string, error) {

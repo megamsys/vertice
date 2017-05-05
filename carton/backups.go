@@ -113,7 +113,6 @@ func GetBackup(id, email string) (*Backups, error) {
 		return nil, err
 	}
 	a := &res.Results[0]
-	log.Debugf("Backups %v", a)
 	return a, nil
 }
 
