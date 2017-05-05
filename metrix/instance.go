@@ -152,10 +152,11 @@ func (i *InstanceHandler) ParseAssemblies(orgs []carton.Organization, users map[
 				return nil, e
 			}
 			for _, ays := range amies {
+				ays.Assemblys = make(map[string]carton.Assembly, 0)
 				asm, ok := assembly[ays.AssemblysId[0]]
 				if ok && asm.IsAlive() {
 					switch true {
-					case asm.IsContainer():
+					case asm.IsTopedo():
 						ays.Assemblys[asm.Id] = asm
 						one = append(one, ays)
 					case asm.IsContainer():

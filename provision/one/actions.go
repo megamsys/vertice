@@ -1167,7 +1167,7 @@ var updataPoliciesStatus = action.Action{
 }
 
 var attachNetworks = action.Action{
-	Name: "update-quota-for-vm",
+	Name: "attach-networks",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
@@ -1186,7 +1186,7 @@ var attachNetworks = action.Action{
 }
 
 var detachNetworks = action.Action{
-	Name: "update-quota-for-vm",
+	Name: "detach-networks",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
 		mach := ctx.Previous.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)

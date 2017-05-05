@@ -100,7 +100,7 @@ func (c *Cluster) createVMInNode(opts compute.VirtualMachine, nics []*template.N
 	if err != nil {
 		return "", "", err
 	}
-
+	defer node.Client.Client.Close()
 	if opts.ClusterId != "" {
 		opts.TemplateName = node.template
 	} else {
@@ -132,6 +132,8 @@ func (c *Cluster) GetVM(opts virtualmachine.Vnc, region string) (*virtualmachine
 	}
 
 	opts.T = node.Client
+	defer node.Client.Client.Close()
+
 	res, err := opts.GetVm()
 	if err != nil {
 		return nil, wrapErrorWithCmd(node, err, "GetVM")
@@ -147,7 +149,7 @@ func (c *Cluster) DestroyVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Delete()
@@ -167,6 +169,7 @@ func (c *Cluster) ForceDestoryVM(opts compute.VirtualMachine) error {
 	}
 
 	opts.T = node.Client
+	defer node.Client.Client.Close()
 
 	_, err = opts.RecoverDelete()
 	if err != nil {
@@ -200,7 +203,7 @@ func (c *Cluster) StartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Resume()
@@ -217,7 +220,7 @@ func (c *Cluster) RestartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Reboot()
@@ -234,7 +237,7 @@ func (c *Cluster) StopVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Poweroff()
@@ -251,7 +254,7 @@ func (c *Cluster) SuspendVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.Suspends()
@@ -268,7 +271,7 @@ func (c *Cluster) ForceRestartVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RebootHard()
@@ -285,7 +288,7 @@ func (c *Cluster) ForceStopVM(opts compute.VirtualMachine) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.PoweroffHard()
@@ -307,6 +310,7 @@ func (c *Cluster) SaveDiskImage(opts compute.Image) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	res, err := opts.DiskSaveAs()
@@ -322,6 +326,7 @@ func (c *Cluster) RemoveImage(opts compute.Image) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RemoveImage()
@@ -337,6 +342,8 @@ func (c *Cluster) IsImageReady(v *images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
+
 	v.T = node.Client
 	err = safe.WaitCondition(30*time.Minute, 20*time.Second, func() (bool, error) {
 		res, err := v.Show()
@@ -356,6 +363,7 @@ func (c *Cluster) SnapVMDisk(opts snapshot.Snapshot, region string) (string, err
 	if err != nil {
 		return "", err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	res, err := opts.CreateSnapshot()
@@ -371,6 +379,7 @@ func (c *Cluster) RemoveSnap(opts snapshot.Snapshot, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.DeleteSnapshot()
@@ -386,6 +395,7 @@ func (c *Cluster) RestoreSnap(opts snapshot.Snapshot, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 
 	_, err = opts.RevertSnapshot()
@@ -401,6 +411,7 @@ func (c *Cluster) IsSnapReady(v *images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	v.T = node.Client
 	err = safe.WaitCondition(10*time.Minute, 10*time.Second, func() (bool, error) {
 		res, err := v.Show()
@@ -422,7 +433,7 @@ func (c *Cluster) GetDiskId(vd *disk.VmDisk, region string) ([]int, error) {
 		return a, err
 	}
 	vd.T = node.Client
-
+	defer node.Client.Client.Close()
 	dsk, err := vd.ListDisk()
 	if err != nil {
 		return a, err
@@ -438,7 +449,7 @@ func (c *Cluster) AttachDisk(v *disk.VmDisk, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	v.T = node.Client
 
 	_, err = v.AttachDisk()
@@ -454,7 +465,7 @@ func (c *Cluster) DetachDisk(v *disk.VmDisk, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	v.T = node.Client
 
 	_, err = v.DetachDisk()
@@ -486,7 +497,7 @@ func (c *Cluster) ImageCreate(opts images.Image, region string) (interface{}, er
 	if err != nil {
 		return nil, err
 	}
-
+	defer node.Client.Client.Close()
 	ds_id, err := strconv.Atoi(ds)
 	if err != nil {
 		return nil, wrapErrorWithCmd(node, err, "createimage")
@@ -564,7 +575,7 @@ func (c *Cluster) instantiateVMInNode(v *template.TemplateReqs, vmname, region s
 		return "", err
 	}
 	v.T = node.Client
-
+	defer node.Client.Client.Close()
 	res, err := v.Instantiate(vmname)
 	if err != nil {
 		return "", wrapErrorWithCmd(node, err, "InstantiateVM")
@@ -578,7 +589,7 @@ func (c *Cluster) ImagePersistent(opts images.Image, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	_, err = opts.ChPersistent(false)
 	return err
@@ -589,6 +600,7 @@ func (c *Cluster) ImageTypeChange(opts images.Image, region string) error {
 	if err != nil {
 		return err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	_, err = opts.ChType()
 	return err
@@ -599,6 +611,7 @@ func (c *Cluster) GetImage(opts images.Image, region string) (*images.Image, err
 	if err != nil {
 		return nil, err
 	}
+	defer node.Client.Client.Close()
 	opts.T = node.Client
 	return opts.Show()
 }
@@ -608,6 +621,7 @@ func (c *Cluster) GetTemplate(region string) (*template.UserTemplate, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer node.Client.Client.Close()
 	templateObj := &template.TemplateReqs{TemplateName: node.template, T: node.Client}
 	res, err := templateObj.Get()
 	if err != nil {
@@ -638,7 +652,7 @@ func (c *Cluster) attachNics(vnets []*template.NIC, vmid, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts := virtualmachine.Vnc{VmId: vmid}
 	tmp := &onenet.VNETemplate{}
 	opts.T = node.Client
@@ -666,7 +680,7 @@ func (c *Cluster) attachNics(vnets []*template.NIC, vmid, region string) error {
 
 func (c *Cluster) getNics(policy *provision.PolicyOps, region, storage string) ([]*template.NIC, error) {
 	vnets := make([]*template.NIC, 0)
-	nets, err := c.GetVNets(region)
+	nets, err := c.GetVNetPool(region)
 	if err != nil {
 		return vnets, err
 	}
@@ -771,7 +785,7 @@ func (c *Cluster) DetachNics(net_ids []string, vmid, region string) error {
 	if err != nil {
 		return err
 	}
-
+	defer node.Client.Client.Close()
 	opts := virtualmachine.Vnc{VmId: vmid}
 	opts.T = node.Client
 	for _, nid := range net_ids {
@@ -841,7 +855,7 @@ func (c *Cluster) GetVNets(region string) (*onenet.VNetPool, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	defer node.Client.Client.Close()
 	vnets := &onenet.VNetPool{T: node.Client}
 	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
 	err = vnets.VnetPoolInfos(filter)
@@ -867,7 +881,7 @@ func (c *Cluster) GetVNetPool(region string) (*onenet.VNetPool, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	defer node.Client.Client.Close()
 	vnets := &onenet.VNetPool{T: node.Client}
 	filter := -2 // To get all resources use -1 for belonging to the user and any of his groups
 	err = vnets.VnetPoolInfos(filter)
@@ -917,6 +931,8 @@ func (c *Cluster) AvailIps(names, ips []string, vnets *onenet.VNetPool, region s
 	if err != nil {
 		return availIp, err
 	}
+	defer node.Client.Client.Close()
+
 	opts := &onenet.VNETemplate{T: node.Client}
 	for _, ip := range ips {
 		ip_find = false
