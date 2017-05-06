@@ -115,7 +115,8 @@ func get(args api.ApiArgs, ay string) (*Assembly, error) {
 	return a.dig()
 }
 
-func gets(args api.ApiArgs) ([]Assembly, error) {
+// get all records in the assembly table with master credentials
+func (a *Assembly) gets(args api.ApiArgs) ([]Assembly, error) {
 	cl := api.NewClient(args, "/assembly")
 	response, err := cl.Get()
 	if err != nil {
@@ -290,8 +291,8 @@ func NewAssembly(id, email, org string) (*Assembly, error) {
 	return get(args, id)
 }
 
-func AssemblyBox(email, org string) ([]Assembly, error) {
-	return gets(newArgs(email, org))
+func AssemblyBox() ([]Assembly, error) {
+	return new(Assembly).gets(newArgs(meta.MC.MasterUser, ""))
 }
 
 func NewCarton(aies, ay, email string) (*Carton, error) {

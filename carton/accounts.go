@@ -17,22 +17,22 @@ type AccountApi struct {
 }
 
 type AccountsApi struct {
-	JsonClaz string    `json:"json_claz"`
-	Results  []Account `json:"results"`
+	JsonClaz string     `json:"json_claz"`
+	Results  []*Account `json:"results"`
 }
 
 type Account struct {
-	Id           string   `json:"id" cql:"id"`
-	Name         Name     `json:"name" cql:"name"`
-	Phone        Phone    `json:"phone" cql:"phone"`
-	Email        string   `json:"email" cql:"email"`
-	Dates        Dates    `json:"dates" cql:"dates"`
-	ApiKey       string   `json:"api_key" cql:"api_key"`
-	Password     Password `json:"password" cql:"password"`
-	Approval     Approval `json:"approval" cql:"approval"`
-	Suspend      Suspend  `json:"suspend" cql:"suspend"`
-	RegIpAddress string   `json:"registration_ip_address" cql:"registration_ip_address"`
-	States       States   `json:"states" cql:"states"`
+	Id           string    `json:"id" cql:"id"`
+	Name         *Name     `json:"name" cql:"name"`
+	Phone        *Phone    `json:"phone" cql:"phone"`
+	Email        string    `json:"email" cql:"email"`
+	Dates        *Dates    `json:"dates" cql:"dates"`
+	ApiKey       string    `json:"api_key" cql:"api_key"`
+	Password     *Password `json:"password" cql:"password"`
+	Approval     *Approval `json:"approval" cql:"approval"`
+	Suspend      *Suspend  `json:"suspend" cql:"suspend"`
+	RegIpAddress string    `json:"registration_ip_address" cql:"registration_ip_address"`
+	States       *States   `json:"states" cql:"states"`
 }
 
 type Name struct {
@@ -97,7 +97,7 @@ func (a *Account) get(args api.ApiArgs) (*Account, error) {
 	return &ac.Results, nil
 }
 
-func (a *Account) GetUsers() ([]Account, error) {
+func (a *Account) GetUsers() ([]*Account, error) {
 	args := newArgs(meta.MC.MasterUser, "")
 	cl := api.NewClient(args, "/admin/accounts")
 	response, err := cl.Get()
@@ -114,5 +114,8 @@ func (a *Account) GetUsers() ([]Account, error) {
 }
 
 func (a *Account) IsAdmin() bool {
-	return strings.Contains(a.States.Authority, "admin")
+	if a.States != nil {
+		return strings.Contains(a.States.Authority, "admin")
+	}
+	return false
 }

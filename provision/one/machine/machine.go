@@ -598,7 +598,7 @@ func (m *Machine) MakeActiveSnapshot() error {
 		return err
 	}
 	for _, v := range snaps {
-		if v.SnapId != m.ImageId { // && v.Status == constants.ACTIVESNAP
+		if v.SnapId != m.ImageId && v.Status == constants.ACTIVESNAP {
 			v.Status = constants.DEACTIVESNAP
 			err = v.UpdateSnap()
 			if err != nil {

@@ -17,6 +17,12 @@ package carton
 //   c.Assert(nil, check.NotNil)
 // }
 
+// func (s *S) TestGetsAssemblys(c *check.C) {
+//   s.Credentials.Email = "testadmin@megam.io"
+//    _, err := new(Assembly).gets(s.Credentials)
+//   c.Assert(nil, check.NotNil)
+// }
+
 // func (s *S) TestUpdateAssembly(c *check.C)  {
 // s.Credentials.Email = "hello@virtengine.com"
 //  res, err := getAsm(s.Credentials,"ASM6169170943066124675")

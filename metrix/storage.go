@@ -48,7 +48,7 @@ func (rgw *CephRGWStats) Collect(c *MetricsCollection) (e error) {
 	return
 }
 
-func (c *CephRGWStats) ReadUsers() ([]carton.Account, error) {
+func (c *CephRGWStats) ReadUsers() ([]*carton.Account, error) {
 	act := new(carton.Account)
 	res, e := act.GetUsers()
 	if e != nil {
@@ -58,7 +58,7 @@ func (c *CephRGWStats) ReadUsers() ([]carton.Account, error) {
 }
 
 //actually the NewSensor can create trypes based on the event type.
-func (c *CephRGWStats) CollectMetricsFromStats(mc *MetricsCollection, acts []carton.Account) {
+func (c *CephRGWStats) CollectMetricsFromStats(mc *MetricsCollection, acts []*carton.Account) {
 	for _, a := range acts {
 		r := storage.NewRgW(c.Url, c.AccessKey, c.SecretKey)
 		r.UserId = a.Email

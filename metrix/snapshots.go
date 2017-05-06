@@ -38,7 +38,7 @@ func (s *Snapshots) Collect(c *MetricsCollection) (e error) {
 	return
 }
 
-func (c *Snapshots) ReadUsers() ([]carton.Account, error) {
+func (c *Snapshots) ReadUsers() ([]*carton.Account, error) {
 	act := new(carton.Account)
 	res, e := act.GetUsers()
 	if e != nil {
@@ -50,13 +50,14 @@ func (c *Snapshots) ReadUsers() ([]carton.Account, error) {
 //actually the NewSensor can create trypes based on the event type.
 func (c *Snapshots) CollectMetricsFromStats(mc *MetricsCollection, snps []carton.Snaps) {
 	for _, a := range snps {
-		if !a.IsQuota() {
+		if !a.IsQuota() && a.IsAlive() {
 			sc := NewSensor(SNAPSHOT_SENSOR)
 			sc.AccountId = a.AccountId
 			sc.AssemblyId = a.AssemblyId
 			sc.System = c.Prefix()
 			sc.Node = ""
-			sc.AssemblyName = a.Id
+			sc.AssemblyName = a.Name
+			sc.AssembliesId = a.Id
 			sc.Source = c.Prefix()
 			sc.Message = "snapshot billing"
 			sc.Status = "health-ok"
