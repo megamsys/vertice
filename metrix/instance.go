@@ -34,6 +34,7 @@ func (i *InstanceHandler) Collect(mc *MetricsCollection) (e error) {
 	if e != nil {
 		return
 	}
+
 	users, e := i.ReadUsers()
 	if e != nil {
 		return
@@ -137,34 +138,39 @@ func (i *InstanceHandler) ParseAssemblies(orgs []carton.Organization, users map[
 	assembly := make(map[string]carton.Assembly, 0)
 	one := make([]carton.Assemblies, 0)
 	docker := make([]carton.Assemblies, 0)
-	for _, org := range orgs {
-		if !users[org.AccountId].IsAdmin() {
-			asms, e := carton.AssemblyBox(org.AccountId, org.Id)
-			if e != nil {
-				return nil, e
-			}
-			for _, ay := range asms {
-				assembly[ay.Id] = ay
-			}
+	asms, e := carton.AssemblyBox()
+	if e != nil {
+		log.Debugf("%v ", e)
+		return nil, e
+	}
+	for _, ay := range asms {
+		assembly[ay.Id] = ay
+	}
 
+	for _, org := range orgs {
+		usr, ok := users[org.AccountId]
+		if ok && !usr.IsAdmin() {
 			amies, e := carton.Gets(org.AccountId, org.Id)
 			if e != nil {
-				return nil, e
-			}
-			for _, ays := range amies {
-				ays.Assemblys = make(map[string]carton.Assembly, 0)
-				asm, ok := assembly[ays.AssemblysId[0]]
-				if ok && asm.IsAlive() {
-					switch true {
-					case asm.IsTopedo():
-						ays.Assemblys[asm.Id] = asm
-						one = append(one, ays)
-					case asm.IsContainer():
-						ays.Assemblys[asm.Id] = asm
-						docker = append(docker, ays)
+				log.Debugf("%v ", e)
+			} else {
+				for _, ays := range amies {
+					ays.Assemblys = make(map[string]carton.Assembly, 0)
+					asm, ok := assembly[ays.AssemblysId[0]]
+					if ok && asm.IsAlive() {
+						switch true {
+						case asm.IsTopedo():
+							ays.Assemblys[asm.Id] = asm
+							one = append(one, ays)
+						case asm.IsContainer():
+							ays.Assemblys[asm.Id] = asm
+							docker = append(docker, ays)
+						}
 					}
 				}
+				log.Debugf("bill for %s - vms(%v) and containers(%v)", org.AccountId, len(one), len(docker))
 			}
+
 		}
 	}
 	return map[string][]carton.Assemblies{
@@ -174,11 +180,7 @@ func (i *InstanceHandler) ParseAssemblies(orgs []carton.Organization, users map[
 }
 
 func (i *InstanceHandler) ReadOrgs() ([]carton.Organization, error) {
-	res, e := carton.OrgBox()
-	if e != nil {
-		return nil, e
-	}
-	return res, nil
+	return carton.OrgBox()
 }
 
 func (i *InstanceHandler) ReadUsers() (map[string]*carton.Account, error) {
@@ -188,7 +190,7 @@ func (i *InstanceHandler) ReadUsers() (map[string]*carton.Account, error) {
 		return accounts, e
 	}
 	for _, a := range acts {
-		accounts[a.Email] = &a
+		accounts[a.Email] = a
 	}
 	return accounts, nil
 }

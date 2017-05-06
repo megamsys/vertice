@@ -7,6 +7,7 @@ import (
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
+	constants "github.com/megamsys/libgo/utils"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
 	"gopkg.in/yaml.v2"
@@ -240,4 +241,8 @@ func (s *Snaps) QuotaId() string {
 
 func (s *Snaps) IsQuota() bool {
 	return len(s.Inputs.Match("quota_id")) > 0
+}
+
+func (s *Snaps) IsAlive() bool {
+	return s.Status == constants.DEACTIVESNAP || s.Status == constants.ACTIVESNAP
 }

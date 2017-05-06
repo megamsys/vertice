@@ -75,7 +75,9 @@ func (s *Service) runMetricsCollectors() error {
 	skews[constants.HARD_GRACEPERIOD] = s.Config.Skews.HardGracePeriod.String()
 	metrix.MetricsInterval = time.Duration(s.Config.CollectInterval)
 
-	s.asmCollectors(output, skews)
+	if s.Config.Deployd.Enabled || s.Config.Dockerd.Enabled {
+		s.asmCollectors(output, skews)
+	}
 
 	if s.Storage.Enabled {
 		s.storageCollectors(output, skews)
@@ -110,8 +112,8 @@ func (s *Service) asmCollectors(output *metrix.OutputHandler, skews map[string]s
 			VMUnits:        map[string]string{metrix.MEMORY_UNIT: s.Config.Deployd.MemoryUnit, metrix.CPU_UNIT: s.Config.Deployd.CpuUnit, metrix.DISK_UNIT: s.Config.Deployd.DiskUnit},
 			ContainerUnits: map[string]string{metrix.MEMORY_UNIT: s.Config.Dockerd.MemoryUnit, metrix.CPU_UNIT: s.Config.Dockerd.CpuUnit, metrix.DISK_UNIT: s.Config.Dockerd.DiskUnit},
 			SkewsActions:   skews,
-			Dockerd:        s.Dockerd.Docker.Enabled,
-			Deployd:        s.Deployd.One.Enabled,
+			Dockerd:        s.Config.Dockerd.Enabled,
+			Deployd:        s.Config.Deployd.Enabled,
 		},
 	}
 	mh := &metrix.MetricHandler{}

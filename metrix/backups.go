@@ -1,6 +1,7 @@
 package metrix
 
 import (
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/vertice/carton"
 	"time"
 )
@@ -38,7 +39,7 @@ func (s *Backups) Collect(c *MetricsCollection) (e error) {
 	return
 }
 
-func (c *Backups) ReadUsers() ([]carton.Account, error) {
+func (c *Backups) ReadUsers() ([]*carton.Account, error) {
 	act := new(carton.Account)
 	res, e := act.GetUsers()
 	if e != nil {
@@ -55,7 +56,8 @@ func (c *Backups) CollectMetricsFromStats(mc *MetricsCollection, bks []carton.Ba
 		sc.AssemblyId = a.AssemblyId
 		sc.System = c.Prefix()
 		sc.Node = ""
-		sc.AssemblyName = a.Id
+		sc.AssemblyName = a.Name
+		sc.AssembliesId = a.Id
 		sc.Source = c.Prefix()
 		sc.Message = "backups billing"
 		sc.Status = "health-ok"
@@ -64,7 +66,9 @@ func (c *Backups) CollectMetricsFromStats(mc *MetricsCollection, bks []carton.Ba
 		sc.AuditPeriodDelta = ""
 		sc.addMetric(STORAGE_COST, c.DefaultUnits[STORAGE_COST_PER_HOUR], a.Sizeof(), "delta")
 		sc.CreatedAt = time.Now()
-		mc.Add(sc)
+		if a.Status == constants.IMAGE_READY {
+			mc.Add(sc)
+		}
 	}
 
 	return
