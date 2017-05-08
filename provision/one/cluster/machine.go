@@ -906,8 +906,7 @@ func (c *Cluster) GetIpsNetwork(region string, Ips map[string][]string) ([]*temp
 		if nodeo.Metadata[api.ONEZONE] == region {
 			for _, cluster := range nodeo.Clusters {
 				for nic_key, names := range cluster {
-
-					if ips, ok := Ips[nic_key]; ok {
+					if ips, ok := Ips[nic_key]; ok && len(ips) > 0 {
 						nicIps, err := c.AvailIps(names, ips, vnets, region)
 						if err != nil {
 							return res, err
@@ -916,7 +915,6 @@ func (c *Cluster) GetIpsNetwork(region string, Ips map[string][]string) ([]*temp
 							res = append(res, nic)
 						}
 					}
-
 				}
 			}
 		}
@@ -946,6 +944,7 @@ func (c *Cluster) AvailIps(names, ips []string, vnets *onenet.VNetPool, region s
 				nic := &template.NIC{Network: nic_name, Network_uname: "oneadmin", IP: ip, Id: net.Id}
 				availIp = append(availIp, nic)
 				ip_find = true
+				_, err = opts.VnetRelease(net.Id, ip)
 				break
 			}
 		}

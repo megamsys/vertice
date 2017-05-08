@@ -123,9 +123,11 @@ func (m *Machine) CreateBackupVM(args *CreateArgs) error {
 
 	nics := []string{constants.PUBLICIPV4, constants.PRIVATEIPV4, constants.PUBLICIPV6, constants.PRIVATEIPV6}
 	for _, nic := range nics {
-		t := strings.Split(bk.Outputs.Match(nic), ",")
-		if len(t) > 0 {
-			ips[nic] = t
+		if ip := bk.Outputs.Match(nic); ip != "" {
+			t := strings.Split(ip, ",")
+			if len(t) > 0 {
+				ips[nic] = t
+			}
 		}
 	}
 
@@ -137,8 +139,11 @@ func (m *Machine) CreateBackupVM(args *CreateArgs) error {
 	res, err := args.Provisioner.Cluster().GetIpsNetwork(m.Region, ips)
 	if err != nil {
 		err = m.SetStatusErr(constants.StatusNetworkUnavail, err)
+		opts.ForceNetwork = false
+	} else {
+		opts.ForceNetwork = true
 	}
-	opts.ForceNetwork = true
+
 	_, _, vmid, err := args.Provisioner.Cluster().CreateVM(opts, m.VCPUThrottle, m.StorageType, res)
 	if err != nil {
 		return err
@@ -165,8 +170,9 @@ func (m *Machine) CheckCredits(b *provision.Box, w io.Writer) error {
 	}
 
 	if i <= 0 {
-		carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND)
-		log.Debugf(" credit balance insufficient for the user (%s)", b.AccountId)
+		msg := fmt.Sprintf("quota payment pending for the machine (%s) ", b.GetFullName())
+		carton.DoneNotify(b, w, alerts.INSUFFICIENT_FUND, msg)
+		log.Debugf(msg)
 		return fmt.Errorf("credit balance insufficient")
 	}
 
@@ -179,8 +185,9 @@ func (m *Machine) CheckQuotaState(b *provision.Box, w io.Writer) error {
 		return err
 	}
 	if strings.ToLower(quota.Status) != "paid" {
-		carton.DoneNotify(b, w, alerts.QUOTA_UNPAID)
-		log.Debugf(" quota payment overdue for the user (%s)", b.AccountId)
+		msg := fmt.Sprintf("quota payment pending for the machine (%s) ", b.GetFullName())
+		carton.DoneNotify(b, w, alerts.QUOTA_UNPAID, msg)
+		log.Debugf(msg)
 		return fmt.Errorf("quota state unpaid")
 	}
 

@@ -348,12 +348,16 @@ func (a *Assembly) trigger_event(status utils.Status) error {
 	return newEvent.Write()
 }
 
-func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction) error {
+func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction, message string) error {
 	fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("--- done %s box ", box.GetFullName())))
 	mi := make(map[string]string)
 	mi[constants.VERTNAME] = box.GetFullName()
 	mi[constants.VERTTYPE] = box.Tosca
 	mi[constants.EMAIL] = box.AccountId
+	if message != "" {
+		mi[constants.ALERT_MESSAGE] = message
+	}
+
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
@@ -638,7 +642,7 @@ func (a *Assembly) IsAlive() bool {
 }
 
 func (a *Assembly) isPending() bool {
-	return a.State == constants.PREDEPLOY_ERROR || a.State == constants.PARKED
+	return a.State == constants.PREDEPLOY_ERROR || a.State == constants.PARKED || a.State == constants.INITIALIZING
 }
 
 func (a *Assembly) isDestroyed() bool {

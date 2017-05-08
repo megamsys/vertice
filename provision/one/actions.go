@@ -106,7 +106,7 @@ var updateStatusInScylla = action.Action{
 		var status constants.Status
 		if args.isDeploy {
 			status = constants.StatusPreError
-			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE)
+			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE, ctx.CauseOf.Error())
 		} else {
 			status = constants.StatusError
 		}
@@ -772,7 +772,7 @@ var mileStoneUpdate = action.Action{
 		var state constants.State
 		if args.isDeploy {
 			state = constants.StatePreError
-			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE)
+			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE, ctx.CauseOf.Error())
 		} else {
 			state = constants.StateError
 		}
