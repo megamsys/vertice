@@ -23,7 +23,7 @@ func NewHandler(c *Config) *Handler {
 
 func (h *Handler) serveNSQ(e *events.Event, email string) error {
 	if h.isOnboard(e) {
-		e.EventData.M[constants.NILAVU_PASSWORD] = h.decryptBase64(e.EventData.M[constants.NILAVU_PASSWORD])
+		e.EventData.M[constants.NILAVU_PASSWORD] = h.decryptBase64(e.EventData.M[constants.PASSWORD_HASH])
 	}
 	if err := events.W.Write(e); err != nil {
 		return err
