@@ -107,7 +107,7 @@ func (i *InstanceHandler) DeductBill(c *MetricsCollection) (e error) {
 					log.Debugf("quota get error : %s", err.Error())
 				}
 				action = alerts.QUOTA_UNPAID
-				if quota.Status == "paid" {
+				if strings.ToLower(quota.Status) == "paid" {
 					continue
 				}
 				i.SkewsActions[constants.SKEWS_TYPE] = "instance.quota.unpaid"
