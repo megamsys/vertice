@@ -1,9 +1,10 @@
 package eventsd
 
 import (
+	b64 "encoding/base64"
 	"github.com/megamsys/libgo/events"
-	// "github.com/megamsys/libgo/events/alerts"
-	// constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/libgo/events/alerts"
+	constants "github.com/megamsys/libgo/utils"
 	"github.com/megamsys/opennebula-go/api"
 	"github.com/megamsys/opennebula-go/users"
 	"github.com/megamsys/vertice/subd/deployd"
@@ -21,15 +22,22 @@ func NewHandler(c *Config) *Handler {
 }
 
 func (h *Handler) serveNSQ(e *events.Event, email string) error {
-	// if e.EventAction == alerts.ONBOARD && e.EventType == constants.EventUser {
-	//   if err := h.userProviderOnboard(email); err !=nil {
-	//      return err
-	// 	}
-	// }
+	if h.isOnboard(e) {
+		e.EventData.M[constants.NILAVU_PASSWORD] = h.decryptBase64(e.EventData.M[constants.PASSWORD_HASH])
+	}
 	if err := events.W.Write(e); err != nil {
 		return err
 	}
 	return nil
+}
+
+func (m *Handler) isOnboard(e *events.Event) bool {
+	return e.EventAction == alerts.ONBOARD && e.EventType == constants.EventUser
+}
+
+func (m *Handler) decryptBase64(pswd string) string {
+	pwd, _ := b64.StdEncoding.DecodeString(pswd)
+	return string(pwd)
 }
 
 func (h *Handler) userProviderOnboard(email string) error {

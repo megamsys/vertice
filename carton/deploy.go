@@ -148,7 +148,7 @@ func Running(opts *DeployOpts) error {
 		if strings.Contains(opts.B.Tosca, "windows") {
 			return deployer.SetRunning(opts.B, writer)
 		} else {
-			return DoneNotify(opts.B, writer, alerts.RUNNING)
+			return DoneNotify(opts.B, writer, alerts.RUNNING, "")
 		}
 	}
 	return nil

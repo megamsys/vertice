@@ -22,7 +22,8 @@
                                     <td align="center" width="30%"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/error.png"></td>
                                     <td align="left" style="padding: 30px;" >
                                         <h2 style="margin: 30px 0px;"> Failed !</h2>
-                                        <p>Unable to launch application {{.appname}} </p>
+                                        <p>Unable to launch application {{.appname}} </p></br></br>
+                                        <p style="color:red"> {{if .alert_message}} error : {{.alert_message}} {{end}} </p></br></br>
                                         <p>Please contact your administrators to solve this problem</p>
                                       </td>
                                 </tr>
