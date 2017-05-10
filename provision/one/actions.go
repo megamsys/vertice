@@ -769,15 +769,11 @@ var mileStoneUpdate = action.Action{
 		c := ctx.FWResult.(machine.Machine)
 		args := ctx.Params[0].(runMachineActionsArgs)
 		fmt.Fprintf(args.writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf("\n---- State Changing Backward for %s ----", args.box.GetFullName())))
-		var state constants.State
 		if args.isDeploy {
-			state = constants.StatePreError
+			err = c.SetMileStone(constants.StatePreError)
 			_ = carton.DoneNotify(args.box, args.writer, alerts.FAILURE, ctx.CauseOf.Error())
-		} else {
-			state = constants.StateError
 		}
 
-		err = c.SetMileStone(state)
 		if err != nil {
 			log.Errorf("---- [state-change:Backward]\n     %s", err.Error())
 		}
