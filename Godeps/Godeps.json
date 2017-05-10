@@ -361,71 +361,71 @@
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/action",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/api",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/cmd",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/db",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/errors",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/addons",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/alerts",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/events/bills",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/hc",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/io",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/os",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/pairs",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/safe",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/utils",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/utils/obc",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/libgo/writer",
-			"Rev": "24be4bfb61e897e6467e2602974f640c210a4259"
+			"Rev": "fa1aa43be81abb71d62ea4aa1d943d88336cfc69"
 		},
 		{
 			"ImportPath": "github.com/megamsys/opennebula-go/api",
