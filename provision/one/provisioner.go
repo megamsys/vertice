@@ -355,6 +355,13 @@ func (p *oneProvisioner) SetRunning(box *provision.Box, w io.Writer) error {
 }
 
 func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
+	if box.Tosca == constants.BACKUP_NEW {
+		return p.createImage(box, w)
+	}
+	return p.saveImage(box, w)
+}
+
+func (p *oneProvisioner) saveImage(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating backup box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
 		box:           box,
@@ -367,8 +374,8 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 		&machCreating,
 		&updateStatusInScylla,
 		&createBackupImage,
-		&updateIdInBackupTable,
 		&waitUntillImageReady,
+		&updateSourcePath,
 		&updateBackupStatus,
 		&updateSourceVMIdIps,
 		&updateStatusInScylla,
@@ -382,6 +389,34 @@ func (p *oneProvisioner) SaveImage(box *provision.Box, w io.Writer) error {
 	}
 
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating backup box (%s)OK", box.GetFullName())))
+	return nil
+}
+
+func (p *oneProvisioner) createImage(box *provision.Box, w io.Writer) error {
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating new backup box (%s)", box.GetFullName())))
+	args := runMachineActionsArgs{
+		box:           box,
+		writer:        w,
+		machineStatus: constants.StatusBackupCreating,
+		provisioner:   p,
+	}
+
+	actions := []*action.Action{
+		&machCreating,
+		&uploadBackupImage,
+		&waitUntillImageReady,
+		&updateBackupStatus,
+		&updateSourcePath,
+	}
+
+	pipeline := action.NewPipeline(actions...)
+	err := pipeline.Execute(args)
+	if err != nil {
+		fmt.Fprintf(w, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("--- creating new backup box (%s)--> %s", box.GetFullName(), err)))
+		return err
+	}
+
+	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- creating new backup box (%s)OK", box.GetFullName())))
 	return nil
 }
 

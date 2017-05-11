@@ -7,8 +7,10 @@ import (
 	"github.com/megamsys/libgo/api"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/pairs"
+	"github.com/megamsys/libgo/utils"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/meta"
+	"github.com/megamsys/vertice/provision"
 	"gopkg.in/yaml.v2"
 	"io"
 	"strings"
@@ -22,6 +24,7 @@ const (
 	DELETE       = "delete/"
 	ACCOUNTID    = "account_id"
 	ASSEMBLYID   = "asm_id"
+	PUBLIC_URL   = "public_url"
 )
 
 type ApiBackups struct {
@@ -54,7 +57,7 @@ func (s *Backups) String() string {
 }
 
 // ChangeState runs a state increment of a machine or a container.
-func SaveImage(opts *DiskOpts) error {
+func CreateImage(opts *DiskOpts) error {
 	var outBuffer bytes.Buffer
 	start := time.Now()
 	logWriter := lw.LogWriter{Box: opts.B}
@@ -154,18 +157,78 @@ func (s *Backups) RemoveBackup() error {
 //make cartons from backups.
 func (a *Backups) MkCartons() (Cartons, error) {
 	newCs := make(Cartons, 0, 1)
-	if len(strings.TrimSpace(a.AssemblyId)) > 1 {
+	if len(strings.TrimSpace(a.AssemblyId)) > 1 && a.Tosca != utils.BACKUP_NEW {
 		if ca, err := mkCarton(a.Id, a.AssemblyId, a.AccountId); err != nil {
 			return nil, err
 		} else {
 			ca.toBox()                //on success, make a carton2box if BoxLevel is BoxZero
 			newCs = append(newCs, ca) //on success append carton
 		}
+	} else {
+		ca, err := a.mkCarton()
+		if err != nil {
+			return nil, err
+		}
+		ca.toBox()
+		newCs = append(newCs, ca)
 	}
+
 	log.Debugf("Cartons %v", newCs)
 	return newCs, nil
 }
 
+func (a *Backups) mkCarton() (*Carton, error) {
+	act, err := new(Account).get(newArgs(a.AccountId, ""))
+	if err != nil {
+		return nil, err
+	}
+	b := make([]provision.Box, 0, 0)
+	return &Carton{
+		Id:           a.AssemblyId,
+		CartonsId:    a.Id,
+		OrgId:        a.OrgId,
+		Name:         a.Name,
+		Tosca:        a.Tosca,
+		AccountId:    a.AccountId,
+		Authority:    act.States.Authority,
+		ImageVersion: a.imageVersion(),
+		Provider:     a.provider(),
+		Region:       a.region(),
+		ImageName:    a.imageName(),
+		PublicUrl:    a.publicUrl(),
+		Boxes:        &b,
+		Status:       utils.Status(a.Status),
+	}, nil
+}
+
 func (s *Backups) Sizeof() string {
 	return s.Outputs.Match("image_size")
+}
+
+func (b *Backups) region() string {
+	return b.Inputs.Match(REGION)
+}
+
+func (b *Backups) provider() string {
+	p := b.Inputs.Match(utils.PROVIDER)
+	if p != "" {
+		return p
+	}
+	return utils.PROVIDER_ONE
+}
+
+func (b *Backups) imageVersion() string {
+	return b.Inputs.Match(IMAGE_VERSION)
+}
+
+func (b *Backups) publicUrl() string {
+	return b.Inputs.Match(PUBLIC_URL)
+}
+
+func (b *Backups) imageName() string {
+	p := b.Inputs.Match(BACKUPNAME)
+	if p != "" {
+		return p
+	}
+	return b.Name
 }

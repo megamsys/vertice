@@ -26,6 +26,7 @@ import (
 	"github.com/megamsys/libgo/events/alerts"
 	"github.com/megamsys/libgo/utils"
 	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/opennebula-go/images"
 	vm "github.com/megamsys/opennebula-go/virtualmachine"
 	"github.com/megamsys/vertice/carton"
 	lb "github.com/megamsys/vertice/logbox"
@@ -728,6 +729,53 @@ var createBackupImage = action.Action{
 	MinParams: 1,
 }
 
+var uploadBackupImage = action.Action{
+	Name: "upload-rawimage",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		args := ctx.Params[0].(runMachineActionsArgs)
+		mach := ctx.Previous.(machine.Machine)
+		writer := args.writer
+		if writer == nil {
+			writer = ioutil.Discard
+		}
+		err := mach.CreateImage(args.provisioner, images.OPERATING_SYSTEM)
+		if err != nil {
+			return mach, err
+		}
+		mach.Status = constants.StatusCreating
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		mach := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		err := mach.RemoveImage(args.provisioner)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.DESTORYING, lb.ERROR, fmt.Sprintf("  removing err image %s", err.Error())))
+		}
+	},
+}
+
+var updateSourcePath = action.Action{
+	Name: "update-source-path",
+	Forward: func(ctx action.FWContext) (action.Result, error) {
+		mach := ctx.Previous.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		writer := args.writer
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
+		if err := mach.UpdateBackupPath(args.provisioner); err != nil {
+			return nil, err
+		}
+		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
+
+		return mach, nil
+	},
+	Backward: func(ctx action.BWContext) {
+		//do you want to add it back.
+	},
+	OnError:   rollbackNotice,
+	MinParams: 1,
+}
+
 var removeBackup = action.Action{
 	Name: "remove-backup-image",
 	Forward: func(ctx action.FWContext) (action.Result, error) {
@@ -859,27 +907,6 @@ var updateSnapStatus = action.Action{
 		if err != nil {
 			fmt.Fprintf(w, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf("  snapshot create failure update error (%s)   %s", mach.Name, err.Error())))
 		}
-	},
-	OnError:   rollbackNotice,
-	MinParams: 1,
-}
-
-var updateIdInBackupTable = action.Action{
-	Name: "update-backups-table",
-	Forward: func(ctx action.FWContext) (action.Result, error) {
-		mach := ctx.Previous.(machine.Machine)
-		args := ctx.Params[0].(runMachineActionsArgs)
-		writer := args.writer
-		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)", args.box.GetFullName(), constants.LAUNCHED)))
-		if err := mach.UpdateBackup(); err != nil {
-			return nil, err
-		}
-		fmt.Fprintf(writer, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf(" update backups status for machine (%s, %s)OK", args.box.GetFullName(), constants.LAUNCHED)))
-
-		return mach, nil
-	},
-	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,
