@@ -91,10 +91,10 @@ var updateStatusInScylla = action.Action{
 		mach := ctx.Previous.(machine.Machine)
 		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)", args.box.GetFullName(), args.machineStatus.String())))
 		if err := mach.SetStatus(mach.Status); err != nil {
-			return nil, err
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.ERROR, fmt.Sprintf(" fails to update status for machine (%s, %s) %v", args.box.GetFullName(), args.machineStatus.String(), err)))
+		} else {
+			fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
 		}
-		fmt.Fprintf(writer, lb.W(lb.DEPLOY, lb.INFO, fmt.Sprintf(" update status for machine (%s, %s)OK", args.box.GetFullName(), args.machineStatus.String())))
-
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
