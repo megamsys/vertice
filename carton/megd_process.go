@@ -288,7 +288,7 @@ func (s ImageCreateProcess) String() string {
 
 func (s ImageCreateProcess) Process(ca Cartons) error {
 	for _, c := range ca {
-		if err := c.SaveImage(); err != nil {
+		if err := c.CreateImage(); err != nil {
 			return err
 		}
 	}

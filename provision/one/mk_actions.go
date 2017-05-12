@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/megamsys/libgo/action"
 	constants "github.com/megamsys/libgo/utils"
+	"github.com/megamsys/opennebula-go/images"
 	lb "github.com/megamsys/vertice/logbox"
 	"github.com/megamsys/vertice/provision/one/machine"
 	"io/ioutil"
@@ -18,7 +19,7 @@ var createImage = action.Action{
 		if writer == nil {
 			writer = ioutil.Discard
 		}
-		err := mach.CreateImage(args.provisioner)
+		err := mach.CreateImage(args.provisioner, images.CD_ROM)
 		if err != nil {
 			return mach, err
 		}

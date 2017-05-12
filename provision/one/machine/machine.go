@@ -321,6 +321,12 @@ func (m *Machine) mergeSameIPtype(mm map[string][]string) map[string][]string {
 
 func (m *Machine) Remove(p OneProvisioner) error {
 	log.Debugf("  removing machine in one (%s)", m.Name)
+
+	if m.VMId == "" {
+		log.Debugf(" instance_id is empty removing machine in one (%s)", m.Name)
+		return nil
+	}
+
 	id, _ := strconv.Atoi(m.VMId)
 	opts := compute.VirtualMachine{
 		Name:   m.Name,
@@ -489,7 +495,8 @@ func (m *Machine) CreateDiskImage(p OneProvisioner) error {
 		return err
 	}
 	m.ImageId = id
-	return nil
+	bk.ImageId = id
+	return bk.UpdateBackup()
 }
 
 func (m *Machine) CreateDiskSnap(p OneProvisioner) error {
@@ -631,21 +638,33 @@ func (m *Machine) UpdateSnapStatus(status utils.Status) error {
 	return sns.UpdateSnap()
 }
 
-func (m *Machine) UpdateBackup() error {
-	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
-	if err != nil {
-		return err
-	}
-	bk.ImageId = m.ImageId
-	return bk.UpdateBackup()
-}
-
 func (m *Machine) UpdateBackupStatus(status utils.Status) error {
 	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
 	if err != nil {
 		return err
 	}
 	bk.Status = status.String()
+	return bk.UpdateBackup()
+}
+
+func (m *Machine) UpdateBackupPath(p OneProvisioner) error {
+	bk, err := carton.GetBackup(m.CartonsId, m.AccountId)
+	if err != nil {
+		return err
+	}
+	var srcPath = make(map[string][]string)
+	id, _ := strconv.Atoi(m.ImageId)
+	opts := images.Image{
+		Id: id,
+	}
+	res, err := p.Cluster().GetImage(opts, m.Region)
+	if err != nil {
+		return err
+	}
+	srcPath[constants.SOURCE_PATH] = []string{res.Source}
+	srcPath[constants.DATASTORE_ID] = []string{strconv.Itoa(res.DatastoreID)}
+	bk.Outputs.NukeAndSet(srcPath)
+	bk.ImageId = m.ImageId
 	return bk.UpdateBackup()
 }
 
@@ -800,11 +819,11 @@ func (m *Machine) getMarketPlace(id string) (*mk.Marketplaces, error) {
 	return r.Get()
 }
 
-func (m *Machine) CreateImage(p OneProvisioner) error {
+func (m *Machine) CreateImage(p OneProvisioner, img images.ImageType) error {
 	opts := images.Image{
 		Name: m.Name,
 		Path: m.PublicUrl,
-		Type: images.CD_ROM,
+		Type: img,
 	}
 
 	res, err := p.Cluster().ImageCreate(opts, m.Region)

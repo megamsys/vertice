@@ -30,6 +30,7 @@ type Carton struct {
 	ImageName    string
 	StorageType  string
 	Backup       bool
+	PublicUrl    string
 	Compute      provision.BoxCompute
 	SSH          provision.BoxSSH
 	DomainName   string
@@ -87,6 +88,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			Compute:      c.Compute,
 			Provider:     c.Provider,
 			PublicIp:     c.PublicIp,
+			PublicUrl:    c.PublicUrl,
 			InstanceId:   c.InstanceId,
 			PolicyOps:    c.PolicyOps,
 			QuotaId:      c.QuotaId,
@@ -226,11 +228,13 @@ func (c *Carton) Restart(hard bool) error {
 	return nil
 }
 
-// SnapCreate a carton, which creates an image by current state of its box.
-func (c *Carton) SaveImage() error {
+// Backup Create a carton, which creates an image by current state of its box.
+// Create new backup image from public url
+func (c *Carton) CreateImage() error {
 	for _, box := range *c.Boxes {
-		err := SaveImage(&DiskOpts{B: &box})
+		err := CreateImage(&DiskOpts{B: &box})
 		if err != nil {
+			log.Errorf("Unable to save image the box %s", err)
 			return err
 		}
 	}
