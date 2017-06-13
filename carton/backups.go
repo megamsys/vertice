@@ -18,13 +18,13 @@ import (
 )
 
 const (
-	APIBACKUPS   = "/backups/"
-	BACKUPS_SHOW = "/backups/show/"
-	UPDATE       = "update"
-	DELETE       = "delete/"
-	ACCOUNTID    = "account_id"
-	ASSEMBLYID   = "asm_id"
-	PUBLIC_URL   = "public_url"
+	APIBACKUPS        = "/backups/"
+	BACKUPS_SHOW      = "/backups/show/"
+	UPDATE            = "update"
+	DELETE            = "delete/"
+	ACCOUNTID         = "account_id"
+	ASSEMBLYID        = "asm_id"
+	BACKUP_PUBLIC_URL = "backup_public_url"
 )
 
 type ApiBackups struct {
@@ -222,7 +222,7 @@ func (b *Backups) imageVersion() string {
 }
 
 func (b *Backups) publicUrl() string {
-	return b.Inputs.Match(PUBLIC_URL)
+	return b.Inputs.Match(BACKUP_PUBLIC_URL)
 }
 
 func (b *Backups) imageName() string {
