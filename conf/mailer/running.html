@@ -22,7 +22,7 @@
                                     <td align="center" width="30%"><img src="https://s3-ap-southeast-1.amazonaws.com/megampub/images/mailers/check.png"></td>
                                     <td align="left" style="padding: 30px;" >
                                         <h2 style="margin: 30px 0px;">Running !</h2>
-                                        <p>Access {{.appname}} using your SSH private key or Password</p>
+                                        <p>Access {{.appname}} instance using {{if .instance_password}}  root password <font style="color:blue;"> {{.instance_password}} </font> {{else}} your SSH private key <font style="color:blue;"> {{.ssh_key}}   </font> {{end}} </p>
                                       </td>
                                 </tr>
                             </table >

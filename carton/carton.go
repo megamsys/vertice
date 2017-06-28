@@ -90,6 +90,7 @@ func (c *Carton) toBox() error { //assemblies id.
 			PublicIp:     c.PublicIp,
 			PublicUrl:    c.PublicUrl,
 			InstanceId:   c.InstanceId,
+			SSH:          c.SSH,
 			PolicyOps:    c.PolicyOps,
 			QuotaId:      c.QuotaId,
 			Region:       c.Region,

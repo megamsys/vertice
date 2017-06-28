@@ -21,6 +21,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/megamsys/libgo/cmd"
 	"github.com/megamsys/libgo/events/alerts"
+	constants "github.com/megamsys/libgo/utils"
 	lw "github.com/megamsys/libgo/writer"
 	"github.com/megamsys/vertice/provision"
 	"github.com/megamsys/vertice/repository"
@@ -140,16 +141,27 @@ func saveDeployData(opts *DeployOpts, imageId, dlog string, duration time.Durati
 // image based deploy, and then fallback to the Git based deployment.
 func Running(opts *DeployOpts) error {
 	var outBuffer bytes.Buffer
+	var err error
 	logWriter := lw.LogWriter{Box: opts.B}
 	logWriter.Async()
 	defer logWriter.Close()
 	writer := io.MultiWriter(&outBuffer, &logWriter)
 	if deployer, ok := ProvisionerMap[opts.B.Provider].(provision.StateChanger); ok {
 		if strings.Contains(opts.B.Tosca, "windows") {
-			return deployer.SetRunning(opts.B, writer)
+			err = deployer.SetRunning(opts.B, writer)
 		} else {
-			return DoneNotify(opts.B, writer, alerts.RUNNING, "")
+			err = DoneNotify(opts.B, writer, alerts.RUNNING, "")
 		}
+		if err != nil {
+			log.Errorf("WARNING: couldn't update running state: %#v", err)
+		}
+	}
+	if opts.B.SSH.Password != "" {
+		asm, err := NewAssembly(opts.B.CartonId, opts.B.AccountId, opts.B.OrgId)
+		if err != nil {
+			return err
+		}
+		return asm.NukeKeysInputs(constants.ROOT_PASSWORD)
 	}
 	return nil
 }

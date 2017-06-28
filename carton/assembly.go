@@ -16,6 +16,7 @@
 package carton
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
@@ -299,6 +300,15 @@ func NewCarton(aies, ay, email string) (*Carton, error) {
 	return mkCarton(aies, ay, email)
 }
 
+func (a *Assembly) NukeKeysInputs(m string) error {
+	if len(m) > 0 {
+		log.Debugf("nuke keys from inputs in cassandra [%s]", m)
+		a.Inputs.NukeKeys(m) //just nuke the matching output key:
+		return a.update()
+	}
+	return provision.ErrNoOutputsFound
+}
+
 func (a *Assembly) SetStatus(status utils.Status) error {
 	LastStatusUpdate := time.Now().Local().Format(time.RFC822)
 	m := make(map[string][]string, 2)
@@ -357,7 +367,14 @@ func DoneNotify(box *provision.Box, w io.Writer, evtAction alerts.EventAction, m
 	if message != "" {
 		mi[constants.ALERT_MESSAGE] = message
 	}
-
+	if evtAction == alerts.RUNNING {
+		if box.SSH.Password != "" {
+			pwd, _ := b64.StdEncoding.DecodeString(box.SSH.Password)
+			mi[constants.INSTANCE_PASSWORD] = string(pwd)
+		} else {
+			mi[constants.SSH_KEY] = box.SSH.Prefix
+		}
+	}
 	newEvent := events.NewMulti(
 		[]*events.Event{
 			&events.Event{
@@ -506,9 +523,14 @@ func (a *Assembly) compute() provision.BoxCompute {
 
 func (a *Assembly) newSSH() provision.BoxSSH {
 	return provision.BoxSSH{
-		User:   meta.MC.User,
-		Prefix: a.sshkey(),
+		User:     meta.MC.User,
+		Prefix:   a.sshkey(),
+		Password: a.password(),
 	}
+}
+
+func (a *Assembly) password() string {
+	return a.Inputs.Match(constants.ROOT_PASSWORD)
 }
 
 func (a *Assembly) getCpushare() string {
