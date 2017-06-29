@@ -4,6 +4,19 @@ vertice
 
 Vertice is the core engine for Megam Vertice 1.5.x and is open source. 
 
+
+# Roadmap for 2.0
+
+Read the [Deployment design]https://github.com/megamsys/verticedev/blob/master/proposals/01.deployments.md).
+
+## Where is the code for 2.0
+
+We have moved the development to private gitlab as it will have enterprise features.
+
+## When can i get it in my anxious hands
+
+`2.0` will be released on `Sep 30 2017` or less.
+
 `2.0` developed with private enterprise features and is moved to gitlab.
 
 
