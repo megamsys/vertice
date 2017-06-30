@@ -44,7 +44,7 @@ type Backups struct {
 	CreatedAt  string          `json:"created_at" cql:"created_at"`
 	Status     string          `json:"status" cql:"status"`
 	Tosca      string          `json:"tosca_type" cql:"tosca_type"`
-	Labels     []string        `json:"labels" cql:"labels"`
+	Labels     pairs.JsonPairs `json:"labels" cql:"labels"`
 	Inputs     pairs.JsonPairs `json:"inputs" cql:"inputs"`
 	Outputs    pairs.JsonPairs `json:"outputs" cql:"outputs"`
 }
