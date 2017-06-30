@@ -381,7 +381,8 @@ func (s UpdateNetworkProcess) Process(ca Cartons) error {
 
 // UpgradeProcs represents a command for starting  cartons.
 type RunningProcess struct {
-	Name string
+	Name             string
+	InstancePassword string
 }
 
 func (s RunningProcess) String() string {
