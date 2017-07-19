@@ -989,7 +989,15 @@ var updateBackupStatus = action.Action{
 		return mach, nil
 	},
 	Backward: func(ctx action.BWContext) {
-		//do you want to add it back.
+		c := ctx.FWResult.(machine.Machine)
+		args := ctx.Params[0].(runMachineActionsArgs)
+		log.Debugf("create backup backward state : %v", c.Status)
+		c.Status = constants.StatusError
+		err := c.UpdateBackupStatus(c.Status)
+		//	err = asm.Trigger_event(c.Status)
+		if err != nil {
+			fmt.Fprintf(args.writer, lb.W(lb.UPDATING, lb.ERROR, fmt.Sprintf("  status update err backup %s", err.Error())))
+		}
 	},
 	OnError:   rollbackNotice,
 	MinParams: 1,

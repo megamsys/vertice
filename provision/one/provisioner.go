@@ -403,6 +403,7 @@ func (p *oneProvisioner) createImage(box *provision.Box, w io.Writer) error {
 
 	actions := []*action.Action{
 		&machCreating,
+		&updateBackupStatus,
 		&uploadBackupImage,
 		&waitUntillImageReady,
 		&updateBackupStatus,
