@@ -421,6 +421,14 @@ func (p *oneProvisioner) createImage(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
+func (p *oneProvisioner) deleteImage(box *provision.Box, w io.Writer) error {
+
+}
+
+func (p *oneProvisioner) deleteImage(box *provision.Box, w io.Writer) error {
+
+}
+
 func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing backup box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
@@ -429,13 +437,11 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 		machineStatus: constants.StatusBackupDeleting,
 		provisioner:   p,
 	}
-
-	actions := []*action.Action{
-		&machCreating,
-		&updateBackupStatus,
-		&updateStatusInScylla,
-		&removeBackup,
-		&updateStatusInScylla,
+	actions := []*action.Action{&machCreating}
+	if box.Tosca == constants.BACKUP_NEW {
+		actions = append(actions, &updateBackupStatus, &updateStatusInScylla, &removeBackup, &updateStatusInScylla)
+	} else {
+		actions = append(actions, &updateBackupStatus, &removeBackup)
 	}
 
 	pipeline := action.NewPipeline(actions...)

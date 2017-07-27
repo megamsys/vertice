@@ -185,7 +185,6 @@ func (a *Backups) mkCarton() (*Carton, error) {
 	}
 	b := make([]provision.Box, 0, 0)
 	return &Carton{
-		Id:           a.AssemblyId,
 		CartonsId:    a.Id,
 		OrgId:        a.OrgId,
 		Name:         a.Name,
