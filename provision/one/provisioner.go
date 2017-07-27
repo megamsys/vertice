@@ -421,14 +421,6 @@ func (p *oneProvisioner) createImage(box *provision.Box, w io.Writer) error {
 	return nil
 }
 
-func (p *oneProvisioner) deleteImage(box *provision.Box, w io.Writer) error {
-
-}
-
-func (p *oneProvisioner) deleteImage(box *provision.Box, w io.Writer) error {
-
-}
-
 func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	fmt.Fprintf(w, lb.W(lb.UPDATING, lb.INFO, fmt.Sprintf("--- removing backup box (%s)", box.GetFullName())))
 	args := runMachineActionsArgs{
