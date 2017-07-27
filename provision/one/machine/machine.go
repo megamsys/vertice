@@ -731,21 +731,19 @@ func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
-	if bk.ImageId == "" {
-		return nil
+	if bk.ImageId != "" {
+		id, _ := strconv.Atoi(bk.ImageId)
+		log.Debugf("  remove backup image (%s) in one ", m.Name)
+		opts := compute.Image{
+			Name:    bk.Name,
+			Region:  m.Region,
+			ImageId: id,
+		}
+		err = p.Cluster().RemoveImage(opts)
+		if err != nil {
+			return err
+		}
 	}
-	id, _ := strconv.Atoi(bk.ImageId)
-	log.Debugf("  remove backup image (%s) in one ", m.Name)
-	opts := compute.Image{
-		Name:    bk.Name,
-		Region:  m.Region,
-		ImageId: id,
-	}
-	err = p.Cluster().RemoveImage(opts)
-	if err != nil {
-		return err
-	}
-
 	return bk.RemoveBackup()
 }
 
