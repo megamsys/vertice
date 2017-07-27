@@ -80,7 +80,7 @@ _go_test:
 
 _vertice:
 	rm -f vertice
-	go build $(GO_EXTRAFLAGS) -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z) -X main.commit=$(shell cd $$HOME/.go/src/github.com/megamsys/libgo && commit=`git rev-parse HEAD`; echo $$commit)" -o vertice ./cmd/vertice
+	go build $(GO_EXTRAFLAGS) -ldflags="-X main.date=$(shell date +%Y-%m-%d_%H:%M:%S%Z) -X main.commit=$(shell commit=`git rev-parse HEAD`; cd $$HOME/.go/src/github.com/megamsys/libgo && libcommit=`git rev-parse HEAD`; echo $$commit "lib :" $$libcommit)" -o vertice ./cmd/vertice
 
 _verticer:
 	./vertice -v start --config $(MEGAM_HOME)/vertice/vertice.conf
