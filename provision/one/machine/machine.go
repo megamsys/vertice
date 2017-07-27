@@ -731,6 +731,9 @@ func (m *Machine) RemoveBackupImage(p OneProvisioner) error {
 	if err != nil {
 		return err
 	}
+	if bk.ImageId == "" {
+		return nil
+	}
 	id, _ := strconv.Atoi(bk.ImageId)
 	log.Debugf("  remove backup image (%s) in one ", m.Name)
 	opts := compute.Image{
