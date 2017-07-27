@@ -431,9 +431,9 @@ func (p *oneProvisioner) DeleteImage(box *provision.Box, w io.Writer) error {
 	}
 	actions := []*action.Action{&machCreating}
 	if box.Tosca == constants.BACKUP_NEW {
-		actions = append(actions, &updateBackupStatus, &updateStatusInScylla, &removeBackup, &updateStatusInScylla)
-	} else {
 		actions = append(actions, &updateBackupStatus, &removeBackup)
+	} else {
+		actions = append(actions, &updateBackupStatus, &updateStatusInScylla, &removeBackup, &updateStatusInScylla)
 	}
 
 	pipeline := action.NewPipeline(actions...)
