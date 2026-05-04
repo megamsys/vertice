@@ -57,7 +57,7 @@ make
 
 [development documentation] (https://github.com/megamsys/verticedev/tree/master/development)
 
-[documentation] (http://docs.megam.io) for usage.
+[documentation] (https://megam.io) for usage.
 
 
 
